@@ -1,0 +1,53 @@
+# Logs and temp files
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+tmp
+
+# Database backup / local db
+*.sqlite
+backend/database/vian_architects.sqlite
+backend/database/backups/*.json
+
+# Dependency directories
+node_modules/
+jspm_packages/
+
+# Build outputs
+dist/
+build/
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+
+# IDE files
+.idea/
+.vscode/
+*.suo
+*.ntvsot
+*.jsproj
+*.usmdproj
+*.sln
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.iml
+*.ipr
+*.iws
+
+# Operating System Files
+.DS_Store
+Thumbs.db
+
+# Environment variables
+.env
+.env.local
+.env.production
+.env.development
