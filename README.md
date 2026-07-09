@@ -12,18 +12,25 @@ This project provides a robust solution for tracking leads, clients, onboarding 
 vian-erp/
 ├── apps/
 │   ├── flutter_web/        # Unified Flutter frontend codebase (Web, Android, iOS)
-│   └── flutter_mobile/     # Mobile deployment configurations & docs
+│   └── flutter_mobile/     # Mobile deployment configurations & pointer
 ├── backend/
+│   ├── config/             # DB settings
+│   ├── controllers/        # Route controllers
 │   ├── database/           # SQLite / MySQL schema setups, models, and mock/live seeders
+│   ├── middleware/         # Security / JWT middlewares
 │   ├── routes.js           # API route mappings and business action handlers
 │   ├── server.js           # Production server start script, Helmet, CORS, Rate Limiters
+│   ├── services/           # Service connectors (Gemini, Cloudinary)
+│   ├── utils/              # Helper utilities
+│   ├── uploads/            # Local file storage
 │   └── package.json
+├── docs/                   # Deployment guides and environment configurations
+├── .github/                # GitHub Actions CI pipelines
 ├── .env.example
 ├── .gitignore
 ├── LICENSE
-├── CHANGELOG.md
-├── CONTRIBUTING.md
-└── SECURITY.md
+├── README.md
+└── package.json            # Railway deployment proxy configuration
 ```
 
 ---
@@ -33,18 +40,29 @@ vian-erp/
 - **Frontend**: Flutter Web (Material 3 luxury dark/gold aesthetics, Google Fonts Outfit)
 - **Backend**: Node.js + Express
 - **Database**: MySQL (Production) / SQLite (Fallback Developer Mode)
-- **Deployment Targets**: Vercel (Frontend), Railway (Backend)
+- **Deployment Targets**: Netlify (Frontend), Railway (Backend)
 - **Storage**: Cloudinary (Attachments & conceptual design sketches)
 
 ---
 
-## Installation & Setup
+## Documentation Links
+
+For detailed production deployment steps, please refer to our documentation in the `docs` folder:
+
+- 📖 **[Main Deployment Guide](docs/deployment_guide.md)**
+- ⚡ **[Netlify Frontend Deploy Guide](docs/netlify_guide.md)**
+- 🚂 **[Railway Backend Deploy Guide](docs/railway_guide.md)**
+- 🔑 **[Environment Variables Setup](docs/environment_variables.md)**
+
+---
+
+## Installation & Setup (Local Development)
 
 ### Prerequisites
 
-1. Node.js >= 16.x
-2. Flutter SDK >= 3.x
-3. MySQL Server / local database
+1. Node.js >= 18.x
+2. Flutter SDK >= 3.44.x
+3. Local MySQL Server or SQLite
 
 ### Backend Configuration
 
@@ -58,11 +76,11 @@ vian-erp/
    ```
 3. Copy environment configuration:
    ```bash
-   cp ../.env.example .env
+   cp .env.example .env
    ```
 4. Start developer server:
    ```bash
-   npm start
+   npm run dev
    ```
 
 ### Frontend Configuration
@@ -77,18 +95,8 @@ vian-erp/
    ```
 3. Run release compilation for Web:
    ```bash
-   flutter build web
+   flutter build web --release
    ```
-
----
-
-## Production Deployments
-
-### Frontend on Vercel
-Connect your GitHub repository to Vercel, set the root directory to `apps/flutter_web`, and configure output directory to `build/web`.
-
-### Backend on Railway
-Deploy the `backend` folder to Railway, link the MySQL Database Addon, and set environment variables as detailed in `.env.example`.
 
 ---
 

@@ -130,7 +130,7 @@ packages:
     source: hosted
     version: "7.0.1"
   file_picker:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: file_picker
       sha256: f13a03000d942e476bc1ff0a736d2e9de711d2f89a95cd4c1d88f861c3348387
@@ -138,7 +138,7 @@ packages:
     source: hosted
     version: "11.0.2"
   fl_chart:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: fl_chart
       sha256: "00b74ae680df6b1135bdbea00a7d1fc072a9180b7c3f3702e4b19a9943f5ed7d"
@@ -167,7 +167,7 @@ packages:
     source: hosted
     version: "2.0.35"
   flutter_riverpod:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: flutter_riverpod
       sha256: "9532ee6db4a943a1ed8383072a2e3eeda041db5657cdf6d2acecf3c21ecbe7e1"
@@ -193,7 +193,7 @@ packages:
     source: sdk
     version: "0.0.0"
   go_router:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: go_router
       sha256: f02fd7d2a4dc512fec615529824fdd217fecb3a3d3de68360293a551f21634b3
@@ -201,7 +201,7 @@ packages:
     source: hosted
     version: "14.8.1"
   google_fonts:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: google_fonts
       sha256: ba03d03bcaa2f6cb7bd920e3b5027181db75ab524f8891c8bc3aa603885b8055
@@ -217,7 +217,7 @@ packages:
     source: hosted
     version: "2.0.2"
   http:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: http
       sha256: "87721a4a50b19c7f1d49001e51409bddc46303966ce89a65af4f4e6004896412"
@@ -241,7 +241,7 @@ packages:
     source: hosted
     version: "4.8.0"
   intl:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: intl
       sha256: d6f56758b7d3014a48af9701c085700aac781a92a87a62b1333b46d8879661cf
@@ -465,7 +465,7 @@ packages:
     source: hosted
     version: "2.6.1"
   shared_preferences:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: shared_preferences
       sha256: c3025c5534b01739267eb7d76959bbc25a6d10f6988e1c2a3036940133dd10bf
@@ -521,7 +521,7 @@ packages:
     source: hosted
     version: "2.4.1"
   signature:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: signature
       sha256: "8056e091ad59c2eb5735fee975ec649d0caf8ce802bb1ffb1e0955b00a6d0daa"
@@ -629,6 +629,13 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.2.0"
+  vian_erp:
+    dependency: "direct main"
+    description:
+      path: "../flutter_web"
+      relative: true
+    source: path
+    version: "1.0.0+1"
   vm_service:
     dependency: transitive
     description:

@@ -17,7 +17,7 @@ class PickedFileResult {
 
 Future<PickedFileResult?> pickDrawingFile() async {
   try {
-    final result = await FilePicker.platform.pickFiles(
+    final result = await FilePicker.pickFiles(
       type: FileType.any,
     );
     if (result != null && result.files.isNotEmpty) {

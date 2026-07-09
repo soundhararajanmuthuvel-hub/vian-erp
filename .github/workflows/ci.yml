@@ -8,6 +8,7 @@ on:
 
 jobs:
   backend-ci:
+    name: Backend CI (Node.js)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -16,21 +17,22 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-size: '16.x'
+          node-version: '18.x'
           cache: 'npm'
-          cache-dependency-path: backend/package.json
+          cache-dependency-path: backend/package-lock.json
 
       - name: Install Backend Dependencies
         run: |
           cd backend
-          npm install
+          npm ci
 
-      - name: Run Backend Lint / Tests
+      - name: Verify Backend Run
         run: |
           cd backend
-          npm test || echo "Skip tests if not configured"
+          node --check server.js
 
   frontend-ci:
+    name: Frontend CI (Flutter Web & Mobile)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -41,12 +43,30 @@ jobs:
         with:
           channel: 'stable'
 
-      - name: Install Frontend Dependencies
+      - name: Enable Flutter Web
+        run: flutter config --enable-web
+
+      - name: Install Web Dependencies
         run: |
           cd apps/flutter_web
           flutter pub get
 
-      - name: Run Flutter Web Build Release
+      - name: Run Flutter Analyze (Web)
         run: |
           cd apps/flutter_web
-          flutter build web
+          flutter analyze
+
+      - name: Run Flutter Web Build (Release)
+        run: |
+          cd apps/flutter_web
+          flutter build web --release
+
+      - name: Install Mobile Dependencies
+        run: |
+          cd apps/flutter_mobile
+          flutter pub get
+
+      - name: Run Flutter Analyze (Mobile)
+        run: |
+          cd apps/flutter_mobile
+          flutter analyze
