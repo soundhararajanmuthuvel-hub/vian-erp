@@ -3985,7 +3985,7 @@ class _QuotationsTabState extends State<QuotationsTab> {
   double get _subtotal {
     double total = 0;
     for (var item in _items) {
-      total += (item['rate'] as double) * (item['qty'] as int);
+      total += safeToDouble(item['rate']) * safeToInt(item['qty']);
     }
     return total;
   }
@@ -4136,8 +4136,8 @@ class _InvoicesTabState extends State<InvoicesTab> {
               itemCount: _invoices.length,
               itemBuilder: (context, index) {
                 final inv = _invoices[index];
-                final paid = inv['paidAmount'] as double;
-                final total = inv['total'] as double;
+                final paid = safeToDouble(inv['paidAmount']);
+                final total = safeToDouble(inv['total']);
                 final status = inv['status'] ?? 'Draft';
 
                 Color statusColor = VianTheme.warning;
@@ -8403,7 +8403,7 @@ class _BusinessTargetsTabState extends ConsumerState<BusinessTargetsTab> with Si
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(m['monthName'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                                Text('Projs: ${m['projectTarget']} | Rev: ${currencyFormatter.format(double.parse(m['revenueTarget'].toString()))}', style: const TextStyle(color: VianTheme.lightText, fontSize: 11)),
+                                Text('Projs: ${m['projectTarget']} | Rev: ${currencyFormatter.format(safeToDouble(m['revenueTarget']))}', style: const TextStyle(color: VianTheme.lightText, fontSize: 11)),
                               ],
                             ),
                             IconButton(
@@ -8459,7 +8459,7 @@ class _BusinessTargetsTabState extends ConsumerState<BusinessTargetsTab> with Si
                 final tt = _teamTargets[idx];
                 final isAmt = tt['unit'] == 'amount';
                 final displayVal = isAmt 
-                    ? NumberFormat.currency(locale: 'en_IN', symbol: '₹', decimalDigits: 0).format(double.parse(tt['targetValue'].toString()))
+                    ? NumberFormat.currency(locale: 'en_IN', symbol: '₹', decimalDigits: 0).format(safeToDouble(tt['targetValue']))
                     : '${tt['targetValue']}';
                 
                 return Card(
@@ -8523,8 +8523,8 @@ class _BusinessTargetsTabState extends ConsumerState<BusinessTargetsTab> with Si
               itemCount: _employeeTargets.length,
               itemBuilder: (context, idx) {
                 final et = _employeeTargets[idx];
-                final targetVal = (et['targetValue'] ?? 1.0).toDouble();
-                final currentVal = (et['currentValue'] ?? 0.0).toDouble();
+                final targetVal = safeToDouble(et['targetValue'] ?? 1.0);
+                final currentVal = safeToDouble(et['currentValue'] ?? 0.0);
                 final pct = targetVal > 0 ? (currentVal / targetVal) : 0.0;
                 final statusStr = et['status'] ?? 'Pending';
 
@@ -8673,11 +8673,11 @@ class _BusinessTargetsTabState extends ConsumerState<BusinessTargetsTab> with Si
                   ],
                 ),
                 const SizedBox(height: 20),
-                _buildScorecardLine('Financial Perspectives', (scoreData['financial'] ?? 70).toDouble()),
-                _buildScorecardLine('Projects & Schedule Accuracy', (scoreData['projects'] ?? 68).toDouble()),
-                _buildScorecardLine('Operations & Design Throughput', (scoreData['operations'] ?? 82).toDouble()),
-                _buildScorecardLine('Client Retention & satisfaction', (scoreData['clients'] ?? 72).toDouble()),
-                _buildScorecardLine('Employee Productivity & Attendance', (scoreData['employees'] ?? 88).toDouble()),
+                _buildScorecardLine('Financial Perspectives', safeToDouble(scoreData['financial'] ?? 70)),
+                _buildScorecardLine('Projects & Schedule Accuracy', safeToDouble(scoreData['projects'] ?? 68)),
+                _buildScorecardLine('Operations & Design Throughput', safeToDouble(scoreData['operations'] ?? 82)),
+                _buildScorecardLine('Client Retention & satisfaction', safeToDouble(scoreData['clients'] ?? 72)),
+                _buildScorecardLine('Employee Productivity & Attendance', safeToDouble(scoreData['employees'] ?? 88)),
                 const Divider(color: Color(0xFF2E2E3E), height: 32),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -9550,7 +9550,7 @@ class _BuildCenterTabState extends ConsumerState<BuildCenterTab> with SingleTick
         ],
         rows: _buildHistory.map((item) {
           final status = item['status'] ?? 'Pending';
-          final sizeInMb = item['fileSize'] != null ? (item['fileSize'] as int) / (1024 * 1024) : 0.0;
+          final sizeInMb = item['fileSize'] != null ? safeToInt(item['fileSize']) / (1024 * 1024) : 0.0;
           final durationSec = item['duration'] ?? 0;
           final timeStr = item['createdAt'] != null
               ? DateFormat('dd MMM yyyy, HH:mm').format(DateTime.parse(item['createdAt']))

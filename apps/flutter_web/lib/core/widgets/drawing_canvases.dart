@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/theme.dart';
+import '../services/api_service.dart';
 
 enum CanvasTool { select, rectangle, circle, arrow, northArrow, text }
 
@@ -30,8 +31,8 @@ class CanvasElement {
   factory CanvasElement.fromJson(Map<String, dynamic> json) {
     return CanvasElement(
       type: CanvasTool.values.firstWhere((e) => e.name == json['type'], orElse: () => CanvasTool.rectangle),
-      start: Offset((json['startX'] as num).toDouble(), (json['startY'] as num).toDouble()),
-      end: Offset((json['endX'] as num).toDouble(), (json['endY'] as num).toDouble()),
+      start: Offset(safeToDouble(json['startX']), safeToDouble(json['startY'])),
+      end: Offset(safeToDouble(json['endX']), safeToDouble(json['endY'])),
       text: json['text'] ?? '',
     );
   }
@@ -417,9 +418,9 @@ class SketchStroke {
 
   factory SketchStroke.fromJson(Map<String, dynamic> json) {
     return SketchStroke(
-      points: (json['points'] as List).map((p) => Offset((p['x'] as num).toDouble(), (p['y'] as num).toDouble())).toList(),
-      color: Color(json['color'] as int),
-      width: (json['width'] as num).toDouble(),
+      points: (json['points'] as List).map((p) => Offset(safeToDouble(p['x']), safeToDouble(p['y']))).toList(),
+      color: Color(safeToInt(json['color'])),
+      width: safeToDouble(json['width']),
     );
   }
 }

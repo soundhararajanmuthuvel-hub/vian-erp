@@ -168,19 +168,19 @@ class _ExecutiveDashboardViewState extends State<ExecutiveDashboardView> {
     final scoreData = _analytics?['scorecard'] ?? {};
     final depts = _analytics?['departments'] ?? {};
     
-    final turnoverActual = (curPerf['actualTurnover'] ?? 0.0).toDouble();
-    final turnoverTarget = (targets['annualRevenueTarget'] ?? 10000000.0).toDouble();
+    final turnoverActual = safeToDouble(curPerf['actualTurnover']);
+    final turnoverTarget = safeToDouble(targets['annualRevenueTarget'] ?? 10000000.0);
     
-    final profitActual = (curPerf['netProfit'] ?? 0.0).toDouble();
-    final profitTarget = (targets['annualProfitTarget'] ?? 3000000.0).toDouble();
+    final profitActual = safeToDouble(curPerf['netProfit']);
+    final profitTarget = safeToDouble(targets['annualProfitTarget'] ?? 3000000.0);
 
-    final projectsActual = (curPerf['projectsCompleted'] ?? 0.0).toDouble();
-    final projectsTarget = (targets['annualProjectTarget'] ?? 120.0).toDouble();
+    final projectsActual = safeToDouble(curPerf['projectsCompleted']);
+    final projectsTarget = safeToDouble(targets['annualProjectTarget'] ?? 120.0);
 
-    final clientsActual = ((curPerf['newClients'] ?? 0) + (curPerf['repeatClients'] ?? 0)).toDouble();
-    final clientsTarget = ((targets['newClientTarget'] ?? 15) + (targets['repeatClientTarget'] ?? 5)).toDouble();
+    final clientsActual = safeToDouble((curPerf['newClients'] ?? 0) + (curPerf['repeatClients'] ?? 0));
+    final clientsTarget = safeToDouble((targets['newClientTarget'] ?? 15) + (targets['repeatClientTarget'] ?? 5));
 
-    final monthlyRevenueData = List<double>.from((_analytics?['monthlyRevenue'] ?? []).map((e) => (e ?? 0.0).toDouble()));
+    final monthlyRevenueData = List<double>.from((_analytics?['monthlyRevenue'] ?? []).map((e) => safeToDouble(e)));
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24.0),
@@ -332,11 +332,11 @@ class _ExecutiveDashboardViewState extends State<ExecutiveDashboardView> {
                         children: [
                           const Text('DEPARTMENT PERFORMANCE METRICS', style: TextStyle(fontWeight: FontWeight.bold, color: VianTheme.primaryGold)),
                           const SizedBox(height: 16),
-                          _buildDeptProgressRow('Design Team', 'Drawing Completion Rate', (depts['design']?['completionRate'] ?? 84.0).toDouble()),
+                          _buildDeptProgressRow('Design Team', 'Drawing Completion Rate', safeToDouble(depts['design']?['completionRate'] ?? 84.0)),
                           const SizedBox(height: 12),
-                          _buildDeptProgressRow('Site Team', 'Average Attendance Rate', (depts['site']?['attendanceRate'] ?? 92.0).toDouble()),
+                          _buildDeptProgressRow('Site Team', 'Average Attendance Rate', safeToDouble(depts['site']?['attendanceRate'] ?? 92.0)),
                           const SizedBox(height: 12),
-                          _buildDeptProgressRow('Accounts Team', 'Collection Efficiency Rate', (depts['accounts']?['collectionEfficiency'] ?? 72.0).toDouble()),
+                          _buildDeptProgressRow('Accounts Team', 'Collection Efficiency Rate', safeToDouble(depts['accounts']?['collectionEfficiency'] ?? 72.0)),
                         ],
                       ),
                     ),
@@ -442,12 +442,11 @@ class _ExecutiveDashboardViewState extends State<ExecutiveDashboardView> {
                               )
                             ],
                           ),
-                          const SizedBox(height: 20),
-                          _buildScoreItem('Financial Health', (scoreData['financial'] ?? 70).toDouble()),
-                          _buildScoreItem('Projects Delivery', (scoreData['projects'] ?? 68).toDouble()),
-                          _buildScoreItem('Operations Efficiency', (scoreData['operations'] ?? 82).toDouble()),
-                          _buildScoreItem('Client Relations', (scoreData['clients'] ?? 72).toDouble()),
-                          _buildScoreItem('Employee Health', (scoreData['employees'] ?? 88).toDouble()),
+                          _buildScoreItem('Financial Health', safeToDouble(scoreData['financial'] ?? 70)),
+                          _buildScoreItem('Projects Delivery', safeToDouble(scoreData['projects'] ?? 68)),
+                          _buildScoreItem('Operations Efficiency', safeToDouble(scoreData['operations'] ?? 82)),
+                          _buildScoreItem('Client Relations', safeToDouble(scoreData['clients'] ?? 72)),
+                          _buildScoreItem('Employee Health', safeToDouble(scoreData['employees'] ?? 88)),
                         ],
                       ),
                     ),
