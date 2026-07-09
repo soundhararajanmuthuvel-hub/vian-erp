@@ -9,13 +9,6 @@ class ApiConstants {
     if (envUrl.isNotEmpty) {
       return envUrl.endsWith('/api') ? envUrl : '$envUrl/api';
     }
-    
-    if (kIsWeb) {
-      final base = Uri.base;
-      if (base.host == 'localhost' || base.host == '127.0.0.1') {
-        return localBaseUrl;
-      }
-    }
     return productionBaseUrl;
   }
 

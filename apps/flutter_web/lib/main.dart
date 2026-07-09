@@ -7,18 +7,20 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'dart:io' as io;
 
 import 'core/theme/theme.dart';
 import 'core/services/api_service.dart';
 import 'core/widgets/custom_widgets.dart';
 import 'core/widgets/home_dashboards.dart';
-import 'package:file_picker/file_picker.dart';
 import 'core/services/file_helper.dart';
 import 'core/widgets/drawing_canvases.dart';
 import 'public_enquiry_portal.dart';
-import 'dart:js' as js;
-import 'package:flutter/foundation.dart' show kIsWeb;
-import 'dart:io' as io;
+import 'forgot_password_page.dart';
+import 'js_stub.dart'
+    if (dart.library.js) 'dart:js' as js;
 
 // Riverpod Provider for logged-in user state
 final userProvider = StateProvider<Map<String, dynamic>?>((ref) => ApiService.currentUser);
@@ -35,16 +37,16 @@ void main() async {
 
 // Router Configuration
 final GoRouter _router = GoRouter(
-  initialLocation: '/login',
+  initialLocation: '/dashboard',
   redirect: (context, state) {
     final path = state.matchedLocation;
     if (path.startsWith('/enquiry')) return null;
 
     final isLoggedIn = ApiService.isLoggedIn;
-    final isLoggingIn = path == '/login';
+    final isLoggingIn = path == '/login' || path == '/forgot-password';
 
     if (!isLoggedIn && !isLoggingIn) return '/login';
-    if (isLoggedIn && isLoggingIn) return '/dashboard';
+    if (isLoggedIn && (path == '/login' || path == '/forgot-password' || path == '/')) return '/dashboard';
     return null;
   },
   routes: [
@@ -53,8 +55,8 @@ final GoRouter _router = GoRouter(
       builder: (context, state) => const LoginPage(),
     ),
     GoRoute(
-      path: '/dashboard',
-      builder: (context, state) => const MainNavigationShell(),
+      path: '/forgot-password',
+      builder: (context, state) => const ForgotPasswordPage(),
     ),
     GoRoute(
       path: '/enquiry/:token',
@@ -63,6 +65,247 @@ final GoRouter _router = GoRouter(
     GoRoute(
       path: '/enquiry-success/:refCode',
       builder: (context, state) => PublicEnquirySuccessPage(refCode: state.pathParameters['refCode'] ?? ''),
+    ),
+    ShellRoute(
+      builder: (context, state, child) {
+        return MainNavigationShell(child: child);
+      },
+      routes: [
+        GoRoute(
+          path: '/dashboard',
+          builder: (context, state) => const DashboardTab(),
+        ),
+        GoRoute(
+          path: '/crm-leads',
+          builder: (context, state) => const CRMTab(),
+        ),
+        GoRoute(
+          path: '/leads',
+          builder: (context, state) => const CRMTab(),
+        ),
+        GoRoute(
+          path: '/leads/new',
+          builder: (context, state) => const CRMTab(showAddDialog: true),
+        ),
+        GoRoute(
+          path: '/leads/:id',
+          builder: (context, state) => CRMTab(selectedLeadId: state.pathParameters['id']),
+        ),
+        GoRoute(
+          path: '/clients',
+          builder: (context, state) => const ClientsTab(),
+        ),
+        GoRoute(
+          path: '/clients/new',
+          builder: (context, state) => const ClientOnboardingTab(),
+        ),
+        GoRoute(
+          path: '/clients/:id',
+          builder: (context, state) => const ClientsTab(),
+        ),
+        GoRoute(
+          path: '/projects',
+          builder: (context, state) => const ProjectsTab(),
+        ),
+        GoRoute(
+          path: '/projects/new',
+          builder: (context, state) => const ProjectsTab(showAddDialog: true),
+        ),
+        GoRoute(
+          path: '/projects/:id',
+          builder: (context, state) => ProjectWorkspacePage(
+            project: {'id': safeToInt(state.pathParameters['id'])},
+            userRole: ApiService.currentUser?['role'] ?? 'Client',
+            userName: ApiService.currentUser?['name'] ?? 'User',
+            onRefresh: () {},
+            initialTab: 0,
+          ),
+        ),
+        GoRoute(
+          path: '/projects/:id/timeline',
+          builder: (context, state) => ProjectWorkspacePage(
+            project: {'id': safeToInt(state.pathParameters['id'])},
+            userRole: ApiService.currentUser?['role'] ?? 'Client',
+            userName: ApiService.currentUser?['name'] ?? 'User',
+            onRefresh: () {},
+            initialTab: 1,
+          ),
+        ),
+        GoRoute(
+          path: '/projects/:id/tasks',
+          builder: (context, state) => ProjectWorkspacePage(
+            project: {'id': safeToInt(state.pathParameters['id'])},
+            userRole: ApiService.currentUser?['role'] ?? 'Client',
+            userName: ApiService.currentUser?['name'] ?? 'User',
+            onRefresh: () {},
+            initialTab: 2,
+          ),
+        ),
+        GoRoute(
+          path: '/projects/:id/payments',
+          builder: (context, state) => ProjectWorkspacePage(
+            project: {'id': safeToInt(state.pathParameters['id'])},
+            userRole: ApiService.currentUser?['role'] ?? 'Client',
+            userName: ApiService.currentUser?['name'] ?? 'User',
+            onRefresh: () {},
+            initialTab: 3,
+          ),
+        ),
+        GoRoute(
+          path: '/projects/:id/documents',
+          builder: (context, state) => ProjectWorkspacePage(
+            project: {'id': safeToInt(state.pathParameters['id'])},
+            userRole: ApiService.currentUser?['role'] ?? 'Client',
+            userName: ApiService.currentUser?['name'] ?? 'User',
+            onRefresh: () {},
+            initialTab: 6,
+          ),
+        ),
+        GoRoute(
+          path: '/attendance',
+          builder: (context, state) => const AttendanceTab(),
+        ),
+        GoRoute(
+          path: '/attendance/check-in',
+          builder: (context, state) => const AttendanceTab(initialAction: 'check-in'),
+        ),
+        GoRoute(
+          path: '/attendance/check-out',
+          builder: (context, state) => const AttendanceTab(initialAction: 'check-out'),
+        ),
+        GoRoute(
+          path: '/attendance/history',
+          builder: (context, state) => const AttendanceTab(initialAction: 'history'),
+        ),
+        GoRoute(
+          path: '/employees',
+          builder: (context, state) => const ContractorTab(),
+        ),
+        GoRoute(
+          path: '/employees/new',
+          builder: (context, state) => const ContractorTab(showAddDialog: true),
+        ),
+        GoRoute(
+          path: '/employees/:id',
+          builder: (context, state) => const ContractorTab(),
+        ),
+        GoRoute(
+          path: '/site-management',
+          builder: (context, state) => const DailyReportsTab(),
+        ),
+        GoRoute(
+          path: '/site-photos',
+          builder: (context, state) => const DailyReportsTab(),
+        ),
+        GoRoute(
+          path: '/daily-reports',
+          builder: (context, state) => const DailyReportsTab(),
+        ),
+        GoRoute(
+          path: '/tasks',
+          builder: (context, state) => const TasksTab(),
+        ),
+        GoRoute(
+          path: '/tasks/my-tasks',
+          builder: (context, state) => const TasksTab(),
+        ),
+        GoRoute(
+          path: '/tasks/completed',
+          builder: (context, state) => const TasksTab(),
+        ),
+        GoRoute(
+          path: '/documents',
+          builder: (context, state) => const DocumentsTab(),
+        ),
+        GoRoute(
+          path: '/documents/upload',
+          builder: (context, state) => const DocumentsTab(showUploadDialog: true),
+        ),
+        GoRoute(
+          path: '/estimations',
+          builder: (context, state) => const ConstructionEstimationTab(),
+        ),
+        GoRoute(
+          path: '/estimations/new',
+          builder: (context, state) => const ConstructionEstimationTab(),
+        ),
+        GoRoute(
+          path: '/estimations/history',
+          builder: (context, state) => const ConstructionEstimationTab(),
+        ),
+        GoRoute(
+          path: '/construction-calculator',
+          builder: (context, state) => const ConstructionEstimationTab(),
+        ),
+        GoRoute(
+          path: '/market-prices',
+          builder: (context, state) => const ConstructionEstimationTab(),
+        ),
+        GoRoute(
+          path: '/boq',
+          builder: (context, state) => const ConstructionEstimationTab(),
+        ),
+        GoRoute(
+          path: '/payments',
+          builder: (context, state) => const InvoicesTab(),
+        ),
+        GoRoute(
+          path: '/payments/invoices',
+          builder: (context, state) => const InvoicesTab(),
+        ),
+        GoRoute(
+          path: '/payments/collections',
+          builder: (context, state) => const InvoicesTab(),
+        ),
+        GoRoute(
+          path: '/vendors',
+          builder: (context, state) => const ContractorTab(),
+        ),
+        GoRoute(
+          path: '/materials',
+          builder: (context, state) => const ContractorTab(),
+        ),
+        GoRoute(
+          path: '/purchase-orders',
+          builder: (context, state) => const ContractorTab(),
+        ),
+        GoRoute(
+          path: '/reports',
+          builder: (context, state) => const ReportsTab(),
+        ),
+        GoRoute(
+          path: '/analytics',
+          builder: (context, state) => const ReportsTab(),
+        ),
+        GoRoute(
+          path: '/import-export',
+          builder: (context, state) => const ImportExportTab(),
+        ),
+        GoRoute(
+          path: '/settings',
+          builder: (context, state) => const SettingsTab(),
+        ),
+        GoRoute(
+          path: '/profile',
+          builder: (context, state) => const SettingsTab(),
+        ),
+        GoRoute(
+          path: '/roles',
+          builder: (context, state) => const SettingsTab(),
+        ),
+        GoRoute(
+          path: '/permissions',
+          builder: (context, state) => const SettingsTab(),
+        ),
+        GoRoute(
+          path: '/help',
+          builder: (context, state) => const SettingsTab(),
+        ),
+        GoRoute(
+          path: '/announcements',
+          builder: (context, state) => const AnnouncementsTab(),
+        ),
+      ],
     ),
   ],
 );
@@ -301,7 +544,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 // 2. NAVIGATION LAYOUT
 // ==========================================
 class MainNavigationShell extends ConsumerStatefulWidget {
-  const MainNavigationShell({Key? key}) : super(key: key);
+  final Widget child;
+  const MainNavigationShell({Key? key, required this.child}) : super(key: key);
 
   @override
   ConsumerState<MainNavigationShell> createState() => _MainNavigationShellState();
@@ -313,31 +557,31 @@ class _MainNavigationShellState extends ConsumerState<MainNavigationShell> {
   // Tabs mapping based on user roles
   List<Map<String, dynamic>> _getTabs(String role) {
     final allTabs = [
-      {'title': 'Dashboard', 'icon': Icons.dashboard_outlined, 'widget': const DashboardTab()},
-      {'title': 'CRM Leads', 'icon': Icons.campaign_outlined, 'widget': const CRMTab(), 'roles': ['Super Admin', 'Receptionist']},
-      {'title': 'Enquiry Inbox', 'icon': Icons.inbox_outlined, 'widget': const EnquiryInboxTab(), 'roles': ['Super Admin', 'Admin / Office Manager / Accounts', 'Tech Head + Senior Architect']},
-      {'title': 'Clients', 'icon': Icons.people_outline, 'widget': const ClientsTab(), 'roles': ['Super Admin', 'Receptionist']},
-      {'title': 'Client Onboarding', 'icon': Icons.person_add_alt_1_outlined, 'widget': const ClientOnboardingTab(), 'roles': ['Super Admin', 'Admin / Office Manager / Accounts']},
-      {'title': 'Import/Export', 'icon': Icons.swap_horizontal_circle_outlined, 'widget': const ImportExportTab(), 'roles': ['Super Admin']},
-      {'title': 'Business Targets', 'icon': Icons.track_changes_outlined, 'widget': const BusinessTargetsTab(), 'roles': ['Super Admin', 'Admin / Office Manager / Accounts', 'Architect', 'Interior Designer', 'Site Engineer', 'Supervisor', 'Accountant', 'Receptionist']},
-      {'title': 'Projects', 'icon': Icons.architecture, 'widget': const ProjectsTab(), 'roles': ['Super Admin', 'Architect', 'Interior Designer', 'Client']},
-      {'title': 'Construction Estimation', 'icon': Icons.calculate_outlined, 'widget': const ConstructionEstimationTab(), 'roles': ['Super Admin', 'Architect', 'Site Engineer', 'Supervisor', 'Accountant', 'Receptionist']},
-      {'title': 'Contractor Master', 'icon': Icons.business_center_outlined, 'widget': const ContractorTab(), 'roles': ['Super Admin', 'Architect', 'Site Engineer', 'Supervisor', 'Admin / Office Manager / Accounts']},
-      {'title': 'Labour Attendance', 'icon': Icons.checklist_rtl_outlined, 'widget': const LabourAttendanceTab(), 'roles': ['Super Admin', 'Site Engineer', 'Supervisor']},
-      {'title': 'Tasks', 'icon': Icons.assignment_outlined, 'widget': const TasksTab(), 'roles': ['Super Admin', 'Architect', 'Interior Designer', 'Site Engineer', 'Supervisor']},
-      {'title': 'GPS Attendance', 'icon': Icons.pin_drop_outlined, 'widget': const AttendanceTab(), 'roles': ['Super Admin', 'Site Engineer', 'Supervisor']},
-      {'title': 'Daily Work Report', 'icon': Icons.history_edu_outlined, 'widget': const DailyReportsTab(), 'roles': ['Super Admin', 'Architect', 'Interior Designer', 'Site Engineer', 'Supervisor', 'Accountant', 'Receptionist']},
-      {'title': 'Manager Progress', 'icon': Icons.assignment_turned_in_outlined, 'widget': const ManagerProgressTab(), 'roles': ['Super Admin', 'Site Engineer', 'Supervisor']},
-      {'title': 'Drawings', 'icon': Icons.layers_outlined, 'widget': const DrawingsTab(), 'roles': ['Super Admin', 'Admin / Office Manager / Accounts', 'Tech Head + Senior Architect', 'Site Manager', 'Employee', 'Client']},
-      {'title': 'Documents', 'icon': Icons.folder_open_outlined, 'widget': const DocumentsTab(), 'roles': ['Super Admin', 'Admin / Office Manager / Accounts', 'Tech Head + Senior Architect', 'Site Manager', 'Employee', 'Client']},
-      {'title': 'Quotations', 'icon': Icons.description_outlined, 'widget': const QuotationsTab(), 'roles': ['Super Admin', 'Accountant', 'Client']},
-      {'title': 'Invoices', 'icon': Icons.receipt_long_outlined, 'widget': const InvoicesTab(), 'roles': ['Super Admin', 'Accountant', 'Client']},
-      {'title': 'Expenses', 'icon': Icons.payments_outlined, 'widget': const ExpensesTab(), 'roles': ['Super Admin', 'Accountant']},
-      {'title': 'Payroll', 'icon': Icons.price_check_outlined, 'widget': const PayrollTab(), 'roles': ['Super Admin', 'Accountant']},
-      {'title': 'Reports', 'icon': Icons.assessment_outlined, 'widget': const ReportsTab(), 'roles': ['Super Admin', 'Accountant']},
-      {'title': 'Build Center', 'icon': Icons.build_circle_outlined, 'widget': const BuildCenterTab(), 'roles': ['Super Admin']},
-      {'title': 'Settings', 'icon': Icons.settings_outlined, 'widget': const SettingsTab(), 'roles': ['Super Admin']},
-      {'title': 'Announcements', 'icon': Icons.campaign_outlined, 'widget': const AnnouncementsTab()},
+      {'title': 'Dashboard', 'icon': Icons.dashboard_outlined, 'route': '/dashboard'},
+      {'title': 'CRM Leads', 'icon': Icons.campaign_outlined, 'route': '/crm-leads', 'roles': ['Super Admin', 'Receptionist']},
+      {'title': 'Enquiry Inbox', 'icon': Icons.inbox_outlined, 'route': '/enquiry-inbox', 'roles': ['Super Admin', 'Admin / Office Manager / Accounts', 'Tech Head + Senior Architect']},
+      {'title': 'Clients', 'icon': Icons.people_outline, 'route': '/clients', 'roles': ['Super Admin', 'Receptionist']},
+      {'title': 'Client Onboarding', 'icon': Icons.person_add_alt_1_outlined, 'route': '/client-onboarding', 'roles': ['Super Admin', 'Admin / Office Manager / Accounts']},
+      {'title': 'Import/Export', 'icon': Icons.swap_horizontal_circle_outlined, 'route': '/import-export', 'roles': ['Super Admin']},
+      {'title': 'Business Targets', 'icon': Icons.track_changes_outlined, 'route': '/business-targets', 'roles': ['Super Admin', 'Admin / Office Manager / Accounts', 'Architect', 'Interior Designer', 'Site Engineer', 'Supervisor', 'Accountant', 'Receptionist']},
+      {'title': 'Projects', 'icon': Icons.architecture, 'route': '/projects', 'roles': ['Super Admin', 'Architect', 'Interior Designer', 'Client']},
+      {'title': 'Construction Estimation', 'icon': Icons.calculate_outlined, 'route': '/construction-estimation', 'roles': ['Super Admin', 'Architect', 'Site Engineer', 'Supervisor', 'Accountant', 'Receptionist']},
+      {'title': 'Contractor Master', 'icon': Icons.business_center_outlined, 'route': '/contractor-master', 'roles': ['Super Admin', 'Architect', 'Site Engineer', 'Supervisor', 'Admin / Office Manager / Accounts']},
+      {'title': 'Labour Attendance', 'icon': Icons.checklist_rtl_outlined, 'route': '/labour-attendance', 'roles': ['Super Admin', 'Site Engineer', 'Supervisor']},
+      {'title': 'Tasks', 'icon': Icons.assignment_outlined, 'route': '/tasks', 'roles': ['Super Admin', 'Architect', 'Interior Designer', 'Site Engineer', 'Supervisor']},
+      {'title': 'GPS Attendance', 'icon': Icons.pin_drop_outlined, 'route': '/gps-attendance', 'roles': ['Super Admin', 'Site Engineer', 'Supervisor']},
+      {'title': 'Daily Work Report', 'icon': Icons.history_edu_outlined, 'route': '/daily-work-report', 'roles': ['Super Admin', 'Architect', 'Interior Designer', 'Site Engineer', 'Supervisor', 'Accountant', 'Receptionist']},
+      {'title': 'Manager Progress', 'icon': Icons.assignment_turned_in_outlined, 'route': '/manager-progress', 'roles': ['Super Admin', 'Site Engineer', 'Supervisor']},
+      {'title': 'Drawings', 'icon': Icons.layers_outlined, 'route': '/drawings', 'roles': ['Super Admin', 'Admin / Office Manager / Accounts', 'Tech Head + Senior Architect', 'Site Manager', 'Employee', 'Client']},
+      {'title': 'Documents', 'icon': Icons.folder_open_outlined, 'route': '/documents', 'roles': ['Super Admin', 'Admin / Office Manager / Accounts', 'Tech Head + Senior Architect', 'Site Manager', 'Employee', 'Client']},
+      {'title': 'Quotations', 'icon': Icons.description_outlined, 'route': '/quotations', 'roles': ['Super Admin', 'Accountant', 'Client']},
+      {'title': 'Invoices', 'icon': Icons.receipt_long_outlined, 'route': '/invoices', 'roles': ['Super Admin', 'Accountant', 'Client']},
+      {'title': 'Expenses', 'icon': Icons.payments_outlined, 'route': '/expenses', 'roles': ['Super Admin', 'Accountant']},
+      {'title': 'Payroll', 'icon': Icons.price_check_outlined, 'route': '/payroll', 'roles': ['Super Admin', 'Accountant']},
+      {'title': 'Reports', 'icon': Icons.assessment_outlined, 'route': '/reports', 'roles': ['Super Admin', 'Accountant']},
+      {'title': 'Build Center', 'icon': Icons.build_circle_outlined, 'route': '/build-center', 'roles': ['Super Admin']},
+      {'title': 'Settings', 'icon': Icons.settings_outlined, 'route': '/settings', 'roles': ['Super Admin']},
+      {'title': 'Announcements', 'icon': Icons.campaign_outlined, 'route': '/announcements'},
     ];
 
     return allTabs.where((tab) {
@@ -356,10 +600,19 @@ class _MainNavigationShellState extends ConsumerState<MainNavigationShell> {
     final role = user['role'] ?? 'Client';
     final tabs = _getTabs(role);
 
-    // If out of bounds due to login switch
-    if (_selectedIndex >= tabs.length) {
-      _selectedIndex = 0;
-    }
+    final currentPath = GoRouterState.of(context).matchedLocation;
+    int index = tabs.indexWhere((tab) {
+      final route = tab['route'] as String;
+      if (route == currentPath) return true;
+      if (route != '/dashboard' && currentPath.startsWith(route)) return true;
+      if (route == '/crm-leads' && (currentPath == '/leads' || currentPath.startsWith('/leads/'))) return true;
+      if (route == '/gps-attendance' && currentPath.startsWith('/attendance')) return true;
+      if (route == '/contractor-master' && currentPath.startsWith('/employees')) return true;
+      if (route == '/invoices' && currentPath.startsWith('/payments')) return true;
+      return false;
+    });
+    if (index == -1) index = 0;
+    _selectedIndex = index;
 
     final size = MediaQuery.of(context).size;
     final isMobile = size.width < 1000;
@@ -410,7 +663,7 @@ class _MainNavigationShellState extends ConsumerState<MainNavigationShell> {
               child: _buildDrawerContent(user, tabs, role, showHeader: true),
             ),
           Expanded(
-            child: tabs[_selectedIndex]['widget'] as Widget,
+            child: widget.child,
           ),
         ],
       ),
@@ -464,9 +717,7 @@ class _MainNavigationShellState extends ConsumerState<MainNavigationShell> {
                   ),
                   dense: true,
                   onTap: () {
-                    setState(() {
-                      _selectedIndex = index;
-                    });
+                    context.go(tabs[index]['route'] as String);
                     if (Navigator.of(context).canPop()) {
                       Navigator.of(context).pop();
                     }
@@ -550,7 +801,9 @@ class DashboardTab extends ConsumerWidget {
 // 4. CRM LEADS TAB
 // ==========================================
 class CRMTab extends StatefulWidget {
-  const CRMTab({Key? key}) : super(key: key);
+  final bool showAddDialog;
+  final String? selectedLeadId;
+  const CRMTab({Key? key, this.showAddDialog = false, this.selectedLeadId}) : super(key: key);
 
   @override
   State<CRMTab> createState() => _CRMTabState();
@@ -572,6 +825,18 @@ class _CRMTabState extends State<CRMTab> {
       _leads = list;
       _loading = false;
     });
+    if (widget.showAddDialog) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _showAddLeadDialog();
+      });
+    } else if (widget.selectedLeadId != null) {
+      final lead = list.firstWhere((l) => l['id'].toString() == widget.selectedLeadId, orElse: () => null);
+      if (lead != null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _showLeadTrackingSheet(lead);
+        });
+      }
+    }
   }
 
   void _showAddLeadDialog() {
@@ -1292,21 +1557,21 @@ class _LeadStage1FormScreenState extends State<LeadStage1FormScreen> {
     
     // Default requirements template
     _clientRequirementsController.text = 
-        "Ground Floor: \n"
-        "First Floor: \n"
-        "Bedrooms: \n"
-        "Bathrooms: \n"
-        "Kitchen: \n"
-        "Dining: \n"
-        "Living: \n"
-        "Pooja: \n"
-        "Foyer: \n"
-        "Sitout: \n"
-        "Balcony: \n"
-        "Terrace: \n"
-        "Lift: \n"
-        "Office: \n"
-        "Store: \n"
+        "Ground Floor: \r\n"
+        "First Floor: \r\n"
+        "Bedrooms: \r\n"
+        "Bathrooms: \r\n"
+        "Kitchen: \r\n"
+        "Dining: \r\n"
+        "Living: \r\n"
+        "Pooja: \r\n"
+        "Foyer: \r\n"
+        "Sitout: \r\n"
+        "Balcony: \r\n"
+        "Terrace: \r\n"
+        "Lift: \r\n"
+        "Office: \r\n"
+        "Store: \r\n"
         "Other Requirements: ";
   }
 
@@ -1685,7 +1950,7 @@ class _LeadStage1FormScreenState extends State<LeadStage1FormScreen> {
           if (_notesController.text.isEmpty) {
             _notesController.text = dictationText;
           } else {
-            _notesController.text += "\n$dictationText";
+            _notesController.text += "\r\n$dictationText";
           }
           _dictationActive = false;
           _hasUnsavedChanges = true;
@@ -2695,7 +2960,8 @@ class _LeadStage1FormScreenState extends State<LeadStage1FormScreen> {
 // 6. PROJECTS TAB
 // ==========================================
 class ProjectsTab extends ConsumerStatefulWidget {
-  const ProjectsTab({Key? key}) : super(key: key);
+  final bool showAddDialog;
+  const ProjectsTab({Key? key, this.showAddDialog = false}) : super(key: key);
 
   @override
   ConsumerState<ProjectsTab> createState() => _ProjectsTabState();
@@ -2718,6 +2984,13 @@ class _ProjectsTabState extends ConsumerState<ProjectsTab> {
       _projects = list;
       _loading = false;
     });
+    if (widget.showAddDialog) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final user = ref.read(userProvider);
+        final role = user?['role'] ?? 'Client';
+        _showAddProjectDialog(role);
+      });
+    }
   }
 
   void _showAddProjectDialog(String role) {
@@ -2895,16 +3168,7 @@ class _ProjectsTabState extends ConsumerState<ProjectsTab> {
 
             return GestureDetector(
               onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => ProjectWorkspacePage(
-                      project: p,
-                      userRole: role,
-                      userName: name,
-                      onRefresh: _loadProjects,
-                    ),
-                  ),
-                );
+                context.go('/projects/${p['id']}');
               },
               child: VianCard(
                 child: Column(
@@ -2970,16 +3234,7 @@ class _ProjectsTabState extends ConsumerState<ProjectsTab> {
                         margin: const EdgeInsets.only(bottom: 12),
                         child: GestureDetector(
                           onTap: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) => ProjectWorkspacePage(
-                                  project: p,
-                                  userRole: role,
-                                  userName: name,
-                                  onRefresh: _loadProjects,
-                                ),
-                              ),
-                            );
+                            context.go('/projects/' + p['id'].toString());
                           },
                           child: VianCard(
                             padding: const EdgeInsets.all(12),
@@ -3014,16 +3269,7 @@ class _ProjectsTabState extends ConsumerState<ProjectsTab> {
           margin: const EdgeInsets.only(bottom: 16),
           child: GestureDetector(
             onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => ProjectWorkspacePage(
-                    project: p,
-                    userRole: role,
-                    userName: name,
-                    onRefresh: _loadProjects,
-                  ),
-                ),
-              );
+              context.go('/projects/' + p['id'].toString());
             },
             child: VianCard(
               child: Row(
@@ -3081,6 +3327,7 @@ class ProjectWorkspacePage extends StatefulWidget {
   final String userRole;
   final String userName;
   final VoidCallback onRefresh;
+  final int initialTab;
 
   const ProjectWorkspacePage({
     Key? key,
@@ -3088,6 +3335,7 @@ class ProjectWorkspacePage extends StatefulWidget {
     required this.userRole,
     required this.userName,
     required this.onRefresh,
+    this.initialTab = 0,
   }) : super(key: key);
 
   @override
@@ -3127,6 +3375,7 @@ class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
   @override
   void initState() {
     super.initState();
+    _selectedTab = widget.initialTab;
     _loadDetails();
   }
 
@@ -3520,7 +3769,8 @@ class _TasksTabState extends State<TasksTab> {
 // 8. GPS ATTENDANCE TAB
 // ==========================================
 class AttendanceTab extends StatefulWidget {
-  const AttendanceTab({Key? key}) : super(key: key);
+  final String? initialAction;
+  const AttendanceTab({Key? key, this.initialAction}) : super(key: key);
 
   @override
   State<AttendanceTab> createState() => _AttendanceTabState();
@@ -3536,6 +3786,19 @@ class _AttendanceTabState extends State<AttendanceTab> {
   void initState() {
     super.initState();
     _captureLocation();
+    if (widget.initialAction != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (widget.initialAction == 'check-in') {
+          _handleCheckIn();
+        } else if (widget.initialAction == 'check-out') {
+          _handleCheckOut();
+        } else if (widget.initialAction == 'history') {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Viewing Attendance History Log...'))
+          );
+        }
+      });
+    }
   }
 
   void _captureLocation() {
@@ -3745,7 +4008,8 @@ class _DrawingsTabState extends State<DrawingsTab> {
 // 10. DOCUMENTS TAB
 // ==========================================
 class DocumentsTab extends StatefulWidget {
-  const DocumentsTab({Key? key}) : super(key: key);
+  final bool showUploadDialog;
+  const DocumentsTab({Key? key, this.showUploadDialog = false}) : super(key: key);
 
   @override
   State<DocumentsTab> createState() => _DocumentsTabState();
@@ -3773,6 +4037,11 @@ class _DocumentsTabState extends State<DocumentsTab> {
         _selectedFolder = foldersList.first;
       }
     });
+    if (widget.showUploadDialog) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _showUploadDialog(foldersList);
+      });
+    }
   }
 
   List<String> _getFolders(String role) {
@@ -4843,7 +5112,8 @@ class NotificationsPanel extends StatelessWidget {
 
 // 4. CONTRACTOR MANAGEMENT SCREEN
 class ContractorTab extends StatefulWidget {
-  const ContractorTab({Key? key}) : super(key: key);
+  final bool showAddDialog;
+  const ContractorTab({Key? key, this.showAddDialog = false}) : super(key: key);
 
   @override
   State<ContractorTab> createState() => _ContractorTabState();
@@ -4879,6 +5149,11 @@ class _ContractorTabState extends State<ContractorTab> {
         _projects = projects;
         _loading = false;
       });
+      if (widget.showAddDialog) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _showContractorDialog(null);
+        });
+      }
     } catch (_) {
       setState(() => _loading = false);
     }
@@ -5331,7 +5606,7 @@ class _ContractorTabState extends State<ContractorTab> {
                             child: Icon(Icons.payment, color: VianTheme.success),
                           ),
                           title: Text('$contractorName - $projectName', style: const TextStyle(fontWeight: FontWeight.bold, color: VianTheme.whiteText)),
-                          subtitle: Text('Stage: $stageName | Mode: ${r['paymentMode']} | Ref: ${r['referenceNumber'] ?? "N/A"}\nDate: ${r['releaseDate']}\nNotes: ${r['notes'] ?? "None"}'),
+                          subtitle: Text('Stage: $stageName | Mode: ${r['paymentMode']} | Ref: ${r['referenceNumber'] ?? "N/A"}\r\nDate: ${r['releaseDate']}\r\nNotes: ${r['notes'] ?? "None"}'),
                           isThreeLine: true,
                           trailing: Row(
                             mainAxisSize: MainAxisSize.min,
@@ -6800,16 +7075,16 @@ class _ImportExportTabState extends ConsumerState<ImportExportTab> with SingleTi
   void _loadDemoTemplate() {
     if (_selectedImportModule == 'Clients') {
       _csvPasteController.text = 
-        'Client Name,Mobile Number,Email,Address,GST Number\n'
-        'Amit Bajaj,9876543210,amit@bajaj.com,Villa 108 Palm Meadows,29BBBBB2222B1Z2\n'
-        'Kiran Oberoi,9911223344,kiran@oberoigroup.com,DLF Sector 43 Gurugram,07CCCCC3333C1Z3\n'
-        'Rohan Malhotra,9811223344,rohan@malhotragroup.in,Penthouse Sector 54,07DDDDD4444D1Z4\n'
+        'Client Name,Mobile Number,Email,Address,GST Number\r\n'
+        'Amit Bajaj,9876543210,amit@bajaj.com,Villa 108 Palm Meadows,29BBBBB2222B1Z2\r\n'
+        'Kiran Oberoi,9911223344,kiran@oberoigroup.com,DLF Sector 43 Gurugram,07CCCCC3333C1Z3\r\n'
+        'Rohan Malhotra,9811223344,rohan@malhotragroup.in,Penthouse Sector 54,07DDDDD4444D1Z4\r\n'
         'Priya Sen,,priya@sen.org,Whitefield Bangalore,';
     } else {
       _csvPasteController.text =
-        'Project Code,Project Name,Project Type,Budget,Location\n'
-        'VIAN-PROJ-2026-901,The Bajaj Villa,Villa,45000000.00,Bangalore Site\n'
-        'VIAN-PROJ-2026-902,Oberoi Office Phase 2,Commercial,80000000.00,Delhi Site\n'
+        'Project Code,Project Name,Project Type,Budget,Location\r\n'
+        'VIAN-PROJ-2026-901,The Bajaj Villa,Villa,45000000.00,Bangalore Site\r\n'
+        'VIAN-PROJ-2026-902,Oberoi Office Phase 2,Commercial,80000000.00,Delhi Site\r\n'
         'VIAN-PROJ-2026-903,Malhotra Penthouse,Interior Design,15000000.00,Noida Site';
     }
     _parsePasteInput();
@@ -6819,7 +7094,7 @@ class _ImportExportTabState extends ConsumerState<ImportExportTab> with SingleTi
     final text = _csvPasteController.text.trim();
     if (text.isEmpty) return;
 
-    final lines = text.split('\n');
+    final lines = text.split('\r\n');
     if (lines.length < 2) return;
 
     final headers = lines.first.split(',').map((h) => h.trim()).toList();
@@ -7089,7 +7364,7 @@ class _ImportExportTabState extends ConsumerState<ImportExportTab> with SingleTi
                     maxLines: 6,
                     style: const TextStyle(fontFamily: 'monospace', fontSize: 11),
                     decoration: const InputDecoration(
-                      hintText: 'Client Name,Mobile Number,Email,Address,GST Number\nAmit Bajaj,9876543210,amit@vian.com,Villa 108,29BBBBB...',
+                      hintText: 'Client Name,Mobile Number,Email,Address,GST Number\r\nAmit Bajaj,9876543210,amit@vian.com,Villa 108,29BBBBB...',
                     ),
                   ),
                   const SizedBox(height: 20),
@@ -8944,7 +9219,7 @@ class _BuildCenterTabState extends ConsumerState<BuildCenterTab> with SingleTick
         _activeBuildId = buildId;
         _activeBuildStatus = buildData['status'] ?? 'Pending';
         _activeBuildProgress = 0;
-        _activeBuildLogs = 'Build enqueued. Waiting to start...\n';
+        _activeBuildLogs = 'Build enqueued. Waiting to start...\r\n';
         _isProgressMinimized = false;
         _releaseNotesController.clear();
       });
@@ -9910,7 +10185,7 @@ class _BuildCenterTabState extends ConsumerState<BuildCenterTab> with SingleTick
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        steps[index].replaceAll(' ', '\n'),
+                        steps[index].replaceAll(' ', '\r\n'),
                         style: TextStyle(
                           color: isActive ? VianTheme.whiteText : const Color(0xFF70707C),
                           fontSize: 9,
