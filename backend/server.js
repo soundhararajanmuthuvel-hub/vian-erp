@@ -1,5 +1,8 @@
 const express = require('express');
 const cors = require('cors');
+const compression = require('compression');
+const helmet = require('helmet');
+const morgan = require('morgan');
 const bcrypt = require('bcryptjs');
 const { connectDB } = require('./database/db');
 const { initModels } = require('./database/models');
@@ -9,7 +12,32 @@ const fs = require('fs');
 require('dotenv').config();
 
 const app = express();
-app.use(cors());
+
+const allowedOrigins = [
+  'https://vianerp.netlify.app',
+  'http://localhost:5050',
+  'http://localhost:3000',
+  'http://127.0.0.1:5050',
+  'http://127.0.0.1:3000'
+];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) !== -1 || origin.startsWith('http://localhost') || origin.startsWith('http://127.0.0.1')) {
+      return callback(null, true);
+    }
+    return callback(new Error('The CORS policy for this site does not allow access from the specified Origin.'), false);
+  },
+  credentials: true
+}));
+
+app.use(helmet({
+  crossOriginEmbedderPolicy: false,
+  contentSecurityPolicy: false
+}));
+app.use(compression());
+app.use(morgan('combined'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -55,6 +83,55 @@ async function startServer() {
     // 5. Register Routes
     registerRoutes(app, models);
 
+    // Global 404 API handler
+    app.use('/api', (req, res) => {
+      res.status(404).json({
+        success: false,
+        message: `API Route Not Found: ${req.method} ${req.originalUrl}`
+      });
+    });
+
+    // Global 500 error handler
+    app.use((err, req, res, next) => {
+      console.error('Unhandled server error:', err);
+      res.status(err.status || 500).json({
+        success: false,
+        message: err.message || 'Internal Server Error'
+      });
+    });
+
+    // 5. Register Health Checks
+    app.get('/', async (req, res) => {
+      let dbStatus = 'disconnected';
+      try {
+        await sequelizeInstance.authenticate();
+        dbStatus = 'connected';
+      } catch (e) {
+        dbStatus = 'disconnected';
+      }
+      res.json({
+        status: "online",
+        version: "1.0",
+        database: dbStatus
+      });
+    });
+
+    app.get('/api/health', async (req, res) => {
+      let dbStatus = 'disconnected';
+      try {
+        await sequelizeInstance.authenticate();
+        dbStatus = 'connected';
+      } catch (e) {
+        dbStatus = 'disconnected';
+      }
+      res.json({
+        status: true,
+        server: "running",
+        database: dbStatus,
+        timestamp: new Date().toISOString()
+      });
+    });
+
     // Serve static frontend assets if built
     const webBuildPath = path.join(__dirname, '../apps/flutter_web/build/web');
     if (fs.existsSync(webBuildPath)) {
@@ -66,14 +143,6 @@ async function startServer() {
           return next();
         }
         res.sendFile(path.join(webBuildPath, 'index.html'));
-      });
-    } else {
-      console.log(`Static frontend directory not found at: ${webBuildPath}. Running in API-only mode.`);
-      app.get('/', (req, res) => {
-        res.json({
-          status: 'online',
-          message: 'VIAN Architects ERP API is active. Web frontend is not built.'
-        });
       });
     }
 

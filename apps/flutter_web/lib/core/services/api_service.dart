@@ -1,17 +1,10 @@
-import 'dart:convert';
+                  import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'api_constants.dart';
 
 class ApiService {
-  static String get baseUrl {
-    if (kIsWeb) {
-      final base = Uri.base;
-      final portStr = base.hasPort ? ':${base.port}' : '';
-      return '${base.scheme}://${base.host}${portStr}/api';
-    }
-    return 'https://erp.api.amudhasurabiy.com/api';
-  }
+  static String get baseUrl => ApiConstants.baseUrl;
 
   static String? _token;
   static Map<String, dynamic>? _currentUser;
@@ -31,10 +24,7 @@ class ApiService {
   }
 
   // Helper for headers
-  static Map<String, String> get _headers => {
-    'Content-Type': 'application/json',
-    if (_token != null) 'Authorization': 'Bearer $_token',
-  };
+  static Map<String, String> get _headers => ApiConstants.getHeaders(_token);
 
   // Login
   static Future<Map<String, dynamic>> login(String username, String password) async {
