@@ -316,6 +316,14 @@ final GoRouter _router = GoRouter(
           path: '/enquiry-inbox',
           builder: (context, state) => const EnquiryInboxTab(),
         ),
+        GoRoute(
+          path: '/conference-calls',
+          builder: (context, state) => const ConferenceCallsTab(),
+        ),
+        GoRoute(
+          path: '/incentives',
+          builder: (context, state) => const IncentivesTab(),
+        ),
       ],
     ),
   ],
@@ -1201,6 +1209,8 @@ class _MainNavigationShellState extends ConsumerState<MainNavigationShell> {
       {'title': 'Expenses', 'icon': Icons.payments_outlined, 'route': '/expenses', 'roles': ['Super Admin', 'Accountant']},
       {'title': 'Payroll', 'icon': Icons.price_check_outlined, 'route': '/payroll', 'roles': ['Super Admin', 'Accountant']},
       {'title': 'Reports', 'icon': Icons.assessment_outlined, 'route': '/reports', 'roles': ['Super Admin', 'Accountant']},
+      {'title': 'Conference Calls', 'icon': Icons.phone_in_talk_outlined, 'route': '/conference-calls', 'roles': ['Super Admin', 'Admin / Office Manager / Accounts', 'Tech Head + Senior Architect']},
+      {'title': 'Incentives', 'icon': Icons.monetization_on_outlined, 'route': '/incentives', 'roles': ['Super Admin', 'Admin / Office Manager / Accounts']},
       {'title': 'Build Center', 'icon': Icons.build_circle_outlined, 'route': '/build-center', 'roles': ['Super Admin']},
       {'title': 'Settings', 'icon': Icons.settings_outlined, 'route': '/settings', 'roles': ['Super Admin']},
       {'title': 'Announcements', 'icon': Icons.campaign_outlined, 'route': '/announcements'},
@@ -14970,6 +14980,781 @@ class _MobileSiteEngineerViewState extends State<MobileSiteEngineerView> {
           )
         ],
       ),
+    );
+  }
+}
+
+// ==========================================
+// 21. CONFERENCE CALLS TAB
+// ==========================================
+class ConferenceCallsTab extends StatefulWidget {
+  const ConferenceCallsTab({Key? key}) : super(key: key);
+
+  @override
+  State<ConferenceCallsTab> createState() => _ConferenceCallsTabState();
+}
+
+class _ConferenceCallsTabState extends State<ConferenceCallsTab> {
+  List<dynamic> _calls = [];
+  List<dynamic> _employees = [];
+  bool _loading = true;
+  bool _loggingCall = false;
+  
+  final _dateController = TextEditingController(text: DateTime.now().toString().split(' ').first);
+  final _notesController = TextEditingController();
+  String _selectedType = 'Morning Call';
+  double _durationMinutes = 15;
+
+  // Track status for each employee in the active logging form
+  final Map<int, String> _employeeStatuses = {}; // userId -> 'Joined' | 'Late' | 'Missed'
+
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    setState(() => _loading = true);
+    final callsList = await ApiService.getConferenceCalls();
+    final empList = await ApiService.getEmployees();
+    
+    setState(() {
+      _calls = callsList;
+      _employees = empList.where((e) => e['role'] != 'Client' && e['role'] != 'Managing Director').toList();
+      
+      // Initialize statuses
+      _employeeStatuses.clear();
+      for (var emp in _employees) {
+        final id = emp['id'] as int;
+        _employeeStatuses[id] = 'Joined';
+      }
+      
+      _loading = false;
+    });
+  }
+
+  Future<void> _submitCall() async {
+    final participantsList = _employees.map((e) {
+      final id = e['id'] as int;
+      return {
+        'userId': id,
+        'name': e['name'],
+        'employeeId': e['employeeId'],
+        'status': _employeeStatuses[id] ?? 'Joined',
+      };
+    }).toList();
+
+    final ok = await ApiService.createConferenceCall({
+      'type': _selectedType,
+      'date': _dateController.text,
+      'durationMinutes': _durationMinutes.toInt(),
+      'notes': _notesController.text,
+      'participants': participantsList,
+    });
+
+    if (ok) {
+      _notesController.clear();
+      setState(() => _loggingCall = false);
+      _loadData();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Conference call log saved and synced to Staff Incentive calculations.')),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to save conference call log.')),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_loading) return const Center(child: CircularProgressIndicator());
+
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Conference Calls Tracker', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: VianTheme.primaryGold)),
+                    const SizedBox(height: 4),
+                    Text('Monitor Morning/Evening operational briefings and log staff attendance', style: TextStyle(color: Colors.white.withOpacity(0.5))),
+                  ],
+                ),
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _loggingCall ? Colors.grey : VianTheme.primaryGold,
+                    foregroundColor: Colors.black,
+                  ),
+                  onPressed: () {
+                    setState(() => _loggingCall = !_loggingCall);
+                  },
+                  icon: Icon(_loggingCall ? Icons.arrow_back : Icons.add),
+                  label: Text(_loggingCall ? 'View Logs' : 'Log Briefing Call'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            Expanded(
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                child: _loggingCall ? _buildCallLoggerForm() : _buildCallsHistoryList(),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCallLoggerForm() {
+    return SingleChildScrollView(
+      child: Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: const Color(0xFF1E1E26),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.white.withOpacity(0.04)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Log New Briefing session', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: VianTheme.primaryGold)),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                Expanded(
+                  child: DropdownButtonFormField<String>(
+                    value: _selectedType,
+                    dropdownColor: const Color(0xFF1E1E26),
+                    decoration: const InputDecoration(labelText: 'Briefing Session Type'),
+                    items: ['Morning Call', 'Evening Call'].map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(),
+                    onChanged: (val) => setState(() => _selectedType = val!),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: TextField(
+                    controller: _dateController,
+                    decoration: const InputDecoration(labelText: 'Date (YYYY-MM-DD)', suffixIcon: Icon(Icons.calendar_today, size: 16)),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            const Text('Duration (Minutes)', style: TextStyle(color: Colors.grey, fontSize: 12)),
+            Row(
+              children: [
+                Expanded(
+                  child: Slider(
+                    value: _durationMinutes,
+                    min: 10,
+                    max: 60,
+                    divisions: 10,
+                    activeColor: VianTheme.primaryGold,
+                    inactiveColor: Colors.white10,
+                    label: '${_durationMinutes.toInt()} mins',
+                    onChanged: (val) => setState(() => _durationMinutes = val),
+                  ),
+                ),
+                Text('${_durationMinutes.toInt()} mins', style: const TextStyle(fontWeight: FontWeight.bold)),
+              ],
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _notesController,
+              maxLines: 3,
+              decoration: const InputDecoration(labelText: 'Operational Notes & Key Briefings', alignLabelWithHint: true),
+            ),
+            const SizedBox(height: 24),
+            const Text('Staff Attendance Compliance', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: VianTheme.primaryGold)),
+            const SizedBox(height: 12),
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: _employees.length,
+              itemBuilder: (ctx, index) {
+                final emp = _employees[index];
+                final id = emp['id'] as int;
+                final status = _employeeStatuses[id] ?? 'Joined';
+                
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.black12,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.white.withOpacity(0.02)),
+                  ),
+                  child: Row(
+                    children: [
+                      CircleAvatar(
+                        backgroundColor: VianTheme.primaryGold.withOpacity(0.1),
+                        foregroundColor: VianTheme.primaryGold,
+                        child: Text(emp['name'] != null && emp['name'].isNotEmpty ? emp['name'][0] : 'U'),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(emp['name'] ?? 'Unknown', style: const TextStyle(fontWeight: FontWeight.bold)),
+                            Text('${emp['employeeId'] ?? ''} • ${emp['role'] ?? ''}', style: TextStyle(fontSize: 12, color: Colors.white.withOpacity(0.4))),
+                          ],
+                        ),
+                      ),
+                      Row(
+                        children: [
+                          _attendanceChoiceButton(id, 'Joined', Colors.green, status == 'Joined'),
+                          const SizedBox(width: 6),
+                          _attendanceChoiceButton(id, 'Late', Colors.orange, status == 'Late'),
+                          const SizedBox(width: 6),
+                          _attendanceChoiceButton(id, 'Missed', Colors.red, status == 'Missed'),
+                        ],
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton(onPressed: () => setState(() => _loggingCall = false), child: const Text('Cancel')),
+                const SizedBox(width: 16),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(backgroundColor: VianTheme.primaryGold, foregroundColor: Colors.black),
+                  onPressed: _submitCall,
+                  child: const Text('Submit Session Log'),
+                ),
+              ],
+            )
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _attendanceChoiceButton(int userId, String status, Color color, bool selected) {
+    return InkWell(
+      onTap: () {
+        setState(() {
+          _employeeStatuses[userId] = status;
+        });
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: selected ? color.withOpacity(0.15) : Colors.transparent,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: selected ? color : Colors.white10),
+        ),
+        child: Text(
+          status,
+          style: TextStyle(
+            color: selected ? color : Colors.grey,
+            fontSize: 12,
+            fontWeight: selected ? FontWeight.bold : FontWeight.normal,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCallsHistoryList() {
+    if (_calls.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.phone_in_talk_outlined, size: 64, color: Colors.white.withOpacity(0.2)),
+            const SizedBox(height: 16),
+            const Text('No Briefing Sessions Logged', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            Text('Log your first morning or evening call to begin compliance scores tracking.', style: TextStyle(color: Colors.white.withOpacity(0.4))),
+          ],
+        ),
+      );
+    }
+
+    return ListView.builder(
+      itemCount: _calls.length,
+      itemBuilder: (ctx, index) {
+        final call = _calls[index];
+        final logger = call['logger'] ?? {};
+        
+        List<dynamic> participantsList = [];
+        try {
+          if (call['participants'] != null) {
+            participantsList = json.decode(call['participants']);
+          }
+        } catch (_) {}
+
+        final joinedCount = participantsList.where((p) => p['status'] == 'Joined').length;
+        final lateCount = participantsList.where((p) => p['status'] == 'Late').length;
+        final missedCount = participantsList.where((p) => p['status'] == 'Missed').length;
+
+        return Container(
+          margin: const EdgeInsets.only(bottom: 16),
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: const Color(0xFF1E1E26),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.white.withOpacity(0.04)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        call['type'] == 'Morning Call' ? Icons.wb_sunny_outlined : Icons.nights_stay_outlined,
+                        color: call['type'] == 'Morning Call' ? Colors.orange : Colors.purpleAccent,
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        call['type'] ?? 'Briefing Call',
+                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: VianTheme.primaryGold),
+                      ),
+                      const SizedBox(width: 12),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.05),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text('${call['durationMinutes']} mins', style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                      )
+                    ],
+                  ),
+                  Text(
+                    call['date'] ?? '',
+                    style: TextStyle(color: Colors.white.withOpacity(0.4), fontSize: 13),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              if (call['notes'] != null && call['notes'].isNotEmpty) ...[
+                Text(
+                  call['notes'],
+                  style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 13.5),
+                ),
+                const SizedBox(height: 16),
+              ],
+              Row(
+                children: [
+                  _statChip('Joined: $joinedCount', Colors.green),
+                  const SizedBox(width: 8),
+                  _statChip('Late: $lateCount', Colors.orange),
+                  const SizedBox(width: 8),
+                  _statChip('Missed: $missedCount', Colors.red),
+                  const Spacer(),
+                  Text(
+                    'Logged By: ${logger['name'] ?? 'System'}',
+                    style: TextStyle(fontSize: 11, color: Colors.white.withOpacity(0.3)),
+                  ),
+                ],
+              )
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _statChip(String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withOpacity(0.2)),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.bold),
+      ),
+    );
+  }
+}
+
+// ==========================================
+// 22. STAFF INCENTIVES TAB
+// ==========================================
+class IncentivesTab extends ConsumerStatefulWidget {
+  const IncentivesTab({Key? key}) : super(key: key);
+
+  @override
+  ConsumerState<IncentivesTab> createState() => _IncentivesTabState();
+}
+
+class _IncentivesTabState extends ConsumerState<IncentivesTab> {
+  List<dynamic> _incentives = [];
+  bool _loading = true;
+  String _selectedMonth = DateTime.now().toString().substring(0, 7); // Default to current month YYYY-MM
+
+  @override
+  void initState() {
+    super.initState();
+    _loadIncentives();
+  }
+
+  Future<void> _loadIncentives() async {
+    setState(() => _loading = true);
+    final list = await ApiService.getIncentives(_selectedMonth);
+    setState(() {
+      _incentives = list;
+      _loading = false;
+    });
+  }
+
+  Future<void> _recalculateAll() async {
+    setState(() => _loading = true);
+    final list = await ApiService.getIncentives(_selectedMonth);
+    setState(() {
+      _incentives = list;
+      _loading = false;
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Re-computed staff performance incentives score.')),
+    );
+  }
+
+  Future<void> _updateStatus(int rowId, String status) async {
+    final ok = await ApiService.updateIncentiveStatus(rowId, status, 'Approved by Managing Director');
+    if (ok) {
+      _loadIncentives();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Incentive marked as $status.')),
+      );
+    }
+  }
+
+  void _showScoreBreakdownModal(dynamic record) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1E1E26),
+        title: Text('${record['user']?['name'] ?? 'Staff'} Scorecard', style: const TextStyle(color: VianTheme.primaryGold)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Employee ID: ${record['user']?['employeeId'] ?? ''}'),
+            Text('Role: ${record['user']?['role'] ?? ''}'),
+            const SizedBox(height: 16),
+            _scoreBar('Attendance Score', safeToDouble(record['attendanceScore']), 30),
+            _scoreBar('Briefing Calls Score', safeToDouble(record['callsScore']), 15),
+            _scoreBar('Tasks Accomplishment', safeToDouble(record['tasksScore']), 25),
+            _scoreBar('Photo slots Compliance', safeToDouble(record['photosScore']), 20),
+            _scoreBar('Daily Logs Compliance', safeToDouble(record['reportsScore']), 10),
+            const Divider(color: Colors.white10),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('Total Score:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                Text(
+                  '${safeToDouble(record['totalScore']).toStringAsFixed(1)} / 100',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold, 
+                    fontSize: 16,
+                    color: _getScoreColor(safeToDouble(record['totalScore'])),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Text('Calculated Incentive Bonus: ₹${safeToDouble(record['incentiveAmount']).toStringAsFixed(2)}', style: const TextStyle(color: Colors.green)),
+            Text('Calculated Penalties: ₹${safeToDouble(record['penaltyAmount']).toStringAsFixed(2)}', style: const TextStyle(color: Colors.red)),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Close')),
+        ],
+      ),
+    );
+  }
+
+  Widget _scoreBar(String title, double score, double maxScore) {
+    final ratio = score / maxScore;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(title, style: const TextStyle(fontSize: 12)),
+            Text('${score.toStringAsFixed(1)} / ${maxScore.toInt()}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+          ],
+        ),
+        const SizedBox(height: 4),
+        LinearProgressIndicator(
+          value: ratio,
+          backgroundColor: Colors.white10,
+          color: _getScoreColor(ratio * 100),
+          minHeight: 6,
+        ),
+        const SizedBox(height: 12),
+      ],
+    );
+  }
+
+  Color _getScoreColor(double score) {
+    if (score >= 90) return Colors.greenAccent;
+    if (score >= 75) return Colors.green;
+    if (score >= 60) return Colors.orange;
+    return Colors.red;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final user = ref.read(userProvider);
+    final role = user?['role'] ?? 'Client';
+    final isMD = role == 'Managing Director' || role == 'Super Admin';
+
+    // Summary Calculations
+    double totalBonus = 0;
+    double totalPenalties = 0;
+    double averageScore = 0;
+    if (_incentives.isNotEmpty) {
+      double sumScore = 0;
+      for (var inc in _incentives) {
+        totalBonus += safeToDouble(inc['incentiveAmount']);
+        totalPenalties += safeToDouble(inc['penaltyAmount']);
+        sumScore += safeToDouble(inc['totalScore']);
+      }
+      averageScore = sumScore / _incentives.length;
+    }
+
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Staff Incentives Engine', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: VianTheme.primaryGold)),
+                    const SizedBox(height: 4),
+                    Text('Auto-compute monthly employee operational score, bonuses, and late log-in penalties.', style: TextStyle(color: Colors.white.withOpacity(0.5))),
+                  ],
+                ),
+                Row(
+                  children: [
+                    Container(
+                      width: 140,
+                      child: DropdownButtonFormField<String>(
+                        value: _selectedMonth,
+                        dropdownColor: const Color(0xFF1E1E26),
+                        decoration: const InputDecoration(labelText: 'Month', contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8)),
+                        items: ['2026-07', '2026-06', '2026-05'].map((m) => DropdownMenuItem(value: m, child: Text(m))).toList(),
+                        onChanged: (val) {
+                          setState(() => _selectedMonth = val!);
+                          _loadIncentives();
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    if (isMD) ...[
+                      ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(backgroundColor: VianTheme.primaryGold, foregroundColor: Colors.black),
+                        onPressed: _recalculateAll,
+                        icon: const Icon(Icons.refresh),
+                        label: const Text('Re-calculate Scores'),
+                      ),
+                    ],
+                  ],
+                )
+              ],
+            ),
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                Expanded(child: _summaryCard('Average Performance Score', '${averageScore.toStringAsFixed(1)} / 100', Icons.trending_up, Colors.blueAccent)),
+                const SizedBox(width: 16),
+                Expanded(child: _summaryCard('Total Incentive Payouts', '₹${totalBonus.toStringAsFixed(0)}', Icons.arrow_upward, Colors.green)),
+                const SizedBox(width: 16),
+                Expanded(child: _summaryCard('Total Penalties Applied', '₹${totalPenalties.toStringAsFixed(0)}', Icons.arrow_downward, Colors.red)),
+              ],
+            ),
+            const SizedBox(height: 24),
+            Expanded(
+              child: _loading 
+                ? const Center(child: CircularProgressIndicator())
+                : _incentives.isEmpty
+                  ? Center(child: Text('No performance logs for month $_selectedMonth', style: const TextStyle(color: Colors.grey)))
+                  : _buildIncentivesTable(isMD),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _summaryCard(String title, String value, IconData icon, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1E1E26),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withOpacity(0.04)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 13)),
+              const SizedBox(height: 8),
+              Text(value, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+            ],
+          ),
+          Icon(icon, color: color, size: 28),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildIncentivesTable(bool isMD) {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFF1E1E26),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withOpacity(0.04)),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: SingleChildScrollView(
+          scrollDirection: Axis.vertical,
+          child: Table(
+            columnWidths: const {
+              0: FlexColumnWidth(2.5),
+              1: FlexColumnWidth(1.5),
+              2: FlexColumnWidth(1.2),
+              3: FlexColumnWidth(1.5),
+              4: FlexColumnWidth(1.5),
+              5: FlexColumnWidth(1.2),
+              6: FlexColumnWidth(2.0),
+            },
+            children: [
+              TableRow(
+                decoration: const BoxDecoration(color: Color(0xFF15151D)),
+                children: [
+                  _headerCell('Staff Member'),
+                  _headerCell('Department'),
+                  _headerCell('Total Score'),
+                  _headerCell('Bonus (₹)'),
+                  _headerCell('Penalties (₹)'),
+                  _headerCell('Status'),
+                  _headerCell('Actions'),
+                ],
+              ),
+              ..._incentives.map((row) {
+                final emp = row['user'] ?? {};
+                final double score = safeToDouble(row['totalScore']);
+                final status = row['status'] ?? 'Pending';
+                
+                return TableRow(
+                  decoration: BoxDecoration(
+                    border: Border(bottom: BorderSide(color: Colors.white.withOpacity(0.02))),
+                  ),
+                  children: [
+                    _dataCell(Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(emp['name'] ?? 'Unknown', style: const TextStyle(fontWeight: FontWeight.bold)),
+                        Text('${emp['employeeId'] ?? ''} • ${emp['role'] ?? ''}', style: TextStyle(fontSize: 11, color: Colors.white.withOpacity(0.4))),
+                      ],
+                    )),
+                    _dataCell(Text(emp['department'] ?? 'General')),
+                    _dataCell(Text(
+                      '${score.toStringAsFixed(1)}', 
+                      style: TextStyle(fontWeight: FontWeight.bold, color: _getScoreColor(score)),
+                    )),
+                    _dataCell(Text('+₹${safeToDouble(row['incentiveAmount']).toStringAsFixed(0)}', style: const TextStyle(color: Colors.green))),
+                    _dataCell(Text('-₹${safeToDouble(row['penaltyAmount']).toStringAsFixed(0)}', style: const TextStyle(color: Colors.red))),
+                    _dataCell(_statusTag(status)),
+                    _dataCell(Row(
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.analytics_outlined, size: 20, color: Colors.blueAccent),
+                          tooltip: 'Scorecard Breakdown',
+                          onPressed: () => _showScoreBreakdownModal(row),
+                        ),
+                        if (isMD && status == 'Pending') ...[
+                          IconButton(
+                            icon: const Icon(Icons.check_circle_outline, size: 20, color: Colors.green),
+                            tooltip: 'Approve Payout',
+                            onPressed: () => _updateStatus(row['id'] as int, 'Approved'),
+                          ),
+                        ] else if (isMD && status == 'Approved') ...[
+                          IconButton(
+                            icon: const Icon(Icons.paid_outlined, size: 20, color: Colors.orangeAccent),
+                            tooltip: 'Release Payout',
+                            onPressed: () => _updateStatus(row['id'] as int, 'Paid'),
+                          ),
+                        ]
+                      ],
+                    )),
+                  ],
+                );
+              }).toList(),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _headerCell(String text) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      child: Text(text, style: const TextStyle(fontWeight: FontWeight.bold, color: VianTheme.primaryGold, fontSize: 13)),
+    );
+  }
+
+  Widget _dataCell(Widget child) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      child: Align(alignment: Alignment.centerLeft, child: child),
+    );
+  }
+
+  Widget _statusTag(String status) {
+    Color bg = Colors.grey.withOpacity(0.1);
+    Color txt = Colors.grey;
+    if (status == 'Approved') {
+      bg = Colors.blueAccent.withOpacity(0.15);
+      txt = Colors.blueAccent;
+    } else if (status == 'Paid') {
+      bg = Colors.green.withOpacity(0.15);
+      txt = Colors.green;
+    }
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(status, style: TextStyle(color: txt, fontSize: 11, fontWeight: FontWeight.bold)),
     );
   }
 }

@@ -52,7 +52,8 @@ function registerRoutes(app, models) {
     LeadStage1,
     PublicEnquiryLink, PublicEnquirySubmission, PublicEnquiryDocument, PublicEnquiryHistory, PublicEnquiryDraft, PublicEnquiryNote,
     ProjectStage, StageTask, StageMaterial, StageLabour, StagePayment, StageDocument, StagePhoto, StageReport, StageApproval, StageHistory, Estimate, EstimateMaterial, EstimateBoq, EstimateLabour,
-    AuditLog
+    AuditLog,
+    ConferenceCall, Incentive
   } = models;
 
   // Role permissions helper
@@ -3927,6 +3928,282 @@ function registerRoutes(app, models) {
       res.json({ progress: records });
     } catch (error) {
       res.status(500).json({ message: 'Error loading progress logs', error: error.message });
+    }
+  });
+
+  // Helper to recalculate employee monthly performance incentive
+  async function recalculateEmployeeIncentive(userId, month) {
+    try {
+      const user = await User.findByPk(userId);
+      if (!user) return;
+      if (user.role === 'Managing Director' || user.role === 'Super Admin' || user.role === 'Client') return;
+
+      const datePrefix = `${month}-`; // e.g. "2026-07-"
+      
+      // 1. Attendance Score (30 Marks)
+      const attendances = await Attendance.findAll({
+        where: {
+          userId,
+          date: { [Op.like]: `${datePrefix}%` }
+        }
+      });
+      let attendanceDeductions = 0;
+      attendances.forEach(att => {
+        if (att.status === 'Late') {
+          attendanceDeductions += 2;
+        } else if (att.status === 'Half Day') {
+          attendanceDeductions += 5;
+        } else if (att.status === 'Absent') {
+          attendanceDeductions += 10;
+        }
+      });
+      const attendanceScore = Math.max(0, 30 - attendanceDeductions);
+
+      // 2. Call Score (15 Marks)
+      const calls = await ConferenceCall.findAll({
+        where: {
+          date: { [Op.like]: `${datePrefix}%` }
+        }
+      });
+      let callsDeductions = 0;
+      calls.forEach(c => {
+        try {
+          if (c.participants) {
+            const list = JSON.parse(c.participants);
+            const userStatus = list.find(p => p.userId === userId || p.employeeId === user.employeeId || p.name === user.name);
+            if (userStatus) {
+              if (userStatus.status === 'Missed') {
+                callsDeductions += 3;
+              } else if (userStatus.status === 'Late') {
+                callsDeductions += 1;
+              }
+            }
+          }
+        } catch (e) {
+          console.error('Error parsing call participants:', e);
+        }
+      });
+      const callsScore = Math.max(0, 15 - callsDeductions);
+
+      // 3. Tasks Score (25 Marks)
+      const monthTasks = await Task.findAll({
+        where: {
+          assignedTo: userId,
+          dueDate: { [Op.like]: `${datePrefix}%` },
+          deletedAt: null
+        }
+      });
+      let tasksScore = 25.00;
+      if (monthTasks.length > 0) {
+        const completedTasks = monthTasks.filter(t => t.status === 'Completed').length;
+        tasksScore = (completedTasks / monthTasks.length) * 25;
+      }
+
+      // 4. Photo Compliance Score (20 Marks)
+      const reports = await DailyReport.findAll({
+        where: {
+          userId,
+          date: { [Op.like]: `${datePrefix}%` }
+        }
+      });
+      let photoUploadCount = 0;
+      reports.forEach(r => {
+        if (r.photoUrls) {
+          try {
+            const arr = JSON.parse(r.photoUrls);
+            if (Array.isArray(arr)) photoUploadCount += arr.length;
+          } catch (e) {
+            if (r.photoUrls.includes('http')) photoUploadCount++;
+          }
+        }
+      });
+      
+      const targetPhotosCount = 15; // Target 15 photos uploaded per month
+      const photosScore = Math.min(20, Math.max(0, (photoUploadCount / targetPhotosCount) * 20));
+
+      // 5. Daily Reports Score (10 Marks)
+      const presentDates = attendances.filter(a => a.status === 'Present' || a.status === 'Late').map(a => a.date);
+      const reportDates = reports.map(r => r.date);
+      let missingReportsCount = 0;
+      presentDates.forEach(d => {
+        if (!reportDates.includes(d)) {
+          missingReportsCount++;
+        }
+      });
+      const reportsScore = Math.max(0, 10 - (missingReportsCount * 2));
+
+      // Final Score Calculation
+      const totalScore = attendanceScore + callsScore + tasksScore + photosScore + reportsScore;
+      
+      // Calculate Financials:
+      // - Score >= 90: Bonus +₹5,000
+      // - Score >= 80: Full wage/bonus +₹2,500
+      // - Score < 75: Penalty of ₹1,000
+      // - Score < 60: Penalty of ₹3,000
+      let incentiveAmount = 0;
+      let penaltyAmount = 0;
+      if (totalScore >= 90) {
+        incentiveAmount = 5000.00;
+      } else if (totalScore >= 80) {
+        incentiveAmount = 2500.00;
+      } else if (totalScore < 75 && totalScore >= 60) {
+        penaltyAmount = 1000.00;
+      } else if (totalScore < 60) {
+        penaltyAmount = 3000.00;
+      }
+
+      // Save to Incentives Table
+      const [incentiveRow, created] = await Incentive.findOrCreate({
+        where: { userId, month },
+        defaults: {
+          attendanceScore,
+          callsScore,
+          tasksScore,
+          photosScore,
+          reportsScore,
+          totalScore,
+          incentiveAmount,
+          penaltyAmount,
+          status: 'Pending',
+          remarks: `Auto-computed monthly score: ${totalScore.toFixed(1)}/100`
+        }
+      });
+
+      if (!created) {
+        await incentiveRow.update({
+          attendanceScore,
+          callsScore,
+          tasksScore,
+          photosScore,
+          reportsScore,
+          totalScore,
+          incentiveAmount,
+          penaltyAmount,
+          remarks: `Re-computed monthly score: ${totalScore.toFixed(1)}/100`
+        });
+      }
+    } catch (err) {
+      console.error('Error recalculating incentive score:', err);
+    }
+  }
+
+  // ==========================================
+  // CONFERENCE CALLS TRACKER ENDPOINTS
+  // ==========================================
+  app.get('/api/conference-calls', authenticateToken, async (req, res) => {
+    try {
+      const calls = await ConferenceCall.findAll({
+        include: [{ model: User, as: 'logger', attributes: ['name', 'role'] }],
+        order: [['date', 'DESC'], ['createdAt', 'DESC']]
+      });
+      res.json(calls);
+    } catch (error) {
+      res.status(500).json({ message: 'Error fetching conference calls', error: error.message });
+    }
+  });
+
+  app.post('/api/conference-calls', authenticateToken, authorizeRoles('Super Admin', 'Managing Director', 'Admin / Office Manager / Accounts'), async (req, res) => {
+    const { type, date, durationMinutes, notes, participants } = req.body;
+    if (!date || !participants) {
+      return res.status(400).json({ message: 'Date and participants are required' });
+    }
+    try {
+      const call = await ConferenceCall.create({
+        type: type || 'Morning Call',
+        date,
+        durationMinutes: parseInt(durationMinutes || 15),
+        notes,
+        loggedById: req.user.id,
+        participants: typeof participants === 'string' ? participants : JSON.stringify(participants)
+      });
+
+      // Write audit log
+      await writeAuditLog(req, 'Create', 'ConferenceCalls', null, call.toJSON());
+
+      // Auto-trigger recalculation of incentives for this month for all logged staff in participants list
+      const parsedParticipants = typeof participants === 'string' ? JSON.parse(participants) : participants;
+      const monthStr = date.substring(0, 7); // extract YYYY-MM
+      
+      if (Array.isArray(parsedParticipants)) {
+        for (const p of parsedParticipants) {
+          if (p.userId) {
+            // Run recalculation for each user
+            await recalculateEmployeeIncentive(p.userId, monthStr);
+          }
+        }
+      }
+
+      res.status(201).json({ success: true, call });
+    } catch (error) {
+      res.status(500).json({ message: 'Error creating conference call log', error: error.message });
+    }
+  });
+
+  // ==========================================
+  // STAFF INCENTIVES ENGINE ENDPOINTS
+  // ==========================================
+  app.get('/api/incentives', authenticateToken, async (req, res) => {
+    const month = req.query.month || new Date().toISOString().substring(0, 7); // default YYYY-MM
+    try {
+      // 1. Recalculate for all active staff automatically so data is fresh
+      const staffList = await User.findAll({
+        where: {
+          role: { [Op.notIn]: ['Client', 'Managing Director'] },
+          status: 'Active'
+        }
+      });
+
+      for (const staff of staffList) {
+        await recalculateEmployeeIncentive(staff.id, month);
+      }
+
+      // 2. Fetch computed incentive rows
+      const list = await Incentive.findAll({
+        where: { month },
+        include: [{ model: User, as: 'user', attributes: ['name', 'role', 'employeeId', 'department'] }],
+        order: [['totalScore', 'DESC']]
+      });
+
+      res.json(list);
+    } catch (error) {
+      res.status(500).json({ message: 'Error loading incentives', error: error.message });
+    }
+  });
+
+  app.post('/api/incentives/calculate', authenticateToken, authorizeRoles('Super Admin', 'Managing Director'), async (req, res) => {
+    const { userId, month } = req.body;
+    if (!userId || !month) {
+      return res.status(400).json({ message: 'User ID and month are required' });
+    }
+    try {
+      await recalculateEmployeeIncentive(userId, month);
+      const inc = await Incentive.findOne({
+        where: { userId, month },
+        include: [{ model: User, as: 'user', attributes: ['name', 'role'] }]
+      });
+      res.json({ success: true, incentive: inc });
+    } catch (error) {
+      res.status(500).json({ message: 'Error calculating incentive', error: error.message });
+    }
+  });
+
+  app.post('/api/incentives/:id/status', authenticateToken, authorizeRoles('Super Admin', 'Managing Director'), async (req, res) => {
+    const { status, remarks } = req.body; // 'Approved', 'Paid'
+    try {
+      const incentive = await Incentive.findByPk(req.params.id);
+      if (!incentive) return res.status(404).json({ message: 'Incentive record not found' });
+      
+      const oldVal = { ...incentive.toJSON() };
+      await incentive.update({
+        status,
+        remarks: remarks || incentive.remarks,
+        approvedById: req.user.id
+      });
+
+      await writeAuditLog(req, 'ApproveIncentive', 'Incentives', oldVal, incentive.toJSON());
+      res.json({ success: true, incentive });
+    } catch (error) {
+      res.status(500).json({ message: 'Error updating incentive status', error: error.message });
     }
   });
 

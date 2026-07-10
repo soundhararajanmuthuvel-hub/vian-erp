@@ -1396,6 +1396,47 @@ function initModels() {
   // StageHistory <-> User (Creator)
   StageHistory.belongsTo(User, { foreignKey: 'createdById', as: 'creator' });
 
+  // 54. ConferenceCall Model
+  const ConferenceCall = sequelize.define('ConferenceCall', {
+    id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    type: {
+      type: DataTypes.ENUM('Morning Call', 'Evening Call'),
+      defaultValue: 'Morning Call',
+      allowNull: false
+    },
+    date: { type: DataTypes.DATEONLY, allowNull: false },
+    durationMinutes: { type: DataTypes.INTEGER, defaultValue: 15 },
+    notes: { type: DataTypes.TEXT, allowNull: true },
+    loggedById: { type: DataTypes.INTEGER, allowNull: true },
+    participants: { type: DataTypes.TEXT, allowNull: true } // JSON string of attendees
+  }, { tableName: 'conference_calls', underscored: true });
+
+  ConferenceCall.belongsTo(User, { foreignKey: 'loggedById', as: 'logger' });
+
+  // 55. Incentive Model
+  const Incentive = sequelize.define('Incentive', {
+    id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    userId: { type: DataTypes.INTEGER, allowNull: false },
+    month: { type: DataTypes.STRING(10), allowNull: false }, // YYYY-MM
+    attendanceScore: { type: DataTypes.DECIMAL(5, 2), defaultValue: 0.0 },
+    callsScore: { type: DataTypes.DECIMAL(5, 2), defaultValue: 0.0 },
+    tasksScore: { type: DataTypes.DECIMAL(5, 2), defaultValue: 0.0 },
+    photosScore: { type: DataTypes.DECIMAL(5, 2), defaultValue: 0.0 },
+    reportsScore: { type: DataTypes.DECIMAL(5, 2), defaultValue: 0.0 },
+    totalScore: { type: DataTypes.DECIMAL(5, 2), defaultValue: 0.0 },
+    incentiveAmount: { type: DataTypes.DECIMAL(15, 2), defaultValue: 0.0 },
+    penaltyAmount: { type: DataTypes.DECIMAL(15, 2), defaultValue: 0.0 },
+    status: {
+      type: DataTypes.ENUM('Pending', 'Approved', 'Paid'),
+      defaultValue: 'Pending'
+    },
+    remarks: { type: DataTypes.TEXT, allowNull: true },
+    approvedById: { type: DataTypes.INTEGER, allowNull: true }
+  }, { tableName: 'incentives', underscored: true });
+
+  Incentive.belongsTo(User, { foreignKey: 'userId', as: 'user' });
+  Incentive.belongsTo(User, { foreignKey: 'approvedById', as: 'approver' });
+
   return {
     User, Session, Lead, LeadTimeline, LeadStage1, Client, ClientTimeline, Project,
     Attendance, Task, SiteVisit, Drawing, Document,
@@ -1409,7 +1450,8 @@ function initModels() {
     BuildVersion, Build, BuildLog, BuildArtifact, AiSetting,
     ProjectStage, StageTask, StageMaterial, StageLabour, StagePayment, StageDocument, StagePhoto, StageReport, StageApproval, StageHistory,
     PublicEnquiryLink, PublicEnquirySubmission, PublicEnquiryDocument, PublicEnquiryHistory, PublicEnquiryDraft, PublicEnquiryNote,
-    AuditLog
+    AuditLog,
+    ConferenceCall, Incentive
   };
 }
 

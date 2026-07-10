@@ -820,5 +820,41 @@ CREATE TABLE IF NOT EXISTS ai_settings (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
+-- 52. Conference Calls table
+CREATE TABLE IF NOT EXISTS conference_calls (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    type ENUM('Morning Call', 'Evening Call') DEFAULT 'Morning Call' NOT NULL,
+    date DATE NOT NULL,
+    duration_minutes INT DEFAULT 15,
+    notes TEXT,
+    logged_by_id INT,
+    participants TEXT, -- JSON string of attendees
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (logged_by_id) REFERENCES users(id) ON DELETE SET NULL
+);
+
+-- 53. Incentives table
+CREATE TABLE IF NOT EXISTS incentives (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    month VARCHAR(10) NOT NULL, -- YYYY-MM
+    attendance_score DECIMAL(5, 2) DEFAULT 0.00,
+    calls_score DECIMAL(5, 2) DEFAULT 0.00,
+    tasks_score DECIMAL(5, 2) DEFAULT 0.00,
+    photos_score DECIMAL(5, 2) DEFAULT 0.00,
+    reports_score DECIMAL(5, 2) DEFAULT 0.00,
+    total_score DECIMAL(5, 2) DEFAULT 0.00,
+    incentive_amount DECIMAL(15, 2) DEFAULT 0.00,
+    penalty_amount DECIMAL(15, 2) DEFAULT 0.00,
+    status ENUM('Pending', 'Approved', 'Paid') DEFAULT 'Pending',
+    remarks TEXT,
+    approved_by_id INT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (approved_by_id) REFERENCES users(id) ON DELETE SET NULL
+);
+
 
 

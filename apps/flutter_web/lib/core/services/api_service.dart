@@ -565,6 +565,7 @@ class ApiService {
       );
       return response.statusCode == 201;
     } catch (_) {
+      queueOfflineRequest('/attendance/check-in', 'POST', {'gps': gps, 'selfieUrl': selfieUrl});
       return true;
     }
   }
@@ -579,6 +580,7 @@ class ApiService {
       );
       return response.statusCode == 200;
     } catch (_) {
+      queueOfflineRequest('/attendance/check-out', 'POST', {'gps': gps});
       return true;
     }
   }
@@ -1079,6 +1081,7 @@ class ApiService {
       );
       return response.statusCode == 201;
     } catch (_) {
+      queueOfflineRequest('/reports/daily', 'POST', data);
       return true;
     }
   }
@@ -3375,6 +3378,119 @@ class ApiService {
       final response = await http.post(
         Uri.parse('$baseUrl/restore/$module/$id'),
         headers: _headers,
+      );
+      return response.statusCode == 200;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  // --- OFFLINE SYNC QUEUE ---
+  static List<Map<String, dynamic>> offlineQueue = [];
+  
+  static void queueOfflineRequest(String endpoint, String method, Map<String, dynamic> data) {
+    offlineQueue.add({
+      'endpoint': endpoint,
+      'method': method,
+      'data': data,
+      'timestamp': DateTime.now().toIso8601String(),
+    });
+    print('Offline sync queued: $endpoint');
+  }
+
+  static Future<void> processOfflineQueue() async {
+    if (offlineQueue.isEmpty) return;
+    print('Processing offline queue (${offlineQueue.length} items)...');
+    
+    final tempQueue = List<Map<String, dynamic>>.from(offlineQueue);
+    offlineQueue.clear();
+
+    for (final item in tempQueue) {
+      try {
+        final endpoint = item['endpoint'] as String;
+        final method = item['method'] as String;
+        final data = item['data'] as Map<String, dynamic>;
+
+        if (method == 'POST') {
+          await http.post(
+            Uri.parse('$baseUrl$endpoint'),
+            headers: _headers,
+            body: json.encode(data),
+          );
+        }
+      } catch (e) {
+        // Re-queue on failure
+        offlineQueue.add(item);
+        print('Offline sync failed for item, re-queued: $e');
+      }
+    }
+  }
+
+  // --- CONFERENCE CALLS TRACKER ---
+  static Future<List<dynamic>> getConferenceCalls() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/conference-calls'),
+        headers: _headers,
+      );
+      if (response.statusCode == 200) {
+        return json.decode(response.body) ?? [];
+      }
+      return [];
+    } catch (_) {
+      return [];
+    }
+  }
+
+  static Future<bool> createConferenceCall(Map<String, dynamic> data) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/conference-calls'),
+        headers: _headers,
+        body: json.encode(data),
+      );
+      return response.statusCode == 201 || response.statusCode == 200;
+    } catch (_) {
+      queueOfflineRequest('/conference-calls', 'POST', data);
+      return true;
+    }
+  }
+
+  // --- STAFF INCENTIVE ENGINE ---
+  static Future<List<dynamic>> getIncentives(String month) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/incentives?month=$month'),
+        headers: _headers,
+      );
+      if (response.statusCode == 200) {
+        return json.decode(response.body) ?? [];
+      }
+      return [];
+    } catch (_) {
+      return [];
+    }
+  }
+
+  static Future<bool> calculateIncentive(int userId, String month) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/incentives/calculate'),
+        headers: _headers,
+        body: json.encode({'userId': userId, 'month': month}),
+      );
+      return response.statusCode == 200;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  static Future<bool> updateIncentiveStatus(int id, String status, String remarks) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/incentives/$id/status'),
+        headers: _headers,
+        body: json.encode({'status': status, 'remarks': remarks}),
       );
       return response.statusCode == 200;
     } catch (_) {
