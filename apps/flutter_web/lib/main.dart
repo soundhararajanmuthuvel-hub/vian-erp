@@ -305,6 +305,10 @@ final GoRouter _router = GoRouter(
           path: '/announcements',
           builder: (context, state) => const AnnouncementsTab(),
         ),
+        GoRoute(
+          path: '/enquiry-inbox',
+          builder: (context, state) => const EnquiryInboxTab(),
+        ),
       ],
     ),
   ],
