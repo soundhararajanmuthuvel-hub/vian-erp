@@ -3,14 +3,16 @@ import 'package:google_fonts/google_fonts.dart';
 
 class VianTheme {
   static const Color primaryGold = Color(0xFFF5A623);
-  static const Color darkBackground = Color(0xFF23232F);
-  static const Color headerBlack = Color(0xFF0F0F0F);
+  static const Color darkBackground = Color(0xFF111111);
+  static const Color headerBlack = Color(0xFF1C1C1E);
+  static const Color cardColor = Color(0xFF242424);
   static const Color whiteText = Color(0xFFFFFFFF);
   static const Color lightText = Color(0xFFD9D9D9);
   static const Color goldBorder = Color(0xFFC88A12);
-  static const Color success = Color(0xFF28A745);
-  static const Color warning = Color(0xFFFFC107);
-  static const Color danger = Color(0xFFDC3545);
+  static const Color success = Color(0xFF22C55E);
+  static const Color warning = Color(0xFFF59E0B);
+  static const Color danger = Color(0xFFEF4444);
+  static const Color accent = Color(0xFFFFC857);
 
   static ThemeData get darkTheme {
     return ThemeData(
@@ -54,20 +56,20 @@ class VianTheme {
         elevation: 16,
       ),
       cardTheme: CardThemeData(
-        color: headerBlack,
-        elevation: 4,
+        color: cardColor,
+        elevation: 6,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: const BorderSide(color: Color(0x33F5A623), width: 1),
+          borderRadius: BorderRadius.circular(18),
+          side: const BorderSide(color: Color(0x15F5A623), width: 1),
         ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: primaryGold,
           foregroundColor: headerBlack,
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(18),
             side: const BorderSide(color: goldBorder, width: 1.5),
           ),
           textStyle: GoogleFonts.poppins(
@@ -81,9 +83,9 @@ class VianTheme {
         style: OutlinedButton.styleFrom(
           foregroundColor: primaryGold,
           side: const BorderSide(color: primaryGold, width: 1.5),
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(18),
           ),
           textStyle: GoogleFonts.poppins(
             fontWeight: FontWeight.w600,
@@ -99,19 +101,19 @@ class VianTheme {
         hintStyle: const TextStyle(color: Color(0xFF70707C)),
         contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(18),
           borderSide: const BorderSide(color: Color(0x33F5A623), width: 1),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(18),
           borderSide: const BorderSide(color: primaryGold, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(18),
           borderSide: const BorderSide(color: danger, width: 1),
         ),
         focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(18),
           borderSide: const BorderSide(color: danger, width: 1.5),
         ),
       ),

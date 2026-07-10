@@ -366,6 +366,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   final _passwordController = TextEditingController();
   bool _isLoading = false;
   bool _rememberMe = true;
+  bool _showPassword = false;
+  bool _showDevOptions = false;
   String? _errorMessage;
 
   Future<void> _handleLogin() async {
@@ -393,7 +395,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     });
   }
 
-  // Developer helper for testing different roles
   void _quickFill(String role) {
     _usernameController.text = role;
     _passwordController.text = '${role}123';
@@ -406,140 +407,185 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     final isMobile = size.width < 800;
 
     return Scaffold(
+      backgroundColor: VianTheme.darkBackground,
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
-          child: Container(
-            width: 450,
-            padding: const EdgeInsets.all(32.0),
-            decoration: BoxDecoration(
-              color: VianTheme.headerBlack,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0x33F5A623), width: 1.5),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                // VIAN LOGO
-                Image.asset(
-                  'assets/logo.png',
-                  height: 60,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Column(
-                      children: [
-                        const Icon(Icons.architecture, color: VianTheme.primaryGold, size: 48),
-                        Text(
-                          'VIAN ARCHITECTS',
-                          style: GoogleFonts.poppins(
-                            color: VianTheme.primaryGold,
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 2,
+          child: Hero(
+            tag: 'loginHero',
+            child: Container(
+              width: isMobile ? size.width * 0.92 : 450,
+              padding: const EdgeInsets.all(32.0),
+              decoration: BoxDecoration(
+                color: VianTheme.cardColor,
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: const Color(0xFF26262F), width: 1.0),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color(0x15000000),
+                    blurRadius: 15,
+                    offset: Offset(0, 8),
+                  )
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  // VIAN LOGO
+                  Image.asset(
+                    'assets/logo.png',
+                    height: 60,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Column(
+                        children: [
+                          const Icon(Icons.architecture, color: VianTheme.primaryGold, size: 52),
+                          const SizedBox(height: 8),
+                          Text(
+                            'VIAN ARCHITECTS',
+                            style: GoogleFonts.poppins(
+                              color: VianTheme.primaryGold,
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 2,
+                            ),
                           ),
-                        ),
-                      ],
-                    );
-                  },
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  'ERP & Project Management SaaS',
-                  style: GoogleFonts.poppins(
-                    color: VianTheme.lightText,
-                    fontSize: 13,
-                    letterSpacing: 1,
+                        ],
+                      );
+                    },
                   ),
-                ),
-                const SizedBox(height: 32),
-                if (_errorMessage != null) ...[
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: const Color(0x22DC3545),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: VianTheme.danger),
+                  const SizedBox(height: 12),
+                  Text(
+                    'ERP & Project Management SaaS',
+                    style: GoogleFonts.poppins(
+                      color: VianTheme.lightText,
+                      fontSize: 13,
+                      letterSpacing: 1,
                     ),
-                    child: Text(
-                      _errorMessage!,
-                      style: const TextStyle(color: VianTheme.danger, fontSize: 13),
-                      textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 32),
+                  if (_errorMessage != null) ...[
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0x15EF4444),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: VianTheme.danger),
+                      ),
+                      child: Text(
+                        _errorMessage!,
+                        style: const TextStyle(color: VianTheme.danger, fontSize: 13),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                  TextField(
+                    controller: _usernameController,
+                    decoration: const InputDecoration(
+                      labelText: 'Username',
+                      prefixIcon: Icon(Icons.person_outline, color: VianTheme.primaryGold),
                     ),
                   ),
                   const SizedBox(height: 16),
-                ],
-                TextField(
-                  controller: _usernameController,
-                  decoration: const InputDecoration(
-                    labelText: 'Username',
-                    prefixIcon: Icon(Icons.person_outline, color: VianTheme.primaryGold),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: _passwordController,
-                  obscureText: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Password',
-                    prefixIcon: Icon(Icons.lock_outline, color: VianTheme.primaryGold),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        Checkbox(
-                          value: _rememberMe,
-                          activeColor: VianTheme.primaryGold,
-                          onChanged: (v) => setState(() => _rememberMe = v ?? true),
+                  TextField(
+                    controller: _passwordController,
+                    obscureText: !_showPassword,
+                    decoration: InputDecoration(
+                      labelText: 'Password',
+                      prefixIcon: const Icon(Icons.lock_outline, color: VianTheme.primaryGold),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _showPassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                          color: Colors.white70,
+                          size: 20,
                         ),
-                        const Text('Remember me', style: TextStyle(fontSize: 13, color: VianTheme.lightText)),
+                        onPressed: () => setState(() => _showPassword = !_showPassword),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Checkbox(
+                            value: _rememberMe,
+                            activeColor: VianTheme.primaryGold,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            onChanged: (v) => setState(() => _rememberMe = v ?? true),
+                          ),
+                          const Text('Remember me', style: TextStyle(fontSize: 13, color: VianTheme.lightText)),
+                        ],
+                      ),
+                      TextButton(
+                        onPressed: () {},
+                        child: const Text('Forgot Password?', style: TextStyle(color: VianTheme.primaryGold, fontSize: 13)),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    child: VianButton(
+                      text: _isLoading ? 'Signing In...' : 'Sign In',
+                      onPressed: _isLoading ? () {} : _handleLogin,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  
+                  // Collapsible Developer Tools
+                  TextButton.icon(
+                    style: TextButton.styleFrom(foregroundColor: Colors.white38),
+                    icon: Icon(_showDevOptions ? Icons.expand_less : Icons.expand_more, size: 16),
+                    label: const Text('Developer Options', style: TextStyle(fontSize: 11)),
+                    onPressed: () => setState(() => _showDevOptions = !_showDevOptions),
+                  ),
+                  
+                  if (_showDevOptions) ...[
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Quick-Access Roles',
+                      style: TextStyle(color: VianTheme.lightText, fontSize: 11, fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 12),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      alignment: WrapAlignment.center,
+                      children: [
+                        _roleChip('anand'),
+                        _roleChip('vijay'),
+                        _roleChip('jaya'),
+                        _roleChip('muthuiya'),
+                        _roleChip('murugan'),
+                        _roleChip('gokul'),
+                        _roleChip('sivaraman'),
+                        _roleChip('mohan'),
+                        _roleChip('vijayan'),
+                        _roleChip('manoj'),
+                        _roleChip('client'),
                       ],
                     ),
-                    TextButton(
-                      onPressed: () {},
-                      child: const Text('Forgot Password?', style: TextStyle(color: VianTheme.primaryGold, fontSize: 13)),
-                    ),
                   ],
-                ),
-                const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  child: VianButton(
-                    text: _isLoading ? 'Signing In...' : 'Sign In',
-                    onPressed: _isLoading ? () {} : _handleLogin,
+                  
+                  const Divider(color: Color(0x11F5A623), height: 32),
+                  const Text(
+                    'Version 1.2.0-beta',
+                    style: TextStyle(color: Colors.white30, fontSize: 10),
                   ),
-                ),
-                const SizedBox(height: 32),
-                const Divider(color: Color(0x22F5A623)),
-                const SizedBox(height: 16),
-                const Text(
-                  'Developer Quick-Access Roles',
-                  style: TextStyle(color: VianTheme.lightText, fontSize: 11, fontWeight: FontWeight.w600),
-                ),
-                const SizedBox(height: 12),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  alignment: WrapAlignment.center,
-                  children: [
-                    _roleChip('anand'),
-                    _roleChip('vijay'),
-                    _roleChip('jaya'),
-                    _roleChip('muthuiya'),
-                    _roleChip('murugan'),
-                    _roleChip('gokul'),
-                    _roleChip('sivaraman'),
-                    _roleChip('mohan'),
-                    _roleChip('vijayan'),
-                    _roleChip('manoj'),
-                    _roleChip('client'),
-                  ],
-                )
-              ],
+                  const SizedBox(height: 4),
+                  const Text(
+                    '© 2026 VIAN Architects. All rights reserved.',
+                    style: TextStyle(color: Colors.white30, fontSize: 10),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -644,6 +690,29 @@ class _MainNavigationShellState extends ConsumerState<MainNavigationShell> {
     final size = MediaQuery.of(context).size;
     final isMobile = size.width < 1000;
 
+    // Build dynamic Material 3 bottom navigation bar based on user permissions
+    final bottomDestinations = <Map<String, dynamic>>[
+      {'title': 'Dashboard', 'icon': Icons.dashboard_outlined, 'selectedIcon': Icons.dashboard, 'route': '/dashboard'},
+    ];
+    if (tabs.any((t) => t['route'] == '/crm-leads')) {
+      bottomDestinations.add({'title': 'CRM', 'icon': Icons.campaign_outlined, 'selectedIcon': Icons.campaign, 'route': '/crm-leads'});
+    }
+    if (tabs.any((t) => t['route'] == '/projects')) {
+      bottomDestinations.add({'title': 'Projects', 'icon': Icons.architecture_outlined, 'selectedIcon': Icons.architecture, 'route': '/projects'});
+    }
+    if (tabs.any((t) => t['route'] == '/gps-attendance')) {
+      bottomDestinations.add({'title': 'Attendance', 'icon': Icons.pin_drop_outlined, 'selectedIcon': Icons.pin_drop, 'route': '/gps-attendance'});
+    }
+    bottomDestinations.add({'title': 'Profile', 'icon': Icons.person_outline, 'selectedIcon': Icons.person, 'route': '/profile'});
+
+    int bottomSelectedIndex = bottomDestinations.indexWhere((d) {
+      final route = d['route'] as String;
+      if (route == currentPath) return true;
+      if (route != '/dashboard' && currentPath.startsWith(route)) return true;
+      return false;
+    });
+    if (bottomSelectedIndex == -1) bottomSelectedIndex = 0;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(tabs[_selectedIndex]['title']),
@@ -694,6 +763,23 @@ class _MainNavigationShellState extends ConsumerState<MainNavigationShell> {
           ),
         ],
       ),
+      bottomNavigationBar: isMobile
+          ? NavigationBar(
+              backgroundColor: const Color(0xFF1C1C1E),
+              indicatorColor: VianTheme.primaryGold.withOpacity(0.15),
+              selectedIndex: bottomSelectedIndex,
+              onDestinationSelected: (idx) {
+                context.go(bottomDestinations[idx]['route'] as String);
+              },
+              destinations: bottomDestinations.map((d) {
+                return NavigationDestination(
+                  icon: Icon(d['icon'] as IconData, color: Colors.white70),
+                  selectedIcon: Icon(d['selectedIcon'] as IconData, color: VianTheme.primaryGold),
+                  label: d['title'] as String,
+                );
+              }).toList(),
+            )
+          : null,
     );
   }
 
@@ -866,6 +952,207 @@ class _CRMTabState extends State<CRMTab> {
     }
   }
 
+  void _handleConvertLead(Map<String, dynamic> lead, {bool merge = false}) async {
+    final role = ApiService.currentUser?['role'] ?? 'Client';
+    // Gating permissions: Only Super Admin and Admin can execute conversion
+    if (role != 'Managing Director' && role != 'Super Admin' && role != 'Admin / Office Manager / Accounts' && role != 'Tech Head + Senior Architect') {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          backgroundColor: VianTheme.headerBlack,
+          title: const Text('Access Denied', style: TextStyle(color: Colors.redAccent)),
+          content: const Text('Staff can only recommend conversion but cannot execute it. Please contact an Admin or Super Admin.', style: TextStyle(color: Colors.white)),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context), child: const Text('OK')),
+          ],
+        ),
+      );
+      return;
+    }
+
+    if (merge) {
+      final res = await ApiService.convertToClient(lead['id'], merge: true);
+      if (res['success'] == true) {
+        _fetchLeads();
+        _showConversionSuccessDialog(res['client']);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(res['message'] ?? 'Error during merge')));
+      }
+      return;
+    }
+
+    // Interactive prompt for options (Initial Project details)
+    bool createProject = false;
+    final projNameCtrl = TextEditingController(text: '${lead['name']} Project');
+    String projType = 'Residential';
+    final projBudgetCtrl = TextEditingController(text: safeToDouble(lead['budget']).toStringAsFixed(0));
+    final projAddressCtrl = TextEditingController(text: lead['address'] ?? '');
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          return AlertDialog(
+            backgroundColor: VianTheme.headerBlack,
+            title: const Text('Convert Lead to Client', style: TextStyle(color: VianTheme.primaryGold)),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Are you sure you want to convert "${lead['name']}" into an active client?', style: const TextStyle(color: Colors.white)),
+                  const SizedBox(height: 16),
+                  CheckboxListTile(
+                    title: const Text('Auto-create Initial Project', style: TextStyle(color: Colors.white, fontSize: 13)),
+                    value: createProject,
+                    activeColor: VianTheme.primaryGold,
+                    contentPadding: EdgeInsets.zero,
+                    onChanged: (v) => setDialogState(() => createProject = v ?? false),
+                  ),
+                  if (createProject) ...[
+                    const SizedBox(height: 12),
+                    TextField(controller: projNameCtrl, decoration: const InputDecoration(labelText: 'Project Name')),
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<String>(
+                      value: projType,
+                      decoration: const InputDecoration(labelText: 'Project Type'),
+                      dropdownColor: const Color(0xFF1E1E26),
+                      items: const [
+                        DropdownMenuItem(value: 'Residential', child: Text('Residential', style: TextStyle(color: Colors.white))),
+                        DropdownMenuItem(value: 'Villa', child: Text('Villa', style: TextStyle(color: Colors.white))),
+                        DropdownMenuItem(value: 'Commercial', child: Text('Commercial', style: TextStyle(color: Colors.white))),
+                        DropdownMenuItem(value: 'Apartment', child: Text('Apartment', style: TextStyle(color: Colors.white))),
+                        DropdownMenuItem(value: 'Interior Design', child: Text('Interior Design', style: TextStyle(color: Colors.white))),
+                        DropdownMenuItem(value: 'Renovation', child: Text('Renovation', style: TextStyle(color: Colors.white))),
+                      ],
+                      onChanged: (val) => setDialogState(() => projType = val!),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(controller: projBudgetCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Project Budget (INR)')),
+                    const SizedBox(height: 12),
+                    TextField(controller: projAddressCtrl, decoration: const InputDecoration(labelText: 'Site Address')),
+                  ]
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+              VianButton(
+                text: 'Convert',
+                onPressed: () async {
+                  Navigator.pop(context); // Close prompt dialog
+                  final budgetVal = double.tryParse(projBudgetCtrl.text) ?? 0.0;
+                  final res = await ApiService.convertToClient(
+                    lead['id'],
+                    createProject: createProject,
+                    projectName: projNameCtrl.text,
+                    projectType: projType,
+                    projectBudget: budgetVal,
+                    projectSiteAddress: projAddressCtrl.text,
+                  );
+
+                  if (res['conflict'] == true) {
+                    _showConflictDialog(lead, res['duplicate']);
+                  } else if (res['success'] == true) {
+                    _fetchLeads();
+                    _showConversionSuccessDialog(res['client']);
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(res['message'] ?? 'Conversion failed')));
+                  }
+                },
+              )
+            ],
+          );
+        }
+      ),
+    );
+  }
+
+  void _showConflictDialog(Map<String, dynamic> lead, Map<String, dynamic> duplicate) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: VianTheme.headerBlack,
+        title: const Text('Duplicate Client Found', style: TextStyle(color: Colors.redAccent)),
+        content: Text('A client matching this email, phone, or GST number already exists:\n\n'
+            'Name: ${duplicate['name']}\n'
+            'Client ID: ${duplicate['clientId'] ?? 'N/A'}\n\n'
+            'Would you like to open the existing client profile or merge the lead data into it?',
+            style: const TextStyle(color: Colors.white)),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              context.go('/clients'); // Go to clients catalog
+            },
+            child: const Text('Open Existing Client', style: TextStyle(color: VianTheme.primaryGold)),
+          ),
+          VianButton(
+            text: 'Merge Data',
+            onPressed: () {
+              Navigator.pop(context);
+              _handleConvertLead(lead, merge: true);
+            },
+          )
+        ],
+      ),
+    );
+  }
+
+  void _showConversionSuccessDialog(Map<String, dynamic> client) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: VianTheme.headerBlack,
+        title: const Row(
+          children: [
+            Icon(Icons.check_circle_outline, color: VianTheme.success, size: 28),
+            SizedBox(width: 12),
+            Text('Lead Successfully Converted', style: TextStyle(color: VianTheme.primaryGold, fontSize: 16)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Client Name: ${client['name']}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 6),
+            Text('Client ID: ${client['clientId']}', style: const TextStyle(color: Colors.white70)),
+            const SizedBox(height: 6),
+            Text('Converted By: ${client['convertedBy']}', style: const TextStyle(color: Colors.white70)),
+            const SizedBox(height: 6),
+            Text('Converted On: ${client['convertedOn']}', style: const TextStyle(color: Colors.white70)),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Close')),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              context.go('/projects'); // Navigate to projects
+            },
+            child: const Text('Create Project', style: TextStyle(color: VianTheme.primaryGold)),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              context.go('/quotations'); // Navigate to quotations
+            },
+            child: const Text('Create Quotation', style: TextStyle(color: VianTheme.primaryGold)),
+          ),
+          VianButton(
+            text: 'Open Client',
+            onPressed: () {
+              Navigator.pop(context);
+              context.go('/clients'); // Navigate to clients list
+            },
+          )
+        ],
+      ),
+    );
+  }
+
   void _showAddLeadDialog({Map<String, dynamic>? lead}) {
     final nameCtrl = TextEditingController(text: lead?['name']);
     final phoneCtrl = TextEditingController(text: lead?['phone']);
@@ -970,9 +1257,34 @@ class _CRMTabState extends State<CRMTab> {
                           ),
                         ],
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.close, color: VianTheme.lightText),
-                        onPressed: () => Navigator.pop(context),
+                      Row(
+                        children: [
+                          if (lead['converted'] == 'Yes' || lead['clientId'] != null)
+                            VianButton(
+                              text: 'View Client',
+                              color: VianTheme.primaryGold,
+                              textColor: Colors.black,
+                              onPressed: () {
+                                Navigator.pop(context);
+                                context.go('/clients');
+                              },
+                            )
+                          else
+                            VianButton(
+                              text: 'Convert to Client',
+                              color: VianTheme.success,
+                              textColor: Colors.white,
+                              onPressed: () {
+                                Navigator.pop(context);
+                                _handleConvertLead(lead);
+                              },
+                            ),
+                          const SizedBox(width: 8),
+                          IconButton(
+                            icon: const Icon(Icons.close, color: VianTheme.lightText),
+                            onPressed: () => Navigator.pop(context),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -1342,15 +1654,22 @@ class _CRMTabState extends State<CRMTab> {
                               },
                             ),
                             const SizedBox(width: 12),
-                            VianButton(
-                              text: 'Won Project',
-                              color: VianTheme.success,
-                              textColor: Colors.white,
-                              onPressed: () async {
-                                await ApiService.updateLeadStatus(lead['id'], 'Won');
-                                _fetchLeads();
-                              },
-                            ),
+                            if (lead['converted'] == 'Yes' || lead['clientId'] != null)
+                              VianButton(
+                                text: 'View Client',
+                                color: VianTheme.primaryGold,
+                                textColor: Colors.black,
+                                onPressed: () {
+                                  context.go('/clients');
+                                },
+                              )
+                            else
+                              VianButton(
+                                text: 'Convert to Client',
+                                color: VianTheme.success,
+                                textColor: Colors.white,
+                                onPressed: () => _handleConvertLead(lead),
+                              ),
                             const SizedBox(width: 12),
                             VianButton(
                               text: 'Track Progress',

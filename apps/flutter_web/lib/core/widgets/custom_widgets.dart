@@ -24,12 +24,12 @@ class VianCard extends StatelessWidget {
       height: height,
       padding: padding ?? const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
-        color: VianTheme.headerBlack,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0x22F5A623), width: 1.5),
+        color: VianTheme.cardColor,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFF26262F), width: 1.0),
         boxShadow: const [
           BoxShadow(
-            color: Color(0x11000000),
+            color: Color(0x15000000),
             blurRadius: 10,
             offset: Offset(0, 4),
           )
@@ -41,7 +41,7 @@ class VianCard extends StatelessWidget {
     if (onTap != null) {
       return InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(18),
         splashColor: const Color(0x11F5A623),
         highlightColor: const Color(0x08F5A623),
         child: cardContent,
@@ -77,8 +77,8 @@ class VianMetricCard extends StatelessWidget {
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: const Color(0xFF1E1E26),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: const Color(0x33F5A623), width: 1),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: const Color(0x15F5A623), width: 1),
             ),
             child: Icon(icon, color: iconColor ?? VianTheme.primaryGold, size: 28),
           ),
@@ -151,12 +151,18 @@ class VianButton extends StatelessWidget {
         ? OutlinedButton.styleFrom(
             foregroundColor: color ?? VianTheme.primaryGold,
             side: BorderSide(color: color ?? VianTheme.primaryGold, width: 1.5),
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(18),
+            ),
           )
         : ElevatedButton.styleFrom(
             backgroundColor: color ?? VianTheme.primaryGold,
             foregroundColor: textColor ?? VianTheme.headerBlack,
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(18),
+            ),
           );
 
     final child = Row(

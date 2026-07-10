@@ -281,6 +281,34 @@ class ApiService {
     }
   }
 
+  static Future<Map<String, dynamic>> convertToClient(
+    int leadId, {
+    bool merge = false,
+    bool createProject = false,
+    String? projectName,
+    String? projectType,
+    double? projectBudget,
+    String? projectSiteAddress,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/crm/leads/$leadId/convert'),
+        headers: _headers,
+        body: json.encode({
+          'merge': merge,
+          'createProject': createProject,
+          'projectName': projectName,
+          'projectType': projectType,
+          'projectBudget': projectBudget,
+          'projectSiteAddress': projectSiteAddress,
+        }),
+      );
+      return json.decode(response.body);
+    } catch (e) {
+      return {'success': false, 'message': e.toString()};
+    }
+  }
+
   // Offline mock storage map
   static final Map<int, Map<String, dynamic>> _localStage1Storage = {};
 

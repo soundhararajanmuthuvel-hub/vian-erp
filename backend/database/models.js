@@ -47,6 +47,19 @@ function initModels() {
       type: DataTypes.ENUM('New', 'Contacted', 'Site Visit Scheduled', 'Proposal Sent', 'Negotiation', 'Won', 'Lost'),
       defaultValue: 'New'
     },
+    companyName: { type: DataTypes.STRING, allowNull: true },
+    contactPerson: { type: DataTypes.STRING, allowNull: true },
+    city: { type: DataTypes.STRING, allowNull: true },
+    state: { type: DataTypes.STRING, allowNull: true },
+    country: { type: DataTypes.STRING, allowNull: true },
+    gstNumber: { type: DataTypes.STRING, allowNull: true },
+    pan: { type: DataTypes.STRING, allowNull: true },
+    industry: { type: DataTypes.STRING, allowNull: true },
+    attachments: { type: DataTypes.TEXT, allowNull: true },
+    converted: { type: DataTypes.ENUM('Yes', 'No'), defaultValue: 'No' },
+    convertedDate: { type: DataTypes.DATE, allowNull: true },
+    convertedBy: { type: DataTypes.INTEGER, allowNull: true },
+    clientId: { type: DataTypes.STRING, allowNull: true },
     deletedAt: { type: DataTypes.DATE, allowNull: true },
     deletedBy: { type: DataTypes.INTEGER, allowNull: true }
   }, { tableName: 'leads', timestamps: true, underscored: true });
@@ -61,15 +74,38 @@ function initModels() {
   // 5. Client Model
   const Client = sequelize.define('Client', {
     id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    clientId: { type: DataTypes.STRING, unique: true, allowNull: true },
     name: { type: DataTypes.STRING, allowNull: false },
     phone: { type: DataTypes.STRING, allowNull: false },
     email: { type: DataTypes.STRING, allowNull: false },
     address: { type: DataTypes.TEXT, allowNull: true },
     gst: { type: DataTypes.STRING(15), allowNull: true },
     propertyDetails: { type: DataTypes.TEXT, allowNull: true },
+    companyName: { type: DataTypes.STRING, allowNull: true },
+    contactPerson: { type: DataTypes.STRING, allowNull: true },
+    city: { type: DataTypes.STRING, allowNull: true },
+    state: { type: DataTypes.STRING, allowNull: true },
+    country: { type: DataTypes.STRING, allowNull: true },
+    gstNumber: { type: DataTypes.STRING, allowNull: true },
+    pan: { type: DataTypes.STRING, allowNull: true },
+    leadSource: { type: DataTypes.STRING, allowNull: true },
+    industry: { type: DataTypes.STRING, allowNull: true },
+    notes: { type: DataTypes.TEXT, allowNull: true },
+    attachments: { type: DataTypes.TEXT, allowNull: true },
+    assignedTo: { type: DataTypes.INTEGER, allowNull: true },
+    leadId: { type: DataTypes.INTEGER, allowNull: true },
     deletedAt: { type: DataTypes.DATE, allowNull: true },
     deletedBy: { type: DataTypes.INTEGER, allowNull: true }
   }, { tableName: 'clients', timestamps: true, underscored: true });
+
+  // 5b. ClientTimeline Model
+  const ClientTimeline = sequelize.define('ClientTimeline', {
+    id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    clientId: { type: DataTypes.INTEGER, allowNull: false },
+    action: { type: DataTypes.STRING, allowNull: false },
+    notes: { type: DataTypes.TEXT, allowNull: true },
+    performedBy: { type: DataTypes.INTEGER, allowNull: true }
+  }, { tableName: 'client_timeline', timestamps: true, underscored: true });
 
   // 6. Project Model
   const Project = sequelize.define('Project', {
@@ -1057,6 +1093,16 @@ function initModels() {
   Client.hasMany(Project, { foreignKey: 'clientId', as: 'projects', onDelete: 'CASCADE' });
   Project.belongsTo(Client, { foreignKey: 'clientId', as: 'client' });
 
+  // Client <-> ClientTimeline
+  Client.hasMany(ClientTimeline, { foreignKey: 'clientId', as: 'timeline', onDelete: 'CASCADE' });
+  ClientTimeline.belongsTo(Client, { foreignKey: 'clientId', as: 'client' });
+  User.hasMany(ClientTimeline, { foreignKey: 'performedBy', as: 'clientTimelineEntries', onDelete: 'SET NULL' });
+  ClientTimeline.belongsTo(User, { foreignKey: 'performedBy', as: 'performer' });
+
+  // User (Assigned Employee) <-> Client
+  User.hasMany(Client, { foreignKey: 'assignedTo', as: 'clients', onDelete: 'SET NULL' });
+  Client.belongsTo(User, { foreignKey: 'assignedTo', as: 'assignee' });
+
   // User (Architect) <-> Project
   User.hasMany(Project, { foreignKey: 'architectId', as: 'architectedProjects', onDelete: 'SET NULL' });
   Project.belongsTo(User, { foreignKey: 'architectId', as: 'architect' });
@@ -1351,7 +1397,7 @@ function initModels() {
   StageHistory.belongsTo(User, { foreignKey: 'createdById', as: 'creator' });
 
   return {
-    User, Session, Lead, LeadTimeline, LeadStage1, Client, Project,
+    User, Session, Lead, LeadTimeline, LeadStage1, Client, ClientTimeline, Project,
     Attendance, Task, SiteVisit, Drawing, Document,
     Quotation, Invoice, Expense, Notification, CompanySettings,
     Worker, ManagerAttendance, DailyReport, ProgressReport, Announcement, ImportActivityLog,

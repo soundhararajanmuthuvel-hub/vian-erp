@@ -43,7 +43,7 @@ function authorizeRoles(...allowedRoles) {
 
 function registerRoutes(app, models) {
   const {
-    User, Session, Lead, LeadTimeline, Client, Project,
+    User, Session, Lead, LeadTimeline, Client, ClientTimeline, Project,
     Attendance, Task, SiteVisit, Drawing, Document,
     Quotation, Invoice, Expense, Notification, CompanySettings,
     Worker, ManagerAttendance, DailyReport, ProgressReport, Announcement, ImportActivityLog,
@@ -185,6 +185,8 @@ function registerRoutes(app, models) {
       const completedProjects = await Project.count({ where: { status: 'Completed' } });
       const totalClients = await Client.count();
       const totalLeads = await Lead.count();
+      const wonLeads = await Lead.count({ where: { status: 'Won' } });
+      const conversionRate = totalLeads > 0 ? parseFloat(((wonLeads / totalLeads) * 100).toFixed(1)) : 0.0;
       
       // Invoices summaries
       const invoices = await Invoice.findAll();
@@ -215,6 +217,8 @@ function registerRoutes(app, models) {
           completedProjects,
           totalClients,
           totalLeads,
+          wonLeads,
+          conversionRate,
           revenue: totalRevenue,
           pendingPayments,
           siteVisitsToday,
@@ -337,6 +341,201 @@ function registerRoutes(app, models) {
       res.json(lead);
     } catch (error) {
       res.status(400).json({ message: 'Error updating lead', error: error.message });
+    }
+  });
+
+  app.post('/api/crm/leads/:id/convert', authenticateToken, async (req, res) => {
+    try {
+      const role = req.user.role;
+      // Verification of role: Only Super Admin and Admin can convert
+      if (role !== 'Managing Director' && role !== 'Super Admin' && role !== 'Admin / Office Manager / Accounts' && role !== 'Tech Head + Senior Architect') {
+        return res.status(403).json({ message: 'Only Super Admin and Admin can convert a Lead into a Client.' });
+      }
+
+      const lead = await Lead.findOne({ where: { id: req.params.id, deletedAt: null } });
+      if (!lead) return res.status(404).json({ message: 'Lead not found' });
+
+      // Check duplicate client
+      const duplicate = await Client.findOne({
+        where: {
+          [Op.or]: [
+            ...(lead.email ? [{ email: lead.email }] : []),
+            ...(lead.phone ? [{ phone: lead.phone }] : []),
+            ...(lead.gstNumber ? [{ gst: lead.gstNumber }] : [])
+          ],
+          deletedAt: null
+        }
+      });
+
+      if (duplicate && req.body.merge !== true) {
+        return res.status(400).json({
+          conflict: true,
+          duplicate: {
+            id: duplicate.id,
+            name: duplicate.name,
+            clientId: duplicate.clientId,
+            email: duplicate.email,
+            phone: duplicate.phone,
+            gst: duplicate.gst
+          },
+          message: 'This lead already exists as a client. Open existing client or merge?'
+        });
+      }
+
+      let client;
+      let isMerged = false;
+
+      if (duplicate && req.body.merge === true) {
+        // Merge Lead into existing Client
+        isMerged = true;
+        client = duplicate;
+        const updatedFields = {
+          companyName: duplicate.companyName || lead.companyName,
+          contactPerson: duplicate.contactPerson || lead.contactPerson || lead.name,
+          address: duplicate.address || lead.address,
+          city: duplicate.city || lead.city,
+          state: duplicate.state || lead.state,
+          country: duplicate.country || lead.country,
+          gst: duplicate.gst || lead.gstNumber,
+          pan: duplicate.pan || lead.pan,
+          leadSource: duplicate.leadSource || lead.source,
+          industry: duplicate.industry || lead.industry,
+          notes: duplicate.notes || lead.notes,
+          attachments: duplicate.attachments || lead.attachments,
+          assignedTo: duplicate.assignedTo || lead.assignedTo
+        };
+        await client.update(updatedFields);
+      } else {
+        // Create new Client ID
+        let clientId = '';
+        let unique = false;
+        let attempt = 0;
+        while (!unique) {
+          const count = await Client.count() + attempt;
+          clientId = `CLI-${(count + 1).toString().padStart(6, '0')}`;
+          const existing = await Client.findOne({ where: { clientId } });
+          if (!existing) {
+            unique = true;
+          } else {
+            attempt++;
+          }
+        }
+
+        // Create new Client
+        client = await Client.create({
+          clientId,
+          name: lead.name,
+          phone: lead.phone,
+          email: lead.email || '',
+          address: lead.address || '',
+          gst: lead.gstNumber || '',
+          companyName: lead.companyName || '',
+          contactPerson: lead.contactPerson || lead.name,
+          city: lead.city || '',
+          state: lead.state || '',
+          country: lead.country || '',
+          pan: lead.pan || '',
+          leadSource: lead.source || '',
+          industry: lead.industry || '',
+          notes: lead.notes || '',
+          attachments: lead.attachments || '',
+          assignedTo: lead.assignedTo || req.user.id,
+          leadId: lead.id
+        });
+      }
+
+      // Update Lead status
+      const oldLeadVal = { ...lead.toJSON() };
+      await lead.update({
+        status: 'Won',
+        converted: 'Yes',
+        convertedDate: new Date(),
+        convertedBy: req.user.id,
+        clientId: client.clientId
+      });
+
+      // Timeline entries
+      await LeadTimeline.create({
+        leadId: lead.id,
+        action: 'Status Changed',
+        notes: `Converted to Client: ${client.name} (${client.clientId})`,
+        createdBy: req.user.id
+      });
+
+      if (ClientTimeline) {
+        await ClientTimeline.create({
+          clientId: client.id,
+          action: 'Converted from Lead',
+          notes: `Converted from Lead ID: ${lead.id} by ${req.user.name}`,
+          performedBy: req.user.id
+        });
+      }
+
+      // Auto-create initial project (if requested)
+      if (req.body.createProject === true) {
+        let projId = '';
+        let projUnique = false;
+        let projAttempt = 0;
+        while (!projUnique) {
+          const pCount = await Project.count() + projAttempt;
+          projId = `PRJ-${(pCount + 1).toString().padStart(6, '0')}`;
+          const existingProj = await Project.findOne({ where: { projectId: projId } });
+          if (!existingProj) {
+            projUnique = true;
+          } else {
+            projAttempt++;
+          }
+        }
+
+        await Project.create({
+          projectId: projId,
+          name: req.body.projectName || `${client.name} Project`,
+          type: req.body.projectType || 'Residential',
+          budget: req.body.projectBudget || lead.budget || 0,
+          siteAddress: req.body.projectSiteAddress || client.address || '',
+          clientId: client.id,
+          status: 'Planning',
+          progressPercentage: 0
+        });
+      }
+
+      // Create Welcome Task
+      await Task.create({
+        title: `Welcome onboard: ${client.name}`,
+        description: `Kick-off task for client ${client.name} (${client.companyName || ''}). Set up folder, review layout choices, and align timeline.`,
+        priority: 'High',
+        dueDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
+        status: 'Pending',
+        assignedTo: client.assignedTo || req.user.id
+      });
+
+      // Create Follow-up Reminder
+      await Task.create({
+        title: `Follow-up review with ${client.name}`,
+        description: `Check-in call with client ${client.name} to confirm initial project parameters and mood board approvals.`,
+        priority: 'Medium',
+        dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        status: 'Pending',
+        assignedTo: client.assignedTo || req.user.id
+      });
+
+      // Write Audit Log
+      await writeAuditLog(req, 'Convert', 'Leads', oldLeadVal, lead.toJSON());
+      await writeAuditLog(req, 'Create', 'Clients', null, client.toJSON());
+
+      res.status(200).json({
+        success: true,
+        message: isMerged ? 'Lead successfully merged and converted' : 'Lead successfully converted to Client',
+        client: {
+          id: client.id,
+          name: client.name,
+          clientId: client.clientId,
+          convertedBy: req.user.name,
+          convertedOn: new Date().toISOString().split('T')[0]
+        }
+      });
+    } catch (error) {
+      res.status(500).json({ message: 'Error converting lead to client', error: error.message });
     }
   });
 
