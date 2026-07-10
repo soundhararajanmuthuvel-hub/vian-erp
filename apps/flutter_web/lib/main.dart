@@ -1262,7 +1262,7 @@ class _CRMTabState extends State<CRMTab> {
               itemCount: _leads.length,
               itemBuilder: (context, index) {
                 final lead = _leads[index];
-                final budgetFormatted = NumberFormat.currency(locale: 'en_IN', symbol: '₹', decimalDigits: 0).format(lead['budget'] ?? 0);
+                final budgetFormatted = NumberFormat.currency(locale: 'en_IN', symbol: '₹', decimalDigits: 0).format(safeToDouble(lead['budget']));
 
                 return Container(
                   margin: const EdgeInsets.only(bottom: 16),
@@ -3163,7 +3163,7 @@ class _ProjectsTabState extends ConsumerState<ProjectsTab> {
           itemCount: _projects.length,
           itemBuilder: (context, index) {
             final p = _projects[index];
-            final budgetFormatted = NumberFormat.currency(locale: 'en_IN', symbol: '₹', decimalDigits: 0).format(p['budget'] ?? 0);
+            final budgetFormatted = NumberFormat.currency(locale: 'en_IN', symbol: '₹', decimalDigits: 0).format(safeToDouble(p['budget']));
             final progress = (p['progressPercentage'] ?? 0) / 100.0;
 
             return GestureDetector(
@@ -3509,7 +3509,7 @@ class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
   }
 
   Widget _buildOverviewTab() {
-    final budgetFormatted = NumberFormat.currency(locale: 'en_IN', symbol: '₹', decimalDigits: 0).format(_project['budget'] ?? 0);
+    final budgetFormatted = NumberFormat.currency(locale: 'en_IN', symbol: '₹', decimalDigits: 0).format(safeToDouble(_project['budget']));
     
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
