@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -994,18 +995,20 @@ class _LoginPageState extends ConsumerState<LoginPage> with TickerProviderStateM
                       final val = math.sin(_scannerAnimationController.value * math.pi);
                       final offset = -50 + (100 * val);
                       return Positioned(
-                        top: 80 + offset,
+                        top: 80.0 + offset,
                         child: Container(
                           width: 130,
                           height: 2,
-                          color: VianTheme.primaryGold,
-                          boxShadow: [
-                            BoxShadow(
-                              color: VianTheme.primaryGold.withOpacity(0.8),
-                              blurRadius: 8,
-                              spreadRadius: 1,
-                            ),
-                          ],
+                          decoration: BoxDecoration(
+                            color: VianTheme.primaryGold,
+                            boxShadow: [
+                              BoxShadow(
+                                color: VianTheme.primaryGold.withOpacity(0.8),
+                                blurRadius: 8,
+                                spreadRadius: 1,
+                              ),
+                            ],
+                          ),
                         ),
                       );
                     },
