@@ -1208,25 +1208,146 @@ function registerRoutes(app, models) {
 
   // Helper to generate stages based on templates
   async function seedStagesForProject(project, templateType) {
-    const defaultStages = [
-      { name: 'Planning', description: 'Design signoffs, drawing preparation, blueprints approval.', paymentPercentage: 10, offsetDays: 0 },
-      { name: 'Site Preparation', description: 'Clearing weeds, leveling soil, placing container offices.', paymentPercentage: 5, offsetDays: 15 },
-      { name: 'Foundation', description: 'Excavation and foundation works.', paymentPercentage: 15, offsetDays: 30 },
-      { name: 'Basement & Soil Filling', description: 'RCC basement columns and compaction soil filling.', paymentPercentage: 10, offsetDays: 50 },
-      { name: 'Columns & Plinth Beam', description: 'Ground floor columns casting, plinth level beam grid.', paymentPercentage: 10, offsetDays: 75 },
-      { name: 'Roof Slab casting', description: 'Formwork, steel binding, and concrete pouring.', paymentPercentage: 20, offsetDays: 105 },
-      { name: 'Brick Work & Plastering', description: 'Outer & inner walls construction, cement rendering.', paymentPercentage: 10, offsetDays: 135 },
-      { name: 'Electrical & Plumbing', description: 'Concealed conduits running, copper cabling, PVC pipes laying.', paymentPercentage: 10, offsetDays: 165 },
-      { name: 'Finishing & Handover', description: 'Painting, tile flooring, interior wooden fixtures, deep cleaning.', paymentPercentage: 10, offsetDays: 200 }
-    ];
+    const t = (templateType || 'Default').toLowerCase();
+    
+    let stages = [];
+    let tasks = [];
+    let drawings = [];
+
+    if (t.includes('interior')) {
+      stages = [
+        { name: 'Concept Design', description: 'Initial layouts, space planning, and client briefing.', paymentPercentage: 15, offsetDays: 0 },
+        { name: 'Moodboard & Material Board', description: 'Color schemes, wall finishes, flooring samples approval.', paymentPercentage: 15, offsetDays: 10 },
+        { name: 'False Ceiling & Concealed Cabling', description: 'Gypsum framing, conduit runs, and AC ducting installation.', paymentPercentage: 20, offsetDays: 25 },
+        { name: 'Woodwork & Cabinetry', description: 'Wardrobes, modular kitchen carcass, and veneer finishes.', paymentPercentage: 25, offsetDays: 45 },
+        { name: 'Tiling & Painting', description: 'Laying vitrified tiles/marbles, prime coats, and final paints.', paymentPercentage: 15, offsetDays: 70 },
+        { name: 'Styling & Handover', description: 'Light fixtures, curtains, deep cleaning, and project handover.', paymentPercentage: 10, offsetDays: 90 }
+      ];
+
+      tasks = [
+        { title: 'Client Requirement Sheet', description: 'Document client preferences, lifestyle, and color tastes.', priority: 'High', dueOffset: 3 },
+        { title: 'Space Layout Design', description: 'Create 2D furniture layouts and circulation plans.', priority: 'High', dueOffset: 8 },
+        { title: 'Material Procurement Schedule', description: 'Approve vendor quotes for plywood, veneer, and marbles.', priority: 'Medium', dueOffset: 15 },
+        { title: 'Electrical Lighting Plan', description: 'Mark switches, focus lights, and pendant lights layout.', priority: 'Medium', dueOffset: 20 },
+        { title: 'Modular Kitchen Fabrication', description: 'Review factory dimensions for modular cabinets.', priority: 'High', dueOffset: 40 },
+        { title: 'False Ceiling Paint Finish', description: 'Sanding, putty application, and base coat white paint.', priority: 'Low', dueOffset: 65 },
+        { title: 'Snag List Correction', description: 'Rectify cabinet alignments, socket checks, and wall patchups.', priority: 'Critical', dueOffset: 85 }
+      ];
+
+      drawings = [
+        { title: 'Concept Layout Plan', type: 'Floor Plans' },
+        { title: 'Living Room 3D Perspective', type: 'Interior Drawings' },
+        { title: 'Master Bedroom Wardrobe Elevation', type: 'Elevations' },
+        { title: 'Reflected Ceiling Plan (Ceiling Lighting)', type: 'Electrical Drawings' },
+        { title: 'Modular Kitchen Plan & Sections', type: 'Interior Drawings' },
+        { title: 'Bathroom Tile Layout Details', type: 'Interior Drawings' }
+      ];
+
+    } else if (t.includes('commercial')) {
+      stages = [
+        { name: 'Structural Planning & Design', description: 'Load calculation, steel schematics, blueprint clearances.', paymentPercentage: 10, offsetDays: 0 },
+        { name: 'Excavation & Substructure', description: 'Piling works, footings reinforcement, retaining walls casting.', paymentPercentage: 15, offsetDays: 20 },
+        { name: 'Superstructure Steel Framework', description: 'Erection of structural columns, steel floor decks pouring.', paymentPercentage: 25, offsetDays: 50 },
+        { name: 'Façade & Core Brickworks', description: 'Glazing wall panels, core staircases, and internal blocks.', paymentPercentage: 20, offsetDays: 90 },
+        { name: 'HVAC & Plumbing Conduits', description: 'Industrial ventilation ducting, plumbing main stacks, fire fighting lines.', paymentPercentage: 15, offsetDays: 130 },
+        { name: 'Finishes & Safety Clearance', description: 'Tiling, corporate lobby design, fire test clearances, handover.', paymentPercentage: 15, offsetDays: 170 }
+      ];
+
+      tasks = [
+        { title: 'Soil Testing Analysis', description: 'Obtain soil load-bearing capacity report from laboratory.', priority: 'Critical', dueOffset: 5 },
+        { title: 'Piling Work Supervision', description: 'Monitor pile casting and steel reinforcements.', priority: 'High', dueOffset: 15 },
+        { title: 'Steel Frame Delivery Audit', description: 'Inspect steel structural beams delivered to site.', priority: 'High', dueOffset: 45 },
+        { title: 'Façade Glass Testing', description: 'Perform thermal leakage checks on curtain walls.', priority: 'Medium', dueOffset: 85 },
+        { title: 'Fire Sprinkler Pressure Test', description: 'Test plumbing network pressure for safety certifications.', priority: 'Critical', dueOffset: 120 },
+        { title: 'Elevator Shaft Inspection', description: 'Co-ordinate with elevator supplier for track installations.', priority: 'High', dueOffset: 145 },
+        { title: 'Final Safety Handover Report', description: 'Complete fire clearance audit and municipal certifications.', priority: 'Critical', dueOffset: 180 }
+      ];
+
+      drawings = [
+        { title: 'Commercial Core Plan', type: 'Floor Plans' },
+        { title: 'Main Elevation & Glass Façade Details', type: 'Elevations' },
+        { title: 'Steel Decking Structural Blueprint', type: 'Structural Drawings' },
+        { title: 'Centralized HVAC Duct Layout', type: 'Structural Drawings' },
+        { title: 'Fire Sprinkler Layout Plan', type: 'Plumbing Drawings' },
+        { title: 'Corporate Lobby 3D Render', type: 'Interior Drawings' }
+      ];
+
+    } else if (t.includes('villa')) {
+      stages = [
+        { name: 'Architectural Blueprint Signoffs', description: 'Luxury custom villa design review and permits.', paymentPercentage: 10, offsetDays: 0 },
+        { name: 'Excavation & Footing Foundation', description: 'Double reinforced concrete footings, soil compaction.', paymentPercentage: 15, offsetDays: 20 },
+        { name: 'Columns, Plinth & Core Frame', description: 'RCC pillars casting, basement grid framing.', paymentPercentage: 15, offsetDays: 45 },
+        { name: 'Double-Height Slab Casting', description: 'Luxury high ceiling roof formworks casting.', paymentPercentage: 20, offsetDays: 75 },
+        { name: 'Premium Brickwork & Plastering', description: 'Quality wall constructions, marble plaster coats.', paymentPercentage: 15, offsetDays: 110 },
+        { name: 'Integrated Automation & Conceals', description: 'Home automation wiring, smart conduits, sanitary lines.', paymentPercentage: 15, offsetDays: 140 },
+        { name: 'Luxury Finishing & Landscaping', description: 'Imported marble tiling, infinity pool work, interior decors, handover.', paymentPercentage: 10, offsetDays: 180 }
+      ];
+
+      tasks = [
+        { title: 'Architectural Concept Pitch', description: 'Present double-height living room layout to owner.', priority: 'High', dueOffset: 5 },
+        { title: 'Premium Rebars Procurement', description: 'Deliver high grade steel rebars for footing grids.', priority: 'Medium', dueOffset: 18 },
+        { title: 'Basement Compaction Test', description: 'Verify density index of filled soil.', priority: 'Low', dueOffset: 35 },
+        { title: 'Roof Slab Reinforcement Audit', description: 'Check structural mesh layout before casting.', priority: 'Critical', dueOffset: 70 },
+        { title: 'Imported Marble Selection', description: 'Visit marble port with client to select Italian marble lot.', priority: 'High', dueOffset: 100 },
+        { title: 'Smart Home Automated Cabling', description: 'Supervise smart panel wiring and CAT6 routes.', priority: 'High', dueOffset: 135 },
+        { title: 'Infinity Pool Plastering', description: 'Apply waterproof chemical coat inside pool structures.', priority: 'Critical', dueOffset: 160 },
+        { title: 'Lawn Landscaping setup', description: 'Plant selected exotic trees and lay grass turf.', priority: 'Low', dueOffset: 175 }
+      ];
+
+      drawings = [
+        { title: 'Luxury Villa Master Floor Plan', type: 'Floor Plans' },
+        { title: 'Villa 3D Front Perspective', type: 'Elevations' },
+        { title: 'Infinity Pool Structural Sections', type: 'Structural Drawings' },
+        { title: 'Smart Lighting & Automation Schematics', type: 'Electrical Drawings' },
+        { title: 'Concealed Bathroom Sanitary Layout', type: 'Plumbing Drawings' },
+        { title: 'Double Height Living Room Renders', type: 'Interior Drawings' }
+      ];
+
+    } else {
+      // Default / Residential House / Renovation
+      stages = [
+        { name: 'Planning & Layout', description: 'Design signoffs, drawing preparation, blueprints approval.', paymentPercentage: 10, offsetDays: 0 },
+        { name: 'Site Preparation & Excavation', description: 'Clearing site, leveling, excavation for foundation pits.', paymentPercentage: 5, offsetDays: 15 },
+        { name: 'Foundation', description: 'Steel binding, concrete pouring for footings and plinth.', paymentPercentage: 15, offsetDays: 30 },
+        { name: 'Basement Columns & Soil Compaction', description: 'Basement pillar works and soil filling inside structure.', paymentPercentage: 10, offsetDays: 50 },
+        { name: 'Columns & Plinth Beam Grid', description: 'Ground floor pillars erection, plinth level concrete casting.', paymentPercentage: 10, offsetDays: 70 },
+        { name: 'Roof Slab casting', description: 'Ground floor roof scaffolding, steel mesh routing, casting concrete.', paymentPercentage: 20, offsetDays: 95 },
+        { name: 'Brick Work & Wall Plastering', description: 'Outer & inner walls construction, rendering plaster coatings.', paymentPercentage: 10, offsetDays: 120 },
+        { name: 'Electrical Wiring & Plumbing Conduits', description: 'Concealed PVC pipe runs, copper cable threading, sanitation pipelines.', paymentPercentage: 10, offsetDays: 150 },
+        { name: 'Finishing & Handover', description: 'Floor tiles, prime-paint coats, bathroom fixtures, cleaning, handover.', paymentPercentage: 10, offsetDays: 180 }
+      ];
+
+      tasks = [
+        { title: 'Boundary Clearance Approval', description: 'Secure clearance from neighboring sites and local body.', priority: 'High', dueOffset: 5 },
+        { title: 'Footing Layout Marking', description: 'Mark excavation center lines on site.', priority: 'High', dueOffset: 12 },
+        { title: 'Plinth Beam Concrete Casting', description: 'Pour grade concrete mix into beam molds.', priority: 'Medium', dueOffset: 28 },
+        { title: 'Basement Compaction', description: 'Run mechanical compactor on soil fills.', priority: 'Low', dueOffset: 48 },
+        { title: 'Ground Floor Slab Casting', description: 'Pour concrete on roof centering sheets.', priority: 'Critical', dueOffset: 92 },
+        { title: 'Inner Brick Partition Walls', description: 'Complete partitioning for bedroom and dining sections.', priority: 'Medium', dueOffset: 115 },
+        { title: 'Concealed Plumbing Conduits', description: 'Chase walls and lay water supply tubes.', priority: 'High', dueOffset: 145 },
+        { title: 'Base Putty Application', description: 'Apply smooth wall putty in bedrooms.', priority: 'Low', dueOffset: 165 },
+        { title: 'Final Deep Clean & Handover', description: 'Perform site clean up and hand over keys to owner.', priority: 'Critical', dueOffset: 178 }
+      ];
+
+      drawings = [
+        { title: 'Residential Architectural Plan', type: 'Floor Plans' },
+        { title: 'Residential Elevation View', type: 'Elevations' },
+        { title: 'Foundation Rebar Grid Blueprint', type: 'Structural Drawings' },
+        { title: 'Concealed Conduit Electrical Plan', type: 'Electrical Drawings' },
+        { title: 'Drainage & Plumbing Layout Plan', type: 'Plumbing Drawings' },
+        { title: 'Interior Living Space Design Renders', type: 'Interior Drawings' }
+      ];
+    }
 
     const baseDate = new Date(project.startDate || new Date());
-    for (let i = 0; i < defaultStages.length; i++) {
-      const s = defaultStages[i];
+    
+    // 1. Seed Stages
+    for (let i = 0; i < stages.length; i++) {
+      const s = stages[i];
       const estStart = new Date(baseDate);
       estStart.setDate(estStart.getDate() + s.offsetDays);
       const estEnd = new Date(estStart);
-      estEnd.setDate(estEnd.getDate() + 14); // 2-week duration default
+      estEnd.setDate(estEnd.getDate() + 14); // 2-week default duration
 
       const stage = await ProjectStage.create({
         projectId: project.id,
@@ -1246,6 +1367,42 @@ function registerRoutes(app, models) {
         stageId: stage.id,
         action: 'Stage Configured',
         notes: `Stage initialized from project template: ${templateType}`
+      });
+    }
+
+    // 2. Seed Project Tasks
+    for (let i = 0; i < tasks.length; i++) {
+      const t = tasks[i];
+      const dueDate = new Date(baseDate);
+      dueDate.setDate(dueDate.getDate() + t.dueOffset);
+
+      await Task.create({
+        title: t.title,
+        description: t.description,
+        priority: t.priority,
+        status: 'Pending',
+        dueDate: dueDate.toISOString().split('T')[0],
+        projectId: project.id
+      });
+    }
+
+    // 3. Seed Project Drawings
+    for (let i = 0; i < drawings.length; i++) {
+      const d = drawings[i];
+      const code = `DWG-${project.projectId || project.id}-${(i + 1).toString().padStart(3, '0')}`;
+      
+      await Drawing.create({
+        drawingNumber: code,
+        title: d.title,
+        version: '1.0',
+        type: d.type,
+        fileUrl: 'https://res.cloudinary.com/mock/placeholder-drawing.pdf',
+        status: 'Pending',
+        approvalStatus: 'Pending',
+        projectId: project.id,
+        uploadDate: baseDate.toISOString().split('T')[0],
+        lastUpdated: baseDate.toISOString().split('T')[0],
+        completionPercentage: 0
       });
     }
   }
