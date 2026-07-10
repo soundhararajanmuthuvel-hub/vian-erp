@@ -43,6 +43,102 @@ app.use(express.urlencoded({ extended: true }));
 
 const PORT = process.env.PORT || 5050;
 
+async function runMigrations(sequelizeInstance) {
+  const dialect = sequelizeInstance.options.dialect;
+  
+  if (dialect === 'mysql') {
+    console.log('Running auto-migrations for MySQL...');
+    const addColumnIfMissing = async (tableName, columnName, columnDefinition) => {
+      try {
+        const [results] = await sequelizeInstance.query(
+          `SELECT COUNT(*) as count FROM information_schema.columns 
+           WHERE table_schema = DATABASE() AND table_name = '${tableName}' AND column_name = '${columnName}'`
+        );
+        if (results && results[0] && results[0].count === 0) {
+          console.log(`Adding missing column ${columnName} to table ${tableName}...`);
+          await sequelizeInstance.query(`ALTER TABLE ${tableName} ADD COLUMN ${columnName} ${columnDefinition}`);
+        }
+      } catch (err) {
+        console.error(`Error migrating ${tableName}.${columnName}:`, err.message);
+      }
+    };
+
+    // leads table columns
+    await addColumnIfMissing('leads', 'company_name', 'VARCHAR(255) NULL');
+    await addColumnIfMissing('leads', 'contact_person', 'VARCHAR(255) NULL');
+    await addColumnIfMissing('leads', 'city', 'VARCHAR(255) NULL');
+    await addColumnIfMissing('leads', 'state', 'VARCHAR(255) NULL');
+    await addColumnIfMissing('leads', 'country', 'VARCHAR(255) NULL');
+    await addColumnIfMissing('leads', 'gst_number', 'VARCHAR(255) NULL');
+    await addColumnIfMissing('leads', 'pan', 'VARCHAR(255) NULL');
+    await addColumnIfMissing('leads', 'industry', 'VARCHAR(255) NULL');
+    await addColumnIfMissing('leads', 'attachments', 'TEXT NULL');
+    await addColumnIfMissing('leads', 'converted', "ENUM('Yes', 'No') DEFAULT 'No'");
+    await addColumnIfMissing('leads', 'converted_date', 'DATETIME NULL');
+    await addColumnIfMissing('leads', 'converted_by', 'INT NULL');
+    await addColumnIfMissing('leads', 'client_id', 'VARCHAR(255) NULL');
+
+    // clients table columns
+    await addColumnIfMissing('clients', 'client_id', 'VARCHAR(255) UNIQUE NULL');
+    await addColumnIfMissing('clients', 'company_name', 'VARCHAR(255) NULL');
+    await addColumnIfMissing('clients', 'contact_person', 'VARCHAR(255) NULL');
+    await addColumnIfMissing('clients', 'city', 'VARCHAR(255) NULL');
+    await addColumnIfMissing('clients', 'state', 'VARCHAR(255) NULL');
+    await addColumnIfMissing('clients', 'country', 'VARCHAR(255) NULL');
+    await addColumnIfMissing('clients', 'gst_number', 'VARCHAR(255) NULL');
+    await addColumnIfMissing('clients', 'pan', 'VARCHAR(255) NULL');
+    await addColumnIfMissing('clients', 'lead_source', 'VARCHAR(255) NULL');
+    await addColumnIfMissing('clients', 'industry', 'VARCHAR(255) NULL');
+    await addColumnIfMissing('clients', 'notes', 'TEXT NULL');
+    await addColumnIfMissing('clients', 'attachments', 'TEXT NULL');
+    await addColumnIfMissing('clients', 'assigned_to', 'INT NULL');
+    await addColumnIfMissing('clients', 'lead_id', 'INT NULL');
+  } else if (dialect === 'sqlite') {
+    console.log('Running auto-migrations for SQLite...');
+    const addColumnIfMissingSqlite = async (tableName, columnName, columnDefinition) => {
+      try {
+        const [results] = await sequelizeInstance.query(`PRAGMA table_info(${tableName});`);
+        const exists = results.some(col => col.name === columnName);
+        if (!exists) {
+          console.log(`Adding missing column ${columnName} to table ${tableName} (SQLite)...`);
+          await sequelizeInstance.query(`ALTER TABLE ${tableName} ADD COLUMN ${columnName} ${columnDefinition}`);
+        }
+      } catch (err) {
+        console.error(`Error migrating SQLite ${tableName}.${columnName}:`, err.message);
+      }
+    };
+    
+    await addColumnIfMissingSqlite('leads', 'company_name', 'TEXT');
+    await addColumnIfMissingSqlite('leads', 'contact_person', 'TEXT');
+    await addColumnIfMissingSqlite('leads', 'city', 'TEXT');
+    await addColumnIfMissingSqlite('leads', 'state', 'TEXT');
+    await addColumnIfMissingSqlite('leads', 'country', 'TEXT');
+    await addColumnIfMissingSqlite('leads', 'gst_number', 'TEXT');
+    await addColumnIfMissingSqlite('leads', 'pan', 'TEXT');
+    await addColumnIfMissingSqlite('leads', 'industry', 'TEXT');
+    await addColumnIfMissingSqlite('leads', 'attachments', 'TEXT');
+    await addColumnIfMissingSqlite('leads', 'converted', "TEXT DEFAULT 'No'");
+    await addColumnIfMissingSqlite('leads', 'converted_date', 'TEXT');
+    await addColumnIfMissingSqlite('leads', 'converted_by', 'INTEGER');
+    await addColumnIfMissingSqlite('leads', 'client_id', 'TEXT');
+
+    await addColumnIfMissingSqlite('clients', 'client_id', 'TEXT');
+    await addColumnIfMissingSqlite('clients', 'company_name', 'TEXT');
+    await addColumnIfMissingSqlite('clients', 'contact_person', 'TEXT');
+    await addColumnIfMissingSqlite('clients', 'city', 'TEXT');
+    await addColumnIfMissingSqlite('clients', 'state', 'TEXT');
+    await addColumnIfMissingSqlite('clients', 'country', 'TEXT');
+    await addColumnIfMissingSqlite('clients', 'gst_number', 'TEXT');
+    await addColumnIfMissingSqlite('clients', 'pan', 'TEXT');
+    await addColumnIfMissingSqlite('clients', 'lead_source', 'TEXT');
+    await addColumnIfMissingSqlite('clients', 'industry', 'TEXT');
+    await addColumnIfMissingSqlite('clients', 'notes', 'TEXT');
+    await addColumnIfMissingSqlite('clients', 'attachments', 'TEXT');
+    await addColumnIfMissingSqlite('clients', 'assigned_to', 'INTEGER');
+    await addColumnIfMissingSqlite('clients', 'lead_id', 'INTEGER');
+  }
+}
+
 async function startServer() {
   try {
     // 1. Connect and Fallback logic
@@ -50,6 +146,9 @@ async function startServer() {
     
     // 2. Initialize Models
     const models = initModels();
+
+    // Run auto-migrations for missing columns before synchronizing tables
+    await runMigrations(sequelizeInstance);
     
     // 3. Sync Models
     const shouldSeed = process.argv.includes('--seed') || process.env.SEED_DEMO === 'true';
