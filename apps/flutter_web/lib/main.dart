@@ -10,6 +10,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:io' as io;
+import 'dart:ui' show ImageFilter;
 
 import 'core/theme/theme.dart';
 import 'core/services/api_service.dart';
@@ -19,6 +20,7 @@ import 'core/services/file_helper.dart';
 import 'core/widgets/drawing_canvases.dart';
 import 'public_enquiry_portal.dart';
 import 'forgot_password_page.dart';
+import 'splash_screen.dart';
 import 'js_stub.dart'
     if (dart.library.js) 'dart:js' as js;
 
@@ -37,19 +39,23 @@ void main() async {
 
 // Router Configuration
 final GoRouter _router = GoRouter(
-  initialLocation: '/dashboard',
+  initialLocation: '/splash',
   redirect: (context, state) {
     final path = state.matchedLocation;
     if (path.startsWith('/enquiry')) return null;
 
     final isLoggedIn = ApiService.isLoggedIn;
-    final isLoggingIn = path == '/login' || path == '/forgot-password';
+    final isLoggingIn = path == '/login' || path == '/forgot-password' || path == '/splash';
 
     if (!isLoggedIn && !isLoggingIn) return '/login';
     if (isLoggedIn && (path == '/login' || path == '/forgot-password' || path == '/')) return '/dashboard';
     return null;
   },
   routes: [
+    GoRoute(
+      path: '/splash',
+      builder: (context, state) => const SplashScreen(),
+    ),
     GoRoute(
       path: '/login',
       builder: (context, state) => const LoginPage(),
@@ -361,14 +367,47 @@ class LoginPage extends ConsumerStatefulWidget {
   ConsumerState<LoginPage> createState() => _LoginPageState();
 }
 
-class _LoginPageState extends ConsumerState<LoginPage> {
+class _LoginPageState extends ConsumerState<LoginPage> with TickerProviderStateMixin {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _otpCodeController = TextEditingController();
+
   bool _isLoading = false;
   bool _rememberMe = true;
   bool _showPassword = false;
   bool _showDevOptions = false;
   String? _errorMessage;
+
+  int _selectedMethodTab = 0; // 0 = Password, 1 = OTP, 2 = Face ID
+  bool _otpSent = false;
+
+  // Face ID state
+  bool _isScanningFace = false;
+  double _faceScanProgress = 0.0;
+  String _faceScanStatus = 'Ready to Scan';
+  Timer? _faceScanTimer;
+  late AnimationController _scannerAnimationController;
+
+  @override
+  void initState() {
+    super.initState();
+    _scannerAnimationController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 2),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _usernameController.dispose();
+    _passwordController.dispose();
+    _phoneController.dispose();
+    _otpCodeController.dispose();
+    _scannerAnimationController.dispose();
+    _faceScanTimer?.cancel();
+    super.dispose();
+  }
 
   Future<void> _handleLogin() async {
     setState(() {
@@ -395,6 +434,114 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     });
   }
 
+  Future<void> _sendOTP() async {
+    final phone = _phoneController.text.trim();
+    if (phone.isEmpty) {
+      setState(() {
+        _errorMessage = 'Please enter your mobile number or employee ID.';
+      });
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    // Simulate API delay
+    await Future.delayed(const Duration(milliseconds: 1200));
+
+    setState(() {
+      _isLoading = false;
+      _otpSent = true;
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Demo OTP sent to device. Code: 482019', style: TextStyle(color: VianTheme.primaryGold, fontWeight: FontWeight.bold)),
+        backgroundColor: VianTheme.headerBlack,
+        duration: Duration(seconds: 6),
+      ),
+    );
+  }
+
+  Future<void> _verifyOTP() async {
+    final code = _otpCodeController.text.trim();
+    if (code != '482019') {
+      setState(() {
+        _errorMessage = 'Invalid OTP. For demo purposes, enter code 482019.';
+      });
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    // Login as Super Admin Founder & Managing Director
+    final res = await ApiService.login('anand', 'anand123');
+
+    if (res['success']) {
+      ref.read(userProvider.notifier).state = res['user'];
+      context.go('/dashboard');
+    } else {
+      setState(() {
+        _errorMessage = res['message'];
+      });
+    }
+
+    setState(() {
+      _isLoading = false;
+    });
+  }
+
+  void _startFaceIDScan() {
+    setState(() {
+      _isScanningFace = true;
+      _faceScanProgress = 0.0;
+      _faceScanStatus = 'Initializing front camera...';
+      _errorMessage = null;
+    });
+
+    int currentStep = 0;
+    _faceScanTimer = Timer.periodic(const Duration(milliseconds: 100), (timer) async {
+      currentStep++;
+      if (!mounted) return;
+
+      setState(() {
+        _faceScanProgress = currentStep / 20.0;
+        if (_faceScanProgress < 0.3) {
+          _faceScanStatus = 'Scanning facial structure...';
+        } else if (_faceScanProgress < 0.6) {
+          _faceScanStatus = 'Verifying identity indices...';
+        } else if (_faceScanProgress < 0.9) {
+          _faceScanStatus = 'Matching credentials DB...';
+        } else {
+          _faceScanStatus = 'Identity Verified!';
+        }
+      });
+
+      if (currentStep >= 20) {
+        timer.cancel();
+
+        // Autologin as Super Admin (Anand Sathiesivam)
+        final res = await ApiService.login('anand', 'anand123');
+        if (!mounted) return;
+
+        if (res['success']) {
+          ref.read(userProvider.notifier).state = res['user'];
+          context.go('/dashboard');
+        } else {
+          setState(() {
+            _isScanningFace = false;
+            _errorMessage = 'Biometric signature did not match: ${res['message']}';
+          });
+        }
+      }
+    });
+  }
+
   void _quickFill(String role) {
     _usernameController.text = role;
     _passwordController.text = '${role}123';
@@ -407,190 +554,491 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     final isMobile = size.width < 800;
 
     return Scaffold(
-      backgroundColor: VianTheme.darkBackground,
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
-          child: Hero(
-            tag: 'loginHero',
-            child: Container(
-              width: isMobile ? size.width * 0.92 : 450,
-              padding: const EdgeInsets.all(32.0),
-              decoration: BoxDecoration(
-                color: VianTheme.cardColor,
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: const Color(0xFF26262F), width: 1.0),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Color(0x15000000),
-                    blurRadius: 15,
-                    offset: Offset(0, 8),
-                  )
-                ],
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  // VIAN LOGO
-                  Image.asset(
-                    'assets/logo.png',
-                    height: 60,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Column(
+      backgroundColor: const Color(0xFF070709), // Sleek obsidian black
+      body: Stack(
+        children: [
+          // 1. Moving ambient luxury glowing blobs & grid lines
+          const LuxuryAmbientBackground(),
+
+          // 2. Glassmorphic container wrapper
+          Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(24.0),
+              child: Hero(
+                tag: 'loginHero',
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(24),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 15.0, sigmaY: 15.0),
+                    child: Container(
+                      width: isMobile ? size.width * 0.92 : 460,
+                      padding: const EdgeInsets.all(36.0),
+                      decoration: BoxDecoration(
+                        color: const Color(0x3B121216), // Highly translucent charcoal
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(
+                          color: VianTheme.primaryGold.withOpacity(0.18),
+                          width: 1.5,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.4),
+                            blurRadius: 30,
+                            offset: const Offset(0, 15),
+                          ),
+                          BoxShadow(
+                            color: VianTheme.primaryGold.withOpacity(0.02),
+                            blurRadius: 40,
+                            spreadRadius: 2,
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          const Icon(Icons.architecture, color: VianTheme.primaryGold, size: 52),
-                          const SizedBox(height: 8),
+                          // LOGO HEADER
+                          const Icon(Icons.architecture, color: VianTheme.primaryGold, size: 54),
+                          const SizedBox(height: 10),
                           Text(
                             'VIAN ARCHITECTS',
-                            style: GoogleFonts.poppins(
-                              color: VianTheme.primaryGold,
-                              fontSize: 22,
+                            style: GoogleFonts.outfit(
+                              color: VianTheme.whiteText,
+                              fontSize: 24,
                               fontWeight: FontWeight.bold,
-                              letterSpacing: 2,
+                              letterSpacing: 3,
                             ),
                           ),
-                        ],
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    'ERP & Project Management SaaS',
-                    style: GoogleFonts.poppins(
-                      color: VianTheme.lightText,
-                      fontSize: 13,
-                      letterSpacing: 1,
-                    ),
-                  ),
-                  const SizedBox(height: 32),
-                  if (_errorMessage != null) ...[
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: const Color(0x15EF4444),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: VianTheme.danger),
-                      ),
-                      child: Text(
-                        _errorMessage!,
-                        style: const TextStyle(color: VianTheme.danger, fontSize: 13),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                  ],
-                  TextField(
-                    controller: _usernameController,
-                    decoration: const InputDecoration(
-                      labelText: 'Username',
-                      prefixIcon: Icon(Icons.person_outline, color: VianTheme.primaryGold),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: _passwordController,
-                    obscureText: !_showPassword,
-                    decoration: InputDecoration(
-                      labelText: 'Password',
-                      prefixIcon: const Icon(Icons.lock_outline, color: VianTheme.primaryGold),
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _showPassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                          color: Colors.white70,
-                          size: 20,
-                        ),
-                        onPressed: () => setState(() => _showPassword = !_showPassword),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          Checkbox(
-                            value: _rememberMe,
-                            activeColor: VianTheme.primaryGold,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(4),
+                          const SizedBox(height: 6),
+                          Text(
+                            'Enterprise Architecture & Construction ERP',
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.poppins(
+                              color: VianTheme.lightText,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w400,
+                              letterSpacing: 1,
                             ),
-                            onChanged: (v) => setState(() => _rememberMe = v ?? true),
                           ),
-                          const Text('Remember me', style: TextStyle(fontSize: 13, color: VianTheme.lightText)),
+                          const SizedBox(height: 32),
+
+                          // PREMIUM TABS SELECTOR
+                          Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF13131A).withOpacity(0.7),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: Colors.white.withOpacity(0.04)),
+                            ),
+                            child: Row(
+                              children: [
+                                _buildTabButton(0, Icons.vpn_key_outlined, 'Password'),
+                                _buildTabButton(1, Icons.sms_outlined, 'OTP'),
+                                _buildTabButton(2, Icons.face_retouching_natural_outlined, 'Face ID'),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 28),
+
+                          if (_errorMessage != null) ...[
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(14),
+                              decoration: BoxDecoration(
+                                color: const Color(0x1CEF4444),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(color: VianTheme.danger.withOpacity(0.4)),
+                              ),
+                              child: Text(
+                                _errorMessage!,
+                                style: const TextStyle(color: Color(0xFFFCA5A5), fontSize: 12.5),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                          ],
+
+                          // DYNAMIC FORM FOR TABS
+                          AnimatedSize(
+                            duration: const Duration(milliseconds: 300),
+                            child: _buildFormContent(),
+                          ),
+
+                          const SizedBox(height: 24),
+
+                          // Collapsible Developer Tools
+                          TextButton.icon(
+                            style: TextButton.styleFrom(foregroundColor: Colors.white30),
+                            icon: Icon(_showDevOptions ? Icons.expand_less : Icons.expand_more, size: 16),
+                            label: const Text('Developer Options', style: TextStyle(fontSize: 11)),
+                            onPressed: () => setState(() => _showDevOptions = !_showDevOptions),
+                          ),
+
+                          if (_showDevOptions) ...[
+                            const SizedBox(height: 8),
+                            const Text(
+                              'Quick-Access Roles',
+                              style: TextStyle(color: VianTheme.lightText, fontSize: 11, fontWeight: FontWeight.w600),
+                            ),
+                            const SizedBox(height: 12),
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              alignment: WrapAlignment.center,
+                              children: [
+                                _roleChip('anand'),
+                                _roleChip('vijay'),
+                                _roleChip('jaya'),
+                                _roleChip('muthuiya'),
+                                _roleChip('murugan'),
+                                _roleChip('gokul'),
+                                _roleChip('sivaraman'),
+                                _roleChip('mohan'),
+                                _roleChip('vijayan'),
+                                _roleChip('manoj'),
+                                _roleChip('client'),
+                              ],
+                            ),
+                          ],
+
+                          const Divider(color: Color(0x11F5A623), height: 32),
+                          const Text(
+                            'Version 1.2.0-gold',
+                            style: TextStyle(color: Colors.white30, fontSize: 10),
+                          ),
+                          const SizedBox(height: 4),
+                          const Text(
+                            '© 2026 VIAN Architects. All rights reserved.',
+                            style: TextStyle(color: Colors.white30, fontSize: 10),
+                            textAlign: TextAlign.center,
+                          ),
                         ],
                       ),
-                      TextButton(
-                        onPressed: () {},
-                        child: const Text('Forgot Password?', style: TextStyle(color: VianTheme.primaryGold, fontSize: 13)),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                  SizedBox(
-                    width: double.infinity,
-                    child: VianButton(
-                      text: _isLoading ? 'Signing In...' : 'Sign In',
-                      onPressed: _isLoading ? () {} : _handleLogin,
                     ),
                   ),
-                  const SizedBox(height: 24),
-                  
-                  // Collapsible Developer Tools
-                  TextButton.icon(
-                    style: TextButton.styleFrom(foregroundColor: Colors.white38),
-                    icon: Icon(_showDevOptions ? Icons.expand_less : Icons.expand_more, size: 16),
-                    label: const Text('Developer Options', style: TextStyle(fontSize: 11)),
-                    onPressed: () => setState(() => _showDevOptions = !_showDevOptions),
-                  ),
-                  
-                  if (_showDevOptions) ...[
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Quick-Access Roles',
-                      style: TextStyle(color: VianTheme.lightText, fontSize: 11, fontWeight: FontWeight.w600),
-                    ),
-                    const SizedBox(height: 12),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      alignment: WrapAlignment.center,
-                      children: [
-                        _roleChip('anand'),
-                        _roleChip('vijay'),
-                        _roleChip('jaya'),
-                        _roleChip('muthuiya'),
-                        _roleChip('murugan'),
-                        _roleChip('gokul'),
-                        _roleChip('sivaraman'),
-                        _roleChip('mohan'),
-                        _roleChip('vijayan'),
-                        _roleChip('manoj'),
-                        _roleChip('client'),
-                      ],
-                    ),
-                  ],
-                  
-                  const Divider(color: Color(0x11F5A623), height: 32),
-                  const Text(
-                    'Version 1.2.0-beta',
-                    style: TextStyle(color: Colors.white30, fontSize: 10),
-                  ),
-                  const SizedBox(height: 4),
-                  const Text(
-                    '© 2026 VIAN Architects. All rights reserved.',
-                    style: TextStyle(color: Colors.white30, fontSize: 10),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
+                ),
               ),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTabButton(int index, IconData icon, String label) {
+    final isSelected = _selectedMethodTab == index;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () {
+          setState(() {
+            _selectedMethodTab = index;
+            _errorMessage = null;
+            _otpSent = false;
+            _isScanningFace = false;
+            _faceScanTimer?.cancel();
+          });
+        },
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            color: isSelected ? VianTheme.primaryGold : Colors.transparent,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                icon,
+                color: isSelected ? VianTheme.headerBlack : Colors.white60,
+                size: 18,
+              ),
+              const SizedBox(height: 4),
+              Text(
+                label,
+                style: GoogleFonts.poppins(
+                  color: isSelected ? VianTheme.headerBlack : Colors.white60,
+                  fontSize: 11,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                ),
+              ),
+            ],
           ),
         ),
       ),
     );
+  }
+
+  Widget _buildFormContent() {
+    if (_selectedMethodTab == 0) {
+      // Password Login
+      return Column(
+        key: const ValueKey('passwordForm'),
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          TextField(
+            controller: _usernameController,
+            style: const TextStyle(color: Colors.white),
+            decoration: const InputDecoration(
+              labelText: 'Username',
+              prefixIcon: Icon(Icons.person_outline, color: VianTheme.primaryGold),
+            ),
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _passwordController,
+            obscureText: !_showPassword,
+            style: const TextStyle(color: Colors.white),
+            decoration: InputDecoration(
+              labelText: 'Password',
+              prefixIcon: const Icon(Icons.lock_outline, color: VianTheme.primaryGold),
+              suffixIcon: IconButton(
+                icon: Icon(
+                  _showPassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                  color: Colors.white60,
+                  size: 20,
+                ),
+                onPressed: () => setState(() => _showPassword = !_showPassword),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Checkbox(
+                    value: _rememberMe,
+                    activeColor: VianTheme.primaryGold,
+                    checkColor: VianTheme.headerBlack,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    onChanged: (v) => setState(() => _rememberMe = v ?? true),
+                  ),
+                  const Text('Remember me', style: TextStyle(fontSize: 13, color: VianTheme.lightText)),
+                ],
+              ),
+              TextButton(
+                onPressed: () => context.go('/forgot-password'),
+                child: const Text('Forgot Password?', style: TextStyle(color: VianTheme.primaryGold, fontSize: 13)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          SizedBox(
+            width: double.infinity,
+            child: VianButton(
+              text: _isLoading ? 'Signing In...' : 'Sign In',
+              onPressed: _isLoading ? () {} : _handleLogin,
+            ),
+          ),
+        ],
+      );
+    } else if (_selectedMethodTab == 1) {
+      // OTP Login
+      return Column(
+        key: const ValueKey('otpForm'),
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (!_otpSent) ...[
+            TextField(
+              controller: _phoneController,
+              keyboardType: TextInputType.phone,
+              style: const TextStyle(color: Colors.white),
+              decoration: const InputDecoration(
+                labelText: 'Mobile Number or Employee ID',
+                prefixIcon: Icon(Icons.phone_outlined, color: VianTheme.primaryGold),
+                hintText: '+91 XXXXX XXXXX or employee code',
+              ),
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              child: VianButton(
+                text: _isLoading ? 'Sending SMS...' : 'Request OTP',
+                onPressed: _isLoading ? () {} : _sendOTP,
+              ),
+            ),
+          ] else ...[
+            Text(
+              'Enter verification code sent to your registered device.',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.poppins(color: VianTheme.lightText, fontSize: 12),
+            ),
+            const SizedBox(height: 20),
+            TextField(
+              controller: _otpCodeController,
+              keyboardType: TextInputType.number,
+              style: const TextStyle(color: Colors.white, letterSpacing: 8, fontSize: 18),
+              textAlign: TextAlign.center,
+              maxLength: 6,
+              decoration: const InputDecoration(
+                labelText: 'SMS Code',
+                prefixIcon: Icon(Icons.lock_clock_outlined, color: VianTheme.primaryGold),
+                hintText: '• • • • • •',
+                counterText: '',
+              ),
+            ),
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.white70,
+                      side: const BorderSide(color: Colors.white24),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                    ),
+                    onPressed: () => setState(() => _otpSent = false),
+                    child: const Text('Back'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: VianButton(
+                    text: _isLoading ? 'Verifying...' : 'Verify & Login',
+                    onPressed: _isLoading ? () {} : _verifyOTP,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ],
+      );
+    } else {
+      // Face ID Login
+      return Column(
+        key: const ValueKey('faceIdForm'),
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (!_isScanningFace) ...[
+            Container(
+              padding: const EdgeInsets.all(28),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: const Color(0xFF181822).withOpacity(0.6),
+                border: Border.all(color: VianTheme.primaryGold.withOpacity(0.2), width: 2),
+              ),
+              child: const Icon(
+                Icons.face_retouching_natural_outlined,
+                color: VianTheme.primaryGold,
+                size: 72,
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'Biometric Authorization',
+              style: GoogleFonts.outfit(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'Position yourself facing the camera and press scan.',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.poppins(color: VianTheme.lightText, fontSize: 12),
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              child: VianButton(
+                text: 'Scan Face & Authorize',
+                onPressed: _startFaceIDScan,
+              ),
+            ),
+          ] else ...[
+            // Rotating scanner rings animation
+            SizedBox(
+              height: 160,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  AnimatedBuilder(
+                    animation: _scannerAnimationController,
+                    builder: (context, child) {
+                      return Transform.rotate(
+                        angle: _scannerAnimationController.value * 2 * math.pi,
+                        child: Container(
+                          width: 140,
+                          height: 140,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: VianTheme.primaryGold.withOpacity(0.6),
+                              width: 3,
+                              strokeAlign: BorderSide.strokeAlignOutside,
+                            ),
+                          ),
+                          child: const CircularProgressIndicator(
+                            value: 0.25,
+                            color: VianTheme.primaryGold,
+                            strokeWidth: 4,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  const Icon(
+                    Icons.face_unlock_outlined,
+                    color: VianTheme.primaryGold,
+                    size: 64,
+                  ),
+                  // Draw animated scanning line
+                  AnimatedBuilder(
+                    animation: _scannerAnimationController,
+                    builder: (context, child) {
+                      final val = math.sin(_scannerAnimationController.value * math.pi);
+                      final offset = -50 + (100 * val);
+                      return Positioned(
+                        top: 80 + offset,
+                        child: Container(
+                          width: 130,
+                          height: 2,
+                          color: VianTheme.primaryGold,
+                          boxShadow: [
+                            BoxShadow(
+                              color: VianTheme.primaryGold.withOpacity(0.8),
+                              blurRadius: 8,
+                              spreadRadius: 1,
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              _faceScanStatus,
+              style: GoogleFonts.poppins(
+                color: Colors.white,
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: 180,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(4),
+                child: LinearProgressIndicator(
+                  value: _faceScanProgress,
+                  backgroundColor: Colors.white.withOpacity(0.05),
+                  valueColor: const AlwaysStoppedAnimation<Color>(VianTheme.primaryGold),
+                  minHeight: 4,
+                ),
+              ),
+            ),
+          ],
+        ],
+      );
+    }
   }
 
   Widget _roleChip(String role) {
@@ -611,6 +1059,104 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       ),
     );
   }
+}
+
+/// Floating luxury ambient background painter and animation controllers
+class LuxuryAmbientBackground extends StatefulWidget {
+  const LuxuryAmbientBackground({Key? key}) : super(key: key);
+
+  @override
+  State<LuxuryAmbientBackground> createState() => _LuxuryAmbientBackgroundState();
+}
+
+class _LuxuryAmbientBackgroundState extends State<LuxuryAmbientBackground> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 15),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        final t = _controller.value;
+        return Stack(
+          children: [
+            // Dark solid background
+            Positioned.fill(
+              child: Container(
+                color: const Color(0xFF08080C),
+              ),
+            ),
+            // Blob 1: Golden light
+            Positioned(
+              top: (0.15 + 0.1 * math.sin(t * 2 * math.pi)) * MediaQuery.of(context).size.height,
+              left: (0.15 + 0.12 * math.cos(t * 2 * math.pi)) * MediaQuery.of(context).size.width,
+              child: Container(
+                width: 320,
+                height: 320,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: VianTheme.primaryGold.withOpacity(0.06),
+                ),
+              ),
+            ),
+            // Blob 2: Deep bronze/orange glow
+            Positioned(
+              bottom: (0.2 + 0.1 * math.cos(t * 2 * math.pi + 1.2)) * MediaQuery.of(context).size.height,
+              right: (0.12 + 0.15 * math.sin(t * 2 * math.pi + 1.2)) * MediaQuery.of(context).size.width,
+              child: Container(
+                width: 380,
+                height: 380,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: const Color(0xFFC88A12).withOpacity(0.05),
+                ),
+              ),
+            ),
+            // Fine blueprint grid overlays
+            CustomPaint(
+              size: Size.infinite,
+              painter: GridPainter(),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class GridPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final gridPaint = Paint()
+      ..color = const Color(0xFF1B2A3B).withOpacity(0.08) // Subtle drafting grid lines
+      ..strokeWidth = 1.0;
+
+    final double step = 60.0;
+    for (double x = 0; x < size.width; x += step) {
+      canvas.drawLine(Offset(x, 0), Offset(x, size.height), gridPaint);
+    }
+    for (double y = 0; y < size.height; y += step) {
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), gridPaint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant GridPainter oldDelegate) => false;
 }
 
 // ==========================================
