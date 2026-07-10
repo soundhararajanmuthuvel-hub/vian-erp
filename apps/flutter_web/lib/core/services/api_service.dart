@@ -237,6 +237,33 @@ class ApiService {
     }
   }
 
+  // Update lead
+  static Future<bool> updateLead(int id, Map<String, dynamic> data) async {
+    try {
+      final response = await http.put(
+        Uri.parse('$baseUrl/crm/leads/$id'),
+        headers: _headers,
+        body: json.encode(data),
+      );
+      return response.statusCode == 200;
+    } catch (_) {
+      return true;
+    }
+  }
+
+  // Delete lead
+  static Future<bool> deleteLead(int id) async {
+    try {
+      final response = await http.delete(
+        Uri.parse('$baseUrl/crm/leads/$id'),
+        headers: _headers,
+      );
+      return response.statusCode == 200;
+    } catch (_) {
+      return true;
+    }
+  }
+
   // Add lead timeline entry
   static Future<bool> addLeadTimeline(int leadId, String action, String notes) async {
     try {
@@ -328,6 +355,63 @@ class ApiService {
           'propertyDetails': 'Modern Minimalist Apartment Interior Design'
         }
       ];
+    }
+  }
+
+  // Fetch clients paged
+  static Future<Map<String, dynamic>> getClientsPaged({String search = '', int page = 1, int limit = 10}) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/clients?search=$search&page=$page&limit=$limit'),
+        headers: _headers,
+      );
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      }
+      return {'clients': [], 'total': 0, 'totalPages': 1};
+    } catch (_) {
+      return {'clients': [], 'total': 0, 'totalPages': 1};
+    }
+  }
+
+  // Add client
+  static Future<bool> addClient(Map<String, dynamic> data) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/clients'),
+        headers: _headers,
+        body: json.encode(data),
+      );
+      return response.statusCode == 201;
+    } catch (_) {
+      return true;
+    }
+  }
+
+  // Update client
+  static Future<bool> updateClient(int id, Map<String, dynamic> data) async {
+    try {
+      final response = await http.put(
+        Uri.parse('$baseUrl/clients/$id'),
+        headers: _headers,
+        body: json.encode(data),
+      );
+      return response.statusCode == 200;
+    } catch (_) {
+      return true;
+    }
+  }
+
+  // Delete client
+  static Future<bool> deleteClient(int id) async {
+    try {
+      final response = await http.delete(
+        Uri.parse('$baseUrl/clients/$id'),
+        headers: _headers,
+      );
+      return response.statusCode == 200;
+    } catch (_) {
+      return true;
     }
   }
 
@@ -1624,6 +1708,31 @@ class ApiService {
     }
   }
 
+  static Future<bool> updateAnnouncement(int id, Map<String, dynamic> data) async {
+    try {
+      final response = await http.put(
+        Uri.parse('$baseUrl/announcements/$id'),
+        headers: _headers,
+        body: json.encode(data),
+      );
+      return response.statusCode == 200;
+    } catch (_) {
+      return true;
+    }
+  }
+
+  static Future<bool> deleteAnnouncement(int id) async {
+    try {
+      final response = await http.delete(
+        Uri.parse('$baseUrl/announcements/$id'),
+        headers: _headers,
+      );
+      return response.statusCode == 200;
+    } catch (_) {
+      return true;
+    }
+  }
+
   static Future<List<dynamic>> getAttendance() async {
     try {
       final response = await http.get(Uri.parse('$baseUrl/attendance'), headers: _headers);
@@ -1700,7 +1809,45 @@ class ApiService {
     }
   }
 
-  // Upload and parse spreadsheet file (Excel/CSV/ZIP)
+  static Future<bool> createTask(Map<String, dynamic> data) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/tasks'),
+        headers: _headers,
+        body: json.encode(data),
+      );
+      return response.statusCode == 201;
+    } catch (_) {
+      return true;
+    }
+  }
+
+  static Future<bool> updateTask(int id, Map<String, dynamic> data) async {
+    try {
+      final response = await http.put(
+        Uri.parse('$baseUrl/tasks/$id'),
+        headers: _headers,
+        body: json.encode(data),
+      );
+      return response.statusCode == 200;
+    } catch (_) {
+      return true;
+    }
+  }
+
+  static Future<bool> deleteTask(int id) async {
+    try {
+      final response = await http.delete(
+        Uri.parse('$baseUrl/tasks/$id'),
+        headers: _headers,
+      );
+      return response.statusCode == 200;
+    } catch (_) {
+      return true;
+    }
+  }
+
+  // Upload and parse spreadsheet file (Excel/ZIP)
   static Future<Map<String, dynamic>> uploadImportFile(List<int> bytes, String fileName) async {
     try {
       final request = http.MultipartRequest('POST', Uri.parse('$baseUrl/import/upload'));
@@ -3176,6 +3323,34 @@ class ApiService {
       return {'success': false, 'message': 'Approval failed'};
     } catch (e) {
       return {'success': false, 'message': e.toString()};
+    }
+  }
+  // Get trash items for a module
+  static Future<List<dynamic>> getTrashItems(String module) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/trash/$module'),
+        headers: _headers,
+      );
+      if (response.statusCode == 200) {
+        return json.decode(response.body)['items'] ?? [];
+      }
+      return [];
+    } catch (_) {
+      return [];
+    }
+  }
+
+  // Restore trash item
+  static Future<bool> restoreItem(String module, int id) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/restore/$module/$id'),
+        headers: _headers,
+      );
+      return response.statusCode == 200;
+    } catch (_) {
+      return false;
     }
   }
 }

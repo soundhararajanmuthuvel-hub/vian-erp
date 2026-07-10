@@ -46,7 +46,9 @@ function initModels() {
     status: {
       type: DataTypes.ENUM('New', 'Contacted', 'Site Visit Scheduled', 'Proposal Sent', 'Negotiation', 'Won', 'Lost'),
       defaultValue: 'New'
-    }
+    },
+    deletedAt: { type: DataTypes.DATE, allowNull: true },
+    deletedBy: { type: DataTypes.INTEGER, allowNull: true }
   }, { tableName: 'leads', timestamps: true, underscored: true });
 
   // 4. LeadTimeline Model
@@ -64,7 +66,9 @@ function initModels() {
     email: { type: DataTypes.STRING, allowNull: false },
     address: { type: DataTypes.TEXT, allowNull: true },
     gst: { type: DataTypes.STRING(15), allowNull: true },
-    propertyDetails: { type: DataTypes.TEXT, allowNull: true }
+    propertyDetails: { type: DataTypes.TEXT, allowNull: true },
+    deletedAt: { type: DataTypes.DATE, allowNull: true },
+    deletedBy: { type: DataTypes.INTEGER, allowNull: true }
   }, { tableName: 'clients', timestamps: true, underscored: true });
 
   // 6. Project Model
@@ -97,7 +101,9 @@ function initModels() {
     googleMapsLocation: { type: DataTypes.STRING, allowNull: true },
     builtUpArea: { type: DataTypes.DECIMAL(12, 2), allowNull: true },
     floors: { type: DataTypes.INTEGER, defaultValue: 1 },
-    isArchived: { type: DataTypes.BOOLEAN, defaultValue: false }
+    isArchived: { type: DataTypes.BOOLEAN, defaultValue: false },
+    deletedAt: { type: DataTypes.DATE, allowNull: true },
+    deletedBy: { type: DataTypes.INTEGER, allowNull: true }
   }, { tableName: 'projects', timestamps: true, underscored: true });
 
   // 7. Attendance Model
@@ -129,7 +135,9 @@ function initModels() {
     status: {
       type: DataTypes.ENUM('Pending', 'In Progress', 'Review', 'Completed'),
       defaultValue: 'Pending'
-    }
+    },
+    deletedAt: { type: DataTypes.DATE, allowNull: true },
+    deletedBy: { type: DataTypes.INTEGER, allowNull: true }
   }, { tableName: 'tasks', timestamps: true, underscored: true });
 
   // 9. SiteVisit Model
@@ -187,7 +195,9 @@ function initModels() {
       type: DataTypes.ENUM('Draft', 'Sent', 'Approved', 'Declined'),
       defaultValue: 'Draft'
     },
-    items: { type: DataTypes.TEXT, allowNull: false } // JSON string
+    items: { type: DataTypes.TEXT, allowNull: false }, // JSON string
+    deletedAt: { type: DataTypes.DATE, allowNull: true },
+    deletedBy: { type: DataTypes.INTEGER, allowNull: true }
   }, { tableName: 'quotations', timestamps: true, underscored: true });
 
   // 13. Invoice Model
@@ -205,7 +215,9 @@ function initModels() {
       type: DataTypes.ENUM('Draft', 'Sent', 'Paid', 'Overdue'),
       defaultValue: 'Draft'
     },
-    items: { type: DataTypes.TEXT, allowNull: false } // JSON string
+    items: { type: DataTypes.TEXT, allowNull: false }, // JSON string
+    deletedAt: { type: DataTypes.DATE, allowNull: true },
+    deletedBy: { type: DataTypes.INTEGER, allowNull: true }
   }, { tableName: 'invoices', timestamps: true, underscored: true });
 
   // 14. Expense Model
@@ -259,7 +271,9 @@ function initModels() {
       allowNull: false
     },
     dailyWage: { type: DataTypes.DECIMAL(15, 2), allowNull: false },
-    contractor: { type: DataTypes.STRING, allowNull: true }
+    contractor: { type: DataTypes.STRING, allowNull: true },
+    deletedAt: { type: DataTypes.DATE, allowNull: true },
+    deletedBy: { type: DataTypes.INTEGER, allowNull: true }
   }, { tableName: 'workers', timestamps: true, underscored: true });
 
   // 18. ManagerAttendance Model
@@ -281,7 +295,9 @@ function initModels() {
     workDescription: { type: DataTypes.TEXT, allowNull: true },
     quantityCompleted: { type: DataTypes.STRING, allowNull: true },
     photoUrls: { type: DataTypes.TEXT, allowNull: true }, // JSON array string
-    notes: { type: DataTypes.TEXT, allowNull: true }
+    notes: { type: DataTypes.TEXT, allowNull: true },
+    deletedAt: { type: DataTypes.DATE, allowNull: true },
+    deletedBy: { type: DataTypes.INTEGER, allowNull: true }
   }, { tableName: 'daily_reports', timestamps: true, underscored: true });
 
   // 20. ProgressReport Model
@@ -303,7 +319,9 @@ function initModels() {
     id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
     title: { type: DataTypes.STRING, allowNull: false },
     message: { type: DataTypes.TEXT, allowNull: false },
-    targetRole: { type: DataTypes.STRING, defaultValue: 'All' }
+    targetRole: { type: DataTypes.STRING, defaultValue: 'All' },
+    deletedAt: { type: DataTypes.DATE, allowNull: true },
+    deletedBy: { type: DataTypes.INTEGER, allowNull: true }
   }, { tableName: 'announcements', timestamps: true, underscored: true });
 
   // 22. Import Activity Log Model
@@ -965,11 +983,29 @@ function initModels() {
     notes: { type: DataTypes.TEXT, allowNull: true }
   }, { tableName: 'stage_histories', underscored: true });
 
+  // 62. AuditLog Model
+  const AuditLog = sequelize.define('AuditLog', {
+    id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    userId: { type: DataTypes.INTEGER, allowNull: true },
+    userName: { type: DataTypes.STRING, allowNull: true },
+    role: { type: DataTypes.STRING, allowNull: true },
+    action: { type: DataTypes.STRING, allowNull: false },
+    module: { type: DataTypes.STRING, allowNull: false },
+    oldValue: { type: DataTypes.TEXT, allowNull: true },
+    newValue: { type: DataTypes.TEXT, allowNull: true },
+    ipAddress: { type: DataTypes.STRING, allowNull: true },
+    device: { type: DataTypes.STRING, allowNull: true }
+  }, { tableName: 'audit_logs', underscored: true });
+
   // --- SET UP ASSOCIATIONS ---
   
   // User <-> Session
   User.hasMany(Session, { foreignKey: 'userId', as: 'sessions', onDelete: 'CASCADE' });
   Session.belongsTo(User, { foreignKey: 'userId', as: 'user' });
+
+  // User <-> AuditLog
+  User.hasMany(AuditLog, { foreignKey: 'userId', as: 'auditLogs', onDelete: 'SET NULL' });
+  AuditLog.belongsTo(User, { foreignKey: 'userId', as: 'user' });
 
   // User (Assigned) <-> Lead
   User.hasMany(Lead, { foreignKey: 'assignedTo', as: 'leads', onDelete: 'SET NULL' });
@@ -1326,7 +1362,8 @@ function initModels() {
     Estimate, EstimateMaterial, EstimatePhase, EstimateBoq, EstimateLabour, EstimationSetting, MarketPrice,
     BuildVersion, Build, BuildLog, BuildArtifact, AiSetting,
     ProjectStage, StageTask, StageMaterial, StageLabour, StagePayment, StageDocument, StagePhoto, StageReport, StageApproval, StageHistory,
-    PublicEnquiryLink, PublicEnquirySubmission, PublicEnquiryDocument, PublicEnquiryHistory, PublicEnquiryDraft, PublicEnquiryNote
+    PublicEnquiryLink, PublicEnquirySubmission, PublicEnquiryDocument, PublicEnquiryHistory, PublicEnquiryDraft, PublicEnquiryNote,
+    AuditLog
   };
 }
 

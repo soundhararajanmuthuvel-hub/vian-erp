@@ -51,8 +51,56 @@ function registerRoutes(app, models) {
     Contractor, ContractorPaymentStage, ContractorPaymentRelease,
     LeadStage1,
     PublicEnquiryLink, PublicEnquirySubmission, PublicEnquiryDocument, PublicEnquiryHistory, PublicEnquiryDraft, PublicEnquiryNote,
-    ProjectStage, StageTask, StageMaterial, StageLabour, StagePayment, StageDocument, StagePhoto, StageReport, StageApproval, StageHistory, Estimate, EstimateMaterial, EstimateBoq, EstimateLabour
+    ProjectStage, StageTask, StageMaterial, StageLabour, StagePayment, StageDocument, StagePhoto, StageReport, StageApproval, StageHistory, Estimate, EstimateMaterial, EstimateBoq, EstimateLabour,
+    AuditLog
   } = models;
+
+  // Role permissions helper
+  function getPermissionRole(role) {
+    if (!role) return 'Staff';
+    const r = role.toLowerCase();
+    if (r === 'managing director' || r === 'super admin') return 'Super Admin';
+    if (
+      r === 'admin / office manager / accounts' ||
+      r === 'admin' ||
+      r === 'tech head + senior architect' ||
+      r === 'accountant'
+    ) {
+      return 'Admin';
+    }
+    return 'Staff';
+  }
+
+  // Audit logger helper
+  async function writeAuditLog(req, action, moduleName, oldValue = null, newValue = null) {
+    try {
+      if (!req.user) return;
+      const clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+      const device = req.headers['user-agent'] || 'Unknown Device';
+      await AuditLog.create({
+        userId: req.user.id,
+        userName: req.user.name,
+        role: req.user.role,
+        action,
+        module: moduleName,
+        oldValue: oldValue ? (typeof oldValue === 'object' ? JSON.stringify(oldValue) : String(oldValue)) : null,
+        newValue: newValue ? (typeof newValue === 'object' ? JSON.stringify(newValue) : String(newValue)) : null,
+        ipAddress: clientIp,
+        device
+      });
+    } catch (err) {
+      console.error('Failed writing audit log:', err.message);
+    }
+  }
+
+  // Gating middleware
+  const requireSuperAdmin = (req, res, next) => {
+    if (!req.user) return res.status(401).json({ message: 'Unauthorized' });
+    if (getPermissionRole(req.user.role) !== 'Super Admin') {
+      return res.status(403).json({ message: 'Forbidden: Super Admin role required' });
+    }
+    next();
+  };
 
   // ==========================================
   // AUTHENTICATION MODULE
@@ -186,19 +234,61 @@ function registerRoutes(app, models) {
   
   app.get('/api/crm/leads', authenticateToken, async (req, res) => {
     try {
-      const leads = await Lead.findAll({
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+      const offset = (page - 1) * limit;
+      const search = req.query.search || '';
+      const status = req.query.status || '';
+
+      const where = { deletedAt: null };
+      if (status) {
+        where.status = status;
+      }
+      if (search) {
+        where[Op.or] = [
+          { name: { [Op.like]: `%${search}%` } },
+          { phone: { [Op.like]: `%${search}%` } },
+          { email: { [Op.like]: `%${search}%` } }
+        ];
+      }
+
+      const { count, rows } = await Lead.findAndCountAll({
+        where,
         include: [
           { model: User, as: 'assignee', attributes: ['name', 'role'] },
           { model: LeadTimeline, as: 'timeline' },
           { model: PublicEnquiryLink, as: 'enquiryLink' }
         ],
-        order: [
-          ['id', 'DESC']
-        ]
+        order: [['id', 'DESC']],
+        limit,
+        offset
       });
-      res.json({ leads });
+
+      res.json({
+        leads: rows,
+        total: count,
+        page,
+        totalPages: Math.ceil(count / limit)
+      });
     } catch (error) {
       res.status(500).json({ message: 'Error retrieving leads', error: error.message });
+    }
+  });
+
+  app.get('/api/crm/leads/:id', authenticateToken, async (req, res) => {
+    try {
+      const lead = await Lead.findOne({
+        where: { id: req.params.id, deletedAt: null },
+        include: [
+          { model: User, as: 'assignee', attributes: ['name', 'role'] },
+          { model: LeadTimeline, as: 'timeline' },
+          { model: PublicEnquiryLink, as: 'enquiryLink' }
+        ]
+      });
+      if (!lead) return res.status(404).json({ message: 'Lead not found' });
+      res.json(lead);
+    } catch (error) {
+      res.status(500).json({ message: 'Error fetching lead details', error: error.message });
     }
   });
 
@@ -216,6 +306,8 @@ function registerRoutes(app, models) {
         createdBy: req.user.id
       });
 
+      await writeAuditLog(req, 'Create', 'Leads', null, lead.toJSON());
+
       res.status(201).json(lead);
     } catch (error) {
       res.status(400).json({ message: 'Error creating lead', error: error.message });
@@ -224,9 +316,10 @@ function registerRoutes(app, models) {
 
   app.put('/api/crm/leads/:id', authenticateToken, async (req, res) => {
     try {
-      const lead = await Lead.findByPk(req.params.id);
+      const lead = await Lead.findOne({ where: { id: req.params.id, deletedAt: null } });
       if (!lead) return res.status(404).json({ message: 'Lead not found' });
       
+      const oldVal = { ...lead.toJSON() };
       const previousStatus = lead.status;
       await lead.update(req.body);
 
@@ -239,9 +332,31 @@ function registerRoutes(app, models) {
         });
       }
 
+      await writeAuditLog(req, 'Update', 'Leads', oldVal, lead.toJSON());
+
       res.json(lead);
     } catch (error) {
       res.status(400).json({ message: 'Error updating lead', error: error.message });
+    }
+  });
+
+  app.delete('/api/crm/leads/:id', authenticateToken, requireSuperAdmin, async (req, res) => {
+    try {
+      const lead = await Lead.findOne({ where: { id: req.params.id, deletedAt: null } });
+      if (!lead) return res.status(404).json({ message: 'Lead not found' });
+
+      const oldVal = { ...lead.toJSON() };
+      const deletedAt = new Date();
+      await lead.update({
+        deletedAt,
+        deletedBy: req.user.id
+      });
+
+      await writeAuditLog(req, 'Delete', 'Leads', oldVal, { deletedAt, deletedBy: req.user.id });
+
+      res.json({ message: 'Lead soft-deleted successfully' });
+    } catch (error) {
+      res.status(500).json({ message: 'Error deleting lead', error: error.message });
     }
   });
 
@@ -750,19 +865,88 @@ function registerRoutes(app, models) {
   
   app.get('/api/clients', authenticateToken, async (req, res) => {
     try {
-      const clients = await Client.findAll();
-      res.json({ clients });
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+      const offset = (page - 1) * limit;
+      const search = req.query.search || '';
+
+      const where = { deletedAt: null };
+      if (search) {
+        where[Op.or] = [
+          { name: { [Op.like]: `%${search}%` } },
+          { phone: { [Op.like]: `%${search}%` } },
+          { email: { [Op.like]: `%${search}%` } }
+        ];
+      }
+
+      const { count, rows } = await Client.findAndCountAll({
+        where,
+        order: [['id', 'DESC']],
+        limit,
+        offset
+      });
+
+      res.json({
+        clients: rows,
+        total: count,
+        page,
+        totalPages: Math.ceil(count / limit)
+      });
     } catch (error) {
       res.status(500).json({ message: 'Error fetching clients', error: error.message });
+    }
+  });
+
+  app.get('/api/clients/:id', authenticateToken, async (req, res) => {
+    try {
+      const client = await Client.findOne({ where: { id: req.params.id, deletedAt: null } });
+      if (!client) return res.status(404).json({ message: 'Client not found' });
+      res.json(client);
+    } catch (error) {
+      res.status(500).json({ message: 'Error fetching client details', error: error.message });
     }
   });
 
   app.post('/api/clients', authenticateToken, async (req, res) => {
     try {
       const client = await Client.create(req.body);
+      await writeAuditLog(req, 'Create', 'Clients', null, client.toJSON());
       res.status(201).json(client);
     } catch (error) {
       res.status(400).json({ message: 'Error creating client', error: error.message });
+    }
+  });
+
+  app.put('/api/clients/:id', authenticateToken, async (req, res) => {
+    try {
+      const client = await Client.findOne({ where: { id: req.params.id, deletedAt: null } });
+      if (!client) return res.status(404).json({ message: 'Client not found' });
+
+      const oldVal = { ...client.toJSON() };
+      await client.update(req.body);
+      await writeAuditLog(req, 'Update', 'Clients', oldVal, client.toJSON());
+      res.json(client);
+    } catch (error) {
+      res.status(400).json({ message: 'Error updating client', error: error.message });
+    }
+  });
+
+  app.delete('/api/clients/:id', authenticateToken, requireSuperAdmin, async (req, res) => {
+    try {
+      const client = await Client.findOne({ where: { id: req.params.id, deletedAt: null } });
+      if (!client) return res.status(404).json({ message: 'Client not found' });
+
+      const oldVal = { ...client.toJSON() };
+      const deletedAt = new Date();
+      await client.update({
+        deletedAt,
+        deletedBy: req.user.id
+      });
+
+      await writeAuditLog(req, 'Delete', 'Clients', oldVal, { deletedAt, deletedBy: req.user.id });
+      res.json({ message: 'Client soft-deleted successfully' });
+    } catch (error) {
+      res.status(500).json({ message: 'Error deleting client', error: error.message });
     }
   });
 
@@ -773,7 +957,7 @@ function registerRoutes(app, models) {
   app.get('/api/projects', authenticateToken, async (req, res) => {
     try {
       let projects;
-      const whereClause = { isArchived: false };
+      const whereClause = { isArchived: false, deletedAt: null };
       
       // Support viewing archived projects if query param is set
       if (req.query.archived === 'true') {
@@ -879,6 +1063,8 @@ function registerRoutes(app, models) {
         await seedStagesForProject(project, 'Default');
       }
 
+      await writeAuditLog(req, 'Create', 'Projects', null, project.toJSON());
+
       res.status(201).json(project);
     } catch (error) {
       res.status(400).json({ message: 'Error creating project', error: error.message });
@@ -887,9 +1073,14 @@ function registerRoutes(app, models) {
 
   app.put('/api/projects/:id', authenticateToken, async (req, res) => {
     try {
-      const project = await Project.findByPk(req.params.id);
+      const project = await Project.findOne({ where: { id: req.params.id, deletedAt: null } });
       if (!project) return res.status(404).json({ message: 'Project not found' });
+      
+      const oldVal = { ...project.toJSON() };
       await project.update(req.body);
+
+      await writeAuditLog(req, 'Update', 'Projects', oldVal, project.toJSON());
+
       res.json(project);
     } catch (error) {
       res.status(400).json({ message: 'Error updating project', error: error.message });
@@ -970,17 +1161,21 @@ function registerRoutes(app, models) {
   });
 
   // Delete Project (Super Admin Only)
-  app.delete('/api/projects/:id', authenticateToken, async (req, res) => {
+  app.delete('/api/projects/:id', authenticateToken, requireSuperAdmin, async (req, res) => {
     try {
-      if (req.user.role !== 'Managing Director') {
-        return res.status(403).json({ message: 'Forbidden. Only Super Admins (MD) can delete projects.' });
-      }
-
-      const project = await Project.findByPk(req.params.id);
+      const project = await Project.findOne({ where: { id: req.params.id, deletedAt: null } });
       if (!project) return res.status(404).json({ message: 'Project not found' });
       
-      await project.destroy();
-      res.json({ message: 'Project deleted permanently.' });
+      const oldVal = { ...project.toJSON() };
+      const deletedAt = new Date();
+      await project.update({
+        deletedAt,
+        deletedBy: req.user.id
+      });
+
+      await writeAuditLog(req, 'Delete', 'Projects', oldVal, { deletedAt, deletedBy: req.user.id });
+
+      res.json({ message: 'Project soft-deleted successfully.' });
     } catch (error) {
       res.status(500).json({ message: 'Error deleting project', error: error.message });
     }
@@ -1352,30 +1547,71 @@ function registerRoutes(app, models) {
   
   app.get('/api/tasks', authenticateToken, async (req, res) => {
     try {
-      const tasks = await Task.findAll({ include: ['project', 'assignee'] });
-      res.json({ tasks });
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+      const offset = (page - 1) * limit;
+      const search = req.query.search || '';
+      const status = req.query.status || '';
+
+      const where = { deletedAt: null };
+      if (status) {
+        where.status = status;
+      }
+      if (search) {
+        where[Op.or] = [
+          { title: { [Op.like]: `%${search}%` } },
+          { description: { [Op.like]: `%${search}%` } }
+        ];
+      }
+
+      // Staff roles can only see tasks assigned to them
+      const pRole = getPermissionRole(req.user.role);
+      if (pRole === 'Staff') {
+        where.assignedTo = req.user.id;
+      }
+
+      const { count, rows } = await Task.findAndCountAll({
+        where,
+        include: ['project', 'assignee'],
+        order: [['id', 'DESC']],
+        limit,
+        offset
+      });
+
+      res.json({
+        tasks: rows,
+        total: count,
+        page,
+        totalPages: Math.ceil(count / limit)
+      });
     } catch (error) {
       res.status(500).json({ message: 'Error retrieving tasks', error: error.message });
     }
   });
 
-  app.post('/api/tasks', authenticateToken, async (req, res) => {
-    const creatorRoles = ['Managing Director', 'Super Admin', 'Admin / Office Manager / Accounts', 'Tech Head + Senior Architect', 'Site Manager'];
-    if (!creatorRoles.includes(req.user.role)) {
-      return res.status(403).json({ message: 'Only Anand, Jaya, Muthuiya, and Murugan can create tasks.' });
-    }
-    
+  app.get('/api/tasks/:id', authenticateToken, async (req, res) => {
     try {
-      const assignee = await User.findByPk(req.body.assignedTo);
-      if (!assignee) {
-        return res.status(400).json({ message: 'Target assignee not found.' });
-      }
-      const allowedAssignees = ['gokul', 'sivaraman', 'mohan', 'vijayan', 'manoj'];
-      if (!allowedAssignees.includes(assignee.username)) {
-        return res.status(400).json({ message: 'Tasks can only be assigned to Gokul, Sivaraman, Mohan, Vijayan, or Manoj.' });
+      const where = { id: req.params.id, deletedAt: null };
+      const pRole = getPermissionRole(req.user.role);
+      if (pRole === 'Staff') {
+        where.assignedTo = req.user.id;
       }
 
+      const task = await Task.findOne({
+        where,
+        include: ['project', 'assignee']
+      });
+      if (!task) return res.status(404).json({ message: 'Task not found or access denied' });
+      res.json(task);
+    } catch (error) {
+      res.status(500).json({ message: 'Error fetching task details', error: error.message });
+    }
+  });
+
+  app.post('/api/tasks', authenticateToken, async (req, res) => {
+    try {
       const task = await Task.create(req.body);
+      await writeAuditLog(req, 'Create', 'Tasks', null, task.toJSON());
       res.status(201).json(task);
     } catch (error) {
       res.status(400).json({ message: 'Error creating task', error: error.message });
@@ -1384,12 +1620,43 @@ function registerRoutes(app, models) {
 
   app.put('/api/tasks/:id', authenticateToken, async (req, res) => {
     try {
-      const task = await Task.findByPk(req.params.id);
-      if (!task) return res.status(404).json({ message: 'Task not found' });
+      const where = { id: req.params.id, deletedAt: null };
+      const pRole = getPermissionRole(req.user.role);
+      if (pRole === 'Staff') {
+        where.assignedTo = req.user.id;
+      }
+
+      const task = await Task.findOne({ where });
+      if (!task) return res.status(404).json({ message: 'Task not found or access denied' });
+
+      const oldVal = { ...task.toJSON() };
       await task.update(req.body);
+
+      await writeAuditLog(req, 'Update', 'Tasks', oldVal, task.toJSON());
+
       res.json(task);
     } catch (error) {
       res.status(400).json({ message: 'Error updating task', error: error.message });
+    }
+  });
+
+  app.delete('/api/tasks/:id', authenticateToken, requireSuperAdmin, async (req, res) => {
+    try {
+      const task = await Task.findOne({ where: { id: req.params.id, deletedAt: null } });
+      if (!task) return res.status(404).json({ message: 'Task not found' });
+
+      const oldVal = { ...task.toJSON() };
+      const deletedAt = new Date();
+      await task.update({
+        deletedAt,
+        deletedBy: req.user.id
+      });
+
+      await writeAuditLog(req, 'Delete', 'Tasks', oldVal, { deletedAt, deletedBy: req.user.id });
+
+      res.json({ message: 'Task soft-deleted successfully' });
+    } catch (error) {
+      res.status(500).json({ message: 'Error deleting task', error: error.message });
     }
   });
 
@@ -1485,10 +1752,44 @@ function registerRoutes(app, models) {
   
   app.get('/api/quotations', authenticateToken, async (req, res) => {
     try {
-      const quotes = await Quotation.findAll({ include: ['project'] });
-      res.json({ quotations: quotes });
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+      const offset = (page - 1) * limit;
+      const search = req.query.search || '';
+
+      const where = { deletedAt: null };
+      if (search) {
+        where[Op.or] = [
+          { quotationNumber: { [Op.like]: `%${search}%` } }
+        ];
+      }
+
+      const { count, rows } = await Quotation.findAndCountAll({
+        where,
+        include: ['project'],
+        order: [['id', 'DESC']],
+        limit,
+        offset
+      });
+
+      res.json({
+        quotations: rows,
+        total: count,
+        page,
+        totalPages: Math.ceil(count / limit)
+      });
     } catch (error) {
       res.status(500).json({ message: 'Error fetching quotations', error: error.message });
+    }
+  });
+
+  app.get('/api/quotations/:id', authenticateToken, async (req, res) => {
+    try {
+      const quote = await Quotation.findOne({ where: { id: req.params.id, deletedAt: null }, include: ['project'] });
+      if (!quote) return res.status(404).json({ message: 'Quotation not found' });
+      res.json(quote);
+    } catch (error) {
+      res.status(500).json({ message: 'Error fetching quotation details', error: error.message });
     }
   });
 
@@ -1497,10 +1798,9 @@ function registerRoutes(app, models) {
       const { projectId, items, taxRate, discount } = req.body;
       const parsedItems = typeof items === 'string' ? JSON.parse(items) : items;
       
-      // Calculate subtotals
       let subtotal = 0;
       parsedItems.forEach(item => {
-        subtotal += parseFloat(item.quantity) * parseFloat(item.rate);
+        subtotal += parseFloat(item.quantity || 0) * parseFloat(item.rate || 0);
       });
       
       const taxAmount = subtotal * (parseFloat(taxRate || 18) / 100);
@@ -1521,9 +1821,63 @@ function registerRoutes(app, models) {
         status: 'Draft'
       });
 
+      await writeAuditLog(req, 'Create', 'Quotations', null, quote.toJSON());
+
       res.status(201).json(quote);
     } catch (error) {
       res.status(400).json({ message: 'Quotation creation failed', error: error.message });
+    }
+  });
+
+  app.put('/api/quotations/:id', authenticateToken, async (req, res) => {
+    try {
+      const quote = await Quotation.findOne({ where: { id: req.params.id, deletedAt: null } });
+      if (!quote) return res.status(404).json({ message: 'Quotation not found' });
+
+      const oldVal = { ...quote.toJSON() };
+      const updateData = { ...req.body };
+      
+      if (updateData.items) {
+        const parsedItems = typeof updateData.items === 'string' ? JSON.parse(updateData.items) : updateData.items;
+        let subtotal = 0;
+        parsedItems.forEach(item => {
+          subtotal += parseFloat(item.quantity || 0) * parseFloat(item.rate || 0);
+        });
+        const taxRate = updateData.taxRate || quote.taxRate;
+        const discount = updateData.discount || quote.discount;
+        const taxAmount = subtotal * (parseFloat(taxRate || 18) / 100);
+        
+        updateData.subtotal = subtotal;
+        updateData.total = subtotal + taxAmount - parseFloat(discount || 0);
+        updateData.items = JSON.stringify(parsedItems);
+      }
+
+      await quote.update(updateData);
+      await writeAuditLog(req, 'Update', 'Quotations', oldVal, quote.toJSON());
+
+      res.json(quote);
+    } catch (error) {
+      res.status(400).json({ message: 'Quotation update failed', error: error.message });
+    }
+  });
+
+  app.delete('/api/quotations/:id', authenticateToken, requireSuperAdmin, async (req, res) => {
+    try {
+      const quote = await Quotation.findOne({ where: { id: req.params.id, deletedAt: null } });
+      if (!quote) return res.status(404).json({ message: 'Quotation not found' });
+
+      const oldVal = { ...quote.toJSON() };
+      const deletedAt = new Date();
+      await quote.update({
+        deletedAt,
+        deletedBy: req.user.id
+      });
+
+      await writeAuditLog(req, 'Delete', 'Quotations', oldVal, { deletedAt, deletedBy: req.user.id });
+
+      res.json({ message: 'Quotation soft-deleted successfully' });
+    } catch (error) {
+      res.status(500).json({ message: 'Error deleting quotation', error: error.message });
     }
   });
 
@@ -1533,10 +1887,44 @@ function registerRoutes(app, models) {
   
   app.get('/api/invoices', authenticateToken, async (req, res) => {
     try {
-      const invoices = await Invoice.findAll({ include: ['project'] });
-      res.json({ invoices });
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+      const offset = (page - 1) * limit;
+      const search = req.query.search || '';
+
+      const where = { deletedAt: null };
+      if (search) {
+        where[Op.or] = [
+          { invoiceNumber: { [Op.like]: `%${search}%` } }
+        ];
+      }
+
+      const { count, rows } = await Invoice.findAndCountAll({
+        where,
+        include: ['project'],
+        order: [['id', 'DESC']],
+        limit,
+        offset
+      });
+
+      res.json({
+        invoices: rows,
+        total: count,
+        page,
+        totalPages: Math.ceil(count / limit)
+      });
     } catch (error) {
       res.status(500).json({ message: 'Error fetching invoices', error: error.message });
+    }
+  });
+
+  app.get('/api/invoices/:id', authenticateToken, async (req, res) => {
+    try {
+      const invoice = await Invoice.findOne({ where: { id: req.params.id, deletedAt: null }, include: ['project'] });
+      if (!invoice) return res.status(404).json({ message: 'Invoice not found' });
+      res.json(invoice);
+    } catch (error) {
+      res.status(500).json({ message: 'Error fetching invoice details', error: error.message });
     }
   });
 
@@ -1547,7 +1935,7 @@ function registerRoutes(app, models) {
 
       let subtotal = 0;
       parsedItems.forEach(item => {
-        subtotal += parseFloat(item.quantity) * parseFloat(item.rate);
+        subtotal += parseFloat(item.quantity || 0) * parseFloat(item.rate || 0);
       });
       
       const taxAmount = subtotal * (parseFloat(taxRate || 18) / 100);
@@ -1570,9 +1958,63 @@ function registerRoutes(app, models) {
         status: 'Draft'
       });
 
+      await writeAuditLog(req, 'Create', 'Invoices', null, invoice.toJSON());
+
       res.status(201).json(invoice);
     } catch (error) {
       res.status(400).json({ message: 'Invoice generation failed', error: error.message });
+    }
+  });
+
+  app.put('/api/invoices/:id', authenticateToken, async (req, res) => {
+    try {
+      const invoice = await Invoice.findOne({ where: { id: req.params.id, deletedAt: null } });
+      if (!invoice) return res.status(404).json({ message: 'Invoice not found' });
+
+      const oldVal = { ...invoice.toJSON() };
+      const updateData = { ...req.body };
+      
+      if (updateData.items) {
+        const parsedItems = typeof updateData.items === 'string' ? JSON.parse(updateData.items) : updateData.items;
+        let subtotal = 0;
+        parsedItems.forEach(item => {
+          subtotal += parseFloat(item.quantity || 0) * parseFloat(item.rate || 0);
+        });
+        const taxRate = updateData.taxRate || invoice.taxRate;
+        const discount = updateData.discount || invoice.discount;
+        const taxAmount = subtotal * (parseFloat(taxRate || 18) / 100);
+        
+        updateData.subtotal = subtotal;
+        updateData.total = subtotal + taxAmount - parseFloat(discount || 0);
+        updateData.items = JSON.stringify(parsedItems);
+      }
+
+      await invoice.update(updateData);
+      await writeAuditLog(req, 'Update', 'Invoices', oldVal, invoice.toJSON());
+
+      res.json(invoice);
+    } catch (error) {
+      res.status(400).json({ message: 'Invoice update failed', error: error.message });
+    }
+  });
+
+  app.delete('/api/invoices/:id', authenticateToken, requireSuperAdmin, async (req, res) => {
+    try {
+      const invoice = await Invoice.findOne({ where: { id: req.params.id, deletedAt: null } });
+      if (!invoice) return res.status(404).json({ message: 'Invoice not found' });
+
+      const oldVal = { ...invoice.toJSON() };
+      const deletedAt = new Date();
+      await invoice.update({
+        deletedAt,
+        deletedBy: req.user.id
+      });
+
+      await writeAuditLog(req, 'Delete', 'Invoices', oldVal, { deletedAt, deletedBy: req.user.id });
+
+      res.json({ message: 'Invoice soft-deleted successfully' });
+    } catch (error) {
+      res.status(500).json({ message: 'Error deleting invoice', error: error.message });
     }
   });
 
@@ -1722,16 +2164,52 @@ function registerRoutes(app, models) {
   
   app.get('/api/labour/workers', authenticateToken, async (req, res) => {
     try {
-      const workers = await Worker.findAll({ include: ['project'] });
-      res.json({ workers });
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+      const offset = (page - 1) * limit;
+      const search = req.query.search || '';
+
+      const where = { deletedAt: null };
+      if (search) {
+        where[Op.or] = [
+          { name: { [Op.like]: `%${search}%` } },
+          { workerId: { [Op.like]: `%${search}%` } }
+        ];
+      }
+
+      const { count, rows } = await Worker.findAndCountAll({
+        where,
+        include: ['project'],
+        order: [['id', 'DESC']],
+        limit,
+        offset
+      });
+
+      res.json({
+        workers: rows,
+        total: count,
+        page,
+        totalPages: Math.ceil(count / limit)
+      });
     } catch (error) {
       res.status(500).json({ message: 'Error fetching workers list', error: error.message });
+    }
+  });
+
+  app.get('/api/labour/workers/:id', authenticateToken, async (req, res) => {
+    try {
+      const worker = await Worker.findOne({ where: { id: req.params.id, deletedAt: null }, include: ['project'] });
+      if (!worker) return res.status(404).json({ message: 'Worker profile not found' });
+      res.json(worker);
+    } catch (error) {
+      res.status(500).json({ message: 'Error fetching worker details', error: error.message });
     }
   });
 
   app.post('/api/labour/workers', authenticateToken, async (req, res) => {
     try {
       const worker = await Worker.create(req.body);
+      await writeAuditLog(req, 'Create', 'Workers', null, worker.toJSON());
       res.status(201).json(worker);
     } catch (error) {
       res.status(400).json({ message: 'Error creating worker profile', error: error.message });
@@ -1740,21 +2218,34 @@ function registerRoutes(app, models) {
 
   app.put('/api/labour/workers/:id', authenticateToken, async (req, res) => {
     try {
-      const worker = await Worker.findByPk(req.params.id);
+      const worker = await Worker.findOne({ where: { id: req.params.id, deletedAt: null } });
       if (!worker) return res.status(404).json({ message: 'Worker profile not found' });
+
+      const oldVal = { ...worker.toJSON() };
       await worker.update(req.body);
+      await writeAuditLog(req, 'Update', 'Workers', oldVal, worker.toJSON());
+
       res.json(worker);
     } catch (error) {
       res.status(400).json({ message: 'Error updating worker profile', error: error.message });
     }
   });
 
-  app.delete('/api/labour/workers/:id', authenticateToken, async (req, res) => {
+  app.delete('/api/labour/workers/:id', authenticateToken, requireSuperAdmin, async (req, res) => {
     try {
-      const worker = await Worker.findByPk(req.params.id);
+      const worker = await Worker.findOne({ where: { id: req.params.id, deletedAt: null } });
       if (!worker) return res.status(404).json({ message: 'Worker profile not found' });
-      await worker.destroy();
-      res.json({ message: 'Worker profile deleted successfully' });
+
+      const oldVal = { ...worker.toJSON() };
+      const deletedAt = new Date();
+      await worker.update({
+        deletedAt,
+        deletedBy: req.user.id
+      });
+
+      await writeAuditLog(req, 'Delete', 'Workers', oldVal, { deletedAt, deletedBy: req.user.id });
+
+      res.json({ message: 'Worker profile soft-deleted successfully' });
     } catch (error) {
       res.status(500).json({ message: 'Error deleting worker profile', error: error.message });
     }
@@ -1982,10 +2473,60 @@ function registerRoutes(app, models) {
   
   app.get('/api/reports/daily', authenticateToken, async (req, res) => {
     try {
-      const reports = await DailyReport.findAll({ include: ['project', 'user'] });
-      res.json({ reports });
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+      const offset = (page - 1) * limit;
+      const search = req.query.search || '';
+
+      const where = { deletedAt: null };
+      if (search) {
+        where[Op.or] = [
+          { workCategory: { [Op.like]: `%${search}%` } },
+          { workDescription: { [Op.like]: `%${search}%` } }
+        ];
+      }
+
+      // Staff roles can only see reports they submitted
+      const pRole = getPermissionRole(req.user.role);
+      if (pRole === 'Staff') {
+        where.userId = req.user.id;
+      }
+
+      const { count, rows } = await DailyReport.findAndCountAll({
+        where,
+        include: ['project', 'user'],
+        order: [['id', 'DESC']],
+        limit,
+        offset
+      });
+
+      res.json({
+        reports: rows,
+        total: count,
+        page,
+        totalPages: Math.ceil(count / limit)
+      });
     } catch (error) {
       res.status(500).json({ message: 'Error fetching daily progress reports', error: error.message });
+    }
+  });
+
+  app.get('/api/reports/daily/:id', authenticateToken, async (req, res) => {
+    try {
+      const where = { id: req.params.id, deletedAt: null };
+      const pRole = getPermissionRole(req.user.role);
+      if (pRole === 'Staff') {
+        where.userId = req.user.id;
+      }
+
+      const report = await DailyReport.findOne({
+        where,
+        include: ['project', 'user']
+      });
+      if (!report) return res.status(404).json({ message: 'Report not found or access denied' });
+      res.json(report);
+    } catch (error) {
+      res.status(500).json({ message: 'Error loading daily report details', error: error.message });
     }
   });
 
@@ -1998,9 +2539,51 @@ function registerRoutes(app, models) {
         userId: req.user.id,
         date: date
       });
+      await writeAuditLog(req, 'Create', 'DailyReports', null, report.toJSON());
       res.status(201).json(report);
     } catch (error) {
       res.status(400).json({ message: 'Error submitting daily progress report', error: error.message });
+    }
+  });
+
+  app.put('/api/reports/daily/:id', authenticateToken, async (req, res) => {
+    try {
+      const where = { id: req.params.id, deletedAt: null };
+      const pRole = getPermissionRole(req.user.role);
+      if (pRole === 'Staff') {
+        where.userId = req.user.id;
+      }
+
+      const report = await DailyReport.findOne({ where });
+      if (!report) return res.status(404).json({ message: 'Report not found or access denied' });
+
+      const oldVal = { ...report.toJSON() };
+      await report.update(req.body);
+      await writeAuditLog(req, 'Update', 'DailyReports', oldVal, report.toJSON());
+
+      res.json(report);
+    } catch (error) {
+      res.status(400).json({ message: 'Error updating daily report', error: error.message });
+    }
+  });
+
+  app.delete('/api/reports/daily/:id', authenticateToken, requireSuperAdmin, async (req, res) => {
+    try {
+      const report = await DailyReport.findOne({ where: { id: req.params.id, deletedAt: null } });
+      if (!report) return res.status(404).json({ message: 'Report not found' });
+
+      const oldVal = { ...report.toJSON() };
+      const deletedAt = new Date();
+      await report.update({
+        deletedAt,
+        deletedBy: req.user.id
+      });
+
+      await writeAuditLog(req, 'Delete', 'DailyReports', oldVal, { deletedAt, deletedBy: req.user.id });
+
+      res.json({ message: 'Daily report soft-deleted successfully' });
+    } catch (error) {
+      res.status(500).json({ message: 'Error deleting daily report', error: error.message });
     }
   });
 
@@ -2141,28 +2724,104 @@ function registerRoutes(app, models) {
   
   app.get('/api/announcements', authenticateToken, async (req, res) => {
     try {
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+      const offset = (page - 1) * limit;
+      const search = req.query.search || '';
       const role = req.user.role;
-      const list = await Announcement.findAll({
-        where: {
-          targetRole: { [Op.in]: ['All', role] }
-        },
-        order: [['createdAt', 'DESC']]
+
+      const where = {
+        deletedAt: null,
+        targetRole: { [Op.in]: ['All', role] }
+      };
+
+      if (search) {
+        where[Op.or] = [
+          { title: { [Op.like]: `%${search}%` } },
+          { message: { [Op.like]: `%${search}%` } }
+        ];
+      }
+
+      const { count, rows } = await Announcement.findAndCountAll({
+        where,
+        order: [['createdAt', 'DESC']],
+        limit,
+        offset
       });
-      res.json({ announcements: list });
+
+      res.json({
+        announcements: rows,
+        total: count,
+        page,
+        totalPages: Math.ceil(count / limit)
+      });
     } catch (error) {
       res.status(500).json({ message: 'Error retrieving announcements', error: error.message });
     }
   });
 
-  app.post('/api/announcements', authenticateToken, authorizeRoles('Super Admin', 'Managing Director'), async (req, res) => {
+  app.get('/api/announcements/:id', authenticateToken, async (req, res) => {
+    try {
+      const role = req.user.role;
+      const ann = await Announcement.findOne({
+        where: {
+          id: req.params.id,
+          deletedAt: null,
+          targetRole: { [Op.in]: ['All', role] }
+        }
+      });
+      if (!ann) return res.status(404).json({ message: 'Announcement not found or access denied' });
+      res.json(ann);
+    } catch (error) {
+      res.status(500).json({ message: 'Error fetching announcement details', error: error.message });
+    }
+  });
+
+  app.post('/api/announcements', authenticateToken, async (req, res) => {
     try {
       const ann = await Announcement.create({
         ...req.body,
         createdBy: req.user.id
       });
+      await writeAuditLog(req, 'Create', 'Announcements', null, ann.toJSON());
       res.status(201).json(ann);
     } catch (error) {
       res.status(400).json({ message: 'Error creating announcement', error: error.message });
+    }
+  });
+
+  app.put('/api/announcements/:id', authenticateToken, async (req, res) => {
+    try {
+      const ann = await Announcement.findOne({ where: { id: req.params.id, deletedAt: null } });
+      if (!ann) return res.status(404).json({ message: 'Announcement not found' });
+
+      const oldVal = { ...ann.toJSON() };
+      await ann.update(req.body);
+      await writeAuditLog(req, 'Update', 'Announcements', oldVal, ann.toJSON());
+
+      res.json(ann);
+    } catch (error) {
+      res.status(400).json({ message: 'Error updating announcement', error: error.message });
+    }
+  });
+
+  app.delete('/api/announcements/:id', authenticateToken, requireSuperAdmin, async (req, res) => {
+    try {
+      const ann = await Announcement.findOne({ where: { id: req.params.id, deletedAt: null } });
+      if (!ann) return res.status(404).json({ message: 'Announcement not found' });
+
+      const oldVal = { ...ann.toJSON() };
+      const deletedAt = new Date();
+      await ann.update({
+        deletedAt,
+        deletedBy: req.user.id
+      });
+
+      await writeAuditLog(req, 'Delete', 'Announcements', oldVal, { deletedAt, deletedBy: req.user.id });
+
+      res.json({ message: 'Announcement soft-deleted successfully' });
+    } catch (error) {
+      res.status(500).json({ message: 'Error deleting announcement', error: error.message });
     }
   });
 
@@ -6511,6 +7170,101 @@ function registerRoutes(app, models) {
       });
     } catch (error) {
       res.status(500).json({ message: 'Failed to calculate cost variance', error: error.message });
+    }
+  });
+
+  // GET /api/audit-logs (Super Admin Only)
+  app.get('/api/audit-logs', authenticateToken, requireSuperAdmin, async (req, res) => {
+    try {
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 20;
+      const offset = (page - 1) * limit;
+      const search = req.query.search || '';
+
+      const where = {};
+      if (search) {
+        where[Op.or] = [
+          { userName: { [Op.like]: `%${search}%` } },
+          { role: { [Op.like]: `%${search}%` } },
+          { action: { [Op.like]: `%${search}%` } },
+          { module: { [Op.like]: `%${search}%` } }
+        ];
+      }
+
+      const { count, rows } = await AuditLog.findAndCountAll({
+        where,
+        order: [['createdAt', 'DESC']],
+        limit,
+        offset
+      });
+
+      res.json({
+        logs: rows,
+        total: count,
+        page,
+        totalPages: Math.ceil(count / limit)
+      });
+    } catch (error) {
+      res.status(500).json({ message: 'Error fetching audit logs', error: error.message });
+    }
+  });
+
+  // GET /api/trash (Super Admin Only)
+  app.get('/api/trash', authenticateToken, requireSuperAdmin, async (req, res) => {
+    try {
+      // Fetch soft-deleted records from each model
+      const leads = await Lead.findAll({ where: { deletedAt: { [Op.ne]: null } } });
+      const clients = await Client.findAll({ where: { deletedAt: { [Op.ne]: null } } });
+      const projects = await Project.findAll({ where: { deletedAt: { [Op.ne]: null } } });
+      const tasks = await Task.findAll({ where: { deletedAt: { [Op.ne]: null } } });
+      const workers = await Worker.findAll({ where: { deletedAt: { [Op.ne]: null } } });
+      const dailyReports = await DailyReport.findAll({ where: { deletedAt: { [Op.ne]: null } } });
+      const announcements = await Announcement.findAll({ where: { deletedAt: { [Op.ne]: null } } });
+      const quotations = await Quotation.findAll({ where: { deletedAt: { [Op.ne]: null } } });
+      const invoices = await Invoice.findAll({ where: { deletedAt: { [Op.ne]: null } } });
+
+      const trashItems = [];
+      leads.forEach(x => trashItems.push({ id: x.id, module: 'Leads', label: `Lead: ${x.name}`, deletedAt: x.deletedAt }));
+      clients.forEach(x => trashItems.push({ id: x.id, module: 'Clients', label: `Client: ${x.name}`, deletedAt: x.deletedAt }));
+      projects.forEach(x => trashItems.push({ id: x.id, module: 'Projects', label: `Project: ${x.name} (${x.projectId})`, deletedAt: x.deletedAt }));
+      tasks.forEach(x => trashItems.push({ id: x.id, module: 'Tasks', label: `Task: ${x.title}`, deletedAt: x.deletedAt }));
+      workers.forEach(x => trashItems.push({ id: x.id, module: 'Workers', label: `Labour: ${x.name} (${x.workerId})`, deletedAt: x.deletedAt }));
+      dailyReports.forEach(x => trashItems.push({ id: x.id, module: 'DailyReports', label: `Daily Report: ${x.date} - ${x.workCategory}`, deletedAt: x.deletedAt }));
+      announcements.forEach(x => trashItems.push({ id: x.id, module: 'Announcements', label: `Announcement: ${x.title}`, deletedAt: x.deletedAt }));
+      quotations.forEach(x => trashItems.push({ id: x.id, module: 'Quotations', label: `Quotation: ${x.quotationNumber}`, deletedAt: x.deletedAt }));
+      invoices.forEach(x => trashItems.push({ id: x.id, module: 'Invoices', label: `Invoice: ${x.invoiceNumber}`, deletedAt: x.deletedAt }));
+
+      res.json({ trash: trashItems });
+    } catch (error) {
+      res.status(500).json({ message: 'Error loading trash bin', error: error.message });
+    }
+  });
+
+  // POST /api/trash/restore/:module/:id (Super Admin Only)
+  app.post('/api/trash/restore/:module/:id', authenticateToken, requireSuperAdmin, async (req, res) => {
+    const { module: targetModule, id } = req.params;
+    try {
+      let model;
+      if (targetModule === 'Leads') model = Lead;
+      else if (targetModule === 'Clients') model = Client;
+      else if (targetModule === 'Projects') model = Project;
+      else if (targetModule === 'Tasks') model = Task;
+      else if (targetModule === 'Workers') model = Worker;
+      else if (targetModule === 'DailyReports') model = DailyReport;
+      else if (targetModule === 'Announcements') model = Announcement;
+      else if (targetModule === 'Quotations') model = Quotation;
+      else if (targetModule === 'Invoices') model = Invoice;
+      else return res.status(400).json({ message: 'Invalid module specified' });
+
+      const record = await model.findOne({ where: { id } });
+      if (!record) return res.status(404).json({ message: 'Record not found' });
+
+      await record.update({ deletedAt: null, deletedBy: null });
+      await writeAuditLog(req, 'Restore', targetModule, { id }, record.toJSON());
+
+      res.json({ message: 'Record restored successfully', record });
+    } catch (error) {
+      res.status(500).json({ message: 'Error restoring record', error: error.message });
     }
   });
 

@@ -314,6 +314,29 @@ final GoRouter _router = GoRouter(
   ],
 );
 
+String getPermissionRole(String role) {
+  final r = role.toLowerCase();
+  if (r == 'managing director' || r == 'super admin') return 'Super Admin';
+  if (r == 'admin / office manager / accounts' || r == 'admin' || r == 'tech head + senior architect' || r == 'accountant') {
+    return 'Admin';
+  }
+  return 'Staff';
+}
+
+bool canAddOrEdit(String role) {
+  final pRole = getPermissionRole(role);
+  return pRole == 'Super Admin' || pRole == 'Admin';
+}
+
+bool canDelete(String role) {
+  final pRole = getPermissionRole(role);
+  return pRole == 'Super Admin';
+}
+
+bool isSuperAdmin(String role) {
+  return getPermissionRole(role) == 'Super Admin';
+}
+
 class VianERPApp extends StatelessWidget {
   const VianERPApp({Key? key}) : super(key: key);
 
@@ -843,17 +866,17 @@ class _CRMTabState extends State<CRMTab> {
     }
   }
 
-  void _showAddLeadDialog() {
-    final nameCtrl = TextEditingController();
-    final phoneCtrl = TextEditingController();
-    final reqCtrl = TextEditingController();
-    final budgetCtrl = TextEditingController();
+  void _showAddLeadDialog({Map<String, dynamic>? lead}) {
+    final nameCtrl = TextEditingController(text: lead?['name']);
+    final phoneCtrl = TextEditingController(text: lead?['phone']);
+    final reqCtrl = TextEditingController(text: lead?['requirement']);
+    final budgetCtrl = TextEditingController(text: lead != null ? safeToDouble(lead['budget']).toStringAsFixed(0) : '');
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: VianTheme.headerBlack,
-        title: const Text('Add Client Lead', style: TextStyle(color: VianTheme.primaryGold)),
+        title: Text(lead == null ? 'Add Client Lead' : 'Edit Client Lead', style: const TextStyle(color: VianTheme.primaryGold)),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -871,17 +894,22 @@ class _CRMTabState extends State<CRMTab> {
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
           VianButton(
-            text: 'Save Lead',
+            text: lead == null ? 'Save Lead' : 'Update Lead',
             onPressed: () async {
               if (nameCtrl.text.isNotEmpty && phoneCtrl.text.isNotEmpty) {
                 final budget = double.tryParse(budgetCtrl.text) ?? 0.0;
-                await ApiService.addLead({
+                final body = {
                   'name': nameCtrl.text,
                   'phone': phoneCtrl.text,
                   'budget': budget,
                   'requirement': reqCtrl.text,
-                  'status': 'New',
-                });
+                };
+                if (lead == null) {
+                  body['status'] = 'New';
+                  await ApiService.addLead(body);
+                } else {
+                  await ApiService.updateLead(lead['id'], body);
+                }
                 Navigator.pop(context);
                 setState(() => _loading = true);
                 _fetchLeads();
@@ -1237,6 +1265,7 @@ class _CRMTabState extends State<CRMTab> {
   @override
   Widget build(BuildContext context) {
     if (_loading) return const Center(child: CircularProgressIndicator());
+    final currentUserRole = ApiService.currentUser?['role'] ?? 'Client';
 
     return Padding(
       padding: const EdgeInsets.all(24.0),
@@ -1253,11 +1282,12 @@ class _CRMTabState extends State<CRMTab> {
                   Text('Capture leads, manage requirements, and record proposals', style: TextStyle(color: Color(0xFF70707C))),
                 ],
               ),
-              VianButton(
-                text: 'New Lead',
-                icon: Icons.person_add,
-                onPressed: _showAddLeadDialog,
-              )
+              if (canAddOrEdit(currentUserRole))
+                VianButton(
+                  text: 'New Lead',
+                  icon: Icons.person_add,
+                  onPressed: _showAddLeadDialog,
+                )
             ],
           ),
           const SizedBox(height: 24),
@@ -1348,6 +1378,42 @@ class _CRMTabState extends State<CRMTab> {
                               icon: Icons.share,
                               onPressed: () => _showPublicLinkDialog(lead),
                             ),
+                            if (canAddOrEdit(currentUserRole)) ...[
+                              const SizedBox(width: 12),
+                              VianButton(
+                                text: 'Edit',
+                                isSecondary: true,
+                                icon: Icons.edit_outlined,
+                                onPressed: () => _showAddLeadDialog(lead: lead),
+                              ),
+                            ],
+                            if (canDelete(currentUserRole)) ...[
+                              const SizedBox(width: 12),
+                              VianButton(
+                                text: 'Delete',
+                                color: Colors.redAccent,
+                                textColor: Colors.white,
+                                icon: Icons.delete_outline,
+                                onPressed: () async {
+                                  final confirm = await showDialog<bool>(
+                                    context: context,
+                                    builder: (context) => AlertDialog(
+                                      backgroundColor: VianTheme.headerBlack,
+                                      title: const Text('Delete Lead', style: TextStyle(color: Colors.redAccent)),
+                                      content: const Text('Are you sure you want to move this lead to trash?', style: TextStyle(color: Colors.white)),
+                                      actions: [
+                                        TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+                                        TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Delete', style: TextStyle(color: Colors.redAccent))),
+                                      ],
+                                    ),
+                                  );
+                                  if (confirm == true) {
+                                    await ApiService.deleteLead(lead['id']);
+                                    _fetchLeads();
+                                  }
+                                },
+                              ),
+                            ],
                           ],
                         ),
                       ],
@@ -1376,6 +1442,10 @@ class ClientsTab extends StatefulWidget {
 class _ClientsTabState extends State<ClientsTab> {
   List<dynamic> _clients = [];
   bool _loading = true;
+  String _searchQuery = '';
+  int _currentPage = 1;
+  int _totalPages = 1;
+  int _totalClients = 0;
 
   @override
   void initState() {
@@ -1384,56 +1454,220 @@ class _ClientsTabState extends State<ClientsTab> {
   }
 
   Future<void> _fetchClients() async {
-    final list = await ApiService.getClients();
+    setState(() => _loading = true);
+    final res = await ApiService.getClientsPaged(
+      search: _searchQuery,
+      page: _currentPage,
+      limit: 10,
+    );
     setState(() {
-      _clients = list;
+      _clients = res['clients'] ?? [];
+      _totalClients = res['total'] ?? 0;
+      _totalPages = res['totalPages'] ?? 1;
       _loading = false;
     });
   }
 
+  void _showAddClientDialog({Map<String, dynamic>? client}) {
+    final nameCtrl = TextEditingController(text: client?['name']);
+    final phoneCtrl = TextEditingController(text: client?['phone']);
+    final emailCtrl = TextEditingController(text: client?['email']);
+    final gstCtrl = TextEditingController(text: client?['gst']);
+    final propCtrl = TextEditingController(text: client?['propertyDetails']);
+    final addrCtrl = TextEditingController(text: client?['address']);
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: VianTheme.headerBlack,
+        title: Text(client == null ? 'Add Client' : 'Edit Client', style: const TextStyle(color: VianTheme.primaryGold)),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(controller: nameCtrl, decoration: const InputDecoration(labelText: 'Name')),
+              const SizedBox(height: 12),
+              TextField(controller: phoneCtrl, decoration: const InputDecoration(labelText: 'Phone')),
+              const SizedBox(height: 12),
+              TextField(controller: emailCtrl, decoration: const InputDecoration(labelText: 'Email')),
+              const SizedBox(height: 12),
+              TextField(controller: gstCtrl, decoration: const InputDecoration(labelText: 'GSTIN (Optional)')),
+              const SizedBox(height: 12),
+              TextField(controller: propCtrl, decoration: const InputDecoration(labelText: 'Property Details')),
+              const SizedBox(height: 12),
+              TextField(controller: addrCtrl, maxLines: 2, decoration: const InputDecoration(labelText: 'Address')),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          VianButton(
+            text: client == null ? 'Save Client' : 'Update Client',
+            onPressed: () async {
+              if (nameCtrl.text.isNotEmpty && phoneCtrl.text.isNotEmpty) {
+                final body = {
+                  'name': nameCtrl.text,
+                  'phone': phoneCtrl.text,
+                  'email': emailCtrl.text,
+                  'gst': gstCtrl.text,
+                  'propertyDetails': propCtrl.text,
+                  'address': addrCtrl.text,
+                };
+                if (client == null) {
+                  await ApiService.addClient(body);
+                } else {
+                  await ApiService.updateClient(client['id'], body);
+                }
+                Navigator.pop(context);
+                _fetchClients();
+              }
+            },
+          )
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    if (_loading) return const Center(child: CircularProgressIndicator());
+    final currentUserRole = ApiService.currentUser?['role'] ?? 'Client';
 
     return Padding(
       padding: const EdgeInsets.all(24.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Customer Ledger & Accounts', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: VianTheme.primaryGold)),
-          const Text('Directory of active construction clients and associated properties', style: TextStyle(color: Color(0xFF70707C))),
-          const SizedBox(height: 24),
-          Expanded(
-            child: ListView.builder(
-              itemCount: _clients.length,
-              itemBuilder: (context, index) {
-                final client = _clients[index];
-                return Container(
-                  margin: const EdgeInsets.only(bottom: 16),
-                  child: VianCard(
-                    child: ListTile(
-                      leading: const CircleAvatar(
-                        backgroundColor: Color(0xFF1E1E26),
-                        child: Icon(Icons.person, color: VianTheme.primaryGold),
-                      ),
-                      title: Text(client['name'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold, color: VianTheme.whiteText)),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: 4),
-                          Text('Email: ${client['email']} | Phone: ${client['phone']}', style: const TextStyle(fontSize: 12)),
-                          Text('GSTIN: ${client['gst'] ?? "N/A"}', style: const TextStyle(fontSize: 12, color: VianTheme.primaryGold)),
-                          const SizedBox(height: 4),
-                          Text(client['propertyDetails'] ?? '', style: const TextStyle(fontSize: 11, color: Color(0xFF70707C))),
-                        ],
-                      ),
-                      isThreeLine: true,
-                    ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Customer Ledger & Accounts', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: VianTheme.primaryGold)),
+                  Text('Directory of active construction clients and associated properties', style: TextStyle(color: Color(0xFF70707C))),
+                ],
+              ),
+              if (canAddOrEdit(currentUserRole))
+                VianButton(
+                  text: 'New Client',
+                  icon: Icons.person_add,
+                  onPressed: () => _showAddClientDialog(),
+                )
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  decoration: const InputDecoration(
+                    hintText: 'Search clients by name, phone or email...',
+                    prefixIcon: Icon(Icons.search, color: VianTheme.primaryGold),
                   ),
-                );
-              },
-            ),
-          )
+                  onChanged: (val) {
+                    setState(() {
+                      _searchQuery = val;
+                      _currentPage = 1;
+                    });
+                    _fetchClients();
+                  },
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Expanded(
+            child: _loading
+                ? const Center(child: CircularProgressIndicator())
+                : ListView.builder(
+                    itemCount: _clients.length,
+                    itemBuilder: (context, index) {
+                      final client = _clients[index];
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 16),
+                        child: VianCard(
+                          child: ListTile(
+                            leading: const CircleAvatar(
+                              backgroundColor: Color(0xFF1E1E26),
+                              child: Icon(Icons.person, color: VianTheme.primaryGold),
+                            ),
+                            title: Text(client['name'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold, color: VianTheme.whiteText)),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const SizedBox(height: 4),
+                                Text('Email: ${client['email']} | Phone: ${client['phone']}', style: const TextStyle(fontSize: 12)),
+                                Text('GSTIN: ${client['gst'] ?? "N/A"}', style: const TextStyle(fontSize: 12, color: VianTheme.primaryGold)),
+                                const SizedBox(height: 4),
+                                Text(client['propertyDetails'] ?? '', style: const TextStyle(fontSize: 11, color: Color(0xFF70707C))),
+                              ],
+                            ),
+                            isThreeLine: true,
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                if (canAddOrEdit(currentUserRole))
+                                  IconButton(
+                                    icon: const Icon(Icons.edit_outlined, color: VianTheme.primaryGold),
+                                    onPressed: () => _showAddClientDialog(client: client),
+                                  ),
+                                if (canDelete(currentUserRole))
+                                  IconButton(
+                                    icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+                                    onPressed: () async {
+                                      final confirm = await showDialog<bool>(
+                                        context: context,
+                                        builder: (context) => AlertDialog(
+                                          backgroundColor: VianTheme.headerBlack,
+                                          title: const Text('Delete Client', style: TextStyle(color: Colors.redAccent)),
+                                          content: const Text('Are you sure you want to move this client to trash?', style: TextStyle(color: Colors.white)),
+                                          actions: [
+                                            TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+                                            TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Delete', style: TextStyle(color: Colors.redAccent))),
+                                          ],
+                                        ),
+                                      );
+                                      if (confirm == true) {
+                                        await ApiService.deleteClient(client['id']);
+                                        _fetchClients();
+                                      }
+                                    },
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+          ),
+          if (_totalPages > 1) ...[
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.chevron_left),
+                  onPressed: _currentPage > 1
+                      ? () {
+                          setState(() => _currentPage--);
+                          _fetchClients();
+                        }
+                      : null,
+                ),
+                Text('Page $_currentPage of $_totalPages', style: const TextStyle(color: Colors.white)),
+                IconButton(
+                  icon: const Icon(Icons.chevron_right),
+                  onPressed: _currentPage < _totalPages
+                      ? () {
+                          setState(() => _currentPage++);
+                          _fetchClients();
+                        }
+                      : null,
+                ),
+              ],
+            )
+          ]
         ],
       ),
     );
@@ -3655,9 +3889,42 @@ class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
   Widget _buildSiteTrackingTab() => const Center(child: Text('Daily site logs displayed here', style: TextStyle(color: Colors.white54)));
   Widget _buildWorkflowApprovalsTab() => const Center(child: Text('Approval workflow displayed here', style: TextStyle(color: Colors.white54)));
 
-  Future<void> _archiveProject() async {}
-  Future<void> _deleteProject() async {}
-  Future<void> _duplicateProject() async {}
+  Future<void> _archiveProject() async {
+    final success = await ApiService.archiveProject(_project['id']);
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Project archived successfully')));
+      _loadDetails();
+    }
+  }
+
+  Future<void> _deleteProject() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: VianTheme.headerBlack,
+        title: const Text('Delete Project', style: TextStyle(color: Colors.redAccent)),
+        content: const Text('Are you sure you want to move this project to trash?', style: TextStyle(color: Colors.white)),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Delete', style: TextStyle(color: Colors.redAccent))),
+        ],
+      ),
+    );
+    if (confirm == true) {
+      final success = await ApiService.deleteProject(_project['id']);
+      if (success) {
+        Navigator.pop(context, true);
+      }
+    }
+  }
+
+  Future<void> _duplicateProject() async {
+    final success = await ApiService.duplicateProject(_project['id']);
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Project duplicated successfully')));
+      Navigator.pop(context, true);
+    }
+  }
   void _showAddStageDialog() {}
   void _showEditStageDialog(dynamic stage) {}
 }
@@ -3690,19 +3957,108 @@ class _TasksTabState extends State<TasksTab> {
     });
   }
 
+  void _showAddEditTaskDialog({Map<String, dynamic>? task}) {
+    final titleCtrl = TextEditingController(text: task?['title']);
+    final descCtrl = TextEditingController(text: task?['description']);
+    final dueCtrl = TextEditingController(text: task?['dueDate'] ?? DateTime.now().toString().split(' ').first);
+    
+    String selectedPriority = task?['priority'] ?? 'Medium';
+    String selectedStatus = task?['status'] ?? 'Pending';
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: VianTheme.headerBlack,
+        title: Text(task == null ? 'Create Task' : 'Edit Task', style: const TextStyle(color: VianTheme.primaryGold)),
+        content: StatefulBuilder(
+          builder: (context, setDlgState) => SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(controller: titleCtrl, decoration: const InputDecoration(labelText: 'Task Title')),
+                const SizedBox(height: 12),
+                TextField(controller: descCtrl, maxLines: 2, decoration: const InputDecoration(labelText: 'Description')),
+                const SizedBox(height: 12),
+                TextField(controller: dueCtrl, decoration: const InputDecoration(labelText: 'Due Date (YYYY-MM-DD)')),
+                const SizedBox(height: 12),
+                DropdownButtonFormField<String>(
+                  value: selectedPriority,
+                  dropdownColor: VianTheme.headerBlack,
+                  decoration: const InputDecoration(labelText: 'Priority'),
+                  items: ['Low', 'Medium', 'High', 'Critical'].map((p) => DropdownMenuItem(value: p, child: Text(p, style: const TextStyle(color: Colors.white)))).toList(),
+                  onChanged: (val) => setDlgState(() => selectedPriority = val!),
+                ),
+                const SizedBox(height: 12),
+                DropdownButtonFormField<String>(
+                  value: selectedStatus,
+                  dropdownColor: VianTheme.headerBlack,
+                  decoration: const InputDecoration(labelText: 'Status'),
+                  items: ['Pending', 'In Progress', 'Review', 'Completed'].map((s) => DropdownMenuItem(value: s, child: Text(s, style: const TextStyle(color: Colors.white)))).toList(),
+                  onChanged: (val) => setDlgState(() => selectedStatus = val!),
+                ),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          VianButton(
+            text: task == null ? 'Create' : 'Update',
+            onPressed: () async {
+              if (titleCtrl.text.isNotEmpty) {
+                final body = {
+                  'title': titleCtrl.text,
+                  'description': descCtrl.text,
+                  'dueDate': dueCtrl.text,
+                  'priority': selectedPriority,
+                  'status': selectedStatus,
+                };
+                if (task == null) {
+                  await ApiService.createTask(body);
+                } else {
+                  await ApiService.updateTask(task['id'], body);
+                }
+                Navigator.pop(context);
+                _loadTasks();
+              }
+            },
+          )
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_loading) return const Center(child: CircularProgressIndicator());
 
     final columns = ['Pending', 'In Progress', 'Review', 'Completed'];
 
+    final currentUserRole = ApiService.currentUser?['role'] ?? 'Client';
+
     return Padding(
       padding: const EdgeInsets.all(24.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Operational Tasks Board', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: VianTheme.primaryGold)),
-          const Text('Track structural layouts, site supervisor checklists, and reviews', style: TextStyle(color: Color(0xFF70707C))),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Operational Tasks Board', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: VianTheme.primaryGold)),
+                  Text('Track structural layouts, site supervisor checklists, and reviews', style: TextStyle(color: Color(0xFF70707C))),
+                ],
+              ),
+              if (canAddOrEdit(currentUserRole))
+                VianButton(
+                  text: 'New Task',
+                  icon: Icons.add_task,
+                  onPressed: () => _showAddEditTaskDialog(),
+                )
+            ],
+          ),
           const SizedBox(height: 24),
           Expanded(
             child: Row(
@@ -3734,9 +4090,47 @@ class _TasksTabState extends State<TasksTab> {
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Text(task['title'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: VianTheme.whiteText)),
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Expanded(
+                                            child: Text(task['title'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: VianTheme.whiteText)),
+                                          ),
+                                          if (canAddOrEdit(currentUserRole))
+                                            IconButton(
+                                              padding: EdgeInsets.zero,
+                                              constraints: const BoxConstraints(),
+                                              icon: const Icon(Icons.edit_outlined, size: 16, color: VianTheme.primaryGold),
+                                              onPressed: () => _showAddEditTaskDialog(task: task),
+                                            ),
+                                          if (canDelete(currentUserRole))
+                                            IconButton(
+                                              padding: EdgeInsets.zero,
+                                              constraints: const BoxConstraints(),
+                                              icon: const Icon(Icons.delete_outline, size: 16, color: Colors.redAccent),
+                                              onPressed: () async {
+                                                final confirm = await showDialog<bool>(
+                                                  context: context,
+                                                  builder: (context) => AlertDialog(
+                                                    backgroundColor: VianTheme.headerBlack,
+                                                    title: const Text('Delete Task', style: TextStyle(color: Colors.redAccent)),
+                                                    content: const Text('Are you sure you want to move this task to trash?', style: TextStyle(color: Colors.white)),
+                                                    actions: [
+                                                      TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+                                                      TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Delete', style: TextStyle(color: Colors.redAccent))),
+                                                    ],
+                                                  ),
+                                                );
+                                                if (confirm == true) {
+                                                  await ApiService.deleteTask(task['id']);
+                                                  _loadTasks();
+                                                }
+                                              },
+                                            ),
+                                        ],
+                                      ),
                                       const SizedBox(height: 4),
-                                      Text('Project: ${task['project']?['name']}', style: const TextStyle(fontSize: 11, color: VianTheme.lightText)),
+                                      Text(task['project'] != null ? 'Project: ${task['project']['name']}' : 'No Project', style: const TextStyle(fontSize: 11, color: VianTheme.lightText)),
                                       const SizedBox(height: 8),
                                       Row(
                                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -4642,6 +5036,10 @@ class _SettingsTabState extends ConsumerState<SettingsTab> {
   String _connectionStatus = '';
   Color _statusColor = VianTheme.primaryGold;
 
+  String _selectedTrashModule = 'leads';
+  List<dynamic> _trashItems = [];
+  bool _loadingTrash = false;
+
   // Company controllers
   final _companyNameController = TextEditingController();
   final _addressController = TextEditingController();
@@ -4705,11 +5103,25 @@ class _SettingsTabState extends ConsumerState<SettingsTab> {
       
       _apiUsageCount = aiRes['apiUsageCount'] ?? 0;
       _dailyTokenUsage = aiRes['dailyTokenUsage'] ?? 0;
+      final user = ref.read(userProvider);
+      final role = user?['role'] ?? 'Client';
+      if (role == 'Managing Director' || role == 'Super Admin') {
+        await _loadTrashItems();
+      }
     } catch (e) {
       debugPrint("Error loading settings in SettingsTab: $e");
     } finally {
       setState(() => _isLoading = false);
     }
+  }
+
+  Future<void> _loadTrashItems() async {
+    setState(() => _loadingTrash = true);
+    final items = await ApiService.getTrashItems(_selectedTrashModule);
+    setState(() {
+      _trashItems = items;
+      _loadingTrash = false;
+    });
   }
 
   Future<void> _saveAllSettings() async {
@@ -5024,6 +5436,93 @@ class _SettingsTabState extends ConsumerState<SettingsTab> {
               ],
             ),
           ),
+          
+          // Trash & Restore Panel (Only for Super Admin)
+          if (isSuperAdmin(ApiService.currentUser?['role'] ?? 'Client')) ...[
+            const SizedBox(height: 32),
+            VianCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Trash & Restore System (Super Admin)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.redAccent)),
+                  const SizedBox(height: 8),
+                  const Text('Manage soft-deleted items across all VIAN ERP databases. Restored items will return to their original catalogs.', style: TextStyle(color: VianTheme.lightText, fontSize: 12)),
+                  const SizedBox(height: 24),
+                  Row(
+                    children: [
+                      const Text('Select Module: ', style: TextStyle(color: Colors.white)),
+                      const SizedBox(width: 12),
+                      DropdownButton<String>(
+                        value: _selectedTrashModule,
+                        dropdownColor: const Color(0xFF1E1E26),
+                        style: const TextStyle(color: Colors.white),
+                        items: const [
+                          DropdownMenuItem(value: 'leads', child: Text('CRM Leads')),
+                          DropdownMenuItem(value: 'clients', child: Text('Clients')),
+                          DropdownMenuItem(value: 'projects', child: Text('Projects')),
+                          DropdownMenuItem(value: 'tasks', child: Text('Tasks')),
+                          DropdownMenuItem(value: 'workers', child: Text('Labour Workers')),
+                          DropdownMenuItem(value: 'daily-reports', child: Text('Daily Reports')),
+                          DropdownMenuItem(value: 'announcements', child: Text('Directives')),
+                          DropdownMenuItem(value: 'quotations', child: Text('Quotations')),
+                          DropdownMenuItem(value: 'invoices', child: Text('Invoices')),
+                        ],
+                        onChanged: (val) {
+                          setState(() {
+                            _selectedTrashModule = val!;
+                            _trashItems = [];
+                          });
+                          _loadTrashItems();
+                        },
+                      ),
+                      const SizedBox(width: 24),
+                      VianButton(
+                        text: 'Refresh Trash',
+                        onPressed: _loadTrashItems,
+                      )
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  if (_loadingTrash)
+                    const Center(child: CircularProgressIndicator(color: VianTheme.primaryGold))
+                  else if (_trashItems.isEmpty)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 16.0),
+                      child: Text('No items in trash for this module.', style: TextStyle(color: Colors.white54, fontStyle: FontStyle.italic)),
+                    )
+                  else
+                    ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: _trashItems.length,
+                      itemBuilder: (context, idx) {
+                        final item = _trashItems[idx];
+                        String displayName = item['name'] ?? item['title'] ?? item['projectId'] ?? 'ID: ${item['id']}';
+                        String deletedDetails = '';
+                        if (item['deletedAt'] != null) {
+                          final dateStr = DateFormat('dd MMM yyyy HH:mm').format(DateTime.parse(item['deletedAt']));
+                          deletedDetails = 'Deleted at: $dateStr by: ${item['deletedBy'] ?? 'Unknown'}';
+                        }
+                        return ListTile(
+                          title: Text(displayName, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                          subtitle: Text(deletedDetails, style: const TextStyle(color: Colors.white54, fontSize: 11)),
+                          trailing: VianButton(
+                            text: 'Restore',
+                            onPressed: () async {
+                              final success = await ApiService.restoreItem(_selectedTrashModule, item['id']);
+                              if (success) {
+                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Item restored successfully')));
+                                _loadTrashItems();
+                              }
+                            },
+                          ),
+                        );
+                      },
+                    )
+                ],
+              ),
+            ),
+          ],
           
           const SizedBox(height: 32),
           
@@ -6299,17 +6798,78 @@ class _AnnouncementsTabState extends State<AnnouncementsTab> {
     });
   }
 
+  void _showAddEditAnnouncementDialog({Map<String, dynamic>? announcement}) {
+    final titleCtrl = TextEditingController(text: announcement?['title']);
+    final msgCtrl = TextEditingController(text: announcement?['message']);
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: VianTheme.headerBlack,
+        title: Text(announcement == null ? 'Create Announcement' : 'Edit Announcement', style: const TextStyle(color: VianTheme.primaryGold)),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(controller: titleCtrl, decoration: const InputDecoration(labelText: 'Title')),
+              const SizedBox(height: 12),
+              TextField(controller: msgCtrl, maxLines: 4, decoration: const InputDecoration(labelText: 'Message')),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          VianButton(
+            text: announcement == null ? 'Post' : 'Update',
+            onPressed: () async {
+              if (titleCtrl.text.isNotEmpty && msgCtrl.text.isNotEmpty) {
+                final body = {
+                  'title': titleCtrl.text,
+                  'message': msgCtrl.text,
+                };
+                if (announcement == null) {
+                  await ApiService.addAnnouncement(body);
+                } else {
+                  await ApiService.updateAnnouncement(announcement['id'], body);
+                }
+                Navigator.pop(context);
+                _loadAnnouncements();
+              }
+            },
+          )
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_loading) return const Center(child: CircularProgressIndicator());
+    final currentUserRole = ApiService.currentUser?['role'] ?? 'Client';
 
     return Padding(
       padding: const EdgeInsets.all(24.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Company Directives Board', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: VianTheme.primaryGold)),
-          const Text('General announcements, safety requirements, and operational circulars', style: TextStyle(color: Color(0xFF70707C))),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Company Directives Board', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: VianTheme.primaryGold)),
+                  Text('General announcements, safety requirements, and operational circulars', style: TextStyle(color: Color(0xFF70707C))),
+                ],
+              ),
+              if (canAddOrEdit(currentUserRole))
+                VianButton(
+                  text: 'New Directive',
+                  icon: Icons.campaign_outlined,
+                  onPressed: () => _showAddEditAnnouncementDialog(),
+                )
+            ],
+          ),
           const SizedBox(height: 24),
           Expanded(
             child: ListView.builder(
@@ -6326,11 +6886,50 @@ class _AnnouncementsTabState extends State<AnnouncementsTab> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(item['title'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: VianTheme.primaryGold)),
-                            Text(
-                              item['createdAt'] != null
-                                  ? DateFormat('dd MMM yyyy').format(DateTime.parse(item['createdAt']))
-                                  : '',
-                              style: const TextStyle(color: Color(0xFF70707C), fontSize: 11),
+                            Row(
+                              children: [
+                                Text(
+                                  item['createdAt'] != null
+                                      ? DateFormat('dd MMM yyyy').format(DateTime.parse(item['createdAt']))
+                                      : '',
+                                  style: const TextStyle(color: Color(0xFF70707C), fontSize: 11),
+                                ),
+                                if (canAddOrEdit(currentUserRole)) ...[
+                                  const SizedBox(width: 8),
+                                  IconButton(
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(),
+                                    icon: const Icon(Icons.edit_outlined, size: 16, color: VianTheme.primaryGold),
+                                    onPressed: () => _showAddEditAnnouncementDialog(announcement: item),
+                                  ),
+                                ],
+                                if (canDelete(currentUserRole)) ...[
+                                  const SizedBox(width: 8),
+                                  IconButton(
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(),
+                                    icon: const Icon(Icons.delete_outline, size: 16, color: Colors.redAccent),
+                                    onPressed: () async {
+                                      final confirm = await showDialog<bool>(
+                                        context: context,
+                                        builder: (context) => AlertDialog(
+                                          backgroundColor: VianTheme.headerBlack,
+                                          title: const Text('Delete Announcement', style: TextStyle(color: Colors.redAccent)),
+                                          content: const Text('Are you sure you want to move this announcement to trash?', style: TextStyle(color: Colors.white)),
+                                          actions: [
+                                            TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+                                            TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Delete', style: TextStyle(color: Colors.redAccent))),
+                                          ],
+                                        ),
+                                      );
+                                      if (confirm == true) {
+                                        await ApiService.deleteAnnouncement(item['id']);
+                                        _loadAnnouncements();
+                                      }
+                                    },
+                                  ),
+                                ],
+                              ],
                             ),
                           ],
                         ),
