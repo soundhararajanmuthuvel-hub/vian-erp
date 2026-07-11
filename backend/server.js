@@ -93,6 +93,27 @@ async function runMigrations(sequelizeInstance) {
     await addColumnIfMissing('clients', 'attachments', 'TEXT NULL');
     await addColumnIfMissing('clients', 'assigned_to', 'INT NULL');
     await addColumnIfMissing('clients', 'lead_id', 'INT NULL');
+
+    // Soft-delete / is_archived migrations
+    await addColumnIfMissing('leads', 'deleted_at', 'TIMESTAMP NULL');
+    await addColumnIfMissing('leads', 'deleted_by', 'INT NULL');
+    await addColumnIfMissing('clients', 'deleted_at', 'TIMESTAMP NULL');
+    await addColumnIfMissing('clients', 'deleted_by', 'INT NULL');
+    await addColumnIfMissing('projects', 'deleted_at', 'TIMESTAMP NULL');
+    await addColumnIfMissing('projects', 'deleted_by', 'INT NULL');
+    await addColumnIfMissing('projects', 'is_archived', 'BOOLEAN DEFAULT FALSE');
+    await addColumnIfMissing('tasks', 'deleted_at', 'TIMESTAMP NULL');
+    await addColumnIfMissing('tasks', 'deleted_by', 'INT NULL');
+    await addColumnIfMissing('workers', 'deleted_at', 'TIMESTAMP NULL');
+    await addColumnIfMissing('workers', 'deleted_by', 'INT NULL');
+    await addColumnIfMissing('daily_reports', 'deleted_at', 'TIMESTAMP NULL');
+    await addColumnIfMissing('daily_reports', 'deleted_by', 'INT NULL');
+    await addColumnIfMissing('announcements', 'deleted_at', 'TIMESTAMP NULL');
+    await addColumnIfMissing('announcements', 'deleted_by', 'INT NULL');
+    await addColumnIfMissing('quotations', 'deleted_at', 'TIMESTAMP NULL');
+    await addColumnIfMissing('quotations', 'deleted_by', 'INT NULL');
+    await addColumnIfMissing('invoices', 'deleted_at', 'TIMESTAMP NULL');
+    await addColumnIfMissing('invoices', 'deleted_by', 'INT NULL');
   } else if (dialect === 'sqlite') {
     console.log('Running auto-migrations for SQLite...');
     const addColumnIfMissingSqlite = async (tableName, columnName, columnDefinition) => {
@@ -136,6 +157,27 @@ async function runMigrations(sequelizeInstance) {
     await addColumnIfMissingSqlite('clients', 'attachments', 'TEXT');
     await addColumnIfMissingSqlite('clients', 'assigned_to', 'INTEGER');
     await addColumnIfMissingSqlite('clients', 'lead_id', 'INTEGER');
+
+    // Soft-delete / is_archived migrations SQLite
+    await addColumnIfMissingSqlite('leads', 'deleted_at', 'TEXT');
+    await addColumnIfMissingSqlite('leads', 'deleted_by', 'INTEGER');
+    await addColumnIfMissingSqlite('clients', 'deleted_at', 'TEXT');
+    await addColumnIfMissingSqlite('clients', 'deleted_by', 'INTEGER');
+    await addColumnIfMissingSqlite('projects', 'deleted_at', 'TEXT');
+    await addColumnIfMissingSqlite('projects', 'deleted_by', 'INTEGER');
+    await addColumnIfMissingSqlite('projects', 'is_archived', 'INTEGER DEFAULT 0');
+    await addColumnIfMissingSqlite('tasks', 'deleted_at', 'TEXT');
+    await addColumnIfMissingSqlite('tasks', 'deleted_by', 'INTEGER');
+    await addColumnIfMissingSqlite('workers', 'deleted_at', 'TEXT');
+    await addColumnIfMissingSqlite('workers', 'deleted_by', 'INTEGER');
+    await addColumnIfMissingSqlite('daily_reports', 'deleted_at', 'TEXT');
+    await addColumnIfMissingSqlite('daily_reports', 'deleted_by', 'INTEGER');
+    await addColumnIfMissingSqlite('announcements', 'deleted_at', 'TEXT');
+    await addColumnIfMissingSqlite('announcements', 'deleted_by', 'INTEGER');
+    await addColumnIfMissingSqlite('quotations', 'deleted_at', 'TEXT');
+    await addColumnIfMissingSqlite('quotations', 'deleted_by', 'INTEGER');
+    await addColumnIfMissingSqlite('invoices', 'deleted_at', 'TEXT');
+    await addColumnIfMissingSqlite('invoices', 'deleted_by', 'INTEGER');
   }
 }
 

@@ -46,6 +46,8 @@ CREATE TABLE IF NOT EXISTS leads (
     notes TEXT,
     status ENUM('New', 'Contacted', 'Site Visit Scheduled', 'Proposal Sent', 'Negotiation', 'Won', 'Lost') DEFAULT 'New',
     assigned_to INT,
+    deleted_at TIMESTAMP NULL,
+    deleted_by INT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (assigned_to) REFERENCES users(id) ON DELETE SET NULL
@@ -73,6 +75,8 @@ CREATE TABLE IF NOT EXISTS clients (
     address TEXT,
     gst VARCHAR(15),
     property_details TEXT,
+    deleted_at TIMESTAMP NULL,
+    deleted_by INT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
@@ -100,6 +104,9 @@ CREATE TABLE IF NOT EXISTS projects (
     actual_timeline_months INT NULL,
     actual_purchase_cost DECIMAL(15, 2) NULL,
     actual_profit DECIMAL(15, 2) NULL,
+    is_archived BOOLEAN DEFAULT FALSE,
+    deleted_at TIMESTAMP NULL,
+    deleted_by INT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE,
@@ -137,6 +144,8 @@ CREATE TABLE IF NOT EXISTS tasks (
     assigned_to INT,
     due_date DATE,
     status ENUM('Pending', 'In Progress', 'Review', 'Completed') DEFAULT 'Pending',
+    deleted_at TIMESTAMP NULL,
+    deleted_by INT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
@@ -206,6 +215,8 @@ CREATE TABLE IF NOT EXISTS quotations (
     total DECIMAL(15, 2) NOT NULL,
     status ENUM('Draft', 'Sent', 'Approved', 'Declined') DEFAULT 'Draft',
     items TEXT NOT NULL, -- JSON block of items
+    deleted_at TIMESTAMP NULL,
+    deleted_by INT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
@@ -225,6 +236,8 @@ CREATE TABLE IF NOT EXISTS invoices (
     paid_amount DECIMAL(15, 2) DEFAULT 0.00,
     status ENUM('Draft', 'Sent', 'Paid', 'Overdue') DEFAULT 'Draft',
     items TEXT NOT NULL, -- JSON block of items
+    deleted_at TIMESTAMP NULL,
+    deleted_by INT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
@@ -284,6 +297,8 @@ CREATE TABLE IF NOT EXISTS workers (
     daily_wage DECIMAL(15, 2) NOT NULL,
     contractor VARCHAR(100),
     project_id INT,
+    deleted_at TIMESTAMP NULL,
+    deleted_by INT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE SET NULL
@@ -317,7 +332,10 @@ CREATE TABLE IF NOT EXISTS daily_reports (
     quantity_completed VARCHAR(100), -- e.g., 1200 Sq Ft, 2 Rooms
     photo_urls TEXT, -- JSON array of photo URLs
     notes TEXT,
+    deleted_at TIMESTAMP NULL,
+    deleted_by INT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
@@ -348,7 +366,10 @@ CREATE TABLE IF NOT EXISTS announcements (
     message TEXT NOT NULL,
     created_by INT,
     target_role VARCHAR(50) DEFAULT 'All', -- e.g. 'All' or specific role
+    deleted_at TIMESTAMP NULL,
+    deleted_by INT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
 );
 
@@ -927,6 +948,140 @@ CREATE TABLE IF NOT EXISTS drawing_comments (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (drawing_id) REFERENCES drawings(id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- 59. Public Enquiry Links
+CREATE TABLE IF NOT EXISTS public_enquiry_links (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    lead_id INT NOT NULL UNIQUE,
+    token VARCHAR(255) NOT NULL UNIQUE,
+    expiry_date TIMESTAMP NULL,
+    status ENUM('Active', 'Inactive') DEFAULT 'Active',
+    qr_code_data TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (lead_id) REFERENCES leads(id) ON DELETE CASCADE
+);
+
+-- 60. Public Enquiry Submissions
+CREATE TABLE IF NOT EXISTS public_enquiry_submissions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    lead_id INT NOT NULL,
+    client_ip VARCHAR(45),
+    browser VARCHAR(255),
+    submission_time TIMESTAMP NULL,
+    client_name VARCHAR(100) NOT NULL,
+    contact_number VARCHAR(20) NOT NULL,
+    whatsapp_number VARCHAR(20),
+    email VARCHAR(100),
+    occupation VARCHAR(100),
+    preferred_contact_time VARCHAR(100),
+    date DATE,
+    site_address TEXT NOT NULL,
+    near_landmark VARCHAR(255),
+    village VARCHAR(100),
+    taluk VARCHAR(100),
+    district VARCHAR(100),
+    state VARCHAR(100),
+    pincode VARCHAR(20),
+    road_width VARCHAR(50),
+    building_type VARCHAR(100),
+    local_authority VARCHAR(100),
+    site_condition VARCHAR(100),
+    site_condition_other VARCHAR(255),
+    water_condition VARCHAR(100),
+    bore_available BOOLEAN DEFAULT FALSE,
+    bore_depth VARCHAR(50),
+    water_remarks TEXT,
+    electricity VARCHAR(50),
+    eb_distance VARCHAR(50),
+    electricity_remarks TEXT,
+    drainage VARCHAR(50),
+    drainage_remarks TEXT,
+    underground_sump BOOLEAN DEFAULT FALSE,
+    underground_sump_remarks TEXT,
+    road_to_plinth VARCHAR(100),
+    road_to_plinth_remarks TEXT,
+    site_level VARCHAR(100),
+    site_level_remarks TEXT,
+    parking_cars INT DEFAULT 0,
+    parking_bikes INT DEFAULT 0,
+    parking_remarks TEXT,
+    water_tank_capacity VARCHAR(100),
+    building_purpose VARCHAR(100),
+    staircase VARCHAR(100),
+    terrace_access VARCHAR(100),
+    site_facing VARCHAR(50),
+    front_road_width VARCHAR(50),
+    main_road_width VARCHAR(50),
+    connecting_road_width VARCHAR(50),
+    water_level VARCHAR(100),
+    north_context_type VARCHAR(100),
+    south_context_type VARCHAR(100),
+    east_context_type VARCHAR(100),
+    west_context_type VARCHAR(100),
+    latitude VARCHAR(50),
+    longitude VARCHAR(50),
+    north_context TEXT,
+    south_context TEXT,
+    east_context TEXT,
+    west_context TEXT,
+    client_requirements TEXT,
+    concept_sketch_json TEXT,
+    notes TEXT,
+    confirm_full_name VARCHAR(255),
+    relationship VARCHAR(100),
+    status ENUM('New', 'In Review', 'Approved', 'Rejected', 'Converted') DEFAULT 'New',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (lead_id) REFERENCES leads(id) ON DELETE CASCADE
+);
+
+-- 61. Public Enquiry Documents
+CREATE TABLE IF NOT EXISTS public_enquiry_documents (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    submission_id INT NULL,
+    lead_id INT NOT NULL,
+    file_type VARCHAR(100) NOT NULL,
+    file_name VARCHAR(255) NOT NULL,
+    file_url TEXT NOT NULL,
+    file_size INT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (lead_id) REFERENCES leads(id) ON DELETE CASCADE,
+    FOREIGN KEY (submission_id) REFERENCES public_enquiry_submissions(id) ON DELETE SET NULL
+);
+
+-- 62. Public Enquiry History
+CREATE TABLE IF NOT EXISTS public_enquiry_history (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    lead_id INT NOT NULL,
+    action VARCHAR(255) NOT NULL,
+    notes TEXT,
+    client_ip VARCHAR(45),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (lead_id) REFERENCES leads(id) ON DELETE CASCADE
+);
+
+-- 63. Public Enquiry Drafts
+CREATE TABLE IF NOT EXISTS public_enquiry_drafts (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    token VARCHAR(255) NOT NULL UNIQUE,
+    draft_data TEXT NOT NULL,
+    last_saved TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 64. Public Enquiry Notes
+CREATE TABLE IF NOT EXISTS public_enquiry_notes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    submission_id INT NOT NULL,
+    author VARCHAR(100) NOT NULL,
+    note_text TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (submission_id) REFERENCES public_enquiry_submissions(id) ON DELETE CASCADE
 );
 
 
