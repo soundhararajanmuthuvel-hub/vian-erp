@@ -4,7 +4,7 @@ const fs = require('fs');
 require('dotenv').config();
 
 let sequelize;
-const useFallback = process.env.AUTO_FALLBACK_SQLITE === 'true';
+const useFallback = process.env.NODE_ENV !== 'production' && process.env.AUTO_FALLBACK_SQLITE === 'true';
 const sqlitePath = path.join(__dirname, 'vian_architects.sqlite');
 
 const databaseUrl = process.env.DATABASE_URL;
