@@ -404,8 +404,8 @@ class _ExecutiveDashboardViewState extends State<ExecutiveDashboardView> {
                         children: [
                           const Text('YEAR-END FORECAST ENGINE', style: TextStyle(fontWeight: FontWeight.bold, color: VianTheme.primaryGold)),
                           const SizedBox(height: 16),
-                          _buildForecastRow('Expected Revenue', currencyFormatter.format(forecasts['projectedYearEndRevenue'] ?? 12000000)),
-                          _buildForecastRow('Expected Profit', currencyFormatter.format(forecasts['projectedYearEndProfit'] ?? 3600000)),
+                          _buildForecastRow('Expected Revenue', currencyFormatter.format(safeToDouble(forecasts['projectedYearEndRevenue'] ?? 12000000))),
+                          _buildForecastRow('Expected Profit', currencyFormatter.format(safeToDouble(forecasts['projectedYearEndProfit'] ?? 3600000))),
                           _buildForecastRow('Expected Projects', '${forecasts['projectedYearEndProjects'] ?? 108} projects'),
                           const Divider(color: Color(0xFF2E2E3E), height: 24),
                           const Row(
@@ -896,7 +896,7 @@ class _JayaHomeViewState extends State<JayaHomeView> {
                   VianMetricCard(title: 'TOTAL CLIENTS', value: _clients.length.toString(), icon: Icons.people),
                   VianMetricCard(title: "TODAY'S ATTENDANCE", value: _attendance.length.toString(), icon: Icons.calendar_month, iconColor: VianTheme.success),
                   VianMetricCard(title: 'UNPAID INVOICES', value: _pendingPayments.toString(), icon: Icons.receipt, iconColor: VianTheme.danger),
-                  VianMetricCard(title: 'TOTAL REVENUE INVOICED', value: formatter.format(_invoices.fold(0.0, (acc, item) => acc + (item['total'] ?? 0.0))), icon: Icons.payments, iconColor: VianTheme.primaryGold),
+                  VianMetricCard(title: 'TOTAL REVENUE INVOICED', value: formatter.format(_invoices.fold(0.0, (acc, item) => acc + safeToDouble(item['total']))), icon: Icons.payments, iconColor: VianTheme.primaryGold),
                 ],
               );
             },
@@ -965,7 +965,7 @@ class _JayaHomeViewState extends State<JayaHomeView> {
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
                                         Text('Invoice #${inv['invoiceNumber']}', style: const TextStyle(fontWeight: FontWeight.bold)),
-                                        Text('Total: ${formatter.format(inv['total'] ?? 0)}', style: const TextStyle(color: VianTheme.lightText, fontSize: 11)),
+                                        Text('Total: ${formatter.format(safeToDouble(inv['total']))}', style: const TextStyle(color: VianTheme.lightText, fontSize: 11)),
                                       ],
                                     ),
                                     Container(

@@ -683,7 +683,7 @@ function registerRoutes(app, models) {
 
       const token = require('crypto').randomUUID();
       const expiryDate = expiryDays ? new Date(Date.now() + expiryDays * 24 * 60 * 60 * 1000) : null;
-      const publicUrl = `https://vianerp.netlify.app/#/public-enquiry/${token}`;
+      const publicUrl = `https://vianerp.netlify.app/#/enquiry/${token}`;
 
       let link = await PublicEnquiryLink.findOne({ where: { leadId } });
       if (link) {
@@ -714,7 +714,7 @@ function registerRoutes(app, models) {
 
       const token = require('crypto').randomUUID();
       const expiryDate = expiryDays ? new Date(Date.now() + expiryDays * 24 * 60 * 60 * 1000) : null;
-      const publicUrl = `https://vianerp.netlify.app/#/public-enquiry/${token}`;
+      const publicUrl = `https://vianerp.netlify.app/#/enquiry/${token}`;
 
       let link = await PublicEnquiryLink.findOne({ where: { leadId } });
       if (link) {
@@ -779,7 +779,8 @@ function registerRoutes(app, models) {
         where: { leadId: link.leadId, status: ['New', 'In Review', 'Approved', 'Converted'] }
       });
       if (existing) {
-        return res.status(400).json({ message: 'An enquiry has already been submitted for this lead' });
+        await PublicEnquiryDocument.destroy({ where: { submissionId: existing.id } });
+        await existing.destroy();
       }
 
       const clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
@@ -911,7 +912,8 @@ function registerRoutes(app, models) {
         where: { leadId: link.leadId, status: ['New', 'In Review', 'Approved', 'Converted'] }
       });
       if (existing) {
-        return res.status(400).json({ message: 'An enquiry has already been submitted for this lead' });
+        await PublicEnquiryDocument.destroy({ where: { submissionId: existing.id } });
+        await existing.destroy();
       }
 
       const clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress;

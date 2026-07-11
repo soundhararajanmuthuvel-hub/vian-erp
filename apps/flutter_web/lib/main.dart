@@ -43,7 +43,7 @@ final GoRouter _router = GoRouter(
   initialLocation: '/splash',
   redirect: (context, state) {
     final path = state.matchedLocation;
-    if (path.startsWith('/enquiry')) return null;
+    if (path.startsWith('/enquiry') || path.startsWith('/public-enquiry')) return null;
 
     final isLoggedIn = ApiService.isLoggedIn;
     final isLoggingIn = path == '/login' || path == '/forgot-password' || path == '/splash';
@@ -67,6 +67,10 @@ final GoRouter _router = GoRouter(
     ),
     GoRoute(
       path: '/enquiry/:token',
+      builder: (context, state) => PublicEnquiryPortalPage(token: state.pathParameters['token'] ?? ''),
+    ),
+    GoRoute(
+      path: '/public-enquiry/:token',
       builder: (context, state) => PublicEnquiryPortalPage(token: state.pathParameters['token'] ?? ''),
     ),
     GoRoute(
@@ -5800,7 +5804,7 @@ class _ExpensesTabState extends State<ExpensesTab> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(formatter.format(exp['amount']), style: const TextStyle(fontWeight: FontWeight.bold, color: VianTheme.whiteText, fontSize: 16)),
+                              Text(formatter.format(safeToDouble(exp['amount'])), style: const TextStyle(fontWeight: FontWeight.bold, color: VianTheme.whiteText, fontSize: 16)),
                               Text('Category: ${exp['category']} | Project: ${exp['project']?['name']}', style: const TextStyle(fontSize: 12)),
                               Text('Submitted by: ${exp['user']?['name']} on ${exp['date']}', style: const TextStyle(fontSize: 11, color: Color(0xFF70707C))),
                             ],
@@ -6993,7 +6997,7 @@ class _ContractorTabState extends State<ContractorTab> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Text(
-                                formatter.format(r['amount'] ?? 0),
+                                formatter.format(safeToDouble(r['amount'])),
                                 style: const TextStyle(color: VianTheme.primaryGold, fontWeight: FontWeight.bold, fontSize: 15),
                               ),
                               const SizedBox(width: 8),
@@ -7633,8 +7637,8 @@ class _PayrollTabState extends State<PayrollTab> {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
-                            Text(formatter.format(w['totalWage']), style: const TextStyle(fontWeight: FontWeight.bold, color: VianTheme.primaryGold, fontSize: 16)),
-                            Text('Base: ${formatter.format(w['basePay'])} | OT: ${formatter.format(w['overtimePay'])}', style: const TextStyle(fontSize: 11)),
+                            Text(formatter.format(safeToDouble(w['totalWage'])), style: const TextStyle(fontWeight: FontWeight.bold, color: VianTheme.primaryGold, fontSize: 16)),
+                            Text('Base: ${formatter.format(safeToDouble(w['basePay']))} | OT: ${formatter.format(safeToDouble(w['overtimePay']))}', style: const TextStyle(fontSize: 11)),
                           ],
                         )
                       ],
@@ -10102,8 +10106,8 @@ class _BusinessTargetsTabState extends ConsumerState<BusinessTargetsTab> with Si
               physics: const NeverScrollableScrollPhysics(),
               children: [
                 _buildGoalCard('TOTAL PROJECTS', currentTarget['annualProjectTarget'].toString(), Icons.architecture),
-                _buildGoalCard('TOTAL REVENUE GOAL', currencyFormatter.format(currentTarget['annualRevenueTarget']), Icons.payments),
-                _buildGoalCard('TOTAL PROFIT GOAL', currencyFormatter.format(currentTarget['annualProfitTarget']), Icons.trending_up),
+                _buildGoalCard('TOTAL REVENUE GOAL', currencyFormatter.format(safeToDouble(currentTarget['annualRevenueTarget'])), Icons.payments),
+                _buildGoalCard('TOTAL PROFIT GOAL', currencyFormatter.format(safeToDouble(currentTarget['annualProfitTarget'])), Icons.trending_up),
               ],
             ),
             const SizedBox(height: 24),
@@ -10407,9 +10411,9 @@ class _BusinessTargetsTabState extends ConsumerState<BusinessTargetsTab> with Si
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _buildForecastScoreCard('PROJECTED REVENUE', currencyFormatter.format(forecasts['projectedYearEndRevenue'] ?? 0)),
+                    _buildForecastScoreCard('PROJECTED REVENUE', currencyFormatter.format(safeToDouble(forecasts['projectedYearEndRevenue'] ?? 0))),
                     _buildForecastScoreCard('PROJECTED PROJECTS', '${forecasts['projectedYearEndProjects'] ?? 0} Projs'),
-                    _buildForecastScoreCard('PROJECTED NET PROFIT', currencyFormatter.format(forecasts['projectedYearEndProfit'] ?? 0)),
+                    _buildForecastScoreCard('PROJECTED NET PROFIT', currencyFormatter.format(safeToDouble(forecasts['projectedYearEndProfit'] ?? 0))),
                   ],
                 ),
               ],
