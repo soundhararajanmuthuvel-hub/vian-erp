@@ -5907,10 +5907,10 @@ class ReportsTab extends StatelessWidget {
               mainAxisSpacing: 24,
               childAspectRatio: 2.2,
               children: [
-                _reportCard(context, 'Attendance & Hours Report', 'Daily/monthly site and office attendance summary reports.', Icons.badge_outlined),
-                _reportCard(context, 'Income vs Expense Ledger', 'Consolidated billing records mapped against project purchases.', Icons.monetization_on_outlined),
-                _reportCard(context, 'Project Construction Milestones', 'Deliverables tracking, timeline delays, and completed layouts.', Icons.playlist_add_check),
-                _reportCard(context, 'CRM Lead Conversion Ratios', 'Conversion stats showing website, referral, and visit performance.', Icons.trending_up),
+                _reportCard(context, 'Attendance & Hours Report', 'Daily/monthly site and office attendance summary reports.', Icons.badge_outlined, 'attendance'),
+                _reportCard(context, 'Income vs Expense Ledger', 'Consolidated billing records mapped against project purchases.', Icons.monetization_on_outlined, 'expenses'),
+                _reportCard(context, 'Project Construction Milestones', 'Deliverables tracking, timeline delays, and completed layouts.', Icons.playlist_add_check, 'projects'),
+                _reportCard(context, 'CRM Lead Conversion Ratios', 'Conversion stats showing website, referral, and visit performance.', Icons.trending_up, 'leads'),
               ],
             ),
           )
@@ -5918,8 +5918,8 @@ class ReportsTab extends StatelessWidget {
       ),
     );
   }
-
-  Widget _reportCard(BuildContext context, String title, String desc, IconData icon) {
+ 
+  Widget _reportCard(BuildContext context, String title, String desc, IconData icon, String module) {
     return VianCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -5940,15 +5940,19 @@ class ReportsTab extends StatelessWidget {
                 icon: const Icon(Icons.download, size: 16),
                 label: const Text('Export Excel', style: TextStyle(fontSize: 12)),
                 onPressed: () {
+                  final url = '${ApiService.baseUrl}/export/$module?token=${ApiService.token}&format=xlsx';
+                  openUrl(url);
                   ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Report generated. Excel file download started.')));
                 },
               ),
               const SizedBox(width: 8),
               TextButton.icon(
-                icon: const Icon(Icons.picture_as_pdf, size: 16),
-                label: const Text('Export PDF', style: TextStyle(fontSize: 12)),
+                icon: const Icon(Icons.description, size: 16),
+                label: const Text('Export CSV', style: TextStyle(fontSize: 12)),
                 onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Report compiled. PDF file download started.')));
+                  final url = '${ApiService.baseUrl}/export/$module?token=${ApiService.token}&format=csv';
+                  openUrl(url);
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Report compiled. CSV file download started.')));
                 },
               ),
             ],

@@ -9,6 +9,12 @@ class ApiConstants {
     if (envUrl.isNotEmpty) {
       return envUrl.endsWith('/api') ? envUrl : '$envUrl/api';
     }
+    if (kIsWeb) {
+      final String origin = Uri.base.origin;
+      if (origin.contains('localhost') || origin.contains('127.0.0.1') || origin.contains('railway.app')) {
+        return '$origin/api';
+      }
+    }
     return productionBaseUrl;
   }
 

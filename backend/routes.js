@@ -58,17 +58,19 @@ function registerRoutes(app, models) {
   } = models;
 
   // Role permissions helper
-  function getPermissionRole(role) {
+  function getPermissionRole(role, username) {
     if (!role) return 'Staff';
-    const r = role.toLowerCase();
-    if (r === 'managing director' || r === 'super admin') return 'Super Admin';
-    if (
-      r === 'admin / office manager / accounts' ||
-      r === 'admin' ||
-      r === 'tech head + senior architect' ||
-      r === 'accountant'
-    ) {
+    const r = typeof role === 'string' ? role.toLowerCase() : '';
+    const u = typeof username === 'string' ? username.toLowerCase() : '';
+    
+    if (r === 'managing director' || r === 'super admin' || u === 'anand' || u === 'vijay') {
+      return 'Super Admin';
+    }
+    if (r === 'admin / office manager / accounts' || r === 'admin' || u === 'jaya') {
       return 'Admin';
+    }
+    if (r === 'team lead' || u === 'gokul' || u === 'mohan' || u === 'vijayan') {
+      return 'Team Lead';
     }
     return 'Staff';
   }
@@ -98,7 +100,7 @@ function registerRoutes(app, models) {
   // Gating middleware
   const requireSuperAdmin = (req, res, next) => {
     if (!req.user) return res.status(401).json({ message: 'Unauthorized' });
-    if (getPermissionRole(req.user.role) !== 'Super Admin') {
+    if (getPermissionRole(req.user.role, req.user.username) !== 'Super Admin') {
       return res.status(403).json({ message: 'Forbidden: Super Admin role required' });
     }
     next();
@@ -489,7 +491,7 @@ function registerRoutes(app, models) {
           }
         }
 
-        await Project.create({
+        const newProj = await Project.create({
           projectId: projId,
           name: req.body.projectName || `${client.name} Project`,
           type: req.body.projectType || 'Residential',
@@ -499,6 +501,7 @@ function registerRoutes(app, models) {
           status: 'Planning',
           progressPercentage: 0
         });
+        await seedStagesForProject(newProj, newProj.type);
       }
 
       // Create Welcome Task
@@ -1319,12 +1322,28 @@ function registerRoutes(app, models) {
           {
             model: ProjectStage,
             as: 'stages',
-            include: ['assignedEngineer', 'assignedArchitect', 'assignedSiteManager', 'tasks', 'materials', 'labours', 'payments', 'documents', 'photos', 'reports', 'approvals', 'history']
+            include: [
+              'assignedEngineer', 'assignedArchitect', 'assignedSiteManager', 'tasks', 'materials', 'labours', 'payments', 'documents', 'photos', 'reports', 'approvals', 'history',
+              {
+                model: StageChecklist,
+                as: 'checklists',
+                include: [{ model: StageChecklist, as: 'children' }]
+              }
+            ]
           }
         ]
       });
 
       if (!project) return res.status(404).json({ message: 'Project not found' });
+      
+      // Gating for Client role
+      if (req.user.role === 'Client') {
+        const client = await Client.findOne({ where: { userId: req.user.id } });
+        if (!client || project.clientId !== client.id) {
+          return res.status(403).json({ message: 'Access denied: This project does not belong to you.' });
+        }
+      }
+
       res.json(project);
     } catch (error) {
       res.status(500).json({ message: 'Error fetching project details', error: error.message });
@@ -1463,6 +1482,40 @@ function registerRoutes(app, models) {
         { title: 'Interior Living Space Design Renders', type: 'Interior Drawings' }
       ];
     }
+
+    // Standardize Working Checklist and Drawing Checklist for all templates
+    tasks = [
+      { title: 'Site Boundary', description: 'Establish site boundaries, verify surveyor marks, and clear obstruction.', priority: 'High', dueOffset: 5 },
+      { title: 'Column Marking', description: 'Mark column center lines and establish structural grid lines.', priority: 'High', dueOffset: 12 },
+      { title: 'Footing', description: 'Excavate and reinforce columns/piers foundation concrete.', priority: 'High', dueOffset: 20 },
+      { title: 'Grade Beam', description: 'Bind rebars and cast concrete for grade beams.', priority: 'Medium', dueOffset: 35 },
+      { title: 'Plinth', description: 'Build plinth wall and cast plinth beam layout.', priority: 'Medium', dueOffset: 50 },
+      { title: 'Ground Floor', description: 'Construct ground floor columns and cast ground floor slab.', priority: 'High', dueOffset: 70 },
+      { title: 'First Floor', description: 'Erect first floor pillars and cast first floor roof slab.', priority: 'High', dueOffset: 95 },
+      { title: 'Roof', description: 'Form scaffold and cast primary roof slab.', priority: 'High', dueOffset: 110 },
+      { title: 'Brick Work', description: 'Construct partition walls, internal blocks, and outer masonry.', priority: 'Medium', dueOffset: 130 },
+      { title: 'Electrical', description: 'Chase walls, run PVC conduits, and thread copper cables.', priority: 'Medium', dueOffset: 145 },
+      { title: 'Plumbing', description: 'Install concealed hot/cold water supply lines and sewer lines.', priority: 'Medium', dueOffset: 155 },
+      { title: 'Painting', description: 'Apply base wall putty, primer, and double top coat paints.', priority: 'Low', dueOffset: 165 },
+      { title: 'Wood Work', description: 'Fabricate wardrobes, kitchen cabinets, veneer paneling.', priority: 'Medium', dueOffset: 172 },
+      { title: 'False Ceiling', description: 'Fix gypsum framework, run cabling, and install LED panels.', priority: 'Low', dueOffset: 178 },
+      { title: 'Flooring', description: 'Lay marble/vitrified tiles in living area, bedroom, and kitchen.', priority: 'Medium', dueOffset: 185 },
+      { title: 'Finishing', description: 'Install sanitary fixtures, electrical switch plates, door locks.', priority: 'Critical', dueOffset: 192 },
+      { title: 'Handover', description: 'Clean site, remove debris, perform final inspection, handover keys.', priority: 'Critical', dueOffset: 200 }
+    ];
+
+    drawings = [
+      { title: 'Working Drawing', type: 'Structural Drawings' },
+      { title: 'Floor Plan', type: 'Floor Plans' },
+      { title: 'Section', type: 'Floor Plans' },
+      { title: 'Elevation', type: 'Elevations' },
+      { title: 'Compound Wall', type: 'Elevations' },
+      { title: 'Gate Design', type: 'Elevations' },
+      { title: 'Electrical', type: 'Electrical Drawings' },
+      { title: 'Plumbing', type: 'Plumbing Drawings' },
+      { title: '3D Interior', type: 'Interior Drawings' },
+      { title: '3D Exterior', type: 'Interior Drawings' }
+    ];
 
     const baseDate = new Date(project.startDate || new Date());
     
@@ -2037,6 +2090,10 @@ function registerRoutes(app, models) {
         status: status
       });
 
+      // Auto-trigger monthly performance score recalculation
+      const monthStr = today.substring(0, 7);
+      await recalculateEmployeeIncentive(req.user.id, monthStr);
+
       res.status(201).json({ message: 'Check-in successful', record });
     } catch (error) {
       res.status(500).json({ message: 'Check-in failed', error: error.message });
@@ -2065,6 +2122,10 @@ function registerRoutes(app, models) {
         checkOutGps: gps,
         workingHours: parseFloat(hours.toFixed(2))
       });
+
+      // Auto-trigger monthly performance score recalculation
+      const monthStr = today.substring(0, 7);
+      await recalculateEmployeeIncentive(req.user.id, monthStr);
 
       res.json({ message: 'Check-out successful', record });
     } catch (error) {
@@ -2105,7 +2166,7 @@ function registerRoutes(app, models) {
       }
 
       // Staff roles can only see tasks assigned to them
-      const pRole = getPermissionRole(req.user.role);
+      const pRole = getPermissionRole(req.user.role, req.user.username);
       if (pRole === 'Staff') {
         where.assignedTo = req.user.id;
       }
@@ -2132,7 +2193,7 @@ function registerRoutes(app, models) {
   app.get('/api/tasks/:id', authenticateToken, async (req, res) => {
     try {
       const where = { id: req.params.id, deletedAt: null };
-      const pRole = getPermissionRole(req.user.role);
+      const pRole = getPermissionRole(req.user.role, req.user.username);
       if (pRole === 'Staff') {
         where.assignedTo = req.user.id;
       }
@@ -2161,7 +2222,7 @@ function registerRoutes(app, models) {
   app.put('/api/tasks/:id', authenticateToken, async (req, res) => {
     try {
       const where = { id: req.params.id, deletedAt: null };
-      const pRole = getPermissionRole(req.user.role);
+      const pRole = getPermissionRole(req.user.role, req.user.username);
       if (pRole === 'Staff') {
         where.assignedTo = req.user.id;
       }
@@ -2205,6 +2266,15 @@ function registerRoutes(app, models) {
   // ==========================================
   
   app.get('/api/projects/:projectId/drawings', authenticateToken, async (req, res) => {
+    try {
+      const drawings = await Drawing.findAll({ where: { projectId: req.params.projectId }, include: ['approver'] });
+      res.json({ drawings });
+    } catch (error) {
+      res.status(500).json({ message: 'Error retrieving drawings', error: error.message });
+    }
+  });
+
+  app.get('/api/drawings/:projectId', authenticateToken, async (req, res) => {
     try {
       const drawings = await Drawing.findAll({ where: { projectId: req.params.projectId }, include: ['approver'] });
       res.json({ drawings });
@@ -2699,6 +2769,258 @@ function registerRoutes(app, models) {
   });
 
   // ==========================================
+  // PHOTO LIFECYCLE MANAGEMENT MODULE
+  // ==========================================
+  const photoLifecycleConfigPath = path.join(__dirname, 'config', 'photo_lifecycle.json');
+
+  function getPhotoLifecycleConfig() {
+    try {
+      if (fs.existsSync(photoLifecycleConfigPath)) {
+        return JSON.parse(fs.readFileSync(photoLifecycleConfigPath, 'utf8'));
+      }
+    } catch (e) {
+      console.error('Failed reading photo lifecycle config:', e);
+    }
+    // Create config folder if it doesn't exist
+    const configDir = path.dirname(photoLifecycleConfigPath);
+    if (!fs.existsSync(configDir)) {
+      fs.mkdirSync(configDir, { recursive: true });
+    }
+    const defaultConf = {
+      retentionDays: 180,
+      photoLifecycleActive: true,
+      archivedPhotos: []
+    };
+    fs.writeFileSync(photoLifecycleConfigPath, JSON.stringify(defaultConf, null, 2), 'utf8');
+    return defaultConf;
+  }
+
+  function savePhotoLifecycleConfig(config) {
+    try {
+      const configDir = path.dirname(photoLifecycleConfigPath);
+      if (!fs.existsSync(configDir)) {
+        fs.mkdirSync(configDir, { recursive: true });
+      }
+      fs.writeFileSync(photoLifecycleConfigPath, JSON.stringify(config, null, 2), 'utf8');
+      return true;
+    } catch (e) {
+      console.error('Failed saving photo lifecycle config:', e);
+      return false;
+    }
+  }
+
+  app.get('/api/settings/photo-lifecycle', authenticateToken, async (req, res) => {
+    try {
+      const config = getPhotoLifecycleConfig();
+      res.json(config);
+    } catch (error) {
+      res.status(500).json({ message: 'Error loading photo lifecycle settings', error: error.message });
+    }
+  });
+
+  app.post('/api/settings/photo-lifecycle', authenticateToken, authorizeRoles('Super Admin'), async (req, res) => {
+    const { retentionDays, photoLifecycleActive } = req.body;
+    try {
+      const config = getPhotoLifecycleConfig();
+      config.retentionDays = parseInt(retentionDays) || 180;
+      config.photoLifecycleActive = !!photoLifecycleActive;
+      savePhotoLifecycleConfig(config);
+      
+      await writeAuditLog(req, 'Update', 'PhotoLifecycleSettings', null, config);
+      res.json({ success: true, config });
+    } catch (error) {
+      res.status(500).json({ message: 'Error saving photo lifecycle settings', error: error.message });
+    }
+  });
+
+  app.post('/api/settings/photo-lifecycle/cleanup', authenticateToken, authorizeRoles('Super Admin'), async (req, res) => {
+    try {
+      const config = getPhotoLifecycleConfig();
+      const report = await runPhotoLifecycleCleanupInternal(config, req.user.id);
+      res.json({ success: true, ...report });
+    } catch (error) {
+      res.status(500).json({ message: 'Error running cleanup', error: error.message });
+    }
+  });
+
+  app.post('/api/settings/photo-lifecycle/restore', authenticateToken, authorizeRoles('Super Admin'), async (req, res) => {
+    const { originalUrl } = req.body;
+    if (!originalUrl) {
+      return res.status(400).json({ message: 'originalUrl is required' });
+    }
+    try {
+      const config = getPhotoLifecycleConfig();
+      const archivedItemIdx = config.archivedPhotos.findIndex(p => p.originalUrl === originalUrl);
+      if (archivedItemIdx === -1) {
+        return res.status(404).json({ message: 'Archived record not found' });
+      }
+
+      const item = config.archivedPhotos[archivedItemIdx];
+      
+      if (item.type === 'StagePhoto') {
+        const row = await StagePhoto.findByPk(item.id);
+        if (row) {
+          await row.update({ url: item.originalUrl });
+        }
+      } else if (item.type === 'DailyReport') {
+        const row = await DailyReport.findByPk(item.id);
+        if (row) {
+          let urls = [];
+          try {
+            urls = JSON.parse(row.photoUrls || '[]');
+          } catch(e){}
+          urls = urls.map(u => u === `[ARCHIVED] ${item.originalUrl}` ? item.originalUrl : u);
+          await row.update({ photoUrls: JSON.stringify(urls) });
+        }
+      }
+
+      // Remove from archived configuration list
+      config.archivedPhotos.splice(archivedItemIdx, 1);
+      savePhotoLifecycleConfig(config);
+
+      await writeAuditLog(req, 'Restore', 'PhotoLifecycleRestore', null, item);
+      res.json({ success: true, restored: item });
+    } catch (error) {
+      res.status(500).json({ message: 'Error restoring photo', error: error.message });
+    }
+  });
+
+  async function runPhotoLifecycleCleanupInternal(config, userId = 1) {
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - config.retentionDays);
+
+    let stagePhotosCleaned = 0;
+    let reportPhotosCleaned = 0;
+
+    // 1. Clean StagePhoto older than retentionDays
+    const stagePhotos = await StagePhoto.findAll({
+      where: {
+        createdAt: { [Op.lt]: cutoffDate },
+        type: { [Op.not]: 'Milestone' }
+      }
+    });
+
+    for (const photo of stagePhotos) {
+      if (photo.url.startsWith('[ARCHIVED]')) continue;
+      
+      const publicId = extractCloudinaryPublicId(photo.url);
+      if (publicId) {
+        await CloudinaryService.deleteFile(publicId);
+      }
+
+      const originalUrl = photo.url;
+      await photo.update({ url: `[ARCHIVED] ${photo.url}` });
+
+      config.archivedPhotos.push({
+        id: photo.id,
+        type: 'StagePhoto',
+        originalUrl,
+        archivedAt: new Date().toISOString()
+      });
+
+      try {
+        await AuditLog.create({
+          userId,
+          action: 'Photo Cleanup Archive',
+          module: 'Photos',
+          oldValues: originalUrl,
+          newValues: `[ARCHIVED] ${originalUrl}`
+        });
+      } catch(e){}
+
+      stagePhotosCleaned++;
+    }
+
+    // 2. Clean DailyReport photos older than retentionDays
+    const dailyReports = await DailyReport.findAll({
+      where: {
+        createdAt: { [Op.lt]: cutoffDate },
+        photoUrls: { [Op.not]: null }
+      }
+    });
+
+    for (const report of dailyReports) {
+      let urls = [];
+      try {
+        urls = JSON.parse(report.photoUrls);
+      } catch (e) {
+        if (report.photoUrls.includes('http')) urls = [report.photoUrls];
+      }
+
+      if (!Array.isArray(urls)) continue;
+      let updated = false;
+
+      for (let i = 0; i < urls.length; i++) {
+        const url = urls[i];
+        if (url.startsWith('[ARCHIVED]')) continue;
+
+        const publicId = extractCloudinaryPublicId(url);
+        if (publicId) {
+          await CloudinaryService.deleteFile(publicId);
+        }
+
+        urls[i] = `[ARCHIVED] ${url}`;
+        config.archivedPhotos.push({
+          id: report.id,
+          type: 'DailyReport',
+          originalUrl: url,
+          archivedAt: new Date().toISOString()
+        });
+
+        try {
+          await AuditLog.create({
+            userId,
+            action: 'Report Photo Cleanup Archive',
+            module: 'DailyReports',
+            oldValues: url,
+            newValues: `[ARCHIVED] ${url}`
+          });
+        } catch(e){}
+
+        updated = true;
+        reportPhotosCleaned++;
+      }
+
+      if (updated) {
+        await report.update({ photoUrls: JSON.stringify(urls) });
+      }
+    }
+
+    savePhotoLifecycleConfig(config);
+    return { stagePhotosCleaned, reportPhotosCleaned };
+  }
+
+  function extractCloudinaryPublicId(url) {
+    if (!url || !url.includes('cloudinary.com')) return null;
+    try {
+      const parts = url.split('/upload/');
+      if (parts.length < 2) return null;
+      const pathWithVersion = parts[1];
+      const pathParts = pathWithVersion.split('/');
+      if (pathParts[0].startsWith('v')) {
+        pathParts.shift();
+      }
+      const publicIdWithExt = pathParts.join('/');
+      return publicIdWithExt.substring(0, publicIdWithExt.lastIndexOf('.'));
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // Run daily photo lifecycle cleanup check
+  setInterval(async () => {
+    try {
+      const config = getPhotoLifecycleConfig();
+      if (!config.photoLifecycleActive) return;
+      
+      console.log('[Scheduler] Running daily photo lifecycle policy archiving check...');
+      await runPhotoLifecycleCleanupInternal(config);
+    } catch (err) {
+      console.error('[Scheduler] Error running daily photo lifecycle check:', err);
+    }
+  }, 1000 * 60 * 60 * 24);
+
+  // ==========================================
   // LABOUR MANAGEMENT MODULE
   // ==========================================
   
@@ -3027,7 +3349,7 @@ function registerRoutes(app, models) {
       }
 
       // Staff roles can only see reports they submitted
-      const pRole = getPermissionRole(req.user.role);
+      const pRole = getPermissionRole(req.user.role, req.user.username);
       if (pRole === 'Staff') {
         where.userId = req.user.id;
       }
@@ -3054,7 +3376,7 @@ function registerRoutes(app, models) {
   app.get('/api/reports/daily/:id', authenticateToken, async (req, res) => {
     try {
       const where = { id: req.params.id, deletedAt: null };
-      const pRole = getPermissionRole(req.user.role);
+      const pRole = getPermissionRole(req.user.role, req.user.username);
       if (pRole === 'Staff') {
         where.userId = req.user.id;
       }
@@ -3080,6 +3402,11 @@ function registerRoutes(app, models) {
         date: date
       });
       await writeAuditLog(req, 'Create', 'DailyReports', null, report.toJSON());
+      
+      // Auto-trigger monthly performance score recalculation
+      const monthStr = date.substring(0, 7);
+      await recalculateEmployeeIncentive(req.user.id, monthStr);
+
       res.status(201).json(report);
     } catch (error) {
       res.status(400).json({ message: 'Error submitting daily progress report', error: error.message });
@@ -3089,7 +3416,7 @@ function registerRoutes(app, models) {
   app.put('/api/reports/daily/:id', authenticateToken, async (req, res) => {
     try {
       const where = { id: req.params.id, deletedAt: null };
-      const pRole = getPermissionRole(req.user.role);
+      const pRole = getPermissionRole(req.user.role, req.user.username);
       if (pRole === 'Staff') {
         where.userId = req.user.id;
       }
@@ -4119,150 +4446,270 @@ function registerRoutes(app, models) {
     try {
       const user = await User.findByPk(userId);
       if (!user) return;
-      if (user.role === 'Managing Director' || user.role === 'Super Admin' || user.role === 'Client') return;
+      
+      const roleType = getPermissionRole(user.role, user.username);
+      if (roleType === 'Super Admin' || roleType === 'Admin' || user.role === 'Client') return;
 
       const datePrefix = `${month}-`; // e.g. "2026-07-"
+
+      // Get all calendar days in target month up to min(today, endOfMonth)
+      const year = parseInt(month.split('-')[0], 10);
+      const monthIndex = parseInt(month.split('-')[1], 10) - 1; // 0-indexed
       
-      // 1. Attendance Score (30 Marks)
+      const lastDay = new Date(year, monthIndex + 1, 0).getDate();
+      const today = new Date();
+      const currentYear = today.getFullYear();
+      const currentMonth = today.getMonth();
+      const currentDay = today.getDate();
+      
+      let maxDay = lastDay;
+      if (year === currentYear && monthIndex === currentMonth) {
+        maxDay = Math.min(lastDay, currentDay);
+      } else if (year > currentYear || (year === currentYear && monthIndex > currentMonth)) {
+        maxDay = 0; // future month
+      }
+
+      // Fetch all relevant data for the user for this month
       const attendances = await Attendance.findAll({
-        where: {
-          userId,
-          date: { [Op.like]: `${datePrefix}%` }
-        }
+        where: { userId, date: { [Op.like]: `${datePrefix}%` } }
       });
-      let attendanceDeductions = 0;
-      attendances.forEach(att => {
-        if (att.status === 'Late') {
-          attendanceDeductions += 2;
-        } else if (att.status === 'Half Day') {
-          attendanceDeductions += 5;
-        } else if (att.status === 'Absent') {
-          attendanceDeductions += 10;
-        }
-      });
-      const attendanceScore = Math.max(0, 30 - attendanceDeductions);
 
-      // 2. Call Score (15 Marks)
       const calls = await ConferenceCall.findAll({
-        where: {
-          date: { [Op.like]: `${datePrefix}%` }
-        }
+        where: { date: { [Op.like]: `${datePrefix}%` } }
       });
-      let callsDeductions = 0;
-      calls.forEach(c => {
-        try {
-          if (c.participants) {
-            const list = JSON.parse(c.participants);
-            const userStatus = list.find(p => p.userId === userId || p.employeeId === user.employeeId || p.name === user.name);
-            if (userStatus) {
-              if (userStatus.status === 'Missed') {
-                callsDeductions += 3;
-              } else if (userStatus.status === 'Late') {
-                callsDeductions += 1;
-              }
-            }
-          }
-        } catch (e) {
-          console.error('Error parsing call participants:', e);
-        }
-      });
-      const callsScore = Math.max(0, 15 - callsDeductions);
 
-      // 3. Tasks Score (25 Marks)
-      const monthTasks = await Task.findAll({
+      const tasks = await Task.findAll({
         where: {
           assignedTo: userId,
-          dueDate: { [Op.like]: `${datePrefix}%` },
-          deletedAt: null
+          deletedAt: null,
+          [Op.or]: [
+            { dueDate: { [Op.like]: `${datePrefix}%` } },
+            { createdAt: { [Op.like]: `${datePrefix}%` } }
+          ]
         }
       });
-      let tasksScore = 25.00;
-      if (monthTasks.length > 0) {
-        const completedTasks = monthTasks.filter(t => t.status === 'Completed').length;
-        tasksScore = (completedTasks / monthTasks.length) * 25;
-      }
 
-      // 4. Photo Compliance Score (20 Marks)
-      const reports = await DailyReport.findAll({
+      const dailyReports = await DailyReport.findAll({
+        where: { userId, date: { [Op.like]: `${datePrefix}%` } }
+      });
+
+      const progressReports = await ProgressReport.findAll({
+        where: { userId, date: { [Op.like]: `${datePrefix}%` } }
+      });
+
+      const stageReports = await StageReport.findAll({
         where: {
-          userId,
-          date: { [Op.like]: `${datePrefix}%` }
+          photoUrls: { [Op.not]: null },
+          [Op.or]: [
+            { createdAt: { [Op.like]: `${datePrefix}%` } }
+          ]
         }
       });
-      let photoUploadCount = 0;
-      reports.forEach(r => {
-        if (r.photoUrls) {
+
+      let workingDaysCount = 0;
+      let totalDailyScore = 0;
+      
+      let lateCheckInCount = 0;
+      let missedCallCount = 0;
+      let missingUploadCount = 0;
+      let missingReportCount = 0;
+      let incompleteAssignmentCount = 0;
+      let earlyPunchOutCount = 0;
+
+      for (let day = 1; day <= maxDay; day++) {
+        const dateStr = `${month}-${day.toString().padStart(2, '0')}`;
+        const dateObj = new Date(year, monthIndex, day);
+        
+        // Exclude Sundays
+        if (dateObj.getDay() === 0) continue; 
+        
+        workingDaysCount++;
+
+        // 1. Attendance (10 marks)
+        let attendanceScore = 0;
+        const att = attendances.find(a => a.date === dateStr);
+        if (att) {
+          if (att.status === 'Present') {
+            attendanceScore = 10;
+          } else if (att.status === 'Late') {
+            attendanceScore = 5;
+            lateCheckInCount++;
+          } else if (att.status === 'Half Day') {
+            attendanceScore = 3;
+            lateCheckInCount++;
+          } else {
+            attendanceScore = 0;
+          }
+        } else {
+          attendanceScore = 0;
+        }
+
+        // 2. Morning Call (10 marks)
+        let morningCallScore = 0;
+        const mCall = calls.find(c => c.date === dateStr && c.type === 'Morning Call');
+        if (mCall && mCall.participants) {
           try {
-            const arr = JSON.parse(r.photoUrls);
-            if (Array.isArray(arr)) photoUploadCount += arr.length;
+            const list = JSON.parse(mCall.participants);
+            const userStatus = list.find(p => p.userId === userId || p.employeeId === user.employeeId || p.name === user.name);
+            if (userStatus) {
+              if (userStatus.status === 'Joined') {
+                morningCallScore = 10;
+              } else if (userStatus.status === 'Late') {
+                morningCallScore = 5;
+              } else {
+                morningCallScore = 0;
+                missedCallCount++;
+              }
+            } else {
+              morningCallScore = 0;
+              missedCallCount++;
+            }
           } catch (e) {
-            if (r.photoUrls.includes('http')) photoUploadCount++;
+            morningCallScore = 0;
+          }
+        } else {
+          morningCallScore = 0;
+        }
+
+        // 3. Assignment Accepted / Started (10 marks)
+        let assignmentScore = 10;
+        const dayTasks = tasks.filter(t => t.dueDate === dateStr || t.createdAt?.toISOString().split('T')[0] === dateStr);
+        if (dayTasks.length > 0) {
+          const startedOrCompleted = dayTasks.some(t => ['In Progress', 'Review', 'Completed'].includes(t.status));
+          if (startedOrCompleted) {
+            assignmentScore = 10;
+          } else {
+            assignmentScore = 0;
+            incompleteAssignmentCount += dayTasks.length;
           }
         }
-      });
-      
-      const targetPhotosCount = 15; // Target 15 photos uploaded per month
-      const photosScore = Math.min(20, Math.max(0, (photoUploadCount / targetPhotosCount) * 20));
 
-      // 5. Daily Reports Score (10 Marks)
-      const presentDates = attendances.filter(a => a.status === 'Present' || a.status === 'Late').map(a => a.date);
-      const reportDates = reports.map(r => r.date);
-      let missingReportsCount = 0;
-      presentDates.forEach(d => {
-        if (!reportDates.includes(d)) {
-          missingReportsCount++;
+        // 4. Progress Photo Uploads (10 marks * 6 slots = 60 marks)
+        let photosScore = 0;
+        const uploadSlots = [11, 12, 13, 15, 16, 17];
+        const uploadedHours = new Set();
+
+        const dayDailyReports = dailyReports.filter(r => r.date === dateStr);
+        dayDailyReports.forEach(r => {
+          if (r.photoUrls) {
+            const createdHour = new Date(r.createdAt || new Date(dateStr + 'T12:00:00')).getHours();
+            uploadedHours.add(createdHour);
+          }
+        });
+
+        const dayProgressReports = progressReports.filter(r => r.date === dateStr);
+        dayProgressReports.forEach(r => {
+          if (r.photoUrls) {
+            const createdHour = new Date(r.createdAt || new Date(dateStr + 'T12:00:00')).getHours();
+            uploadedHours.add(createdHour);
+          }
+        });
+
+        const dayStagePhotos = stageReports.filter(r => r.createdAt?.toISOString().split('T')[0] === dateStr);
+        dayStagePhotos.forEach(r => {
+          const createdHour = new Date(r.createdAt).getHours();
+          uploadedHours.add(createdHour);
+        });
+
+        uploadSlots.forEach(slotHour => {
+          const matched = Array.from(uploadedHours).some(h => h === slotHour || h === (slotHour - 1));
+          if (matched) {
+            photosScore += 10;
+          } else {
+            missingUploadCount++;
+          }
+        });
+
+        // 5. Daily Report (5 marks)
+        let dailyReportScore = 0;
+        const hasReport = dailyReports.some(r => r.date === dateStr) || progressReports.some(r => r.date === dateStr);
+        if (hasReport) {
+          dailyReportScore = 5;
+        } else {
+          dailyReportScore = 0;
+          if (att) {
+            missingReportCount++;
+          }
         }
-      });
-      const reportsScore = Math.max(0, 10 - (missingReportsCount * 2));
 
-      // Final Score Calculation
-      const totalScore = attendanceScore + callsScore + tasksScore + photosScore + reportsScore;
-      
-      // Calculate Financials:
-      // - Score >= 90: Bonus +₹5,000
-      // - Score >= 80: Full wage/bonus +₹2,500
-      // - Score < 75: Penalty of ₹1,000
-      // - Score < 60: Penalty of ₹3,000
-      let incentiveAmount = 0;
-      let penaltyAmount = 0;
-      if (totalScore >= 90) {
-        incentiveAmount = 5000.00;
-      } else if (totalScore >= 80) {
-        incentiveAmount = 2500.00;
-      } else if (totalScore < 75 && totalScore >= 60) {
-        penaltyAmount = 1000.00;
-      } else if (totalScore < 60) {
-        penaltyAmount = 3000.00;
+        // 6. Punch Out (3 marks)
+        let punchOutScore = 0;
+        if (att && att.checkOutTime) {
+          punchOutScore = 3;
+          const checkoutHour = parseInt(att.checkOutTime.split(':')[0], 10);
+          if (checkoutHour < 17) {
+            earlyPunchOutCount++;
+          }
+        } else {
+          punchOutScore = 0;
+        }
+
+        // 7. Remarks (2 marks)
+        let remarksScore = 0;
+        const checkinRemarks = att && att.remarks && att.remarks.length > 3;
+        const reportRemarks = dayDailyReports.some(r => r.notes && r.notes.length > 3) || dayProgressReports.some(r => r.notes && r.notes.length > 3);
+        if (checkinRemarks || reportRemarks) {
+          remarksScore = 2;
+        } else {
+          remarksScore = 0;
+        }
+
+        const dailyScore = attendanceScore + morningCallScore + assignmentScore + photosScore + dailyReportScore + punchOutScore + remarksScore;
+        totalDailyScore += dailyScore;
       }
+
+      // Compute monthly metrics
+      const averageScore = workingDaysCount > 0 ? (totalDailyScore / workingDaysCount) : 100.00;
+      
+      // Scale Incentive Payout (MD approved)
+      let incentiveAmount = 0;
+      if (averageScore >= 95) {
+        incentiveAmount = 10000.00; // 100% Incentive
+      } else if (averageScore >= 90) {
+        incentiveAmount = 9000.00;  // 90%
+      } else if (averageScore >= 80) {
+        incentiveAmount = 7500.00;  // 75%
+      } else if (averageScore >= 70) {
+        incentiveAmount = 5000.00;  // 50%
+      } else {
+        incentiveAmount = 0.00;     // No Incentive
+      }
+
+      const penaltyAmount = (lateCheckInCount * 100) + 
+                            (missedCallCount * 200) + 
+                            (missingUploadCount * 100) + 
+                            (missingReportCount * 300) + 
+                            (incompleteAssignmentCount * 250) + 
+                            (earlyPunchOutCount * 150);
 
       // Save to Incentives Table
       const [incentiveRow, created] = await Incentive.findOrCreate({
         where: { userId, month },
         defaults: {
-          attendanceScore,
-          callsScore,
-          tasksScore,
-          photosScore,
-          reportsScore,
-          totalScore,
+          attendanceScore: averageScore * 0.1,
+          callsScore: averageScore * 0.15,
+          tasksScore: averageScore * 0.25,
+          photosScore: averageScore * 0.2,
+          reportsScore: averageScore * 0.1,
+          totalScore: averageScore,
           incentiveAmount,
           penaltyAmount,
           status: 'Pending',
-          remarks: `Auto-computed monthly score: ${totalScore.toFixed(1)}/100`
+          remarks: `Auto-computed from ${workingDaysCount} working days. Infractions: ${lateCheckInCount} late punches, ${missedCallCount} missed calls, ${missingUploadCount} missing uploads, ${missingReportCount} missing reports.`
         }
       });
 
       if (!created) {
         await incentiveRow.update({
-          attendanceScore,
-          callsScore,
-          tasksScore,
-          photosScore,
-          reportsScore,
-          totalScore,
+          attendanceScore: averageScore * 0.1,
+          callsScore: averageScore * 0.15,
+          tasksScore: averageScore * 0.25,
+          photosScore: averageScore * 0.2,
+          reportsScore: averageScore * 0.1,
+          totalScore: averageScore,
           incentiveAmount,
           penaltyAmount,
-          remarks: `Re-computed monthly score: ${totalScore.toFixed(1)}/100`
+          remarks: `Re-computed from ${workingDaysCount} working days. Infractions: ${lateCheckInCount} late punches, ${missedCallCount} missed calls, ${missingUploadCount} missing uploads, ${missingReportCount} missing reports.`
         });
       }
     } catch (err) {
@@ -5210,6 +5657,8 @@ function registerRoutes(app, models) {
       let data = [];
       if (module === 'clients') {
         data = await Client.findAll();
+      } else if (module === 'leads') {
+        data = await Lead.findAll();
       } else if (module === 'projects') {
         data = await Project.findAll({ include: [{ model: Client, as: 'client' }] });
       } else if (module === 'attendance') {

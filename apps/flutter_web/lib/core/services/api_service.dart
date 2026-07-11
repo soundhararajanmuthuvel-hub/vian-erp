@@ -50,8 +50,7 @@ class ApiService {
         return {'success': false, 'message': err['message'] ?? 'Login failed'};
       }
     } catch (e) {
-      // Offline fallback
-      return _mockLogin(username, password);
+      throw Exception('Login failed: Server unreachable or offline. Details: $e');
     }
   }
 
@@ -135,27 +134,8 @@ class ApiService {
         return json.decode(response.body);
       }
       throw Exception('Server returned ${response.statusCode}');
-    } catch (_) {
-      // Mock stats
-      return {
-        'stats': {
-          'totalProjects': 14,
-          'activeProjects': 8,
-          'completedProjects': 5,
-          'totalClients': 12,
-          'totalLeads': 24,
-          'revenue': 8450000.0,
-          'pendingPayments': 3240000.0,
-          'siteVisitsToday': 2,
-          'employeeAttendance': 11
-        },
-        'recentActivities': [
-          {'id': 1, 'type': 'Project', 'message': 'Project "Villa Horizon" progress updated to 45%', 'time': '10 mins ago'},
-          {'id': 2, 'type': 'CRM', 'message': 'New Lead "Ankit Sharma" added from Website', 'time': '1 hr ago'},
-          {'id': 3, 'type': 'Attendance', 'message': 'Site Engineer Rahul checked in at Site A', 'time': '2 hrs ago'},
-          {'id': 4, 'type': 'Invoice', 'message': 'Invoice VIAN-2026-002 paid by Mr. Mehta', 'time': '1 day ago'}
-        ]
-      };
+    } catch (e) {
+      throw Exception('Failed to load dashboard: $e');
     }
   }
 
@@ -167,45 +147,8 @@ class ApiService {
         return json.decode(response.body)['leads'];
       }
       throw Exception();
-    } catch (_) {
-      return [
-        {
-          'id': 1,
-          'name': 'Rajesh Malhotra',
-          'phone': '+91 99887 76655',
-          'email': 'rajesh@malhotragroup.in',
-          'source': 'Website Inquiry',
-          'budget': 50000000.0,
-          'requirement': 'Full interior design and renovation of 5000 sqft penthouse in DLF Magnolias',
-          'notes': 'Client looking for ultra-luxury contemporary style. Wants to start by August 2026.',
-          'status': 'New',
-          'assignee': {'name': 'Priya Sharma'}
-        },
-        {
-          'id': 2,
-          'name': 'Dr. Shruti Kapoor',
-          'phone': '+91 98989 87878',
-          'email': 'shruti.k@healthclinic.org',
-          'source': 'Instagram Reference',
-          'budget': 15000000.0,
-          'requirement': 'Design of dental clinic, minimal clean aesthetics with warm lighting',
-          'notes': 'Scheduled site visit for next Monday. Sent initial portfolio link.',
-          'status': 'Contacted',
-          'assignee': {'name': 'Priya Sharma'}
-        },
-        {
-          'id': 3,
-          'name': 'Karan Johar',
-          'phone': '+91 91111 22222',
-          'email': 'karan@dharmaprod.com',
-          'source': 'Self Referral',
-          'budget': 95000000.0,
-          'requirement': 'Luxurious villa construction in Lonavala',
-          'notes': 'Sent initial proposal and mood boards. Negotiation stage.',
-          'status': 'Negotiation',
-          'assignee': {'name': 'Ananya Roy'}
-        }
-      ];
+    } catch (e) {
+      throw Exception('Failed to load CRM leads: $e');
     }
   }
 
@@ -1439,20 +1382,8 @@ class ApiService {
         return json.decode(response.body)['employees'];
       }
       throw Exception();
-    } catch (_) {
-      return [
-        {'id': 1, 'username': 'anand', 'name': 'Ar. Anand Sathiesivam', 'role': 'Managing Director', 'department': 'Executive'},
-        {'id': 2, 'username': 'vijay', 'name': 'Ar. Vijay Vinthan', 'role': 'Managing Director', 'department': 'Executive'},
-        {'id': 3, 'username': 'jaya', 'name': 'Jaya Sharma', 'role': 'Admin / Office Manager / Accounts', 'department': 'Front Office'},
-        {'id': 4, 'username': 'muthuiya', 'name': 'Ar. Muthuiya', 'role': 'Tech Head + Senior Architect', 'department': 'Core Team'},
-        {'id': 5, 'username': 'arun', 'name': 'Er. Arun Mohan', 'role': 'Structural Engineer', 'department': 'Core Team'},
-        {'id': 6, 'username': 'gokul', 'name': 'Ar. Gokul Krishnan', 'role': 'Employee', 'department': 'Designing Team'},
-        {'id': 7, 'username': 'sivaraman', 'name': 'Sr. Sivaraman', 'role': 'Employee', 'department': 'Designing Team'},
-        {'id': 8, 'username': 'mohan', 'name': 'Er. Mohan', 'role': 'Employee', 'department': 'Site Team'},
-        {'id': 9, 'username': 'vijayan', 'name': 'Er. Vijayan', 'role': 'Employee', 'department': 'Site Team'},
-        {'id': 10, 'username': 'manoj', 'name': 'Sr. Manoj', 'role': 'Employee', 'department': 'Site Team'},
-        {'id': 11, 'username': 'murugan', 'name': 'Sr. Murugan', 'role': 'Site Manager', 'department': 'Site Team'},
-      ];
+    } catch (e) {
+      throw Exception('Failed to load employees: $e');
     }
   }
 

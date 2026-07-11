@@ -51,6 +51,22 @@ class CloudinaryService {
       return `/uploads/floor_plans/${destFileName}`;
     }
   }
+
+  /**
+   * Deletes a file from Cloudinary given its public ID.
+   */
+  async deleteFile(publicId) {
+    try {
+      if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+        throw new Error('Cloudinary credentials are not configured in environment.');
+      }
+      const result = await cloudinary.uploader.destroy(publicId);
+      return result.result === 'ok';
+    } catch (error) {
+      console.warn(`Cloudinary deletion failed: ${error.message}`);
+      return false;
+    }
+  }
 }
 
 module.exports = new CloudinaryService();

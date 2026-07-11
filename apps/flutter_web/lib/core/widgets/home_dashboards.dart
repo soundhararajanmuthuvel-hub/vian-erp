@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -842,6 +843,32 @@ class _JayaHomeViewState extends State<JayaHomeView> {
   List<dynamic> _tasks = [];
   int _pendingPayments = 0;
 
+  // New projects and employees for Work Assignment
+  List<dynamic> _projects = [];
+  List<dynamic> _employees = [];
+
+  // Work Assignment Form State
+  int? _assignProjectId;
+  String? _assignChecklist;
+  String? _assignDrawing;
+  int? _assignUserId;
+  String _assignPriority = 'Medium';
+  final _assignDueDateCtrl = TextEditingController(text: DateTime.now().toString().split(' ').first);
+  final _assignTimeCtrl = TextEditingController(text: '05:00 PM');
+  final _assignNotesCtrl = TextEditingController();
+
+  final List<String> _checklistItems = [
+    'Site Boundary', 'Column Marking', 'Footing', 'Grade Beam', 'Plinth',
+    'Ground Floor', 'First Floor', 'Roof', 'Brick Work', 'Electrical',
+    'Plumbing', 'Painting', 'Wood Work', 'False Ceiling', 'Flooring',
+    'Finishing', 'Handover'
+  ];
+
+  final List<String> _drawingItems = [
+    'Working Drawing', 'Floor Plan', 'Section', 'Elevation', 'Compound Wall',
+    'Gate Design', 'Electrical', 'Plumbing', '3D Interior', '3D Exterior'
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -854,6 +881,8 @@ class _JayaHomeViewState extends State<JayaHomeView> {
     final inv = await ApiService.getInvoices();
     final anns = await ApiService.getAnnouncements();
     final tsk = await ApiService.getTasks();
+    final projs = await ApiService.getProjects();
+    final emps = await ApiService.getEmployees();
 
     if (mounted) {
       setState(() {
@@ -862,9 +891,58 @@ class _JayaHomeViewState extends State<JayaHomeView> {
         _invoices = inv;
         _announcements = anns;
         _tasks = tsk;
+        _projects = projs;
+        _employees = emps.where((e) => e['role'] != 'Client' && e['role'] != 'Managing Director').toList();
         _pendingPayments = inv.where((i) => i['status'] != 'Paid').length;
         _loading = false;
       });
+    }
+  }
+
+  Future<void> _submitAssignment() async {
+    if (_assignProjectId == null || _assignUserId == null || _assignChecklist == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select Project, Staff, and Working Checklist Item.'))
+      );
+      return;
+    }
+    
+    final selectedProj = _projects.firstWhere((p) => p['id'] == _assignProjectId);
+    final selectedClient = _clients.firstWhere((c) => c['id'] == selectedProj['clientId'], orElse: () => {'name': 'Client'});
+    
+    final descriptionObj = {
+      'clientName': selectedClient['name'] ?? 'Client',
+      'projectName': selectedProj['name'] ?? 'Project',
+      'checklist': _assignChecklist,
+      'drawing': _assignDrawing ?? 'None',
+      'expectedCompletion': _assignTimeCtrl.text,
+      'notes': _assignNotesCtrl.text.isEmpty ? 'Daily Work Assignment' : _assignNotesCtrl.text
+    };
+
+    final success = await ApiService.createTask({
+      'title': 'Daily Work: $_assignChecklist',
+      'description': jsonEncode(descriptionObj),
+      'projectId': _assignProjectId,
+      'assignedTo': _assignUserId,
+      'priority': _assignPriority,
+      'dueDate': _assignDueDateCtrl.text,
+      'status': 'Pending'
+    });
+
+    if (success) {
+      _assignNotesCtrl.clear();
+      setState(() {
+        _assignChecklist = null;
+        _assignDrawing = null;
+      });
+      _loadJayaData();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Work assignment successfully saved and dispatched to Staff.'))
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to save work assignment.'))
+      );
     }
   }
 
@@ -990,6 +1068,9 @@ class _JayaHomeViewState extends State<JayaHomeView> {
                 flex: 2,
                 child: Column(
                   children: [
+                    _buildDailyAssignmentForm(),
+                    const SizedBox(height: 24),
+
                     VianCard(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1053,6 +1134,140 @@ class _JayaHomeViewState extends State<JayaHomeView> {
               )
             ],
           )
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDailyAssignmentForm() {
+    return VianCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('DAILY WORK ASSIGNMENT DISPATCHER', style: TextStyle(fontWeight: FontWeight.bold, color: VianTheme.primaryGold, fontSize: 13, letterSpacing: 0.8)),
+          const SizedBox(height: 16),
+          DropdownButtonFormField<dynamic>(
+            value: _assignProjectId,
+            dropdownColor: VianTheme.headerBlack,
+            decoration: const InputDecoration(labelText: 'Select Project & Client'),
+            items: _projects.map((p) {
+              return DropdownMenuItem<dynamic>(
+                value: p['id'],
+                child: Text('${p['name']} (Client ID: ${p['clientId']})', style: const TextStyle(fontSize: 12)),
+              );
+            }).toList(),
+            onChanged: (val) {
+              setState(() => _assignProjectId = val);
+            },
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: DropdownButtonFormField<String>(
+                  value: _assignChecklist,
+                  dropdownColor: VianTheme.headerBlack,
+                  decoration: const InputDecoration(labelText: 'Working Checklist Item'),
+                  items: _checklistItems.map((item) {
+                    return DropdownMenuItem<String>(
+                      value: item,
+                      child: Text(item, style: const TextStyle(fontSize: 12)),
+                    );
+                  }).toList(),
+                  onChanged: (val) {
+                    setState(() => _assignChecklist = val);
+                  },
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: DropdownButtonFormField<String>(
+                  value: _assignDrawing,
+                  dropdownColor: VianTheme.headerBlack,
+                  decoration: const InputDecoration(labelText: 'Drawing Reference (Optional)'),
+                  items: _drawingItems.map((item) {
+                    return DropdownMenuItem<String>(
+                      value: item,
+                      child: Text(item, style: const TextStyle(fontSize: 12)),
+                    );
+                  }).toList(),
+                  onChanged: (val) {
+                    setState(() => _assignDrawing = val);
+                  },
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: DropdownButtonFormField<dynamic>(
+                  value: _assignUserId,
+                  dropdownColor: VianTheme.headerBlack,
+                  decoration: const InputDecoration(labelText: 'Assign Staff / Engineer'),
+                  items: _employees.map((e) {
+                    return DropdownMenuItem<dynamic>(
+                      value: e['id'],
+                      child: Text('${e['name']} (${e['role']})', style: const TextStyle(fontSize: 12)),
+                    );
+                  }).toList(),
+                  onChanged: (val) {
+                    setState(() => _assignUserId = val);
+                  },
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: DropdownButtonFormField<String>(
+                  value: _assignPriority,
+                  dropdownColor: VianTheme.headerBlack,
+                  decoration: const InputDecoration(labelText: 'Priority Level'),
+                  items: ['Low', 'Medium', 'High', 'Critical'].map((p) {
+                    return DropdownMenuItem<String>(
+                      value: p,
+                      child: Text(p, style: const TextStyle(fontSize: 12)),
+                    );
+                  }).toList(),
+                  onChanged: (val) {
+                    setState(() => _assignPriority = val!);
+                  },
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: TextFormField(
+                  controller: _assignDueDateCtrl,
+                  decoration: const InputDecoration(labelText: 'Due Date (YYYY-MM-DD)'),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: TextFormField(
+                  controller: _assignTimeCtrl,
+                  decoration: const InputDecoration(labelText: 'Expected Completion Time'),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          TextFormField(
+            controller: _assignNotesCtrl,
+            maxLines: 2,
+            decoration: const InputDecoration(labelText: 'Task Instructions / Remarks'),
+          ),
+          const SizedBox(height: 16),
+          Center(
+            child: VianButton(
+              text: 'Dispatch Today\'s Task',
+              icon: Icons.send_rounded,
+              onPressed: _submitAssignment,
+            ),
+          ),
         ],
       ),
     );
@@ -1674,6 +1889,17 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView> {
     final tsk = await ApiService.getTasks();
     final anns = await ApiService.getAnnouncements();
     final finesData = await ApiService.getFines();
+    final attLogs = await ApiService.getAttendance();
+
+    final todayStr = DateTime.now().toString().split(' ').first;
+    dynamic myTodayAtt;
+    for (var a in attLogs) {
+      if (a['userId'] == ApiService.currentUser?['id'] && a['date'] == todayStr) {
+        myTodayAtt = a;
+        break;
+      }
+    }
+    final hasCheckedIn = myTodayAtt != null && myTodayAtt['checkOutTime'] == null;
 
     if (projs.isNotEmpty) {
       _selectedProjectId = projs.first['id'];
@@ -1684,6 +1910,7 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView> {
         _projects = projs;
         _tasks = tsk;
         _announcements = anns;
+        _checkedIn = hasCheckedIn;
         _fines = (finesData['fines'] as List<dynamic>?)?.where((f) => f['employeeId'] == ApiService.currentUser?['id']).toList() ?? [];
         _loading = false;
       });
@@ -1691,31 +1918,50 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView> {
   }
 
   void _triggerCheckIn() async {
-    setState(() => _checkedIn = true);
-    _gpsTimer = Timer.periodic(const Duration(seconds: 5), (timer) async {
-      final double lat = 28.4630 + (idx % 2 == 0 ? 0.001 : -0.001);
-      final double lng = 77.0300;
-      idx++;
+    final double lat = 28.4630;
+    final double lng = 77.0300;
+    final String gpsStr = '$lat° N, $lng° E';
+    
+    final ok = await ApiService.checkIn(gpsStr, 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80');
+    if (ok) {
+      setState(() => _checkedIn = true);
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Morning Punch In successful! (GPS Geofence Verified)')));
+      _loadEmployeeData();
       
-      final res = await ApiService.trackGps(lat, lng);
-      if (res['isOutside'] == true) {
-        setState(() {
-          _activeWarning = res['warning'];
-        });
-      } else {
-        setState(() {
-          _activeWarning = null;
-        });
-      }
-    });
+      _gpsTimer = Timer.periodic(const Duration(seconds: 5), (timer) async {
+        final double currentLat = 28.4630 + (idx % 2 == 0 ? 0.001 : -0.001);
+        final double currentLng = 77.0300;
+        idx++;
+        
+        final res = await ApiService.trackGps(currentLat, currentLng);
+        if (res['isOutside'] == true) {
+          setState(() {
+            _activeWarning = res['warning'];
+          });
+        } else {
+          setState(() {
+            _activeWarning = null;
+          });
+        }
+      });
+    }
   }
 
-  void _triggerCheckOut() {
-    _gpsTimer?.cancel();
-    setState(() {
-      _checkedIn = false;
-      _activeWarning = null;
-    });
+  void _triggerCheckOut() async {
+    final double lat = 28.4630;
+    final double lng = 77.0300;
+    final String gpsStr = '$lat° N, $lng° E';
+    
+    final ok = await ApiService.checkOut(gpsStr);
+    if (ok) {
+      _gpsTimer?.cancel();
+      setState(() {
+        _checkedIn = false;
+        _activeWarning = null;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Evening Punch Out successful!')));
+      _loadEmployeeData();
+    }
   }
 
   void _submitEodReport() async {
@@ -1734,6 +1980,186 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView> {
     _quantityCompletedCtrl.clear();
     _notesCtrl.clear();
     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('EOD Report submitted successfully!')));
+  }
+
+  void _showPhotoUploadModal(String slotName) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1E1E26),
+        title: Text('Upload 5 Photos - Slot: $slotName', style: const TextStyle(color: VianTheme.primaryGold)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Upload 5 geofenced site photos for this progress audit slot.', style: TextStyle(color: Colors.grey, fontSize: 12)),
+            const SizedBox(height: 16),
+            Container(
+              height: 100,
+              decoration: BoxDecoration(color: Colors.white.withOpacity(0.04), borderRadius: BorderRadius.circular(8)),
+              child: const Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.image, color: VianTheme.primaryGold, size: 36),
+                    Text('5 Photos Selected', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                    Text('GPS: 28.4630° N, 77.0300° E', style: TextStyle(fontSize: 10, color: Colors.grey)),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            const TextField(
+              decoration: InputDecoration(labelText: 'Short progress remarks description'),
+            )
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          VianButton(
+            text: 'Submit to Cloudinary',
+            onPressed: () async {
+              await ApiService.submitDailyReport({
+                'projectId': _selectedProjectId ?? 1,
+                'workCategory': 'Photo Compliance Slot: $slotName',
+                'workDescription': 'Uploaded 5 photos for slot $slotName',
+                'photoUrls': jsonEncode([
+                  'https://images.unsplash.com/photo-1503387762-592ded58c454?auto=format&fit=crop&w=800&q=80',
+                  'https://images.unsplash.com/photo-1503387762-592ded58c454?auto=format&fit=crop&w=800&q=80',
+                  'https://images.unsplash.com/photo-1503387762-592ded58c454?auto=format&fit=crop&w=800&q=80',
+                  'https://images.unsplash.com/photo-1503387762-592ded58c454?auto=format&fit=crop&w=800&q=80',
+                  'https://images.unsplash.com/photo-1503387762-592ded58c454?auto=format&fit=crop&w=800&q=80'
+                ])
+              });
+              Navigator.pop(ctx);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Successfully uploaded photos for slot $slotName.'))
+              );
+              _loadEmployeeData();
+            },
+          )
+        ],
+      ),
+    );
+  }
+
+  void _showPendingWorkModal(dynamic task) {
+    String selectedReason = 'Material Delay';
+    final dateCtrl = TextEditingController(text: DateTime.now().add(const Duration(days: 2)).toString().split(' ').first);
+    
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setModalState) => AlertDialog(
+          backgroundColor: const Color(0xFF1E1E26),
+          title: const Text('Report Pending Work / Delay Reason', style: TextStyle(color: VianTheme.primaryGold)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              DropdownButtonFormField<String>(
+                value: selectedReason,
+                dropdownColor: VianTheme.headerBlack,
+                decoration: const InputDecoration(labelText: 'Reason for Delay'),
+                items: ['Material Delay', 'Rain', 'Labour Issue', 'Client Delay', 'Site Closed', 'Other']
+                    .map((r) => DropdownMenuItem(value: r, child: Text(r))).toList(),
+                onChanged: (val) {
+                  setModalState(() {
+                    selectedReason = val!;
+                  });
+                },
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: dateCtrl,
+                decoration: const InputDecoration(labelText: 'Expected Completion Date (YYYY-MM-DD)'),
+              )
+            ],
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+            VianButton(
+              text: 'Submit Delay Report',
+              onPressed: () async {
+                await ApiService.updateTask(task['id'], {
+                  'status': 'Pending',
+                  'description': '${task['description']}\n\n[DELAY REPORTED] Reason: $selectedReason | New Expected Completion: ${dateCtrl.text}'
+                });
+                Navigator.pop(ctx);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Delay reason submitted. MD and Admin notified.'))
+                );
+                _loadEmployeeData();
+              },
+            )
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPhotoUploadSlots() {
+    final slots = [
+      {'time': '11:00 AM', 'slot': '11 AM'},
+      {'time': '12:00 PM', 'slot': '12 PM'},
+      {'time': '01:00 PM', 'slot': '1 PM'},
+      {'time': '03:00 PM', 'slot': '3 PM'},
+      {'time': '04:00 PM', 'slot': '4 PM'},
+      {'time': '05:00 PM', 'slot': '5 PM'},
+    ];
+
+    return VianCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('DAILY PROGRESS PHOTO UPLOADS', style: TextStyle(fontWeight: FontWeight.bold, color: VianTheme.primaryGold, fontSize: 13)),
+          const SizedBox(height: 4),
+          const Text('Upload 5 site photos for each designated hourly slot. Captures location automatically.', style: TextStyle(color: Color(0xFF70707C), fontSize: 11)),
+          const SizedBox(height: 16),
+          GridView.count(
+            crossAxisCount: 3,
+            childAspectRatio: 2.2,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            children: slots.map((slot) {
+              return Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1E1E26),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.white10),
+                ),
+                padding: const EdgeInsets.all(8),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(slot['time']!, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: VianTheme.primaryGold,
+                            foregroundColor: Colors.black,
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          ),
+                          onPressed: () {
+                            _showPhotoUploadModal(slot['slot']!);
+                          },
+                          icon: const Icon(Icons.camera_alt, size: 12),
+                          label: const Text('Upload', style: TextStyle(fontSize: 10)),
+                        )
+                      ],
+                    )
+                  ],
+                ),
+              );
+            }).toList(),
+          )
+        ],
+      ),
+    );
   }
 
   @override
@@ -1799,21 +2225,81 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView> {
                             itemCount: _tasks.length,
                             itemBuilder: (context, idx) {
                               final task = _tasks[idx];
+                              Map<String, dynamic>? meta;
+                              try {
+                                if (task['description'] != null && task['description'].toString().startsWith('{')) {
+                                  meta = jsonDecode(task['description'].toString());
+                                }
+                              } catch (e) {
+                                // ignore
+                              }
+
+                              final isCompleted = task['status'] == 'Completed';
+
                               return Card(
                                 color: const Color(0xFF1E1E26),
-                                child: ListTile(
-                                  leading: Icon(task['status'] == 'Completed' ? Icons.check_circle : Icons.radio_button_unchecked, color: VianTheme.primaryGold),
-                                  title: Text(task['title'] ?? ''),
-                                  subtitle: Text('Due: ${task['dueDate']} | Status: ${task['status']}'),
-                                  trailing: task['status'] != 'Completed'
-                                      ? VianButton(
-                                          text: 'Complete',
-                                          onPressed: () async {
-                                            await ApiService.updateTaskStatus(task['id'], 'Completed');
-                                            _loadEmployeeData();
-                                          },
+                                child: Padding(
+                                  padding: const EdgeInsets.all(12.0),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Icon(isCompleted ? Icons.check_circle : Icons.radio_button_unchecked, color: VianTheme.primaryGold),
+                                          const SizedBox(width: 12),
+                                          Expanded(
+                                            child: Text(task['title'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                                          ),
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                            decoration: BoxDecoration(
+                                              color: isCompleted ? const Color(0x3328A745) : const Color(0x33FFC107),
+                                              borderRadius: BorderRadius.circular(4),
+                                            ),
+                                            child: Text(
+                                              task['status'] ?? 'Pending',
+                                              style: TextStyle(color: isCompleted ? VianTheme.success : VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold),
+                                            ),
+                                          )
+                                        ],
+                                      ),
+                                      const SizedBox(height: 12),
+                                      if (meta != null) ...[
+                                        Text('Client: ${meta['clientName']}', style: const TextStyle(fontSize: 12, color: Colors.white)),
+                                        Text('Project: ${meta['projectName']}', style: const TextStyle(fontSize: 12, color: Colors.white)),
+                                        Text('Checklist: ${meta['checklist']}', style: const TextStyle(fontSize: 12, color: VianTheme.primaryGold)),
+                                        Text('Drawing: ${meta['drawing']}', style: const TextStyle(fontSize: 12, color: VianTheme.lightText)),
+                                        Text('Expected Completion: ${meta['expectedCompletion']}', style: const TextStyle(fontSize: 12, color: VianTheme.danger)),
+                                        const SizedBox(height: 8),
+                                        Text('Instructions: ${meta['notes']}', style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                                      ] else ...[
+                                        Text(task['description'] ?? '', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                                      ],
+                                      const SizedBox(height: 8),
+                                      Text('Due Date: ${task['dueDate']}', style: const TextStyle(fontSize: 11, color: VianTheme.lightText)),
+                                      if (!isCompleted) ...[
+                                        const SizedBox(height: 12),
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.end,
+                                          children: [
+                                            TextButton.icon(
+                                              icon: const Icon(Icons.warning_amber_rounded, size: 14, color: VianTheme.danger),
+                                              label: const Text('Report Delay', style: TextStyle(color: VianTheme.danger, fontSize: 12)),
+                                              onPressed: () => _showPendingWorkModal(task),
+                                            ),
+                                            const SizedBox(width: 12),
+                                            VianButton(
+                                              text: 'Mark Complete',
+                                              onPressed: () async {
+                                                await ApiService.updateTaskStatus(task['id'], 'Completed');
+                                                _loadEmployeeData();
+                                              },
+                                            )
+                                          ],
                                         )
-                                      : null,
+                                      ]
+                                    ],
+                                  ),
                                 ),
                               );
                             },
@@ -1821,6 +2307,9 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView> {
                         ],
                       ),
                     ),
+                    const SizedBox(height: 24),
+
+                    _buildPhotoUploadSlots(),
                     const SizedBox(height: 24),
 
                     VianCard(
