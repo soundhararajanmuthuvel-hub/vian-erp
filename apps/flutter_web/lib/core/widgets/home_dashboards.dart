@@ -1864,6 +1864,7 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView> {
   List<dynamic> _tasks = [];
   List<dynamic> _announcements = [];
   List<dynamic> _fines = [];
+  Map<String, dynamic>? _myIncentive;
 
   int? _selectedProjectId;
   List<dynamic> _projects = [];
@@ -1891,6 +1892,13 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView> {
     final finesData = await ApiService.getFines();
     final attLogs = await ApiService.getAttendance();
 
+    final String currentMonth = DateTime.now().toString().substring(0, 7);
+    final incs = await ApiService.getIncentives(currentMonth);
+    dynamic myInc;
+    if (incs.isNotEmpty) {
+      myInc = incs.first;
+    }
+
     final todayStr = DateTime.now().toString().split(' ').first;
     dynamic myTodayAtt;
     for (var a in attLogs) {
@@ -1912,6 +1920,7 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView> {
         _announcements = anns;
         _checkedIn = hasCheckedIn;
         _fines = (finesData['fines'] as List<dynamic>?)?.where((f) => f['employeeId'] == ApiService.currentUser?['id']).toList() ?? [];
+        _myIncentive = myInc;
         _loading = false;
       });
     }
@@ -2389,6 +2398,75 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView> {
                       const SizedBox(height: 24),
                     ],
 
+                    if (_myIncentive != null) ...[
+                      VianCard(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text('YOUR MONTHLY INCENTIVE STATUS', style: TextStyle(fontWeight: FontWeight.bold, color: VianTheme.primaryGold, fontSize: 13)),
+                            const SizedBox(height: 12),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Text('Performance Score:', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                                Text(
+                                  '${safeToDouble(_myIncentive!['totalScore']).toStringAsFixed(1)} / 100',
+                                  style: const TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Text('Suggested Incentive:', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                                Text(
+                                  '₹${safeToDouble(_myIncentive!['suggestedAmount']).toStringAsFixed(0)}',
+                                  style: const TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Text('Approved Payout:', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                                Text(
+                                  '₹${safeToDouble(_myIncentive!['finalAmount']).toStringAsFixed(0)}',
+                                  style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Text('Status:', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                                _statusTag(_myIncentive!['status'] ?? 'Draft'),
+                              ],
+                            ),
+                            if (_myIncentive!['adminRemarks'] != null && _myIncentive!['adminRemarks'].toString().isNotEmpty) ...[
+                              const Divider(color: Colors.white10),
+                              const Text('Admin Remarks:', style: TextStyle(fontSize: 11, color: VianTheme.primaryGold)),
+                              Text(
+                                _myIncentive!['adminRemarks'] ?? '',
+                                style: const TextStyle(fontSize: 12, color: Colors.white70),
+                              ),
+                            ],
+                            if (_myIncentive!['superAdminRemarks'] != null && _myIncentive!['superAdminRemarks'].toString().isNotEmpty) ...[
+                              const SizedBox(height: 6),
+                              const Text('Management Remarks:', style: TextStyle(fontSize: 11, color: VianTheme.primaryGold)),
+                              Text(
+                                _myIncentive!['superAdminRemarks'] ?? '',
+                                style: const TextStyle(fontSize: 12, color: Colors.white70),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                    ],
+
                     VianCard(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -2440,6 +2518,38 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView> {
           )
         ],
       ),
+    );
+  }
+
+  Widget _statusTag(String status) {
+    Color bg = Colors.grey.withOpacity(0.1);
+    Color txt = Colors.grey;
+    if (status == 'Approved') {
+      bg = Colors.green.withOpacity(0.15);
+      txt = Colors.greenAccent;
+    } else if (status == 'Paid') {
+      bg = Colors.green.withOpacity(0.25);
+      txt = Colors.green;
+    } else if (status == 'Under Review') {
+      bg = Colors.orange.withOpacity(0.15);
+      txt = Colors.orangeAccent;
+    } else if (status == 'Recommended') {
+      bg = Colors.purple.withOpacity(0.15);
+      txt = Colors.purpleAccent;
+    } else if (status == 'Rejected') {
+      bg = Colors.red.withOpacity(0.15);
+      txt = Colors.redAccent;
+    } else if (status == 'Draft') {
+      bg = Colors.grey.withOpacity(0.15);
+      txt = Colors.grey;
+    }
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(status, style: TextStyle(color: txt, fontSize: 10, fontWeight: FontWeight.bold)),
     );
   }
 }

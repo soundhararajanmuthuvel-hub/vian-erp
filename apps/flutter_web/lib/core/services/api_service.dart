@@ -3416,12 +3416,29 @@ class ApiService {
     }
   }
 
-  static Future<bool> updateIncentiveStatus(int id, String status, String remarks) async {
+  static Future<bool> updateIncentiveStatus(
+    int id,
+    String status, {
+    double? finalAmount,
+    String? remarks,
+    String? adminRemarks,
+    String? superAdminRemarks,
+    bool? locked,
+    String? reason,
+  }) async {
     try {
+      final Map<String, dynamic> data = {'status': status};
+      if (finalAmount != null) data['finalAmount'] = finalAmount;
+      if (remarks != null) data['remarks'] = remarks;
+      if (adminRemarks != null) data['adminRemarks'] = adminRemarks;
+      if (superAdminRemarks != null) data['superAdminRemarks'] = superAdminRemarks;
+      if (locked != null) data['locked'] = locked;
+      if (reason != null) data['reason'] = reason;
+
       final response = await http.post(
-        Uri.parse('$baseUrl/incentives/$id/status'),
+        Uri.parse('$baseUrl/incentives/$id/update-review'),
         headers: _headers,
-        body: json.encode({'status': status, 'remarks': remarks}),
+        body: json.encode(data),
       );
       return response.statusCode == 200;
     } catch (_) {

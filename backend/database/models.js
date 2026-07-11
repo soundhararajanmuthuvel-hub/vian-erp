@@ -1424,13 +1424,19 @@ function initModels() {
     photosScore: { type: DataTypes.DECIMAL(5, 2), defaultValue: 0.0 },
     reportsScore: { type: DataTypes.DECIMAL(5, 2), defaultValue: 0.0 },
     totalScore: { type: DataTypes.DECIMAL(5, 2), defaultValue: 0.0 },
-    incentiveAmount: { type: DataTypes.DECIMAL(15, 2), defaultValue: 0.0 },
+    originalSuggestedAmount: { type: DataTypes.DECIMAL(15, 2), defaultValue: 0.0 },
+    suggestedAmount: { type: DataTypes.DECIMAL(15, 2), defaultValue: 0.0 },
+    finalAmount: { type: DataTypes.DECIMAL(15, 2), defaultValue: 0.0 },
     penaltyAmount: { type: DataTypes.DECIMAL(15, 2), defaultValue: 0.0 },
     status: {
-      type: DataTypes.ENUM('Pending', 'Approved', 'Paid'),
-      defaultValue: 'Pending'
+      type: DataTypes.STRING(30),
+      defaultValue: 'Draft'
     },
     remarks: { type: DataTypes.TEXT, allowNull: true },
+    adminRemarks: { type: DataTypes.TEXT, allowNull: true },
+    superAdminRemarks: { type: DataTypes.TEXT, allowNull: true },
+    reviewTimeline: { type: DataTypes.TEXT, allowNull: true }, // JSON array of logs
+    locked: { type: DataTypes.BOOLEAN, defaultValue: false },
     approvedById: { type: DataTypes.INTEGER, allowNull: true }
   }, { tableName: 'incentives', underscored: true });
 

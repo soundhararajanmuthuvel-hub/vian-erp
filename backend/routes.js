@@ -4692,25 +4692,43 @@ function registerRoutes(app, models) {
           photosScore: averageScore * 0.2,
           reportsScore: averageScore * 0.1,
           totalScore: averageScore,
-          incentiveAmount,
+          originalSuggestedAmount: incentiveAmount,
+          suggestedAmount: incentiveAmount,
+          finalAmount: incentiveAmount,
           penaltyAmount,
-          status: 'Pending',
+          status: 'Draft',
           remarks: `Auto-computed from ${workingDaysCount} working days. Infractions: ${lateCheckInCount} late punches, ${missedCallCount} missed calls, ${missingUploadCount} missing uploads, ${missingReportCount} missing reports.`
         }
       });
 
       if (!created) {
-        await incentiveRow.update({
+        if (incentiveRow.locked) {
+          console.log(`Incentive record for user ${userId} and month ${month} is locked. Skipping auto-recalculation.`);
+          return;
+        }
+
+        const updateData = {
           attendanceScore: averageScore * 0.1,
           callsScore: averageScore * 0.15,
           tasksScore: averageScore * 0.25,
           photosScore: averageScore * 0.2,
           reportsScore: averageScore * 0.1,
           totalScore: averageScore,
-          incentiveAmount,
+          suggestedAmount: incentiveAmount,
           penaltyAmount,
           remarks: `Re-computed from ${workingDaysCount} working days. Infractions: ${lateCheckInCount} late punches, ${missedCallCount} missed calls, ${missingUploadCount} missing uploads, ${missingReportCount} missing reports.`
-        });
+        };
+
+        if (parseFloat(incentiveRow.originalSuggestedAmount || 0) === 0) {
+          updateData.originalSuggestedAmount = incentiveAmount;
+        }
+
+        // Only override finalAmount automatically if in Draft or Under Review
+        if (incentiveRow.status === 'Draft' || incentiveRow.status === 'Under Review') {
+          updateData.finalAmount = incentiveAmount;
+        }
+
+        await incentiveRow.update(updateData);
       }
     } catch (err) {
       console.error('Error recalculating incentive score:', err);
@@ -4793,6 +4811,19 @@ function registerRoutes(app, models) {
   app.get('/api/incentives', authenticateToken, async (req, res) => {
     const month = req.query.month || new Date().toISOString().substring(0, 7); // default YYYY-MM
     try {
+      const pRole = getPermissionRole(req.user.role, req.user.username);
+      
+      if (pRole === 'Staff') {
+        // Recalculate only for this specific employee so data is fresh
+        await recalculateEmployeeIncentive(req.user.id, month);
+        
+        const list = await Incentive.findAll({
+          where: { month, userId: req.user.id },
+          include: [{ model: User, as: 'user', attributes: ['name', 'role', 'employeeId', 'department'] }]
+        });
+        return res.json(list);
+      }
+
       // 1. Recalculate for all active staff automatically so data is fresh
       const staffList = await User.findAll({
         where: {
@@ -4835,23 +4866,64 @@ function registerRoutes(app, models) {
     }
   });
 
-  app.post('/api/incentives/:id/status', authenticateToken, authorizeRoles('Super Admin', 'Managing Director'), async (req, res) => {
-    const { status, remarks } = req.body; // 'Approved', 'Paid'
+  app.post('/api/incentives/:id/update-review', authenticateToken, authorizeRoles('Super Admin', 'Managing Director', 'Admin', 'Admin / Office Manager / Accounts'), async (req, res) => {
+    const { finalAmount, status, remarks, adminRemarks, superAdminRemarks, locked, reason } = req.body;
     try {
       const incentive = await Incentive.findByPk(req.params.id);
       if (!incentive) return res.status(404).json({ message: 'Incentive record not found' });
-      
-      const oldVal = { ...incentive.toJSON() };
-      await incentive.update({
-        status,
-        remarks: remarks || incentive.remarks,
-        approvedById: req.user.id
-      });
 
-      await writeAuditLog(req, 'ApproveIncentive', 'Incentives', oldVal, incentive.toJSON());
+      const pRole = getPermissionRole(req.user.role, req.user.username);
+
+      if (incentive.locked && pRole !== 'Super Admin') {
+        return res.status(403).json({ message: 'This incentive record is locked and cannot be edited.' });
+      }
+
+      // Enforce restrictions based on role
+      if (pRole === 'Admin') {
+        if (status && !['Draft', 'Under Review', 'Recommended'].includes(status)) {
+          return res.status(403).json({ message: 'Admins can only transition status to Under Review or Recommended.' });
+        }
+      }
+
+      // Prepare timeline entry
+      let timeline = [];
+      try {
+        timeline = JSON.parse(incentive.reviewTimeline || '[]');
+      } catch (e) {}
+
+      const timelineEntry = {
+        timestamp: new Date().toISOString(),
+        action: `Update status to ${status || incentive.status}`,
+        user: req.user.username || req.user.name,
+        role: pRole,
+        originalAmount: incentive.finalAmount,
+        newAmount: finalAmount !== undefined ? finalAmount : incentive.finalAmount,
+        remarks: remarks || adminRemarks || superAdminRemarks || '',
+        reason: reason || 'Operational review'
+      };
+      timeline.push(timelineEntry);
+
+      const oldVal = { ...incentive.toJSON() };
+      
+      const updates = {};
+      if (finalAmount !== undefined) updates.finalAmount = parseFloat(finalAmount);
+      if (status !== undefined) updates.status = status;
+      if (remarks !== undefined) updates.remarks = remarks;
+      if (adminRemarks !== undefined) updates.adminRemarks = adminRemarks;
+      if (superAdminRemarks !== undefined) updates.superAdminRemarks = superAdminRemarks;
+      if (locked !== undefined && pRole === 'Super Admin') updates.locked = !!locked;
+      
+      updates.reviewTimeline = JSON.stringify(timeline);
+      updates.approvedById = req.user.id;
+
+      await incentive.update(updates);
+
+      // Write a record in the main AuditLog
+      await writeAuditLog(req, 'UpdateIncentiveReview', 'Incentives', oldVal, incentive.toJSON());
+
       res.json({ success: true, incentive });
     } catch (error) {
-      res.status(500).json({ message: 'Error updating incentive status', error: error.message });
+      res.status(500).json({ message: 'Error updating incentive review details', error: error.message });
     }
   });
 

@@ -15497,7 +15497,7 @@ class _IncentivesTabState extends ConsumerState<IncentivesTab> {
   }
 
   Future<void> _updateStatus(int rowId, String status) async {
-    final ok = await ApiService.updateIncentiveStatus(rowId, status, 'Approved by Managing Director');
+    final ok = await ApiService.updateIncentiveStatus(rowId, status, remarks: 'Approved by Managing Director');
     if (ok) {
       _loadIncentives();
       ScaffoldMessenger.of(context).showSnackBar(
@@ -15586,7 +15586,9 @@ class _IncentivesTabState extends ConsumerState<IncentivesTab> {
   Widget build(BuildContext context) {
     final user = ref.read(userProvider);
     final role = user?['role'] ?? 'Client';
-    final isMD = role == 'Managing Director' || role == 'Super Admin';
+    final pRole = getPermissionRole(role);
+    final isMD = pRole == 'Super Admin' || pRole == 'Admin';
+    final isSuperAdmin = pRole == 'Super Admin';
 
     // Summary Calculations
     double totalBonus = 0;
@@ -15595,7 +15597,7 @@ class _IncentivesTabState extends ConsumerState<IncentivesTab> {
     if (_incentives.isNotEmpty) {
       double sumScore = 0;
       for (var inc in _incentives) {
-        totalBonus += safeToDouble(inc['incentiveAmount']);
+        totalBonus += safeToDouble(inc['finalAmount']);
         totalPenalties += safeToDouble(inc['penaltyAmount']);
         sumScore += safeToDouble(inc['totalScore']);
       }
@@ -15617,7 +15619,7 @@ class _IncentivesTabState extends ConsumerState<IncentivesTab> {
                   children: [
                     const Text('Staff Incentives Engine', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: VianTheme.primaryGold)),
                     const SizedBox(height: 4),
-                    Text('Auto-compute monthly employee operational score, bonuses, and late log-in penalties.', style: TextStyle(color: Colors.white.withOpacity(0.5))),
+                    Text('Auto-compute monthly employee operational score, bonuses, and review override penalties.', style: TextStyle(color: Colors.white.withOpacity(0.5))),
                   ],
                 ),
                 Row(
@@ -15653,7 +15655,7 @@ class _IncentivesTabState extends ConsumerState<IncentivesTab> {
               children: [
                 Expanded(child: _summaryCard('Average Performance Score', '${averageScore.toStringAsFixed(1)} / 100', Icons.trending_up, Colors.blueAccent)),
                 const SizedBox(width: 16),
-                Expanded(child: _summaryCard('Total Incentive Payouts', '₹${totalBonus.toStringAsFixed(0)}', Icons.arrow_upward, Colors.green)),
+                Expanded(child: _summaryCard('Total Final Payouts', '₹${totalBonus.toStringAsFixed(0)}', Icons.arrow_upward, Colors.green)),
                 const SizedBox(width: 16),
                 Expanded(child: _summaryCard('Total Penalties Applied', '₹${totalPenalties.toStringAsFixed(0)}', Icons.arrow_downward, Colors.red)),
               ],
@@ -15664,7 +15666,7 @@ class _IncentivesTabState extends ConsumerState<IncentivesTab> {
                 ? const Center(child: CircularProgressIndicator())
                 : _incentives.isEmpty
                   ? Center(child: Text('No performance logs for month $_selectedMonth', style: const TextStyle(color: Colors.grey)))
-                  : _buildIncentivesTable(isMD),
+                  : _buildIncentivesTable(isMD, isSuperAdmin),
             ),
           ],
         ),
@@ -15697,7 +15699,7 @@ class _IncentivesTabState extends ConsumerState<IncentivesTab> {
     );
   }
 
-  Widget _buildIncentivesTable(bool isMD) {
+  Widget _buildIncentivesTable(bool isMD, bool isSuperAdmin) {
     return Container(
       decoration: BoxDecoration(
         color: const Color(0xFF1E1E26),
@@ -15710,22 +15712,24 @@ class _IncentivesTabState extends ConsumerState<IncentivesTab> {
           scrollDirection: Axis.vertical,
           child: Table(
             columnWidths: const {
-              0: FlexColumnWidth(2.5),
-              1: FlexColumnWidth(1.5),
-              2: FlexColumnWidth(1.2),
-              3: FlexColumnWidth(1.5),
-              4: FlexColumnWidth(1.5),
+              0: FlexColumnWidth(2.2),
+              1: FlexColumnWidth(1.0),
+              2: FlexColumnWidth(1.4),
+              3: FlexColumnWidth(1.4),
+              4: FlexColumnWidth(1.2),
               5: FlexColumnWidth(1.2),
-              6: FlexColumnWidth(2.0),
+              6: FlexColumnWidth(1.2),
+              7: FlexColumnWidth(2.2),
             },
             children: [
               TableRow(
                 decoration: const BoxDecoration(color: Color(0xFF15151D)),
                 children: [
                   _headerCell('Staff Member'),
-                  _headerCell('Department'),
-                  _headerCell('Total Score'),
-                  _headerCell('Bonus (₹)'),
+                  _headerCell('Score'),
+                  _headerCell('Suggested (₹)'),
+                  _headerCell('Approved (₹)'),
+                  _headerCell('Diff (+/-)'),
                   _headerCell('Penalties (₹)'),
                   _headerCell('Status'),
                   _headerCell('Actions'),
@@ -15734,8 +15738,11 @@ class _IncentivesTabState extends ConsumerState<IncentivesTab> {
               ..._incentives.map((row) {
                 final emp = row['user'] ?? {};
                 final double score = safeToDouble(row['totalScore']);
-                final status = row['status'] ?? 'Pending';
-                
+                final status = row['status'] ?? 'Draft';
+                final double suggested = safeToDouble(row['suggestedAmount']);
+                final double finalAmt = safeToDouble(row['finalAmount']);
+                final double diff = finalAmt - suggested;
+
                 return TableRow(
                   decoration: BoxDecoration(
                     border: Border(bottom: BorderSide(color: Colors.white.withOpacity(0.02))),
@@ -15748,12 +15755,16 @@ class _IncentivesTabState extends ConsumerState<IncentivesTab> {
                         Text('${emp['employeeId'] ?? ''} • ${emp['role'] ?? ''}', style: TextStyle(fontSize: 11, color: Colors.white.withOpacity(0.4))),
                       ],
                     )),
-                    _dataCell(Text(emp['department'] ?? 'General')),
                     _dataCell(Text(
                       '${score.toStringAsFixed(1)}', 
                       style: TextStyle(fontWeight: FontWeight.bold, color: _getScoreColor(score)),
                     )),
-                    _dataCell(Text('+₹${safeToDouble(row['incentiveAmount']).toStringAsFixed(0)}', style: const TextStyle(color: Colors.green))),
+                    _dataCell(Text('+₹${suggested.toStringAsFixed(0)}', style: const TextStyle(color: Colors.grey))),
+                    _dataCell(Text('+₹${finalAmt.toStringAsFixed(0)}', style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold))),
+                    _dataCell(Text(
+                      diff == 0 ? '₹0' : (diff > 0 ? '+₹${diff.toStringAsFixed(0)}' : '-₹${diff.abs().toStringAsFixed(0)}'),
+                      style: TextStyle(color: diff == 0 ? Colors.grey : (diff > 0 ? Colors.green : Colors.red)),
+                    )),
                     _dataCell(Text('-₹${safeToDouble(row['penaltyAmount']).toStringAsFixed(0)}', style: const TextStyle(color: Colors.red))),
                     _dataCell(_statusTag(status)),
                     _dataCell(Row(
@@ -15763,17 +15774,21 @@ class _IncentivesTabState extends ConsumerState<IncentivesTab> {
                           tooltip: 'Scorecard Breakdown',
                           onPressed: () => _showScoreBreakdownModal(row),
                         ),
-                        if (isMD && status == 'Pending') ...[
+                        IconButton(
+                          icon: const Icon(Icons.history_toggle_off, size: 20, color: Colors.purpleAccent),
+                          tooltip: 'Review Timeline',
+                          onPressed: () => _showTimelineModal(row),
+                        ),
+                        if (isMD && row['locked'] != true) ...[
                           IconButton(
-                            icon: const Icon(Icons.check_circle_outline, size: 20, color: Colors.green),
-                            tooltip: 'Approve Payout',
-                            onPressed: () => _updateStatus(row['id'] as int, 'Approved'),
+                            icon: const Icon(Icons.rate_review_outlined, size: 20, color: VianTheme.primaryGold),
+                            tooltip: isSuperAdmin ? 'Override & Finalize' : 'Submit Recommendation',
+                            onPressed: () => _showReviewIncentiveModal(row, isMD, isSuperAdmin),
                           ),
-                        ] else if (isMD && status == 'Approved') ...[
-                          IconButton(
-                            icon: const Icon(Icons.paid_outlined, size: 20, color: Colors.orangeAccent),
-                            tooltip: 'Release Payout',
-                            onPressed: () => _updateStatus(row['id'] as int, 'Paid'),
+                        ] else if (row['locked'] == true) ...[
+                          const Tooltip(
+                            message: 'Locked',
+                            child: Icon(Icons.lock, size: 16, color: Colors.grey),
                           ),
                         ]
                       ],
@@ -15783,6 +15798,185 @@ class _IncentivesTabState extends ConsumerState<IncentivesTab> {
               }).toList(),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  void _showTimelineModal(dynamic record) {
+    List<dynamic> logs = [];
+    try {
+      logs = jsonDecode(record['reviewTimeline'] ?? '[]');
+    } catch (e) {}
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1E1E26),
+        title: Text('Review Timeline – ${record['user']?['name']}', style: const TextStyle(color: VianTheme.primaryGold)),
+        content: Container(
+          width: 450,
+          child: logs.isEmpty
+              ? const Center(child: Text('No adjustments logged yet. (Draft status)', style: TextStyle(color: Colors.grey)))
+              : ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: logs.length,
+                  itemBuilder: (context, idx) {
+                    final log = logs[idx];
+                    final String dt = log['timestamp']?.split('T')?.first ?? '';
+                    final String time = log['timestamp']?.split('T')?.last?.substring(0, 5) ?? '';
+                    
+                    return Card(
+                      color: const Color(0xFF15151D),
+                      margin: const EdgeInsets.symmetric(vertical: 6),
+                      child: Padding(
+                        padding: const EdgeInsets.all(12.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text('${log['action']}', style: const TextStyle(fontWeight: FontWeight.bold, color: VianTheme.primaryGold, fontSize: 13)),
+                                Text('$dt $time', style: TextStyle(color: Colors.white.withOpacity(0.4), fontSize: 11)),
+                              ],
+                            ),
+                            const SizedBox(height: 6),
+                            Text('Modified By: ${log['user']} (${log['role']})', style: const TextStyle(fontSize: 12)),
+                            Text('Amount: ₹${log['originalAmount']} ➔ ₹${log['newAmount']}', style: const TextStyle(fontSize: 12)),
+                            if (log['remarks'] != null && log['remarks'].toString().isNotEmpty)
+                              Text('Remarks: ${log['remarks']}', style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 11)),
+                            if (log['reason'] != null && log['reason'].toString().isNotEmpty)
+                              Text('Audit Reason: ${log['reason']}', style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 11)),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Close')),
+        ],
+      ),
+    );
+  }
+
+  void _showReviewIncentiveModal(dynamic record, bool isMD, bool isSuperAdmin) {
+    final double suggested = safeToDouble(record['suggestedAmount']);
+    final double currentFinal = safeToDouble(record['finalAmount']);
+    final amountCtrl = TextEditingController(text: currentFinal.toStringAsFixed(0));
+    final remarksCtrl = TextEditingController(text: (isSuperAdmin ? record['superAdminRemarks'] : record['adminRemarks']) ?? '');
+    final reasonCtrl = TextEditingController();
+    
+    String currentStatus = record['status'] ?? 'Draft';
+    bool lockedValue = record['locked'] == true;
+
+    final allowedStatuses = isSuperAdmin 
+      ? ['Draft', 'Under Review', 'Recommended', 'Approved', 'Rejected', 'Paid']
+      : ['Draft', 'Under Review', 'Recommended'];
+
+    if (!allowedStatuses.contains(currentStatus)) {
+      currentStatus = allowedStatuses.first;
+    }
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setStateModal) => AlertDialog(
+          backgroundColor: const Color(0xFF1E1E26),
+          title: Text('Review Incentive Payout – ${record['user']?['name']}', style: const TextStyle(color: VianTheme.primaryGold)),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Base Suggested Incentive: ₹${suggested.toStringAsFixed(2)}', style: const TextStyle(color: Colors.white70)),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: amountCtrl,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(labelText: 'Final Incentive Override Amount (₹)'),
+                ),
+                const SizedBox(height: 12),
+                DropdownButtonFormField<String>(
+                  value: currentStatus,
+                  dropdownColor: const Color(0xFF1E1E26),
+                  decoration: const InputDecoration(labelText: 'Review Status'),
+                  items: allowedStatuses.map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
+                  onChanged: (val) {
+                    setStateModal(() {
+                      currentStatus = val!;
+                    });
+                  },
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: remarksCtrl,
+                  decoration: InputDecoration(labelText: isSuperAdmin ? 'Super Admin Review Remarks' : 'Admin Review Remarks'),
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: reasonCtrl,
+                  decoration: const InputDecoration(labelText: 'Reason for Override (required for audit)'),
+                ),
+                const SizedBox(height: 16),
+                if (isSuperAdmin) ...[
+                  CheckboxListTile(
+                    title: const Text('Lock Payout Month (Freeze re-calculation)', style: TextStyle(fontSize: 13)),
+                    value: lockedValue,
+                    activeColor: VianTheme.primaryGold,
+                    checkColor: Colors.black,
+                    contentPadding: EdgeInsets.zero,
+                    onChanged: (val) {
+                      setStateModal(() {
+                        lockedValue = val!;
+                      });
+                    },
+                  ),
+                ],
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: VianTheme.primaryGold, foregroundColor: Colors.black),
+              onPressed: () async {
+                if (reasonCtrl.text.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Reason for override is required for the Audit Log.')),
+                  );
+                  return;
+                }
+                
+                final double finalAmt = double.tryParse(amountCtrl.text) ?? suggested;
+                
+                final ok = await ApiService.updateIncentiveStatus(
+                  record['id'] as int,
+                  currentStatus,
+                  finalAmount: finalAmt,
+                  adminRemarks: !isSuperAdmin ? remarksCtrl.text : null,
+                  superAdminRemarks: isSuperAdmin ? remarksCtrl.text : null,
+                  locked: isSuperAdmin ? lockedValue : null,
+                  reason: reasonCtrl.text,
+                );
+                
+                if (ok) {
+                  Navigator.pop(ctx);
+                  _loadIncentives();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Incentive record updated successfully.')),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Failed to update incentive details.')),
+                  );
+                }
+              },
+              child: const Text('Save Review'),
+            ),
+          ],
         ),
       ),
     );
@@ -15806,11 +16000,23 @@ class _IncentivesTabState extends ConsumerState<IncentivesTab> {
     Color bg = Colors.grey.withOpacity(0.1);
     Color txt = Colors.grey;
     if (status == 'Approved') {
-      bg = Colors.blueAccent.withOpacity(0.15);
-      txt = Colors.blueAccent;
-    } else if (status == 'Paid') {
       bg = Colors.green.withOpacity(0.15);
+      txt = Colors.greenAccent;
+    } else if (status == 'Paid') {
+      bg = Colors.green.withOpacity(0.25);
       txt = Colors.green;
+    } else if (status == 'Under Review') {
+      bg = Colors.orange.withOpacity(0.15);
+      txt = Colors.orangeAccent;
+    } else if (status == 'Recommended') {
+      bg = Colors.purple.withOpacity(0.15);
+      txt = Colors.purpleAccent;
+    } else if (status == 'Rejected') {
+      bg = Colors.red.withOpacity(0.15);
+      txt = Colors.redAccent;
+    } else if (status == 'Draft') {
+      bg = Colors.grey.withOpacity(0.15);
+      txt = Colors.grey;
     }
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
