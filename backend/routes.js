@@ -53,7 +53,8 @@ function registerRoutes(app, models) {
     PublicEnquiryLink, PublicEnquirySubmission, PublicEnquiryDocument, PublicEnquiryHistory, PublicEnquiryDraft, PublicEnquiryNote,
     ProjectStage, StageTask, StageMaterial, StageLabour, StagePayment, StageDocument, StagePhoto, StageReport, StageApproval, StageHistory, Estimate, EstimateMaterial, EstimateBoq, EstimateLabour,
     AuditLog,
-    ConferenceCall, Incentive
+    ConferenceCall, Incentive,
+    StageChecklist, ConferenceCallAction, DrawingRevision, DrawingComment
   } = models;
 
   // Role permissions helper
@@ -1362,6 +1363,65 @@ function registerRoutes(app, models) {
         status: i === 0 ? 'In Progress' : 'Pending',
         priority: 'Medium'
       });
+
+      // Seeding nested checklists for stages
+      if (s.name === 'Foundation' || s.name === 'Excavation & Footing Foundation' || s.name === 'Excavation & Substructure') {
+        const parentChecklist = await StageChecklist.create({
+          stageId: stage.id,
+          title: 'Substructure & Foundation Prep',
+          sequenceOrder: 1,
+          status: 'Pending'
+        });
+        await StageChecklist.create({
+          stageId: stage.id,
+          parentId: parentChecklist.id,
+          title: 'Site Boundary Clearance & Marking',
+          sequenceOrder: 1,
+          status: 'Pending'
+        });
+        await StageChecklist.create({
+          stageId: stage.id,
+          parentId: parentChecklist.id,
+          title: 'Soil Compaction & Excavation',
+          sequenceOrder: 2,
+          status: 'Pending'
+        });
+        await StageChecklist.create({
+          stageId: stage.id,
+          parentId: parentChecklist.id,
+          title: 'PCC Pouring & Bedding Foundation',
+          sequenceOrder: 3,
+          status: 'Pending'
+        });
+        await StageChecklist.create({
+          stageId: stage.id,
+          parentId: parentChecklist.id,
+          title: 'Column Erection & Plinth Beam Reinforcement',
+          sequenceOrder: 4,
+          status: 'Pending'
+        });
+      } else {
+        const parentChecklist = await StageChecklist.create({
+          stageId: stage.id,
+          title: 'General Preparation Checklist',
+          sequenceOrder: 1,
+          status: 'Pending'
+        });
+        await StageChecklist.create({
+          stageId: stage.id,
+          parentId: parentChecklist.id,
+          title: 'Initial Material Audit & Verification',
+          sequenceOrder: 1,
+          status: 'Pending'
+        });
+        await StageChecklist.create({
+          stageId: stage.id,
+          parentId: parentChecklist.id,
+          title: 'Drawing Verification & Dimensions Check',
+          sequenceOrder: 2,
+          status: 'Pending'
+        });
+      }
 
       // Log history entry
       await StageHistory.create({
@@ -4093,7 +4153,10 @@ function registerRoutes(app, models) {
   app.get('/api/conference-calls', authenticateToken, async (req, res) => {
     try {
       const calls = await ConferenceCall.findAll({
-        include: [{ model: User, as: 'logger', attributes: ['name', 'role'] }],
+        include: [
+          { model: User, as: 'logger', attributes: ['name', 'role'] },
+          { model: ConferenceCallAction, as: 'actions', include: [{ model: User, as: 'assignee', attributes: ['name'] }] }
+        ],
         order: [['date', 'DESC'], ['createdAt', 'DESC']]
       });
       res.json(calls);
@@ -4103,7 +4166,7 @@ function registerRoutes(app, models) {
   });
 
   app.post('/api/conference-calls', authenticateToken, authorizeRoles('Super Admin', 'Managing Director', 'Admin / Office Manager / Accounts'), async (req, res) => {
-    const { type, date, durationMinutes, notes, participants } = req.body;
+    const { type, date, durationMinutes, notes, participants, actionItems } = req.body;
     if (!date || !participants) {
       return res.status(400).json({ message: 'Date and participants are required' });
     }
@@ -4116,6 +4179,21 @@ function registerRoutes(app, models) {
         loggedById: req.user.id,
         participants: typeof participants === 'string' ? participants : JSON.stringify(participants)
       });
+
+      // Seed action items if present
+      if (actionItems && Array.isArray(actionItems)) {
+        for (const item of actionItems) {
+          if (item.taskDescription && item.assignedTo && item.dueDate) {
+            await ConferenceCallAction.create({
+              callId: call.id,
+              taskDescription: item.taskDescription,
+              assignedTo: item.assignedTo,
+              dueDate: item.dueDate,
+              status: 'Pending'
+            });
+          }
+        }
+      }
 
       // Write audit log
       await writeAuditLog(req, 'Create', 'ConferenceCalls', null, call.toJSON());
@@ -4204,6 +4282,140 @@ function registerRoutes(app, models) {
       res.json({ success: true, incentive });
     } catch (error) {
       res.status(500).json({ message: 'Error updating incentive status', error: error.message });
+    }
+  });
+
+  // ==========================================
+  // DRAWING REVISIONS & COMMENTS ENDPOINTS
+  // ==========================================
+  app.get('/api/drawings/:id/revisions', authenticateToken, async (req, res) => {
+    try {
+      const revisions = await DrawingRevision.findAll({
+        where: { drawingId: req.params.id },
+        include: [{ model: User, as: 'uploader', attributes: ['name', 'role'] }],
+        order: [['createdAt', 'DESC']]
+      });
+      res.json(revisions);
+    } catch (error) {
+      res.status(500).json({ message: 'Error fetching drawing revisions', error: error.message });
+    }
+  });
+
+  app.post('/api/drawings/:id/revisions', authenticateToken, async (req, res) => {
+    const { revisionNumber, fileUrl, pdfPreviewUrl, comments } = req.body;
+    if (!revisionNumber || !fileUrl) {
+      return res.status(400).json({ message: 'Revision number and file URL are required' });
+    }
+    try {
+      const revision = await DrawingRevision.create({
+        drawingId: req.params.id,
+        revisionNumber,
+        fileUrl,
+        pdfPreviewUrl: pdfPreviewUrl || fileUrl,
+        comments,
+        uploadedBy: req.user.id
+      });
+      // Update parent drawing version
+      const drawing = await Drawing.findByPk(req.params.id);
+      if (drawing) {
+        await drawing.update({ version: revisionNumber, fileUrl });
+      }
+      res.status(201).json(revision);
+    } catch (error) {
+      res.status(500).json({ message: 'Error uploading drawing revision', error: error.message });
+    }
+  });
+
+  app.get('/api/drawings/:id/comments', authenticateToken, async (req, res) => {
+    try {
+      const comments = await DrawingComment.findAll({
+        where: { drawingId: req.params.id },
+        include: [{ model: User, as: 'user', attributes: ['name', 'role'] }],
+        order: [['createdAt', 'ASC']]
+      });
+      res.json(comments);
+    } catch (error) {
+      res.status(500).json({ message: 'Error fetching drawing comments', error: error.message });
+    }
+  });
+
+  app.post('/api/drawings/:id/comments', authenticateToken, async (req, res) => {
+    const { comment } = req.body;
+    if (!comment) return res.status(400).json({ message: 'Comment text is required' });
+    try {
+      const c = await DrawingComment.create({
+        drawingId: req.params.id,
+        userId: req.user.id,
+        comment
+      });
+      res.status(201).json(c);
+    } catch (error) {
+      res.status(500).json({ message: 'Error posting drawing comment', error: error.message });
+    }
+  });
+
+  // ==========================================
+  // STAGE NESTED CHECKLISTS ENDPOINTS
+  // ==========================================
+  app.get('/api/stages/:stageId/checklists', authenticateToken, async (req, res) => {
+    try {
+      const checklists = await StageChecklist.findAll({
+        where: { stageId: req.params.stageId },
+        order: [['sequenceOrder', 'ASC']]
+      });
+      res.json(checklists);
+    } catch (error) {
+      res.status(500).json({ message: 'Error fetching checklists', error: error.message });
+    }
+  });
+
+  app.post('/api/stages/:stageId/checklists', authenticateToken, async (req, res) => {
+    const { title, parentId, sequenceOrder } = req.body;
+    if (!title) return res.status(400).json({ message: 'Title is required' });
+    try {
+      const item = await StageChecklist.create({
+        stageId: req.params.stageId,
+        parentId: parentId || null,
+        title,
+        sequenceOrder: sequenceOrder || 0,
+        status: 'Pending'
+      });
+      res.status(201).json(item);
+    } catch (error) {
+      res.status(500).json({ message: 'Error creating checklist item', error: error.message });
+    }
+  });
+
+  app.put('/api/checklists/:id/status', authenticateToken, async (req, res) => {
+    const { status } = req.body; // 'Pending' or 'Completed'
+    if (!status) return res.status(400).json({ message: 'Status is required' });
+    try {
+      const item = await StageChecklist.findByPk(req.params.id);
+      if (!item) return res.status(404).json({ message: 'Checklist item not found' });
+      
+      await item.update({ status });
+
+      // If complete, complete all sub-children
+      if (status === 'Completed') {
+        await StageChecklist.update({ status: 'Completed' }, { where: { parentId: item.id } });
+      }
+
+      // Recalculate parent completion percentages
+      const checklists = await StageChecklist.findAll({ where: { stageId: item.stageId } });
+      
+      // Calculate overall stage completion percentage based on checklist items completed
+      const total = checklists.length;
+      const completed = checklists.filter(c => c.status === 'Completed').length;
+      const completionPercentage = total > 0 ? Math.round((completed / total) * 100) : 0;
+      
+      const stage = await ProjectStage.findByPk(item.stageId);
+      if (stage) {
+        await stage.update({ completionPercentage });
+      }
+
+      res.json({ success: true, item, completionPercentage });
+    } catch (error) {
+      res.status(500).json({ message: 'Error updating status', error: error.message });
     }
   });
 

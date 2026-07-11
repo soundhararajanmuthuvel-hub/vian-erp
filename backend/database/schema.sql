@@ -856,5 +856,78 @@ CREATE TABLE IF NOT EXISTS incentives (
     FOREIGN KEY (approved_by_id) REFERENCES users(id) ON DELETE SET NULL
 );
 
+-- 54. Construction Stages table
+CREATE TABLE IF NOT EXISTS project_stages (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    project_id INT NOT NULL,
+    stage_name VARCHAR(100) NOT NULL,
+    sequence_order INT NOT NULL,
+    status ENUM('Pending', 'In Progress', 'Completed', 'Delayed') DEFAULT 'Pending',
+    completion_percentage INT DEFAULT 0,
+    start_date DATE,
+    end_date DATE,
+    actual_end_date DATE,
+    budget_allocation DECIMAL(15, 2) DEFAULT 0.00,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
+);
+
+-- 55. Nested Working Checklists table
+CREATE TABLE IF NOT EXISTS stage_checklists (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    stage_id INT NOT NULL,
+    parent_id INT NULL,
+    title VARCHAR(150) NOT NULL,
+    status ENUM('Pending', 'Completed') DEFAULT 'Pending',
+    completion_percentage INT DEFAULT 0,
+    sequence_order INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (stage_id) REFERENCES project_stages(id) ON DELETE CASCADE,
+    FOREIGN KEY (parent_id) REFERENCES stage_checklists(id) ON DELETE CASCADE
+);
+
+-- 56. Conference Call Action Items table
+CREATE TABLE IF NOT EXISTS conference_call_actions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    call_id INT NOT NULL,
+    task_description TEXT NOT NULL,
+    assigned_to INT NOT NULL,
+    due_date DATE NOT NULL,
+    status ENUM('Pending', 'Completed') DEFAULT 'Pending',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (call_id) REFERENCES conference_calls(id) ON DELETE CASCADE,
+    FOREIGN KEY (assigned_to) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- 57. Drawing Revisions table
+CREATE TABLE IF NOT EXISTS drawing_revisions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    drawing_id INT NOT NULL,
+    revision_number VARCHAR(20) NOT NULL,
+    file_url VARCHAR(255) NOT NULL,
+    pdf_preview_url VARCHAR(255) NOT NULL,
+    comments TEXT,
+    uploaded_by INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (drawing_id) REFERENCES drawings(id) ON DELETE CASCADE,
+    FOREIGN KEY (uploaded_by) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- 58. Drawing Comments table
+CREATE TABLE IF NOT EXISTS drawing_comments (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    drawing_id INT NOT NULL,
+    user_id INT NOT NULL,
+    comment TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (drawing_id) REFERENCES drawings(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
 
 

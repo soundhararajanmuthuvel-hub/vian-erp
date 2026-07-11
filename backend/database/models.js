@@ -1437,6 +1437,63 @@ function initModels() {
   Incentive.belongsTo(User, { foreignKey: 'userId', as: 'user' });
   Incentive.belongsTo(User, { foreignKey: 'approvedById', as: 'approver' });
 
+  // 56. StageChecklist Model
+  const StageChecklist = sequelize.define('StageChecklist', {
+    id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    stageId: { type: DataTypes.INTEGER, allowNull: false },
+    parentId: { type: DataTypes.INTEGER, allowNull: true },
+    title: { type: DataTypes.STRING(150), allowNull: false },
+    status: { type: DataTypes.ENUM('Pending', 'Completed'), defaultValue: 'Pending' },
+    completionPercentage: { type: DataTypes.INTEGER, defaultValue: 0 },
+    sequenceOrder: { type: DataTypes.INTEGER, defaultValue: 0 }
+  }, { tableName: 'stage_checklists', underscored: true });
+
+  StageChecklist.belongsTo(ProjectStage, { foreignKey: 'stageId', as: 'stage', onDelete: 'CASCADE' });
+  ProjectStage.hasMany(StageChecklist, { foreignKey: 'stageId', as: 'checklists', onDelete: 'CASCADE' });
+  StageChecklist.belongsTo(StageChecklist, { foreignKey: 'parentId', as: 'parent', onDelete: 'CASCADE' });
+  StageChecklist.hasMany(StageChecklist, { foreignKey: 'parentId', as: 'children', onDelete: 'CASCADE' });
+
+  // 57. ConferenceCallAction Model
+  const ConferenceCallAction = sequelize.define('ConferenceCallAction', {
+    id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    callId: { type: DataTypes.INTEGER, allowNull: false },
+    taskDescription: { type: DataTypes.TEXT, allowNull: false },
+    assignedTo: { type: DataTypes.INTEGER, allowNull: false },
+    dueDate: { type: DataTypes.DATEONLY, allowNull: false },
+    status: { type: DataTypes.ENUM('Pending', 'Completed'), defaultValue: 'Pending' }
+  }, { tableName: 'conference_call_actions', underscored: true });
+
+  ConferenceCallAction.belongsTo(ConferenceCall, { foreignKey: 'callId', as: 'call', onDelete: 'CASCADE' });
+  ConferenceCall.hasMany(ConferenceCallAction, { foreignKey: 'callId', as: 'actions', onDelete: 'CASCADE' });
+  ConferenceCallAction.belongsTo(User, { foreignKey: 'assignedTo', as: 'assignee', onDelete: 'CASCADE' });
+
+  // 58. DrawingRevision Model
+  const DrawingRevision = sequelize.define('DrawingRevision', {
+    id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    drawingId: { type: DataTypes.INTEGER, allowNull: false },
+    revisionNumber: { type: DataTypes.STRING(20), allowNull: false },
+    fileUrl: { type: DataTypes.STRING(255), allowNull: false },
+    pdfPreviewUrl: { type: DataTypes.STRING(255), allowNull: false },
+    comments: { type: DataTypes.TEXT, allowNull: true },
+    uploadedBy: { type: DataTypes.INTEGER, allowNull: false }
+  }, { tableName: 'drawing_revisions', underscored: true });
+
+  DrawingRevision.belongsTo(Drawing, { foreignKey: 'drawingId', as: 'drawing', onDelete: 'CASCADE' });
+  Drawing.hasMany(DrawingRevision, { foreignKey: 'drawingId', as: 'revisions', onDelete: 'CASCADE' });
+  DrawingRevision.belongsTo(User, { foreignKey: 'uploadedBy', as: 'uploader', onDelete: 'CASCADE' });
+
+  // 59. DrawingComment Model
+  const DrawingComment = sequelize.define('DrawingComment', {
+    id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    drawingId: { type: DataTypes.INTEGER, allowNull: false },
+    userId: { type: DataTypes.INTEGER, allowNull: false },
+    comment: { type: DataTypes.TEXT, allowNull: false }
+  }, { tableName: 'drawing_comments', underscored: true });
+
+  DrawingComment.belongsTo(Drawing, { foreignKey: 'drawingId', as: 'drawing', onDelete: 'CASCADE' });
+  Drawing.hasMany(DrawingComment, { foreignKey: 'drawingId', as: 'comments', onDelete: 'CASCADE' });
+  DrawingComment.belongsTo(User, { foreignKey: 'userId', as: 'user', onDelete: 'CASCADE' });
+
   return {
     User, Session, Lead, LeadTimeline, LeadStage1, Client, ClientTimeline, Project,
     Attendance, Task, SiteVisit, Drawing, Document,
@@ -1451,7 +1508,8 @@ function initModels() {
     ProjectStage, StageTask, StageMaterial, StageLabour, StagePayment, StageDocument, StagePhoto, StageReport, StageApproval, StageHistory,
     PublicEnquiryLink, PublicEnquirySubmission, PublicEnquiryDocument, PublicEnquiryHistory, PublicEnquiryDraft, PublicEnquiryNote,
     AuditLog,
-    ConferenceCall, Incentive
+    ConferenceCall, Incentive,
+    StageChecklist, ConferenceCallAction, DrawingRevision, DrawingComment
   };
 }
 
