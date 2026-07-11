@@ -667,7 +667,15 @@ class _LoginPageState extends ConsumerState<LoginPage> with TickerProviderStateM
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           // LOGO HEADER
-                          const Icon(Icons.architecture, color: VianTheme.primaryGold, size: 54),
+                          Image.asset(
+                            'assets/logo.png',
+                            height: 72,
+                            errorBuilder: (context, error, stackTrace) => const Icon(
+                              Icons.architecture,
+                              color: VianTheme.primaryGold,
+                              size: 54,
+                            ),
+                          ),
                           const SizedBox(height: 10),
                           Text(
                             'VIAN ARCHITECTS',

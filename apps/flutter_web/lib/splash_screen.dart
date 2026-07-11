@@ -179,11 +179,15 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with TickerProvider
                                 ),
                               ],
                             ),
-                            child: const Center(
-                              child: Icon(
-                                Icons.architecture,
-                                color: VianTheme.primaryGold,
-                                size: 72,
+                            child: Center(
+                              child: Image.asset(
+                                'assets/logo.png',
+                                height: 72,
+                                errorBuilder: (context, error, stackTrace) => const Icon(
+                                  Icons.architecture,
+                                  color: VianTheme.primaryGold,
+                                  size: 72,
+                                ),
                               ),
                             ),
                           ),
