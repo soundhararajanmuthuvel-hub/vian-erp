@@ -328,6 +328,62 @@ final GoRouter _router = GoRouter(
           path: '/incentives',
           builder: (context, state) => const IncentivesTab(),
         ),
+        GoRoute(
+          path: '/client-onboarding',
+          builder: (context, state) => const ClientOnboardingTab(),
+        ),
+        GoRoute(
+          path: '/business-targets',
+          builder: (context, state) => const BusinessTargetsTab(),
+        ),
+        GoRoute(
+          path: '/contractor-master',
+          builder: (context, state) => const ContractorTab(),
+        ),
+        GoRoute(
+          path: '/labour-attendance',
+          builder: (context, state) => const LabourAttendanceTab(),
+        ),
+        GoRoute(
+          path: '/gps-attendance',
+          builder: (context, state) => const AttendanceTab(),
+        ),
+        GoRoute(
+          path: '/daily-work-report',
+          builder: (context, state) => const DailyReportsTab(),
+        ),
+        GoRoute(
+          path: '/manager-progress',
+          builder: (context, state) => const ManagerProgressTab(),
+        ),
+        GoRoute(
+          path: '/drawings',
+          builder: (context, state) => const DrawingsTab(),
+        ),
+        GoRoute(
+          path: '/quotations',
+          builder: (context, state) => const QuotationsTab(),
+        ),
+        GoRoute(
+          path: '/invoices',
+          builder: (context, state) => const InvoicesTab(),
+        ),
+        GoRoute(
+          path: '/expenses',
+          builder: (context, state) => const ExpensesTab(),
+        ),
+        GoRoute(
+          path: '/payroll',
+          builder: (context, state) => const PayrollTab(),
+        ),
+        GoRoute(
+          path: '/build-center',
+          builder: (context, state) => const BuildCenterTab(),
+        ),
+        GoRoute(
+          path: '/construction-estimation',
+          builder: (context, state) => const ConstructionEstimationTab(),
+        ),
       ],
     ),
   ],
