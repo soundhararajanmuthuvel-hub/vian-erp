@@ -685,12 +685,12 @@ class TargetProgressIndicator extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: VianTheme.headerBlack,
+        color: VianTheme.cardColor,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: VianTheme.primaryGold.withOpacity(0.2), width: 1.5),
+        border: Border.all(color: Colors.black.withOpacity(0.05), width: 1.0),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
+            color: Colors.black.withOpacity(0.02),
             blurRadius: 8,
             offset: const Offset(0, 4),
           )
@@ -701,7 +701,7 @@ class TargetProgressIndicator extends StatelessWidget {
         children: [
           Text(
             title,
-            style: GoogleFonts.poppins(
+            style: GoogleFonts.inter(
               fontSize: 11,
               fontWeight: FontWeight.bold,
               color: VianTheme.lightText,
@@ -719,16 +719,16 @@ class TargetProgressIndicator extends StatelessWidget {
                 child: CircularProgressIndicator(
                   value: pct > 1.0 ? 1.0 : pct,
                   strokeWidth: 8,
-                  backgroundColor: const Color(0xFF2E2E3E),
+                  backgroundColor: const Color(0xFFE2E8F0),
                   valueColor: const AlwaysStoppedAnimation<Color>(VianTheme.primaryGold),
                 ),
               ),
               Text(
                 '$pctInt%',
-                style: GoogleFonts.poppins(
+                style: GoogleFonts.inter(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: VianTheme.headerBlack,
                 ),
               ),
             ],
@@ -736,7 +736,7 @@ class TargetProgressIndicator extends StatelessWidget {
           const SizedBox(height: 16),
           Text(
             label,
-            style: GoogleFonts.poppins(
+            style: GoogleFonts.inter(
               fontSize: 12,
               fontWeight: FontWeight.bold,
               color: VianTheme.primaryGold,
@@ -801,7 +801,7 @@ class RevenueTrendChart extends StatelessWidget {
               backDrawRodData: BackgroundBarChartRodData(
                 show: true,
                 toY: maxInterval * 1.15,
-                color: const Color(0xFF1E1E26),
+                color: const Color(0xFFF1F5F9),
               ),
             ),
           ],
@@ -818,7 +818,7 @@ class RevenueTrendChart extends StatelessWidget {
             drawVerticalLine: false,
             getDrawingHorizontalLine: (value) {
               return const FlLine(
-                color: Color(0xFF262635),
+                color: Color(0xFFE2E8F0),
                 strokeWidth: 1,
               );
             },

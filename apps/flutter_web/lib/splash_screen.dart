@@ -199,7 +199,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with TickerProvider
 
                   // Company Title
                   Text(
-                    'VIAN ARCHITECTS',
+                    'VIAN ERP',
                     style: GoogleFonts.outfit(
                       color: Colors.white,
                       fontSize: 32,
@@ -214,7 +214,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with TickerProvider
                     opacity: _blueprintController.value > 0.3 ? 1.0 : 0.0,
                     duration: const Duration(seconds: 1),
                     child: Text(
-                      'Enterprise Architecture & Construction ERP',
+                      'Enterprise Construction Management',
                       style: GoogleFonts.poppins(
                         color: VianTheme.primaryGold,
                         fontSize: 14,
@@ -299,7 +299,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with TickerProvider
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    'Powered by DKS Technologies',
+                    'Powered by VIAN Architects',
                     style: GoogleFonts.poppins(
                       color: VianTheme.primaryGold.withOpacity(0.3),
                       fontSize: 9,

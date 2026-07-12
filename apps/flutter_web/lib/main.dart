@@ -439,7 +439,7 @@ class LoginPage extends ConsumerStatefulWidget {
   ConsumerState<LoginPage> createState() => _LoginPageState();
 }
 
-class _LoginPageState extends ConsumerState<LoginPage> {
+class _LoginPageState extends ConsumerState<LoginPage> with SingleTickerProviderStateMixin {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
 
@@ -448,16 +448,22 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   bool _showPassword = false;
   bool _showDevOptions = false;
   String? _errorMessage;
+  late AnimationController _animController;
 
   @override
   void initState() {
     super.initState();
+    _animController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 15),
+    )..repeat();
   }
 
   @override
   void dispose() {
     _usernameController.dispose();
     _passwordController.dispose();
+    _animController.dispose();
     super.dispose();
   }
 
@@ -486,8 +492,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     });
   }
 
-
-
   void _quickFill(String role) {
     _usernameController.text = role;
     _passwordController.text = '${role}123';
@@ -497,163 +501,97 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    final isMobile = size.width < 800;
+    final isMobile = size.width < 1000;
+
+    if (isMobile) {
+      return Scaffold(
+        backgroundColor: const Color(0xFF0F172A),
+        body: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24.0),
+            child: _buildLoginCard(context, size, true),
+          ),
+        ),
+      );
+    }
 
     return Scaffold(
-      backgroundColor: const Color(0xFF070709), // Sleek obsidian black
-      body: Stack(
+      backgroundColor: const Color(0xFFF8FAFC),
+      body: Row(
         children: [
-          // 1. Moving ambient luxury glowing blobs & grid lines
-          const LuxuryAmbientBackground(),
-
-          // 2. Glassmorphic container wrapper
-          Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24.0),
-              child: Hero(
-                tag: 'loginHero',
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(24),
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 15.0, sigmaY: 15.0),
-                    child: Container(
-                      width: isMobile ? size.width * 0.92 : 460,
-                      padding: const EdgeInsets.all(36.0),
-                      decoration: BoxDecoration(
-                        color: const Color(0x3B121216), // Highly translucent charcoal
-                        borderRadius: BorderRadius.circular(24),
-                        border: Border.all(
-                          color: VianTheme.primaryGold.withOpacity(0.18),
-                          width: 1.5,
+          Expanded(
+            flex: 6,
+            child: Container(
+              color: const Color(0xFF0F172A),
+              child: Stack(
+                children: [
+                  AnimatedBuilder(
+                    animation: _animController,
+                    builder: (context, child) {
+                      return CustomPaint(
+                        painter: LoginBlueprintPainter(_animController.value),
+                        child: Container(),
+                      );
+                    },
+                  ),
+                  Positioned(
+                    top: 64,
+                    left: 64,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'VIAN ERP',
+                          style: GoogleFonts.outfit(
+                            color: Colors.white,
+                            fontSize: 36,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 4,
+                          ),
                         ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.4),
-                            blurRadius: 30,
-                            offset: const Offset(0, 15),
+                        const SizedBox(height: 8),
+                        Text(
+                          'ENTERPRISE CONSTRUCTION MANAGEMENT COMMAND PLATFORM',
+                          style: GoogleFonts.poppins(
+                            color: VianTheme.primaryGold,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            letterSpacing: 2,
                           ),
-                          BoxShadow(
-                            color: VianTheme.primaryGold.withOpacity(0.02),
-                            blurRadius: 40,
-                            spreadRadius: 2,
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          // LOGO HEADER
-                          Image.asset(
-                            'assets/logo.png',
-                            height: 72,
-                            errorBuilder: (context, error, stackTrace) => const Icon(
-                              Icons.architecture,
-                              color: VianTheme.primaryGold,
-                              size: 54,
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          Text(
-                            'VIAN ARCHITECTS',
-                            style: GoogleFonts.outfit(
-                              color: VianTheme.whiteText,
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 3,
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            'Enterprise Architecture & Construction ERP',
-                            textAlign: TextAlign.center,
-                            style: GoogleFonts.poppins(
-                              color: VianTheme.lightText,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w400,
-                              letterSpacing: 1,
-                            ),
-                          ),
-                          const SizedBox(height: 32),
-
-
-
-                          if (_errorMessage != null) ...[
-                            Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.all(14),
-                              decoration: BoxDecoration(
-                                color: const Color(0x1CEF4444),
-                                borderRadius: BorderRadius.circular(16),
-                                border: Border.all(color: VianTheme.danger.withOpacity(0.4)),
-                              ),
-                              child: Text(
-                                _errorMessage!,
-                                style: const TextStyle(color: Color(0xFFFCA5A5), fontSize: 12.5),
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                            const SizedBox(height: 20),
-                          ],
-
-                          // DYNAMIC FORM FOR TABS
-                          AnimatedSize(
-                            duration: const Duration(milliseconds: 300),
-                            child: _buildFormContent(),
-                          ),
-
-                          const SizedBox(height: 24),
-
-                          // Collapsible Developer Tools
-                          TextButton.icon(
-                            style: TextButton.styleFrom(foregroundColor: Colors.white30),
-                            icon: Icon(_showDevOptions ? Icons.expand_less : Icons.expand_more, size: 16),
-                            label: const Text('Developer Options', style: TextStyle(fontSize: 11)),
-                            onPressed: () => setState(() => _showDevOptions = !_showDevOptions),
-                          ),
-
-                          if (_showDevOptions) ...[
-                            const SizedBox(height: 8),
-                            const Text(
-                              'Quick-Access Roles',
-                              style: TextStyle(color: VianTheme.lightText, fontSize: 11, fontWeight: FontWeight.w600),
-                            ),
-                            const SizedBox(height: 12),
-                            Wrap(
-                              spacing: 8,
-                              runSpacing: 8,
-                              alignment: WrapAlignment.center,
-                              children: [
-                                _roleChip('anand'),
-                                _roleChip('vijay'),
-                                _roleChip('jaya'),
-                                _roleChip('muthuiya'),
-                                _roleChip('murugan'),
-                                _roleChip('gokul'),
-                                _roleChip('sivaraman'),
-                                _roleChip('mohan'),
-                                _roleChip('vijayan'),
-                                _roleChip('manoj'),
-                                _roleChip('client'),
-                              ],
-                            ),
-                          ],
-
-                          const Divider(color: Color(0x11F5A623), height: 32),
-                          const Text(
-                            'Version 1.2.0-gold',
-                            style: TextStyle(color: Colors.white30, fontSize: 10),
-                          ),
-                          const SizedBox(height: 4),
-                          const Text(
-                            '© 2026 VIAN Architects. All rights reserved.',
-                            style: TextStyle(color: Colors.white30, fontSize: 10),
-                            textAlign: TextAlign.center,
-                          ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
+                  Positioned(
+                    bottom: 48,
+                    left: 64,
+                    right: 64,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Powered by VIAN Architects',
+                          style: TextStyle(color: Colors.white30, fontSize: 11),
+                        ),
+                        Text(
+                          'CAD SHEET REFERENCE: V1.0.0-GOLD',
+                          style: GoogleFonts.shareTechMono(color: Colors.white30, fontSize: 12),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 4,
+            child: Container(
+              color: const Color(0xFFF8FAFC),
+              padding: const EdgeInsets.symmetric(horizontal: 48),
+              child: Center(
+                child: SingleChildScrollView(
+                  child: _buildLoginCard(context, size, false),
                 ),
               ),
             ),
@@ -663,70 +601,153 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     );
   }
 
-  Widget _buildFormContent() {
-    return Column(
-      key: const ValueKey('passwordForm'),
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        TextField(
-          controller: _usernameController,
-          style: const TextStyle(color: Colors.white),
-          decoration: const InputDecoration(
-            labelText: 'Username / Employee ID / Email',
-            prefixIcon: Icon(Icons.person_outline, color: VianTheme.primaryGold),
-          ),
+  Widget _buildLoginCard(BuildContext context, Size size, bool isMobileMode) {
+    return Container(
+      width: 440,
+      padding: const EdgeInsets.all(36.0),
+      decoration: BoxDecoration(
+        color: isMobileMode ? const Color(0xFF1E293B) : Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: isMobileMode ? Colors.white10 : Colors.black.withOpacity(0.04),
+          width: 1.5,
         ),
-        const SizedBox(height: 16),
-        TextField(
-          controller: _passwordController,
-          obscureText: !_showPassword,
-          style: const TextStyle(color: Colors.white),
-          decoration: InputDecoration(
-            labelText: 'Password',
-            prefixIcon: const Icon(Icons.lock_outline, color: VianTheme.primaryGold),
-            suffixIcon: IconButton(
-              icon: Icon(
-                _showPassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                color: Colors.white60,
-                size: 20,
-              ),
-              onPressed: () => setState(() => _showPassword = !_showPassword),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.architecture_outlined,
+            color: isMobileMode ? Colors.white : VianTheme.headerBlack,
+            size: 54,
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'VIAN ERP LOGIN',
+            style: GoogleFonts.outfit(
+              color: isMobileMode ? Colors.white : VianTheme.headerBlack,
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 2,
             ),
           ),
-        ),
-        const SizedBox(height: 16),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
-              children: [
-                Checkbox(
-                  value: _rememberMe,
-                  activeColor: VianTheme.primaryGold,
-                  checkColor: VianTheme.headerBlack,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  onChanged: (v) => setState(() => _rememberMe = v ?? true),
+          const SizedBox(height: 6),
+          Text(
+            'Enterprise Access Portal',
+            style: TextStyle(color: isMobileMode ? Colors.white54 : VianTheme.lightText, fontSize: 11),
+          ),
+          const SizedBox(height: 28),
+          if (_errorMessage != null) ...[
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: const Color(0x1CEF4444),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: VianTheme.danger.withOpacity(0.4)),
+              ),
+              child: Text(
+                _errorMessage!,
+                style: const TextStyle(color: VianTheme.danger, fontSize: 12.5),
+                textAlign: TextAlign.center,
+              ),
+            ),
+            const SizedBox(height: 20),
+          ],
+          TextField(
+            controller: _usernameController,
+            style: TextStyle(color: isMobileMode ? Colors.white : VianTheme.headerBlack),
+            decoration: InputDecoration(
+              filled: true,
+              fillColor: isMobileMode ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+              labelText: 'Username / ID',
+              prefixIcon: Icon(Icons.person_outline, color: VianTheme.primaryGold),
+            ),
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _passwordController,
+            obscureText: !_showPassword,
+            style: TextStyle(color: isMobileMode ? Colors.white : VianTheme.headerBlack),
+            decoration: InputDecoration(
+              filled: true,
+              fillColor: isMobileMode ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+              labelText: 'Password',
+              prefixIcon: const Icon(Icons.lock_outline, color: VianTheme.primaryGold),
+              suffixIcon: IconButton(
+                icon: Icon(
+                  _showPassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                  color: Colors.grey,
+                  size: 20,
                 ),
-                const Text('Remember me', style: TextStyle(fontSize: 13, color: VianTheme.lightText)),
+                onPressed: () => setState(() => _showPassword = !_showPassword),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Checkbox(
+                    value: _rememberMe,
+                    activeColor: VianTheme.primaryGold,
+                    checkColor: Colors.black,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    onChanged: (v) => setState(() => _rememberMe = v ?? true),
+                  ),
+                  Text('Remember me', style: TextStyle(fontSize: 13, color: isMobileMode ? Colors.white70 : VianTheme.lightText)),
+                ],
+              ),
+              TextButton(
+                onPressed: () => context.go('/forgot-password'),
+                child: const Text('Forgot Password?', style: TextStyle(color: VianTheme.primaryGold, fontSize: 13)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          SizedBox(
+            width: double.infinity,
+            child: VianButton(
+              text: _isLoading ? 'Signing In...' : 'Sign In',
+              onPressed: _isLoading ? () {} : _handleLogin,
+            ),
+          ),
+          const SizedBox(height: 16),
+          TextButton.icon(
+            style: TextButton.styleFrom(foregroundColor: isMobileMode ? Colors.white30 : Colors.black38),
+            icon: Icon(_showDevOptions ? Icons.expand_less : Icons.expand_more, size: 16),
+            label: const Text('Developer Options', style: TextStyle(fontSize: 11)),
+            onPressed: () => setState(() => _showDevOptions = !_showDevOptions),
+          ),
+          if (_showDevOptions) ...[
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              alignment: WrapAlignment.center,
+              children: [
+                _roleChip('anand'),
+                _roleChip('vijay'),
+                _roleChip('jaya'),
+                _roleChip('murugan'),
+                _roleChip('client'),
               ],
             ),
-            TextButton(
-              onPressed: () => context.go('/forgot-password'),
-              child: const Text('Forgot Password?', style: TextStyle(color: VianTheme.primaryGold, fontSize: 13)),
-            ),
           ],
-        ),
-        const SizedBox(height: 24),
-        SizedBox(
-          width: double.infinity,
-          child: VianButton(
-            text: _isLoading ? 'Signing In...' : 'Sign In',
-            onPressed: _isLoading ? () {} : _handleLogin,
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -747,6 +768,47 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         ),
       ),
     );
+  }
+}
+
+class LoginBlueprintPainter extends CustomPainter {
+  final double val;
+  LoginBlueprintPainter(this.val);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paintGrid = Paint()
+      ..color = const Color(0xFF2563EB).withOpacity(0.06)
+      ..strokeWidth = 1.0;
+
+    const double step = 40.0;
+    for (double x = 0; x < size.width; x += step) {
+      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paintGrid);
+    }
+    for (double y = 0; y < size.height; y += step) {
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), paintGrid);
+    }
+
+    final center = Offset(size.width / 2, size.height / 2);
+    final circlePaint = Paint()
+      ..color = const Color(0xFFD4AF37).withOpacity(0.1)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.5;
+
+    canvas.drawCircle(center, 120 + (val * 30), circlePaint);
+    canvas.drawCircle(center, 60, circlePaint);
+
+    final linePaint = Paint()
+      ..color = const Color(0xFF2563EB).withOpacity(0.12)
+      ..strokeWidth = 1.5;
+
+    canvas.drawLine(Offset(0, 0), Offset(size.width * 0.8, size.height), linePaint);
+    canvas.drawLine(Offset(size.width, 0), Offset(size.width * 0.2, size.height), linePaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant LoginBlueprintPainter oldDelegate) {
+    return oldDelegate.val != val;
   }
 }
 
@@ -861,6 +923,7 @@ class MainNavigationShell extends ConsumerStatefulWidget {
 
 class _MainNavigationShellState extends ConsumerState<MainNavigationShell> {
   int _selectedIndex = 0;
+  bool _sidebarCollapsed = false;
 
   // Tabs mapping based on user roles
   List<Map<String, dynamic>> _getTabs(String role) {
@@ -959,7 +1022,7 @@ class _MainNavigationShellState extends ConsumerState<MainNavigationShell> {
             onPressed: () {
               showModalBottomSheet(
                 context: context,
-                backgroundColor: VianTheme.headerBlack,
+                backgroundColor: VianTheme.sidebarBg,
                 shape: const RoundedRectangleBorder(
                   borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
                 ),
@@ -987,13 +1050,14 @@ class _MainNavigationShellState extends ConsumerState<MainNavigationShell> {
       body: Row(
         children: [
           if (!isMobile)
-            Container(
-              width: 250,
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              width: _sidebarCollapsed ? 76 : 250,
               decoration: const BoxDecoration(
-                color: VianTheme.headerBlack,
-                border: Border(right: BorderSide(color: Color(0x22F5A623), width: 1.5)),
+                color: VianTheme.sidebarBg,
+                border: Border(right: BorderSide(color: Colors.white10, width: 1)),
               ),
-              child: _buildDrawerContent(user, tabs, role, showHeader: true),
+              child: _buildDrawerContent(user, tabs, role, showHeader: true, isSidebar: true),
             ),
           Expanded(
             child: widget.child,
@@ -1002,7 +1066,7 @@ class _MainNavigationShellState extends ConsumerState<MainNavigationShell> {
       ),
       bottomNavigationBar: isMobile
           ? NavigationBar(
-              backgroundColor: const Color(0xFF1C1C1E),
+              backgroundColor: VianTheme.sidebarBg,
               indicatorColor: VianTheme.primaryGold.withOpacity(0.15),
               selectedIndex: bottomSelectedIndex,
               onDestinationSelected: (idx) {
@@ -1020,51 +1084,72 @@ class _MainNavigationShellState extends ConsumerState<MainNavigationShell> {
     );
   }
 
-  Widget _buildDrawerContent(Map<String, dynamic> user, List<Map<String, dynamic>> tabs, String role, {bool showHeader = false}) {
+  Widget _buildDrawerContent(Map<String, dynamic> user, List<Map<String, dynamic>> tabs, String role, {bool showHeader = false, bool isSidebar = false}) {
+    final collapsed = isSidebar && _sidebarCollapsed;
     return Column(
       children: [
-        const SizedBox(height: 24),
-        // VIAN logo in Drawer
+        if (showHeader && isSidebar) ...[
+          const SizedBox(height: 8),
+          Align(
+            alignment: Alignment.centerRight,
+            child: Padding(
+              padding: const EdgeInsets.only(right: 8.0),
+              child: IconButton(
+                icon: Icon(collapsed ? Icons.chevron_right : Icons.chevron_left, color: Colors.white70, size: 20),
+                onPressed: () => setState(() => _sidebarCollapsed = !_sidebarCollapsed),
+              ),
+            ),
+          ),
+        ],
+        const SizedBox(height: 12),
         Image.asset(
           'assets/logo.png',
-          height: 48,
-          errorBuilder: (context, error, stackTrace) => const Icon(Icons.architecture, color: VianTheme.primaryGold, size: 40),
+          height: collapsed ? 36 : 48,
+          errorBuilder: (context, error, stackTrace) => Icon(Icons.architecture, color: VianTheme.primaryGold, size: collapsed ? 28 : 40),
         ),
-        const SizedBox(height: 12),
-        Text(
-          'VIAN ARCHITECTS',
-          style: GoogleFonts.poppins(color: VianTheme.primaryGold, fontWeight: FontWeight.bold, fontSize: 14, letterSpacing: 1.5),
-        ),
-        const Text('Enterprise SaaS', style: TextStyle(color: Color(0xFF70707C), fontSize: 10)),
+        if (!collapsed) ...[
+          const SizedBox(height: 12),
+          Text(
+            'VIAN ARCHITECTS',
+            style: GoogleFonts.poppins(color: VianTheme.primaryGold, fontWeight: FontWeight.bold, fontSize: 14, letterSpacing: 1.5),
+          ),
+          const Text('Enterprise SaaS', style: TextStyle(color: Colors.white38, fontSize: 10)),
+        ],
         const SizedBox(height: 24),
-        const Divider(color: Color(0x11F5A623)),
+        const Divider(color: Colors.white10),
         Expanded(
           child: ListView.builder(
             itemCount: tabs.length,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 10),
             itemBuilder: (context, index) {
               final active = _selectedIndex == index;
               return Container(
                 margin: const EdgeInsets.only(bottom: 6),
                 decoration: BoxDecoration(
-                  color: active ? const Color(0x15F5A623) : Colors.transparent,
-                  borderRadius: BorderRadius.circular(8),
-                  border: active ? Border.all(color: const Color(0x44F5A623)) : null,
+                  color: active ? VianTheme.primaryGold.withOpacity(0.12) : Colors.transparent,
+                  borderRadius: BorderRadius.circular(10),
+                  border: active ? Border.all(color: VianTheme.primaryGold.withOpacity(0.24)) : null,
                 ),
                 child: ListTile(
-                  leading: Icon(
-                    tabs[index]['icon'] as IconData,
-                    color: active ? VianTheme.primaryGold : VianTheme.lightText,
-                    size: 20,
-                  ),
-                  title: Text(
-                    tabs[index]['title'] as String,
-                    style: TextStyle(
-                      color: active ? VianTheme.primaryGold : VianTheme.lightText,
-                      fontWeight: active ? FontWeight.bold : FontWeight.normal,
-                      fontSize: 13,
+                  contentPadding: collapsed ? const EdgeInsets.symmetric(horizontal: 4) : const EdgeInsets.symmetric(horizontal: 12),
+                  leading: Tooltip(
+                    message: collapsed ? (tabs[index]['title'] as String) : '',
+                    child: Icon(
+                      tabs[index]['icon'] as IconData,
+                      color: active ? VianTheme.primaryGold : Colors.white70,
+                      size: 20,
                     ),
                   ),
+                  title: collapsed 
+                      ? null 
+                      : Text(
+                          tabs[index]['title'] as String,
+                          style: TextStyle(
+                            color: active ? VianTheme.primaryGold : Colors.white70,
+                            fontWeight: active ? FontWeight.bold : FontWeight.normal,
+                            fontSize: 13,
+                          ),
+                        ),
                   dense: true,
                   onTap: () {
                     context.go(tabs[index]['route'] as String);
@@ -1077,36 +1162,41 @@ class _MainNavigationShellState extends ConsumerState<MainNavigationShell> {
             },
           ),
         ),
-        const Divider(color: Color(0x11F5A623)),
+        const Divider(color: Colors.white10),
         // User profile footer
         Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(12.0),
           child: Row(
+            mainAxisAlignment: collapsed ? MainAxisAlignment.center : MainAxisAlignment.start,
             children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      user['name'] ?? '',
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: VianTheme.whiteText),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    Text(
-                      role,
-                      style: const TextStyle(color: VianTheme.primaryGold, fontSize: 11),
-                    ),
-                  ],
+              if (!collapsed) ...[
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        user['name'] ?? '',
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.white),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      Text(
+                        role,
+                        style: const TextStyle(color: VianTheme.primaryGold, fontSize: 11),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
                 ),
-              ),
+              ],
               IconButton(
                 icon: const Icon(Icons.logout, color: VianTheme.danger, size: 20),
+                tooltip: collapsed ? 'Log Out' : '',
                 onPressed: () async {
                   await ApiService.logout();
                   ref.read(userProvider.notifier).state = null;
                   context.go('/login');
                 },
-              )
+              ),
             ],
           ),
         ),

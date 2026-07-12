@@ -26,12 +26,12 @@ class VianCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: VianTheme.cardColor,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFF26262F), width: 1.0),
-        boxShadow: const [
+        border: Border.all(color: Colors.black.withOpacity(0.05), width: 1.0),
+        boxShadow: [
           BoxShadow(
-            color: Color(0x15000000),
+            color: Colors.black.withOpacity(0.03),
             blurRadius: 10,
-            offset: Offset(0, 4),
+            offset: const Offset(0, 4),
           )
         ],
       ),
@@ -42,8 +42,8 @@ class VianCard extends StatelessWidget {
       return InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(18),
-        splashColor: const Color(0x11F5A623),
-        highlightColor: const Color(0x08F5A623),
+        splashColor: VianTheme.primaryGold.withOpacity(0.12),
+        highlightColor: VianTheme.primaryGold.withOpacity(0.06),
         child: cardContent,
       );
     }
@@ -76,9 +76,9 @@ class VianMetricCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: const Color(0xFF1E1E26),
+              color: const Color(0xFFF1F5F9), // Slate-100 container for icon
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: const Color(0x15F5A623), width: 1),
+              border: Border.all(color: Colors.black.withOpacity(0.04), width: 1),
             ),
             child: Icon(icon, color: iconColor ?? VianTheme.primaryGold, size: 28),
           ),
@@ -149,16 +149,16 @@ class VianButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final style = isSecondary
         ? OutlinedButton.styleFrom(
-            foregroundColor: color ?? VianTheme.primaryGold,
-            side: BorderSide(color: color ?? VianTheme.primaryGold, width: 1.5),
+            foregroundColor: color ?? VianTheme.headerBlack,
+            side: BorderSide(color: color ?? VianTheme.headerBlack, width: 1.5),
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(18),
             ),
           )
         : ElevatedButton.styleFrom(
-            backgroundColor: color ?? VianTheme.primaryGold,
-            foregroundColor: textColor ?? VianTheme.headerBlack,
+            backgroundColor: color ?? VianTheme.headerBlack,
+            foregroundColor: textColor ?? Colors.white,
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(18),
@@ -225,7 +225,7 @@ class VianProgressIndicator extends StatelessWidget {
           borderRadius: BorderRadius.circular(4),
           child: LinearProgressIndicator(
             value: progress,
-            backgroundColor: const Color(0xFF1E1E26),
+            backgroundColor: const Color(0xFFE2E8F0),
             valueColor: const AlwaysStoppedAnimation<Color>(VianTheme.primaryGold),
             minHeight: 8,
           ),

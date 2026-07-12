@@ -2,77 +2,77 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class VianTheme {
-  static const Color primaryGold = Color(0xFFF5A623);
-  static const Color darkBackground = Color(0xFF111111);
-  static const Color headerBlack = Color(0xFF1C1C1E);
-  static const Color cardColor = Color(0xFF242424);
-  static const Color whiteText = Color(0xFFFFFFFF);
-  static const Color lightText = Color(0xFFD9D9D9);
-  static const Color goldBorder = Color(0xFFC88A12);
-  static const Color success = Color(0xFF22C55E);
+  static const Color primaryGold = Color(0xFFD4AF37); // Architectural Gold
+  static const Color darkBackground = Color(0xFFF8FAFC); // Slate clean background
+  static const Color headerBlack = Color(0xFF0F172A); // Premium Slate Dark
+  static const Color cardColor = Color(0xFFFFFFFF); // Card white background
+  static const Color whiteText = Color(0xFF0F172A); // High contrast text on light bg
+  static const Color lightText = Color(0xFF475569); // slate-600 body text
+  static const Color goldBorder = Color(0xFFD4AF37);
+  static const Color success = Color(0xFF10B981);
   static const Color warning = Color(0xFFF59E0B);
   static const Color danger = Color(0xFFEF4444);
-  static const Color accent = Color(0xFFFFC857);
+  static const Color accentBlue = Color(0xFF2563EB); // Accent Blue
+  static const Color sidebarBg = Color(0xFF111827); // Sidebar deep charcoal
 
   static ThemeData get darkTheme {
     return ThemeData(
       useMaterial3: true,
-      brightness: Brightness.dark,
+      brightness: Brightness.light,
       scaffoldBackgroundColor: darkBackground,
       primaryColor: primaryGold,
-      colorScheme: const ColorScheme.dark(
+      colorScheme: const ColorScheme.light(
         primary: primaryGold,
-        secondary: goldBorder,
+        secondary: accentBlue,
         background: darkBackground,
-        surface: headerBlack,
-        onPrimary: headerBlack,
-        onSecondary: whiteText,
-        onBackground: whiteText,
+        surface: cardColor,
+        onPrimary: sidebarBg,
+        onSecondary: headerBlack,
+        onBackground: headerBlack,
         onSurface: lightText,
         error: danger,
       ),
-      textTheme: GoogleFonts.poppinsTextTheme(
-        ThemeData.dark().textTheme.copyWith(
-          displayLarge: const TextStyle(fontSize: 32.0, fontWeight: FontWeight.bold, color: whiteText),
-          titleLarge: const TextStyle(fontSize: 20.0, fontWeight: FontWeight.w600, color: primaryGold),
-          bodyLarge: const TextStyle(fontSize: 16.0, color: whiteText),
+      textTheme: GoogleFonts.interTextTheme(
+        ThemeData.light().textTheme.copyWith(
+          displayLarge: const TextStyle(fontSize: 32.0, fontWeight: FontWeight.bold, color: headerBlack),
+          titleLarge: const TextStyle(fontSize: 20.0, fontWeight: FontWeight.w600, color: headerBlack),
+          bodyLarge: const TextStyle(fontSize: 16.0, color: headerBlack),
           bodyMedium: const TextStyle(fontSize: 14.0, color: lightText),
           labelLarge: const TextStyle(fontSize: 14.0, fontWeight: FontWeight.w500, color: primaryGold),
         ),
       ),
       appBarTheme: const AppBarTheme(
-        backgroundColor: headerBlack,
+        backgroundColor: cardColor,
         elevation: 0,
-        iconTheme: IconThemeData(color: primaryGold),
+        iconTheme: IconThemeData(color: headerBlack),
         titleTextStyle: TextStyle(
-          color: primaryGold,
+          color: headerBlack,
           fontSize: 20.0,
           fontWeight: FontWeight.bold,
           letterSpacing: 1.2,
         ),
       ),
       drawerTheme: const DrawerThemeData(
-        backgroundColor: headerBlack,
+        backgroundColor: sidebarBg,
         elevation: 16,
       ),
       cardTheme: CardThemeData(
         color: cardColor,
-        elevation: 6,
+        elevation: 2,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(18),
-          side: const BorderSide(color: Color(0x15F5A623), width: 1),
+          side: BorderSide(color: Colors.black.withOpacity(0.04), width: 1),
         ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: primaryGold,
-          foregroundColor: headerBlack,
+          backgroundColor: headerBlack,
+          foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(18),
-            side: const BorderSide(color: goldBorder, width: 1.5),
           ),
-          textStyle: GoogleFonts.poppins(
+          textStyle: GoogleFonts.inter(
             fontWeight: FontWeight.bold,
             fontSize: 15,
             letterSpacing: 0.8,
@@ -81,13 +81,13 @@ class VianTheme {
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          foregroundColor: primaryGold,
-          side: const BorderSide(color: primaryGold, width: 1.5),
+          foregroundColor: headerBlack,
+          side: const BorderSide(color: headerBlack, width: 1.5),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(18),
           ),
-          textStyle: GoogleFonts.poppins(
+          textStyle: GoogleFonts.inter(
             fontWeight: FontWeight.w600,
             fontSize: 15,
           ),
@@ -95,18 +95,18 @@ class VianTheme {
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: const Color(0xFF1E1E26),
+        fillColor: Colors.white,
         labelStyle: const TextStyle(color: lightText),
-        floatingLabelStyle: const TextStyle(color: primaryGold),
-        hintStyle: const TextStyle(color: Color(0xFF70707C)),
+        floatingLabelStyle: const TextStyle(color: headerBlack),
+        hintStyle: const TextStyle(color: Color(0xFF94A3B8)),
         contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(18),
-          borderSide: const BorderSide(color: Color(0x33F5A623), width: 1),
+          borderSide: BorderSide(color: Colors.black.withOpacity(0.08), width: 1),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(18),
-          borderSide: const BorderSide(color: primaryGold, width: 1.5),
+          borderSide: const BorderSide(color: headerBlack, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(18),
