@@ -213,14 +213,28 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with TickerProvider
                   AnimatedOpacity(
                     opacity: _blueprintController.value > 0.3 ? 1.0 : 0.0,
                     duration: const Duration(seconds: 1),
-                    child: Text(
-                      'Enterprise Construction Management',
-                      style: GoogleFonts.poppins(
-                        color: VianTheme.primaryGold,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        letterSpacing: 2.5,
-                      ),
+                    child: Column(
+                      children: [
+                        Text(
+                          'Engineering Excellence',
+                          style: GoogleFonts.poppins(
+                            color: VianTheme.primaryGold,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 3,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          'Project Management Platform',
+                          style: GoogleFonts.poppins(
+                            color: Colors.white70,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w400,
+                            letterSpacing: 2,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(height: 64),

@@ -2,18 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class VianTheme {
-  static const Color primaryGold = Color(0xFFD4AF37); // Architectural Gold
-  static const Color darkBackground = Color(0xFFF8FAFC); // Slate clean background
-  static const Color headerBlack = Color(0xFF0F172A); // Premium Slate Dark
-  static const Color cardColor = Color(0xFFFFFFFF); // Card white background
-  static const Color whiteText = Color(0xFF0F172A); // High contrast text on light bg
-  static const Color lightText = Color(0xFF475569); // slate-600 body text
+  static const Color primaryGold = Color(0xFFD4AF37); // Gold Accent
+  static const Color darkBackground = Color(0xFFF7F9FC); // Primary Background
+  static const Color headerBlack = Color(0xFF0F172A); // Primary Text
+  static const Color cardColor = Color(0xFFFFFFFF); // Card Background
+  static const Color whiteText = Color(0xFF0F172A);
+  static const Color lightText = Color(0xFF64748B); // Secondary Text
   static const Color goldBorder = Color(0xFFD4AF37);
-  static const Color success = Color(0xFF10B981);
-  static const Color warning = Color(0xFFF59E0B);
-  static const Color danger = Color(0xFFEF4444);
-  static const Color accentBlue = Color(0xFF2563EB); // Accent Blue
-  static const Color sidebarBg = Color(0xFF111827); // Sidebar deep charcoal
+  static const Color success = Color(0xFF16A34A); // Success
+  static const Color warning = Color(0xFFF59E0B); // Warning
+  static const Color danger = Color(0xFFDC2626); // Danger
+  static const Color accentBlue = Color(0xFF2563EB); // Construction Blue
+  static const Color sidebarBg = Color(0xFF0F172A); // Sidebar 0F172A
 
   static ThemeData get darkTheme {
     return ThemeData(

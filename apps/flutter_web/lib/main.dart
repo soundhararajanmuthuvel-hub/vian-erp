@@ -563,6 +563,43 @@ class _LoginPageState extends ConsumerState<LoginPage> with SingleTickerProvider
                     ),
                   ),
                   Positioned(
+                    top: size.height * 0.32,
+                    left: 64,
+                    right: 64,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'COMPANY ACHIEVEMENTS',
+                          style: GoogleFonts.inter(
+                            color: VianTheme.primaryGold,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                            letterSpacing: 1.5,
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        _buildAchievementRow(
+                          Icons.business_outlined, 
+                          '500+ Projects Handled', 
+                          'Premium commercial, residential, and corporate designs completed.'
+                        ),
+                        const SizedBox(height: 20),
+                        _buildAchievementRow(
+                          Icons.workspace_premium_outlined, 
+                          'Engineering Excellence', 
+                          'National Gold Medal award winner for green architecture standards.'
+                        ),
+                        const SizedBox(height: 20),
+                        _buildAchievementRow(
+                          Icons.verified_user_outlined, 
+                          'Enterprise Grade Safety', 
+                          'Procore and ISO audited project compliance structures.'
+                        ),
+                      ],
+                    ),
+                  ),
+                  Positioned(
                     bottom: 48,
                     left: 64,
                     right: 64,
@@ -574,7 +611,7 @@ class _LoginPageState extends ConsumerState<LoginPage> with SingleTickerProvider
                           style: TextStyle(color: Colors.white30, fontSize: 11),
                         ),
                         Text(
-                          'CAD SHEET REFERENCE: V1.0.0-GOLD',
+                          'CAD SHEET REFERENCE: V2.0.0-GOLD',
                           style: GoogleFonts.shareTechMono(color: Colors.white30, fontSize: 12),
                         ),
                       ],
@@ -598,6 +635,44 @@ class _LoginPageState extends ConsumerState<LoginPage> with SingleTickerProvider
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildAchievementRow(IconData icon, String title, String description) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.05),
+            shape: BoxShape.circle,
+            border: Border.all(color: Colors.white10),
+          ),
+          child: Icon(icon, color: VianTheme.primaryGold, size: 20),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: GoogleFonts.inter(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                description,
+                style: const TextStyle(color: Colors.white54, fontSize: 11.5, height: 1.3),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
@@ -778,7 +853,7 @@ class LoginBlueprintPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paintGrid = Paint()
-      ..color = const Color(0xFF2563EB).withOpacity(0.06)
+      ..color = const Color(0xFF2563EB).withOpacity(0.05)
       ..strokeWidth = 1.0;
 
     const double step = 40.0;
@@ -789,21 +864,66 @@ class LoginBlueprintPainter extends CustomPainter {
       canvas.drawLine(Offset(0, y), Offset(size.width, y), paintGrid);
     }
 
-    final center = Offset(size.width / 2, size.height / 2);
-    final circlePaint = Paint()
-      ..color = const Color(0xFFD4AF37).withOpacity(0.1)
+    final double midX = size.width * 0.5;
+    final double base = size.height * 0.95;
+
+    // Draw detailed architectural building wireframe outline
+    final path = Path();
+    
+    // Central main tower
+    path.moveTo(midX - 70, base);
+    path.lineTo(midX - 70, base - 340);
+    path.lineTo(midX + 70, base - 340);
+    path.lineTo(midX + 70, base);
+
+    // Left tower wing
+    path.moveTo(midX - 150, base);
+    path.lineTo(midX - 150, base - 220);
+    path.lineTo(midX - 70, base - 220);
+
+    // Right tower wing
+    path.moveTo(midX + 70, base);
+    path.lineTo(midX + 70, base - 250);
+    path.lineTo(midX + 150, base - 250);
+    path.lineTo(midX + 150, base);
+
+    // Antenna spear
+    path.moveTo(midX - 15, base - 340);
+    path.lineTo(midX, base - 410);
+    path.lineTo(midX + 15, base - 340);
+
+    final buildPaint = Paint()
+      ..color = const Color(0xFF2563EB).withOpacity(0.18)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.5;
 
-    canvas.drawCircle(center, 120 + (val * 30), circlePaint);
-    canvas.drawCircle(center, 60, circlePaint);
+    canvas.drawPath(path, buildPaint);
 
-    final linePaint = Paint()
-      ..color = const Color(0xFF2563EB).withOpacity(0.12)
+    // Draw floor grids
+    final floorPaint = Paint()
+      ..color = const Color(0xFF2563EB).withOpacity(0.08)
+      ..strokeWidth = 1.0;
+
+    for (double y = base - 20; y > base - 340; y -= 20) {
+      canvas.drawLine(Offset(midX - 70, y), Offset(midX + 70, y), floorPaint);
+    }
+
+    // Concentric blueprint dial lines
+    final center = Offset(midX, base - 200);
+    final circlePaint = Paint()
+      ..color = const Color(0xFFD4AF37).withOpacity(0.08 + (math.sin(val * 2 * math.pi) * 0.02))
+      ..style = PaintingStyle.stroke
       ..strokeWidth = 1.5;
 
-    canvas.drawLine(Offset(0, 0), Offset(size.width * 0.8, size.height), linePaint);
-    canvas.drawLine(Offset(size.width, 0), Offset(size.width * 0.2, size.height), linePaint);
+    canvas.drawCircle(center, 180, circlePaint);
+    canvas.drawCircle(center, 90, circlePaint);
+
+    final linePaint = Paint()
+      ..color = const Color(0xFF2563EB).withOpacity(0.10)
+      ..strokeWidth = 1.2;
+
+    canvas.drawLine(Offset(0, 0), Offset(size.width, size.height), linePaint);
+    canvas.drawLine(Offset(size.width, 0), Offset(0, size.height), linePaint);
   }
 
   @override
@@ -925,36 +1045,37 @@ class _MainNavigationShellState extends ConsumerState<MainNavigationShell> {
   int _selectedIndex = 0;
   bool _sidebarCollapsed = false;
 
-  // Tabs mapping based on user roles
+  // Tabs mapping grouped by category based on user roles
   List<Map<String, dynamic>> _getTabs(String role) {
     final allTabs = [
-      {'title': 'Dashboard', 'icon': Icons.dashboard_outlined, 'route': '/dashboard'},
-      {'title': 'CRM Leads', 'icon': Icons.campaign_outlined, 'route': '/crm-leads', 'roles': ['Super Admin', 'Receptionist']},
-      {'title': 'Enquiry Inbox', 'icon': Icons.inbox_outlined, 'route': '/enquiry-inbox', 'roles': ['Super Admin', 'Admin / Office Manager / Accounts', 'Tech Head + Senior Architect']},
-      {'title': 'Clients', 'icon': Icons.people_outline, 'route': '/clients', 'roles': ['Super Admin', 'Receptionist']},
-      {'title': 'Client Onboarding', 'icon': Icons.person_add_alt_1_outlined, 'route': '/client-onboarding', 'roles': ['Super Admin', 'Admin / Office Manager / Accounts']},
-      {'title': 'Import/Export', 'icon': Icons.swap_horizontal_circle_outlined, 'route': '/import-export', 'roles': ['Super Admin']},
-      {'title': 'Business Targets', 'icon': Icons.track_changes_outlined, 'route': '/business-targets', 'roles': ['Super Admin', 'Admin / Office Manager / Accounts', 'Architect', 'Interior Designer', 'Site Engineer', 'Supervisor', 'Accountant', 'Receptionist']},
-      {'title': 'Projects', 'icon': Icons.architecture, 'route': '/projects', 'roles': ['Super Admin', 'Architect', 'Interior Designer', 'Client']},
-      {'title': 'Construction Estimation', 'icon': Icons.calculate_outlined, 'route': '/construction-estimation', 'roles': ['Super Admin', 'Architect', 'Site Engineer', 'Supervisor', 'Accountant', 'Receptionist']},
-      {'title': 'Contractor Master', 'icon': Icons.business_center_outlined, 'route': '/contractor-master', 'roles': ['Super Admin', 'Architect', 'Site Engineer', 'Supervisor', 'Admin / Office Manager / Accounts']},
-      {'title': 'Labour Attendance', 'icon': Icons.checklist_rtl_outlined, 'route': '/labour-attendance', 'roles': ['Super Admin', 'Site Engineer', 'Supervisor']},
-      {'title': 'Tasks', 'icon': Icons.assignment_outlined, 'route': '/tasks', 'roles': ['Super Admin', 'Architect', 'Interior Designer', 'Site Engineer', 'Supervisor']},
-      {'title': 'GPS Attendance', 'icon': Icons.pin_drop_outlined, 'route': '/gps-attendance', 'roles': ['Super Admin', 'Site Engineer', 'Supervisor']},
-      {'title': 'Daily Work Report', 'icon': Icons.history_edu_outlined, 'route': '/daily-work-report', 'roles': ['Super Admin', 'Architect', 'Interior Designer', 'Site Engineer', 'Supervisor', 'Accountant', 'Receptionist']},
-      {'title': 'Manager Progress', 'icon': Icons.assignment_turned_in_outlined, 'route': '/manager-progress', 'roles': ['Super Admin', 'Site Engineer', 'Supervisor']},
-      {'title': 'Drawings', 'icon': Icons.layers_outlined, 'route': '/drawings', 'roles': ['Super Admin', 'Admin / Office Manager / Accounts', 'Tech Head + Senior Architect', 'Site Manager', 'Employee', 'Client']},
-      {'title': 'Documents', 'icon': Icons.folder_open_outlined, 'route': '/documents', 'roles': ['Super Admin', 'Admin / Office Manager / Accounts', 'Tech Head + Senior Architect', 'Site Manager', 'Employee', 'Client']},
-      {'title': 'Quotations', 'icon': Icons.description_outlined, 'route': '/quotations', 'roles': ['Super Admin', 'Accountant', 'Client']},
-      {'title': 'Invoices', 'icon': Icons.receipt_long_outlined, 'route': '/invoices', 'roles': ['Super Admin', 'Accountant', 'Client']},
-      {'title': 'Expenses', 'icon': Icons.payments_outlined, 'route': '/expenses', 'roles': ['Super Admin', 'Accountant']},
-      {'title': 'Payroll', 'icon': Icons.price_check_outlined, 'route': '/payroll', 'roles': ['Super Admin', 'Accountant']},
-      {'title': 'Reports', 'icon': Icons.assessment_outlined, 'route': '/reports', 'roles': ['Super Admin', 'Accountant']},
-      {'title': 'Conference Calls', 'icon': Icons.phone_in_talk_outlined, 'route': '/conference-calls', 'roles': ['Super Admin', 'Admin / Office Manager / Accounts', 'Tech Head + Senior Architect']},
-      {'title': 'Incentives', 'icon': Icons.monetization_on_outlined, 'route': '/incentives', 'roles': ['Super Admin', 'Admin / Office Manager / Accounts']},
-      {'title': 'Build Center', 'icon': Icons.build_circle_outlined, 'route': '/build-center', 'roles': ['Super Admin']},
-      {'title': 'Settings', 'icon': Icons.settings_outlined, 'route': '/settings', 'roles': ['Super Admin']},
-      {'title': 'Announcements', 'icon': Icons.campaign_outlined, 'route': '/announcements'},
+      {'title': 'Dashboard', 'icon': Icons.dashboard_outlined, 'route': '/dashboard', 'category': 'Core & CRM'},
+      {'title': 'CRM Leads', 'icon': Icons.campaign_outlined, 'route': '/crm-leads', 'roles': ['Super Admin', 'Receptionist'], 'category': 'Core & CRM'},
+      {'title': 'Enquiry Inbox', 'icon': Icons.inbox_outlined, 'route': '/enquiry-inbox', 'roles': ['Super Admin', 'Admin / Office Manager / Accounts', 'Tech Head + Senior Architect'], 'category': 'Core & CRM'},
+      {'title': 'Clients', 'icon': Icons.people_outline, 'route': '/clients', 'roles': ['Super Admin', 'Receptionist'], 'category': 'Core & CRM'},
+      {'title': 'Client Onboarding', 'icon': Icons.person_add_alt_1_outlined, 'route': '/client-onboarding', 'roles': ['Super Admin', 'Admin / Office Manager / Accounts'], 'category': 'Core & CRM'},
+      {'title': 'Announcements', 'icon': Icons.campaign_outlined, 'route': '/announcements', 'category': 'Core & CRM'},
+
+      {'title': 'Projects', 'icon': Icons.architecture, 'route': '/projects', 'roles': ['Super Admin', 'Architect', 'Interior Designer', 'Client'], 'category': 'Project Execution'},
+      {'title': 'Construction Estimation', 'icon': Icons.calculate_outlined, 'route': '/construction-estimation', 'roles': ['Super Admin', 'Architect', 'Site Engineer', 'Supervisor', 'Accountant', 'Receptionist'], 'category': 'Project Execution'},
+      {'title': 'Contractor Master', 'icon': Icons.business_center_outlined, 'route': '/contractor-master', 'roles': ['Super Admin', 'Architect', 'Site Engineer', 'Supervisor', 'Admin / Office Manager / Accounts'], 'category': 'Project Execution'},
+      {'title': 'Drawings', 'icon': Icons.layers_outlined, 'route': '/drawings', 'roles': ['Super Admin', 'Admin / Office Manager / Accounts', 'Tech Head + Senior Architect', 'Site Manager', 'Employee', 'Client'], 'category': 'Project Execution'},
+      {'title': 'Documents', 'icon': Icons.folder_open_outlined, 'route': '/documents', 'roles': ['Super Admin', 'Admin / Office Manager / Accounts', 'Tech Head + Senior Architect', 'Site Manager', 'Employee', 'Client'], 'category': 'Project Execution'},
+      {'title': 'Tasks', 'icon': Icons.assignment_outlined, 'route': '/tasks', 'roles': ['Super Admin', 'Architect', 'Interior Designer', 'Site Engineer', 'Supervisor'], 'category': 'Project Execution'},
+
+      {'title': 'GPS Attendance', 'icon': Icons.pin_drop_outlined, 'route': '/gps-attendance', 'roles': ['Super Admin', 'Site Engineer', 'Supervisor'], 'category': 'Operations & Attendance'},
+      {'title': 'Labour Attendance', 'icon': Icons.checklist_rtl_outlined, 'route': '/labour-attendance', 'roles': ['Super Admin', 'Site Engineer', 'Supervisor'], 'category': 'Operations & Attendance'},
+      {'title': 'Manager Progress', 'icon': Icons.assignment_turned_in_outlined, 'route': '/manager-progress', 'roles': ['Super Admin', 'Site Engineer', 'Supervisor'], 'category': 'Operations & Attendance'},
+      {'title': 'Daily Work Report', 'icon': Icons.history_edu_outlined, 'route': '/daily-work-report', 'roles': ['Super Admin', 'Architect', 'Interior Designer', 'Site Engineer', 'Supervisor', 'Accountant', 'Receptionist'], 'category': 'Operations & Attendance'},
+
+      {'title': 'Quotations', 'icon': Icons.description_outlined, 'route': '/quotations', 'roles': ['Super Admin', 'Accountant', 'Client'], 'category': 'Financial & Payroll'},
+      {'title': 'Invoices', 'icon': Icons.receipt_long_outlined, 'route': '/invoices', 'roles': ['Super Admin', 'Accountant', 'Client'], 'category': 'Financial & Payroll'},
+      {'title': 'Expenses', 'icon': Icons.payments_outlined, 'route': '/expenses', 'roles': ['Super Admin', 'Accountant'], 'category': 'Financial & Payroll'},
+      {'title': 'Payroll', 'icon': Icons.price_check_outlined, 'route': '/payroll', 'roles': ['Super Admin', 'Accountant'], 'category': 'Financial & Payroll'},
+      {'title': 'Incentives', 'icon': Icons.monetization_on_outlined, 'route': '/incentives', 'roles': ['Super Admin', 'Admin / Office Manager / Accounts'], 'category': 'Financial & Payroll'},
+
+      {'title': 'Settings', 'icon': Icons.settings_outlined, 'roles': ['Super Admin'], 'category': 'Administration'},
+      {'title': 'Import/Export', 'icon': Icons.swap_horizontal_circle_outlined, 'route': '/import-export', 'roles': ['Super Admin'], 'category': 'Administration'},
+      {'title': 'Build Center', 'icon': Icons.build_circle_outlined, 'route': '/build-center', 'roles': ['Super Admin'], 'category': 'Administration'},
     ];
 
     return allTabs.where((tab) {
@@ -975,7 +1096,8 @@ class _MainNavigationShellState extends ConsumerState<MainNavigationShell> {
 
     final currentPath = GoRouterState.of(context).matchedLocation;
     int index = tabs.indexWhere((tab) {
-      final route = tab['route'] as String;
+      final route = tab['route'] as String?;
+      if (route == null) return false;
       if (route == currentPath) return true;
       if (route != '/dashboard' && currentPath.startsWith(route)) return true;
       if (route == '/crm-leads' && (currentPath == '/leads' || currentPath.startsWith('/leads/'))) return true;
@@ -1015,8 +1137,74 @@ class _MainNavigationShellState extends ConsumerState<MainNavigationShell> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(tabs[_selectedIndex]['title']),
+        title: Row(
+          children: [
+            Text(
+              tabs[_selectedIndex]['title'],
+              style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 18),
+            ),
+            if (!isMobile) ...[
+              const SizedBox(width: 24),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF1F5F9),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Colors.black.withOpacity(0.04)),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.search, size: 14, color: VianTheme.lightText),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Search projects... (⌘K)',
+                      style: TextStyle(color: VianTheme.lightText, fontSize: 11),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ],
+        ),
         actions: [
+          if (!isMobile) ...[
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: const Color(0xFFEFF6FF),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Row(
+                children: [
+                  Icon(Icons.wb_sunny_outlined, size: 14, color: VianTheme.accentBlue),
+                  SizedBox(width: 6),
+                  Text(
+                    'Chennai: 31°C Sunny',
+                    style: TextStyle(color: VianTheme.accentBlue, fontSize: 11, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 12),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF0FDF4),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.calendar_today_outlined, size: 13, color: VianTheme.success),
+                  const SizedBox(width: 6),
+                  Text(
+                    DateFormat('E, d MMM yyyy').format(DateTime.now()),
+                    style: const TextStyle(color: VianTheme.success, fontSize: 11, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 16),
+          ],
           IconButton(
             icon: const Icon(Icons.notifications_outlined),
             onPressed: () {
@@ -1086,6 +1274,21 @@ class _MainNavigationShellState extends ConsumerState<MainNavigationShell> {
 
   Widget _buildDrawerContent(Map<String, dynamic> user, List<Map<String, dynamic>> tabs, String role, {bool showHeader = false, bool isSidebar = false}) {
     final collapsed = isSidebar && _sidebarCollapsed;
+
+    // Group items by category subheaders
+    final List<Map<String, dynamic>> listItems = [];
+    String? lastCategory;
+    for (final tab in tabs) {
+      final cat = tab['category'] ?? 'General';
+      if (cat != lastCategory) {
+        if (!collapsed) {
+          listItems.add({'isHeader': true, 'title': cat.toUpperCase()});
+        }
+        lastCategory = cat;
+      }
+      listItems.add({'isHeader': false, 'tab': tab});
+    }
+
     return Column(
       children: [
         if (showHeader && isSidebar) ...[
@@ -1119,10 +1322,29 @@ class _MainNavigationShellState extends ConsumerState<MainNavigationShell> {
         const Divider(color: Colors.white10),
         Expanded(
           child: ListView.builder(
-            itemCount: tabs.length,
+            itemCount: listItems.length,
             padding: const EdgeInsets.symmetric(horizontal: 10),
             itemBuilder: (context, index) {
-              final active = _selectedIndex == index;
+              final item = listItems[index];
+              if (item['isHeader'] == true) {
+                return Padding(
+                  padding: const EdgeInsets.only(left: 12, top: 16, bottom: 8),
+                  child: Text(
+                    item['title'] as String,
+                    style: GoogleFonts.inter(
+                      color: Colors.white30,
+                      fontSize: 9,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                );
+              }
+
+              final tab = item['tab'] as Map<String, dynamic>;
+              final tabIndex = tabs.indexOf(tab);
+              final active = _selectedIndex == tabIndex;
+
               return Container(
                 margin: const EdgeInsets.only(bottom: 6),
                 decoration: BoxDecoration(
@@ -1133,9 +1355,9 @@ class _MainNavigationShellState extends ConsumerState<MainNavigationShell> {
                 child: ListTile(
                   contentPadding: collapsed ? const EdgeInsets.symmetric(horizontal: 4) : const EdgeInsets.symmetric(horizontal: 12),
                   leading: Tooltip(
-                    message: collapsed ? (tabs[index]['title'] as String) : '',
+                    message: collapsed ? (tab['title'] as String) : '',
                     child: Icon(
-                      tabs[index]['icon'] as IconData,
+                      tab['icon'] as IconData,
                       color: active ? VianTheme.primaryGold : Colors.white70,
                       size: 20,
                     ),
@@ -1143,7 +1365,7 @@ class _MainNavigationShellState extends ConsumerState<MainNavigationShell> {
                   title: collapsed 
                       ? null 
                       : Text(
-                          tabs[index]['title'] as String,
+                          tab['title'] as String,
                           style: TextStyle(
                             color: active ? VianTheme.primaryGold : Colors.white70,
                             fontWeight: active ? FontWeight.bold : FontWeight.normal,
@@ -1152,7 +1374,10 @@ class _MainNavigationShellState extends ConsumerState<MainNavigationShell> {
                         ),
                   dense: true,
                   onTap: () {
-                    context.go(tabs[index]['route'] as String);
+                    final route = tab['route'] as String?;
+                    if (route != null) {
+                      context.go(route);
+                    }
                     if (Navigator.of(context).canPop()) {
                       Navigator.of(context).pop();
                     }
