@@ -6995,16 +6995,16 @@ class _SettingsTabState extends ConsumerState<SettingsTab> {
             ),
           ),
           
-          // Trash & Restore Panel (Only for Super Admin)
-          if (isSuperAdmin(ApiService.currentUser?['role'] ?? 'Client')) ...[
+          // Trash & Restore Panel (For Super Admin and Admin)
+          if (isSuperAdmin(ApiService.currentUser?['role'] ?? 'Client') || getPermissionRole(ApiService.currentUser?['role'] ?? 'Client') == 'Admin') ...[
             const SizedBox(height: 32),
             VianCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Trash & Restore System (Super Admin)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.redAccent)),
+                  const Text('Trash & Restore System', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.redAccent)),
                   const SizedBox(height: 8),
-                  const Text('Manage soft-deleted items across all VIAN ERP databases. Restored items will return to their original catalogs.', style: TextStyle(color: VianTheme.lightText, fontSize: 12)),
+                  const Text('Manage soft-deleted items across all VIAN ERP databases. Restored items will return to their original catalogs. Super Admins can permanently purge items.', style: TextStyle(color: VianTheme.lightText, fontSize: 12)),
                   const SizedBox(height: 24),
                   Row(
                     children: [
@@ -7024,6 +7024,14 @@ class _SettingsTabState extends ConsumerState<SettingsTab> {
                           DropdownMenuItem(value: 'announcements', child: Text('Directives')),
                           DropdownMenuItem(value: 'quotations', child: Text('Quotations')),
                           DropdownMenuItem(value: 'invoices', child: Text('Invoices')),
+                          DropdownMenuItem(value: 'drawings', child: Text('Drawings')),
+                          DropdownMenuItem(value: 'documents', child: Text('Documents')),
+                          DropdownMenuItem(value: 'expenses', child: Text('Expenses')),
+                          DropdownMenuItem(value: 'stage-checklists', child: Text('Stage Checklists')),
+                          DropdownMenuItem(value: 'team-targets', child: Text('Team Targets')),
+                          DropdownMenuItem(value: 'employee-targets', child: Text('Employee Targets')),
+                          DropdownMenuItem(value: 'contractors', child: Text('Contractors')),
+                          DropdownMenuItem(value: 'manager-attendance', child: Text('Labour Attendance')),
                         ],
                         onChanged: (val) {
                           setState(() {
@@ -7064,15 +7072,48 @@ class _SettingsTabState extends ConsumerState<SettingsTab> {
                         return ListTile(
                           title: Text(displayName, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                           subtitle: Text(deletedDetails, style: const TextStyle(color: Colors.white54, fontSize: 11)),
-                          trailing: VianButton(
-                            text: 'Restore',
-                            onPressed: () async {
-                              final success = await ApiService.restoreItem(_selectedTrashModule, item['id']);
-                              if (success) {
-                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Item restored successfully')));
-                                _loadTrashItems();
-                              }
-                            },
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              VianButton(
+                                text: 'Restore',
+                                onPressed: () async {
+                                  final success = await ApiService.restoreItem(_selectedTrashModule, item['id']);
+                                  if (success) {
+                                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Item restored successfully')));
+                                    _loadTrashItems();
+                                  }
+                                },
+                              ),
+                              if (isSuperAdmin(ApiService.currentUser?['role'] ?? 'Client')) ...[
+                                const SizedBox(width: 8),
+                                VianButton(
+                                  text: 'Purge',
+                                  color: Colors.redAccent,
+                                  onPressed: () async {
+                                    final confirm = await showDialog<bool>(
+                                      context: context,
+                                      builder: (ctx) => AlertDialog(
+                                        backgroundColor: VianTheme.headerBlack,
+                                        title: const Text('Confirm Permanent Purge', style: TextStyle(color: Colors.redAccent)),
+                                        content: const Text('Are you sure you want to permanently delete this item? This action is irreversible.'),
+                                        actions: [
+                                          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+                                          TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Purge', style: TextStyle(color: Colors.redAccent))),
+                                        ],
+                                      ),
+                                    );
+                                    if (confirm == true) {
+                                      final success = await ApiService.purgeItem(_selectedTrashModule, item['id']);
+                                      if (success) {
+                                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Item permanently purged')));
+                                        _loadTrashItems();
+                                      }
+                                    }
+                                  },
+                                ),
+                              ],
+                            ],
                           ),
                         );
                       },
