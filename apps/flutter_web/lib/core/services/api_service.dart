@@ -499,32 +499,277 @@ class ApiService {
   }
 
   // Check in
-  static Future<bool> checkIn(String gps, String? selfieUrl) async {
+  // Check in
+  static Future<bool> checkIn({
+    required double latitude,
+    required double longitude,
+    required double accuracy,
+    required String address,
+    required String faceImageUrl,
+    required double faceScore,
+    required String device,
+    required String browser,
+    required String ipAddress,
+    required String network,
+    int? projectId,
+  }) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/attendance/check-in'),
         headers: _headers,
-        body: json.encode({'gps': gps, 'selfieUrl': selfieUrl}),
+        body: json.encode({
+          'latitude': latitude,
+          'longitude': longitude,
+          'accuracy': accuracy,
+          'address': address,
+          'faceImageUrl': faceImageUrl,
+          'faceScore': faceScore,
+          'device': device,
+          'browser': browser,
+          'ipAddress': ipAddress,
+          'network': network,
+          'projectId': projectId,
+        }),
       );
       return response.statusCode == 201;
     } catch (_) {
-      queueOfflineRequest('/attendance/check-in', 'POST', {'gps': gps, 'selfieUrl': selfieUrl});
-      return true;
+      return false;
     }
   }
 
   // Check out
-  static Future<bool> checkOut(String gps) async {
+  static Future<bool> checkOut({
+    required double latitude,
+    required double longitude,
+    required double accuracy,
+    required String address,
+    required String faceImageUrl,
+    required double faceScore,
+    required String device,
+    required String browser,
+    required String ipAddress,
+    required String network,
+  }) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/attendance/check-out'),
         headers: _headers,
-        body: json.encode({'gps': gps}),
+        body: json.encode({
+          'latitude': latitude,
+          'longitude': longitude,
+          'accuracy': accuracy,
+          'address': address,
+          'faceImageUrl': faceImageUrl,
+          'faceScore': faceScore,
+          'device': device,
+          'browser': browser,
+          'ipAddress': ipAddress,
+          'network': network,
+        }),
       );
       return response.statusCode == 200;
     } catch (_) {
-      queueOfflineRequest('/attendance/check-out', 'POST', {'gps': gps});
-      return true;
+      return false;
+    }
+  }
+
+  // Fetch employee face registration status
+  static Future<Map<String, dynamic>> getFaceStatus(int userId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/attendance/face-status/$userId'),
+        headers: _headers,
+      );
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      }
+    } catch (_) {}
+    return {'registered': false};
+  }
+
+  // Enroll employee face (Admin/Super Admin only)
+  static Future<bool> registerFace({
+    required int userId,
+    required String frontFace,
+    required String leftFace,
+    required String rightFace,
+    String? smileFace,
+    required double qualityScore,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/attendance/face-register'),
+        headers: _headers,
+        body: json.encode({
+          'userId': userId,
+          'frontFace': frontFace,
+          'leftFace': leftFace,
+          'rightFace': rightFace,
+          'smileFace': smileFace,
+          'qualityScore': qualityScore,
+        }),
+      );
+      return response.statusCode == 200;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  // Update project geofencing configuration (Admin/Super Admin only)
+  static Future<bool> updateProjectGeofence(int projectId, double lat, double lng, int radius, String address) async {
+    try {
+      final response = await http.put(
+        Uri.parse('$baseUrl/projects/$projectId/geofence'),
+        headers: _headers,
+        body: json.encode({
+          'latitude': lat,
+          'longitude': lng,
+          'allowedRadius': radius,
+          'siteAddress': address,
+        }),
+      );
+      return response.statusCode == 200;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  // Fetch pending geofence approvals
+  static Future<List<dynamic>> getPendingGeofenceApprovals() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/attendance/pending-approvals'),
+        headers: _headers,
+      );
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return data['pending'] ?? [];
+      }
+    } catch (_) {}
+    return [];
+  }
+
+  // Approve geofence override
+  static Future<bool> approveOverride({
+    required int attendanceId,
+    required String status,
+    required String reason,
+    required String remarks,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/attendance/override/$attendanceId'),
+        headers: _headers,
+        body: json.encode({
+          'overrideStatus': status,
+          'overrideReason': reason,
+          'overrideRemarks': remarks,
+        }),
+      );
+      return response.statusCode == 200;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  // Get geofence attendance dashboard stats
+  static Future<Map<String, dynamic>> getAttendanceDashboardStats() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/attendance/dashboard-stats'),
+        headers: _headers,
+      );
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      }
+    } catch (_) {}
+    return {'success': false, 'stats': {}};
+  }
+
+  static Future<bool> submitManualAttendance(Map<String, dynamic> data) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/attendance/manual'),
+        headers: _headers,
+        body: json.encode(data),
+      );
+      return response.statusCode == 201;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  static Future<bool> lockMonth(String month) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/attendance/lock'),
+        headers: _headers,
+        body: json.encode({'month': month}),
+      );
+      return response.statusCode == 200;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  static Future<bool> unlockMonth(String month) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/attendance/unlock'),
+        headers: _headers,
+        body: json.encode({'month': month}),
+      );
+      return response.statusCode == 200;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  static Future<bool> getMonthLockStatus(String month) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/attendance/lock-status/$month'),
+        headers: _headers,
+      );
+      if (response.statusCode == 200) {
+        return json.decode(response.body)['locked'] == true;
+      }
+      return false;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  static Future<List<dynamic>> getAttendanceReports({String? month, int? employeeId}) async {
+    try {
+      String query = '';
+      if (month != null) query += 'month=$month&';
+      if (employeeId != null) query += 'employeeId=$employeeId&';
+      final response = await http.get(
+        Uri.parse('$baseUrl/attendance/reports?$query'),
+        headers: _headers,
+      );
+      if (response.statusCode == 200) {
+        return json.decode(response.body)['reports'] ?? [];
+      }
+      return [];
+    } catch (_) {
+      return [];
+    }
+  }
+
+  static Future<List<dynamic>> getAttendanceAuditLogs() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/attendance/audit-logs'),
+        headers: _headers,
+      );
+      if (response.statusCode == 200) {
+        return json.decode(response.body)['logs'] ?? [];
+      }
+      return [];
+    } catch (_) {
+      return [];
     }
   }
 
@@ -3308,6 +3553,48 @@ class ApiService {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/restore/$module/$id'),
+        headers: _headers,
+      );
+      return response.statusCode == 200;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  // Check dependencies before archive or delete
+  static Future<Map<String, dynamic>> checkDependencies(String module, int id) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/check-dependencies/$module/$id'),
+        headers: _headers,
+      );
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      }
+      return {'hasDependencies': false, 'dependencies': {}};
+    } catch (_) {
+      return {'hasDependencies': false, 'dependencies': {}};
+    }
+  }
+
+  // Archive record
+  static Future<bool> archiveRecord(String module, int id) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/archive/$module/$id'),
+        headers: _headers,
+      );
+      return response.statusCode == 200;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  // Purge/Permanently delete trash item
+  static Future<bool> purgeItem(String module, int id) async {
+    try {
+      final response = await http.delete(
+        Uri.parse('$baseUrl/trash/purge/$module/$id'),
         headers: _headers,
       );
       return response.statusCode == 200;

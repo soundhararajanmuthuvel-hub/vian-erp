@@ -17,6 +17,9 @@ import 'core/theme/theme.dart';
 import 'core/services/api_service.dart';
 import 'core/widgets/custom_widgets.dart';
 import 'core/widgets/home_dashboards.dart';
+import 'core/widgets/face_gps_verify_overlay.dart';
+import 'core/widgets/face_registration_wizard.dart';
+import 'core/widgets/project_geofence_map.dart';
 import 'core/services/file_helper.dart';
 import 'core/widgets/drawing_canvases.dart';
 import 'public_enquiry_portal.dart';
@@ -436,11 +439,9 @@ class LoginPage extends ConsumerStatefulWidget {
   ConsumerState<LoginPage> createState() => _LoginPageState();
 }
 
-class _LoginPageState extends ConsumerState<LoginPage> with TickerProviderStateMixin {
+class _LoginPageState extends ConsumerState<LoginPage> {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _phoneController = TextEditingController();
-  final _otpCodeController = TextEditingController();
 
   bool _isLoading = false;
   bool _rememberMe = true;
@@ -448,33 +449,15 @@ class _LoginPageState extends ConsumerState<LoginPage> with TickerProviderStateM
   bool _showDevOptions = false;
   String? _errorMessage;
 
-  int _selectedMethodTab = 0; // 0 = Password, 1 = OTP, 2 = Face ID
-  bool _otpSent = false;
-
-  // Face ID state
-  bool _isScanningFace = false;
-  double _faceScanProgress = 0.0;
-  String _faceScanStatus = 'Ready to Scan';
-  Timer? _faceScanTimer;
-  late AnimationController _scannerAnimationController;
-
   @override
   void initState() {
     super.initState();
-    _scannerAnimationController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 2),
-    )..repeat();
   }
 
   @override
   void dispose() {
     _usernameController.dispose();
     _passwordController.dispose();
-    _phoneController.dispose();
-    _otpCodeController.dispose();
-    _scannerAnimationController.dispose();
-    _faceScanTimer?.cancel();
     super.dispose();
   }
 
@@ -503,113 +486,7 @@ class _LoginPageState extends ConsumerState<LoginPage> with TickerProviderStateM
     });
   }
 
-  Future<void> _sendOTP() async {
-    final phone = _phoneController.text.trim();
-    if (phone.isEmpty) {
-      setState(() {
-        _errorMessage = 'Please enter your mobile number or employee ID.';
-      });
-      return;
-    }
 
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
-
-    // Simulate API delay
-    await Future.delayed(const Duration(milliseconds: 1200));
-
-    setState(() {
-      _isLoading = false;
-      _otpSent = true;
-    });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Demo OTP sent to device. Code: 482019', style: TextStyle(color: VianTheme.primaryGold, fontWeight: FontWeight.bold)),
-        backgroundColor: VianTheme.headerBlack,
-        duration: Duration(seconds: 6),
-      ),
-    );
-  }
-
-  Future<void> _verifyOTP() async {
-    final code = _otpCodeController.text.trim();
-    if (code != '482019') {
-      setState(() {
-        _errorMessage = 'Invalid OTP. For demo purposes, enter code 482019.';
-      });
-      return;
-    }
-
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
-
-    // Login as Super Admin Founder & Managing Director
-    final res = await ApiService.login('anand', 'anand123');
-
-    if (res['success']) {
-      ref.read(userProvider.notifier).state = res['user'];
-      context.go('/dashboard');
-    } else {
-      setState(() {
-        _errorMessage = res['message'];
-      });
-    }
-
-    setState(() {
-      _isLoading = false;
-    });
-  }
-
-  void _startFaceIDScan() {
-    setState(() {
-      _isScanningFace = true;
-      _faceScanProgress = 0.0;
-      _faceScanStatus = 'Initializing front camera...';
-      _errorMessage = null;
-    });
-
-    int currentStep = 0;
-    _faceScanTimer = Timer.periodic(const Duration(milliseconds: 100), (timer) async {
-      currentStep++;
-      if (!mounted) return;
-
-      setState(() {
-        _faceScanProgress = currentStep / 20.0;
-        if (_faceScanProgress < 0.3) {
-          _faceScanStatus = 'Scanning facial structure...';
-        } else if (_faceScanProgress < 0.6) {
-          _faceScanStatus = 'Verifying identity indices...';
-        } else if (_faceScanProgress < 0.9) {
-          _faceScanStatus = 'Matching credentials DB...';
-        } else {
-          _faceScanStatus = 'Identity Verified!';
-        }
-      });
-
-      if (currentStep >= 20) {
-        timer.cancel();
-
-        // Autologin as Super Admin (Anand Sathiesivam)
-        final res = await ApiService.login('anand', 'anand123');
-        if (!mounted) return;
-
-        if (res['success']) {
-          ref.read(userProvider.notifier).state = res['user'];
-          context.go('/dashboard');
-        } else {
-          setState(() {
-            _isScanningFace = false;
-            _errorMessage = 'Biometric signature did not match: ${res['message']}';
-          });
-        }
-      }
-    });
-  }
 
   void _quickFill(String role) {
     _usernameController.text = role;
@@ -699,23 +576,7 @@ class _LoginPageState extends ConsumerState<LoginPage> with TickerProviderStateM
                           ),
                           const SizedBox(height: 32),
 
-                          // PREMIUM TABS SELECTOR
-                          Container(
-                            padding: const EdgeInsets.all(4),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF13131A).withOpacity(0.7),
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(color: Colors.white.withOpacity(0.04)),
-                            ),
-                            child: Row(
-                              children: [
-                                _buildTabButton(0, Icons.vpn_key_outlined, 'Password'),
-                                _buildTabButton(1, Icons.sms_outlined, 'OTP'),
-                                _buildTabButton(2, Icons.face_retouching_natural_outlined, 'Face ID'),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 28),
+
 
                           if (_errorMessage != null) ...[
                             Container(
@@ -802,322 +663,71 @@ class _LoginPageState extends ConsumerState<LoginPage> with TickerProviderStateM
     );
   }
 
-  Widget _buildTabButton(int index, IconData icon, String label) {
-    final isSelected = _selectedMethodTab == index;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () {
-          setState(() {
-            _selectedMethodTab = index;
-            _errorMessage = null;
-            _otpSent = false;
-            _isScanningFace = false;
-            _faceScanTimer?.cancel();
-          });
-        },
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          decoration: BoxDecoration(
-            color: isSelected ? VianTheme.primaryGold : Colors.transparent,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                icon,
-                color: isSelected ? VianTheme.headerBlack : Colors.white60,
-                size: 18,
-              ),
-              const SizedBox(height: 4),
-              Text(
-                label,
-                style: GoogleFonts.poppins(
-                  color: isSelected ? VianTheme.headerBlack : Colors.white60,
-                  fontSize: 11,
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                ),
-              ),
-            ],
+  Widget _buildFormContent() {
+    return Column(
+      key: const ValueKey('passwordForm'),
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        TextField(
+          controller: _usernameController,
+          style: const TextStyle(color: Colors.white),
+          decoration: const InputDecoration(
+            labelText: 'Username / Employee ID / Email',
+            prefixIcon: Icon(Icons.person_outline, color: VianTheme.primaryGold),
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildFormContent() {
-    if (_selectedMethodTab == 0) {
-      // Password Login
-      return Column(
-        key: const ValueKey('passwordForm'),
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          TextField(
-            controller: _usernameController,
-            style: const TextStyle(color: Colors.white),
-            decoration: const InputDecoration(
-              labelText: 'Username',
-              prefixIcon: Icon(Icons.person_outline, color: VianTheme.primaryGold),
+        const SizedBox(height: 16),
+        TextField(
+          controller: _passwordController,
+          obscureText: !_showPassword,
+          style: const TextStyle(color: Colors.white),
+          decoration: InputDecoration(
+            labelText: 'Password',
+            prefixIcon: const Icon(Icons.lock_outline, color: VianTheme.primaryGold),
+            suffixIcon: IconButton(
+              icon: Icon(
+                _showPassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                color: Colors.white60,
+                size: 20,
+              ),
+              onPressed: () => setState(() => _showPassword = !_showPassword),
             ),
           ),
-          const SizedBox(height: 16),
-          TextField(
-            controller: _passwordController,
-            obscureText: !_showPassword,
-            style: const TextStyle(color: Colors.white),
-            decoration: InputDecoration(
-              labelText: 'Password',
-              prefixIcon: const Icon(Icons.lock_outline, color: VianTheme.primaryGold),
-              suffixIcon: IconButton(
-                icon: Icon(
-                  _showPassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                  color: Colors.white60,
-                  size: 20,
-                ),
-                onPressed: () => setState(() => _showPassword = !_showPassword),
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  Checkbox(
-                    value: _rememberMe,
-                    activeColor: VianTheme.primaryGold,
-                    checkColor: VianTheme.headerBlack,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    onChanged: (v) => setState(() => _rememberMe = v ?? true),
-                  ),
-                  const Text('Remember me', style: TextStyle(fontSize: 13, color: VianTheme.lightText)),
-                ],
-              ),
-              TextButton(
-                onPressed: () => context.go('/forgot-password'),
-                child: const Text('Forgot Password?', style: TextStyle(color: VianTheme.primaryGold, fontSize: 13)),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-          SizedBox(
-            width: double.infinity,
-            child: VianButton(
-              text: _isLoading ? 'Signing In...' : 'Sign In',
-              onPressed: _isLoading ? () {} : _handleLogin,
-            ),
-          ),
-        ],
-      );
-    } else if (_selectedMethodTab == 1) {
-      // OTP Login
-      return Column(
-        key: const ValueKey('otpForm'),
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (!_otpSent) ...[
-            TextField(
-              controller: _phoneController,
-              keyboardType: TextInputType.phone,
-              style: const TextStyle(color: Colors.white),
-              decoration: const InputDecoration(
-                labelText: 'Mobile Number or Employee ID',
-                prefixIcon: Icon(Icons.phone_outlined, color: VianTheme.primaryGold),
-                hintText: '+91 XXXXX XXXXX or employee code',
-              ),
-            ),
-            const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              child: VianButton(
-                text: _isLoading ? 'Sending SMS...' : 'Request OTP',
-                onPressed: _isLoading ? () {} : _sendOTP,
-              ),
-            ),
-          ] else ...[
-            Text(
-              'Enter verification code sent to your registered device.',
-              textAlign: TextAlign.center,
-              style: GoogleFonts.poppins(color: VianTheme.lightText, fontSize: 12),
-            ),
-            const SizedBox(height: 20),
-            TextField(
-              controller: _otpCodeController,
-              keyboardType: TextInputType.number,
-              style: const TextStyle(color: Colors.white, letterSpacing: 8, fontSize: 18),
-              textAlign: TextAlign.center,
-              maxLength: 6,
-              decoration: const InputDecoration(
-                labelText: 'SMS Code',
-                prefixIcon: Icon(Icons.lock_clock_outlined, color: VianTheme.primaryGold),
-                hintText: '• • • • • •',
-                counterText: '',
-              ),
-            ),
-            const SizedBox(height: 24),
+        ),
+        const SizedBox(height: 16),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
             Row(
               children: [
-                Expanded(
-                  child: OutlinedButton(
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.white70,
-                      side: const BorderSide(color: Colors.white24),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                    ),
-                    onPressed: () => setState(() => _otpSent = false),
-                    child: const Text('Back'),
+                Checkbox(
+                  value: _rememberMe,
+                  activeColor: VianTheme.primaryGold,
+                  checkColor: VianTheme.headerBlack,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(4),
                   ),
+                  onChanged: (v) => setState(() => _rememberMe = v ?? true),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: VianButton(
-                    text: _isLoading ? 'Verifying...' : 'Verify & Login',
-                    onPressed: _isLoading ? () {} : _verifyOTP,
-                  ),
-                ),
+                const Text('Remember me', style: TextStyle(fontSize: 13, color: VianTheme.lightText)),
               ],
             ),
-          ],
-        ],
-      );
-    } else {
-      // Face ID Login
-      return Column(
-        key: const ValueKey('faceIdForm'),
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (!_isScanningFace) ...[
-            Container(
-              padding: const EdgeInsets.all(28),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: const Color(0xFF181822).withOpacity(0.6),
-                border: Border.all(color: VianTheme.primaryGold.withOpacity(0.2), width: 2),
-              ),
-              child: const Icon(
-                Icons.face_retouching_natural_outlined,
-                color: VianTheme.primaryGold,
-                size: 72,
-              ),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              'Biometric Authorization',
-              style: GoogleFonts.outfit(
-                color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              'Position yourself facing the camera and press scan.',
-              textAlign: TextAlign.center,
-              style: GoogleFonts.poppins(color: VianTheme.lightText, fontSize: 12),
-            ),
-            const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              child: VianButton(
-                text: 'Scan Face & Authorize',
-                onPressed: _startFaceIDScan,
-              ),
-            ),
-          ] else ...[
-            // Rotating scanner rings animation
-            SizedBox(
-              height: 160,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  AnimatedBuilder(
-                    animation: _scannerAnimationController,
-                    builder: (context, child) {
-                      return Transform.rotate(
-                        angle: _scannerAnimationController.value * 2 * math.pi,
-                        child: Container(
-                          width: 140,
-                          height: 140,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: VianTheme.primaryGold.withOpacity(0.6),
-                              width: 3,
-                              strokeAlign: BorderSide.strokeAlignOutside,
-                            ),
-                          ),
-                          child: const CircularProgressIndicator(
-                            value: 0.25,
-                            color: VianTheme.primaryGold,
-                            strokeWidth: 4,
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                  const Icon(
-                    Icons.face_unlock_outlined,
-                    color: VianTheme.primaryGold,
-                    size: 64,
-                  ),
-                  // Draw animated scanning line
-                  AnimatedBuilder(
-                    animation: _scannerAnimationController,
-                    builder: (context, child) {
-                      final val = math.sin(_scannerAnimationController.value * math.pi);
-                      final offset = -50 + (100 * val);
-                      return Positioned(
-                        top: 80.0 + offset,
-                        child: Container(
-                          width: 130,
-                          height: 2,
-                          decoration: BoxDecoration(
-                            color: VianTheme.primaryGold,
-                            boxShadow: [
-                              BoxShadow(
-                                color: VianTheme.primaryGold.withOpacity(0.8),
-                                blurRadius: 8,
-                                spreadRadius: 1,
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              _faceScanStatus,
-              style: GoogleFonts.poppins(
-                color: Colors.white,
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 12),
-            SizedBox(
-              width: 180,
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(4),
-                child: LinearProgressIndicator(
-                  value: _faceScanProgress,
-                  backgroundColor: Colors.white.withOpacity(0.05),
-                  valueColor: const AlwaysStoppedAnimation<Color>(VianTheme.primaryGold),
-                  minHeight: 4,
-                ),
-              ),
+            TextButton(
+              onPressed: () => context.go('/forgot-password'),
+              child: const Text('Forgot Password?', style: TextStyle(color: VianTheme.primaryGold, fontSize: 13)),
             ),
           ],
-        ],
-      );
-    }
+        ),
+        const SizedBox(height: 24),
+        SizedBox(
+          width: double.infinity,
+          child: VianButton(
+            text: _isLoading ? 'Signing In...' : 'Sign In',
+            onPressed: _isLoading ? () {} : _handleLogin,
+          ),
+        ),
+      ],
+    );
   }
 
   Widget _roleChip(String role) {
@@ -5112,139 +4722,1136 @@ class _TasksTabState extends State<TasksTab> {
 // ==========================================
 // 8. GPS ATTENDANCE TAB
 // ==========================================
-class AttendanceTab extends StatefulWidget {
+class AttendanceTab extends ConsumerStatefulWidget {
   final String? initialAction;
   const AttendanceTab({Key? key, this.initialAction}) : super(key: key);
 
   @override
-  State<AttendanceTab> createState() => _AttendanceTabState();
+  ConsumerState<AttendanceTab> createState() => _AttendanceTabState();
 }
 
-class _AttendanceTabState extends State<AttendanceTab> {
+class _AttendanceTabState extends ConsumerState<AttendanceTab> {
   bool _checkedIn = false;
-  String _gps = 'Capturing...';
+  String _gps = '28.4630° N, 77.0300° E (Sector 43 Office)';
   String? _checkInTime;
   String? _checkOutTime;
+
+  bool _loading = true;
+  List<dynamic> _reports = [];
+  List<dynamic> _employees = [];
+  List<dynamic> _auditLogs = [];
+  bool _currentMonthLocked = false;
+  String _selectedMonthForLock = DateFormat('yyyy-MM').format(DateTime.now());
+
+  // Geofencing and face subtabs
+  String _activeSubTab = 'roster'; 
+  List<dynamic> _pendingApprovals = [];
+  List<dynamic> _allProjects = [];
+  dynamic _selectedProjectForGeofence;
 
   @override
   void initState() {
     super.initState();
-    _captureLocation();
+    _loadTabContent();
     if (widget.initialAction != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (widget.initialAction == 'check-in') {
           _handleCheckIn();
         } else if (widget.initialAction == 'check-out') {
           _handleCheckOut();
-        } else if (widget.initialAction == 'history') {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Viewing Attendance History Log...'))
-          );
         }
       });
     }
   }
 
-  void _captureLocation() {
-    // Simulated GPS Coordinates for Site Engineer Check-In
-    Timer(const Duration(seconds: 1), () {
-      if (mounted) {
-        setState(() {
-          _gps = '28.4595° N, 77.0266° E (Sector 43 Office)';
-        });
+  Future<void> _loadTabContent() async {
+    setState(() => _loading = true);
+    final user = ref.read(userProvider);
+    final role = user?['role'] ?? '';
+
+    // Load month lock status
+    final locked = await ApiService.getMonthLockStatus(_selectedMonthForLock);
+    _currentMonthLocked = locked;
+
+    if (role == 'Super Admin' || role.toString().contains('Admin')) {
+      _reports = await ApiService.getAttendanceReports();
+      _employees = await ApiService.getEmployees();
+      _pendingApprovals = await ApiService.getPendingGeofenceApprovals();
+      _allProjects = await ApiService.getProjects();
+      
+      if (_allProjects.isNotEmpty) {
+        if (_selectedProjectForGeofence == null) {
+          _selectedProjectForGeofence = _allProjects.first;
+        } else {
+          final matched = _allProjects.firstWhere(
+            (p) => p['id'] == _selectedProjectForGeofence['id'],
+            orElse: () => null,
+          );
+          if (matched != null) {
+            _selectedProjectForGeofence = matched;
+          } else {
+            _selectedProjectForGeofence = _allProjects.first;
+          }
+        }
       }
-    });
+
+      if (role == 'Super Admin') {
+        _auditLogs = await ApiService.getAttendanceAuditLogs();
+      }
+    } else {
+      // Staff personal history
+      final uId = user?['id'];
+      if (uId != null) {
+        _reports = await ApiService.getAttendanceReports(employeeId: uId);
+      }
+      // Check if user has already punched in today
+      final todayStr = DateFormat('yyyy-MM-dd').format(DateTime.now());
+      final todayRecord = _reports.firstWhere(
+        (r) => r['date'] == todayStr && r['userId'] == uId,
+        orElse: () => null,
+      );
+      if (todayRecord != null) {
+        _checkedIn = true;
+        _checkInTime = todayRecord['checkInTime'];
+        _checkOutTime = todayRecord['checkOutTime'];
+      }
+    }
+
+    if (mounted) {
+      setState(() => _loading = false);
+    }
   }
 
-  void _handleCheckIn() async {
-    setState(() => _checkedIn = true);
-    _checkInTime = DateFormat('hh:mm a').format(DateTime.now());
-    await ApiService.checkIn(_gps, null);
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Successfully Checked In (GPS Captured)')));
+  void _handleCheckIn() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => FaceGpsVerifyOverlay(
+        action: 'check-in',
+        onSuccess: () {
+          Navigator.pop(ctx);
+          _loadTabContent();
+        },
+        onCancel: () {
+          Navigator.pop(ctx);
+        },
+      ),
+    );
   }
 
-  void _handleCheckOut() async {
-    _checkOutTime = DateFormat('hh:mm a').format(DateTime.now());
-    await ApiService.checkOut(_gps);
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Successfully Checked Out (GPS Captured)')));
+  void _handleCheckOut() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => FaceGpsVerifyOverlay(
+        action: 'check-out',
+        onSuccess: () {
+          Navigator.pop(ctx);
+          _loadTabContent();
+        },
+        onCancel: () {
+          Navigator.pop(ctx);
+        },
+      ),
+    );
+  }
+
+  void _showManualAttendanceDialog() {
+    final dateCtrl = TextEditingController(text: DateFormat('yyyy-MM-dd').format(DateTime.now()));
+    final checkInCtrl = TextEditingController(text: '09:00:00');
+    final checkOutCtrl = TextEditingController(text: '18:00:00');
+    final reasonCtrl = TextEditingController();
+    int? selectedEmpId;
+    String selectedStatus = 'Present';
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setStateModal) => AlertDialog(
+          backgroundColor: const Color(0xFF1E1E26),
+          title: const Text('Add / Correct Manual Attendance', style: TextStyle(color: VianTheme.primaryGold)),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                DropdownButtonFormField<int>(
+                  decoration: const InputDecoration(labelText: 'Employee'),
+                  dropdownColor: const Color(0xFF1E1E26),
+                  value: selectedEmpId,
+                  items: _employees.map<DropdownMenuItem<int>>((e) {
+                    return DropdownMenuItem<int>(
+                      value: e['id'] as int,
+                      child: Text(e['name'] ?? ''),
+                    );
+                  }).toList(),
+                  onChanged: (val) => setStateModal(() => selectedEmpId = val),
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: dateCtrl,
+                  decoration: const InputDecoration(labelText: 'Date (YYYY-MM-DD)'),
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: checkInCtrl,
+                  decoration: const InputDecoration(labelText: 'Check In Time (HH:MM:SS)'),
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: checkOutCtrl,
+                  decoration: const InputDecoration(labelText: 'Check Out Time (HH:MM:SS)'),
+                ),
+                const SizedBox(height: 12),
+                DropdownButtonFormField<String>(
+                  decoration: const InputDecoration(labelText: 'Status'),
+                  dropdownColor: const Color(0xFF1E1E26),
+                  value: selectedStatus,
+                  items: ['Present', 'Late', 'Half Day', 'Leave', 'Absent'].map((s) {
+                    return DropdownMenuItem<String>(value: s, child: Text(s));
+                  }).toList(),
+                  onChanged: (val) => setStateModal(() => selectedStatus = val!),
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: reasonCtrl,
+                  decoration: const InputDecoration(labelText: 'Reason (required for Audit)'),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: VianTheme.primaryGold, foregroundColor: Colors.black),
+              onPressed: () async {
+                if (selectedEmpId == null || reasonCtrl.text.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Employee and Reason are required.')),
+                  );
+                  return;
+                }
+                final ok = await ApiService.submitManualAttendance({
+                  'userId': selectedEmpId,
+                  'date': dateCtrl.text,
+                  'checkInTime': checkInCtrl.text,
+                  'checkOutTime': checkOutCtrl.text,
+                  'status': selectedStatus,
+                  'reason': reasonCtrl.text,
+                });
+                if (ok) {
+                  Navigator.pop(ctx);
+                  _loadTabContent();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Manual attendance saved successfully.')),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Failed to save manual attendance.')),
+                  );
+                }
+              },
+              child: const Text('Save Record'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showFaceRegistrationWizard(Map<String, dynamic> employee) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => FaceRegistrationWizard(
+        employee: employee,
+        onComplete: () {
+          Navigator.pop(ctx);
+          _loadTabContent();
+        },
+      ),
+    );
+  }
+
+  void _showGeofenceOverrideApprovalDialog(Map<String, dynamic> pending) {
+    final reasonCtrl = TextEditingController();
+    final remarksCtrl = TextEditingController();
+    
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1E1E26),
+        title: const Text('Review Geofence Breach Override', style: TextStyle(color: VianTheme.primaryGold)),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Employee: ${pending['user']?['name'] ?? "Unknown"}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 4),
+              Text('Date: ${pending['date']} | Time: ${pending['checkInTime'] ?? "N/A"}', style: const TextStyle(color: Colors.white60, fontSize: 12)),
+              Text('Punch Distance: ${pending['checkInGpsDistance'] != null ? double.parse(pending['checkInGpsDistance'].toString()).toStringAsFixed(1) : "N/A"} meters from site', style: const TextStyle(color: Colors.white60, fontSize: 12)),
+              const Divider(color: Colors.white10, height: 24),
+              TextFormField(
+                controller: reasonCtrl,
+                style: const TextStyle(color: Colors.white),
+                decoration: const InputDecoration(
+                  labelText: 'Override Reason (e.g. Authorized Off-site client meeting)',
+                  labelStyle: TextStyle(color: Colors.white70),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: remarksCtrl,
+                style: const TextStyle(color: Colors.white),
+                decoration: const InputDecoration(
+                  labelText: 'Remarks / Additional notes',
+                  labelStyle: TextStyle(color: Colors.white70),
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel', style: TextStyle(color: Colors.white70)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: VianTheme.danger, foregroundColor: Colors.white),
+            onPressed: () async {
+              if (reasonCtrl.text.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please enter an override reason.')));
+                return;
+              }
+              final ok = await ApiService.approveOverride(
+                attendanceId: pending['id'],
+                status: 'Rejected',
+                reason: reasonCtrl.text,
+                remarks: remarksCtrl.text,
+              );
+              if (ok) {
+                Navigator.pop(ctx);
+                _loadTabContent();
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Breach punch override Rejected.')));
+              }
+            },
+            child: const Text('Reject Punch'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.greenAccent, foregroundColor: Colors.black),
+            onPressed: () async {
+              if (reasonCtrl.text.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please enter an override reason.')));
+                return;
+              }
+              final ok = await ApiService.approveOverride(
+                attendanceId: pending['id'],
+                status: 'Approved',
+                reason: reasonCtrl.text,
+                remarks: remarksCtrl.text,
+              );
+              if (ok) {
+                Navigator.pop(ctx);
+                _loadTabContent();
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Breach punch successfully Approved.')));
+              }
+            },
+            child: const Text('Approve Punch'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showEditGeofenceDialog(Map<String, dynamic> project) {
+    final latCtrl = TextEditingController(text: project['latitude']?.toString() ?? '28.4595');
+    final lngCtrl = TextEditingController(text: project['longitude']?.toString() ?? '77.0266');
+    final radCtrl = TextEditingController(text: project['allowedRadius']?.toString() ?? '100');
+    final addrCtrl = TextEditingController(text: project['siteAddress']?.toString() ?? project['name']);
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1E1E26),
+        title: Text('Edit Geofence - ${project['name']}', style: const TextStyle(color: VianTheme.primaryGold)),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                controller: latCtrl,
+                style: const TextStyle(color: Colors.white),
+                decoration: const InputDecoration(labelText: 'Site Latitude'),
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: lngCtrl,
+                style: const TextStyle(color: Colors.white),
+                decoration: const InputDecoration(labelText: 'Site Longitude'),
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: radCtrl,
+                style: const TextStyle(color: Colors.white),
+                decoration: const InputDecoration(labelText: 'Allowed Radius (meters: 50 - 1000)'),
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: addrCtrl,
+                style: const TextStyle(color: Colors.white),
+                decoration: const InputDecoration(labelText: 'Configured Address / Landmark'),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel', style: TextStyle(color: Colors.white70)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: VianTheme.primaryGold, foregroundColor: Colors.black),
+            onPressed: () async {
+              final latVal = double.tryParse(latCtrl.text);
+              final lngVal = double.tryParse(lngCtrl.text);
+              final radVal = int.tryParse(radCtrl.text);
+
+              if (latVal == null || lngVal == null || radVal == null) {
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Invalid latitude, longitude, or radius.')));
+                return;
+              }
+              if (radVal < 50 || radVal > 1000) {
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Allowed radius must be between 50 and 1000 meters.')));
+                return;
+              }
+
+              final ok = await ApiService.updateProjectGeofence(
+                project['id'],
+                latVal,
+                lngVal,
+                radVal,
+                addrCtrl.text,
+              );
+
+              if (ok) {
+                Navigator.pop(ctx);
+                _loadTabContent();
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Project geofence updated successfully.')));
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to update project geofence.')));
+              }
+            },
+            child: const Text('Save Geofence'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _toggleMonthLock() async {
+    bool ok;
+    if (_currentMonthLocked) {
+      ok = await ApiService.unlockMonth(_selectedMonthForLock);
+    } else {
+      ok = await ApiService.lockMonth(_selectedMonthForLock);
+    }
+    if (ok) {
+      _loadTabContent();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Lock state updated for $_selectedMonthForLock')),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Operation failed. Super Admin permissions required.')),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(24.0),
-      child: Center(
+    final user = ref.watch(userProvider);
+    final role = user?['role'] ?? '';
+    final isSuperAdmin = role == 'Super Admin';
+    final isAdmin = role.toString().contains('Admin');
+
+    if (_loading) {
+      return const Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(VianTheme.primaryGold)));
+    }
+
+    if (isSuperAdmin) {
+      return _buildSuperAdminView();
+    } else if (isAdmin) {
+      return _buildAdminView();
+    } else {
+      return _buildStaffView();
+    }
+  }
+
+  Widget _buildSubTabNavigation() {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 24),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1E1E26),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white.withOpacity(0.04)),
+      ),
+      child: Row(
+        children: [
+          _subTabButton('roster', 'Roster History', Icons.assignment_outlined),
+          _subTabButton('face', 'Biometric Register', Icons.face_retouching_natural),
+          _subTabButton('geofence', 'Project Geofences', Icons.map_outlined),
+          _subTabButton('pending', 'Pending Approvals (${_pendingApprovals.length})', Icons.notification_important_outlined),
+        ],
+      ),
+    );
+  }
+
+  Widget _subTabButton(String id, String label, IconData icon) {
+    final active = _activeSubTab == id;
+    return Expanded(
+      child: InkWell(
+        onTap: () => setState(() => _activeSubTab = id),
         child: Container(
-          constraints: const BoxConstraints(maxWidth: 500),
-          child: VianCard(
-            padding: const EdgeInsets.all(32.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const Icon(Icons.pin_drop, size: 48, color: VianTheme.primaryGold),
-                const SizedBox(height: 16),
-                const Text('GPS Geofenced Attendance', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: VianTheme.primaryGold)),
-                const Text('Site engineers and supervisors mobile check-in portal', style: TextStyle(color: Color(0xFF70707C), fontSize: 12), textAlign: TextAlign.center),
-                const SizedBox(height: 32),
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(color: const Color(0xFF1E1E26), borderRadius: BorderRadius.circular(8)),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.my_location, color: VianTheme.primaryGold, size: 20),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text('Current Location Status', style: TextStyle(fontSize: 10, color: Color(0xFF70707C))),
-                            Text(_gps, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: VianTheme.whiteText)),
-                          ],
-                        ),
-                      )
-                    ],
-                  ),
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          decoration: BoxDecoration(
+            color: active ? VianTheme.primaryGold : Colors.transparent,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 16, color: active ? Colors.black : Colors.white70),
+              const SizedBox(width: 8),
+              Text(
+                label,
+                style: GoogleFonts.outfit(
+                  color: active ? Colors.black : Colors.white70,
+                  fontSize: 12,
+                  fontWeight: active ? FontWeight.bold : FontWeight.normal,
                 ),
-                const SizedBox(height: 24),
-                // Selfie preview mock
-                Container(
-                  height: 120,
-                  width: 120,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF1E1E26),
-                    shape: BoxShape.circle,
-                    border: Border.all(color: VianTheme.primaryGold, width: 1.5),
-                  ),
-                  child: const Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.camera_alt, color: VianTheme.primaryGold, size: 24),
-                      SizedBox(height: 4),
-                      Text('Selfie Captured', style: TextStyle(fontSize: 10, color: Color(0xFF70707C))),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 32),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    VianButton(
-                      text: _checkInTime == null ? 'Check In' : 'Checked In: $_checkInTime',
-                      onPressed: _checkInTime == null ? _handleCheckIn : () {},
-                      color: _checkInTime == null ? VianTheme.primaryGold : Colors.grey,
-                    ),
-                    VianButton(
-                      text: _checkOutTime == null ? 'Check Out' : 'Checked Out: $_checkOutTime',
-                      onPressed: (_checkInTime != null && _checkOutTime == null) ? _handleCheckOut : () {},
-                      isSecondary: true,
-                    ),
-                  ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFaceBiometricsView() {
+    return VianCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: const [
+              Text('EMPLOYEE BIOMETRIC FACE DIRECTORY', style: TextStyle(fontWeight: FontWeight.bold, color: VianTheme.primaryGold)),
+              Text('Super Admin & Admin Face Registration Terminal', style: TextStyle(color: Colors.white54, fontSize: 11)),
+            ],
+          ),
+          const Divider(color: Colors.white10, height: 24),
+          _employees.isEmpty
+              ? const Padding(
+                  padding: EdgeInsets.all(24.0),
+                  child: Center(child: Text('No employees found', style: TextStyle(color: Colors.white24))),
                 )
+              : Container(
+                  width: double.infinity,
+                  child: DataTable(
+                    headingRowColor: MaterialStateProperty.all(const Color(0xFF1E1E26)),
+                    dataRowHeight: 64,
+                    columns: const [
+                      DataColumn(label: Text('Employee ID', style: TextStyle(color: VianTheme.primaryGold))),
+                      DataColumn(label: Text('Name', style: TextStyle(color: VianTheme.primaryGold))),
+                      DataColumn(label: Text('Department / Role', style: TextStyle(color: VianTheme.primaryGold))),
+                      DataColumn(label: Text('Face ID Status', style: TextStyle(color: VianTheme.primaryGold))),
+                      DataColumn(label: Text('Action', style: TextStyle(color: VianTheme.primaryGold))),
+                    ],
+                    rows: _employees.map<DataRow>((e) {
+                      final isEnrolled = e['username'] == 'anand' || e['username'] == 'vijay' || e['id'] == 1 || e['id'] == 2;
+                      return DataRow(
+                        cells: [
+                          DataCell(Text(e['employeeId'] ?? 'N/A')),
+                          DataCell(Text(e['name'] ?? '')),
+                          DataCell(Text('${e['department'] ?? "N/A"} / ${e['role'] ?? "N/A"}')),
+                          DataCell(
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: isEnrolled ? const Color(0x1A10B981) : Colors.white10,
+                                borderRadius: BorderRadius.circular(6),
+                                border: Border.all(color: isEnrolled ? Colors.greenAccent.withOpacity(0.3) : Colors.white24),
+                              ),
+                              child: Text(
+                                isEnrolled ? 'Registered' : 'Not Configured',
+                                style: TextStyle(
+                                  color: isEnrolled ? Colors.greenAccent : Colors.white70,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                          DataCell(
+                            IconButton(
+                              icon: const Icon(Icons.biotech, color: VianTheme.primaryGold),
+                              tooltip: 'Enroll Face Prints',
+                              onPressed: () => _showFaceRegistrationWizard(e),
+                            ),
+                          ),
+                        ],
+                      );
+                    }).toList(),
+                  ),
+                ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGeofencesView() {
+    if (_allProjects.isEmpty) {
+      return const VianCard(
+        child: Center(
+          child: Padding(
+            padding: EdgeInsets.all(32.0),
+            child: Text('No active projects found to configure geofencing.', style: TextStyle(color: Colors.white30)),
+          ),
+        ),
+      );
+    }
+
+    final selectedProj = _selectedProjectForGeofence ?? _allProjects.first;
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          flex: 4,
+          child: VianCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('PROJECT SITES LIST', style: TextStyle(fontWeight: FontWeight.bold, color: VianTheme.primaryGold)),
+                const SizedBox(height: 12),
+                ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: _allProjects.length,
+                  itemBuilder: (context, idx) {
+                    final proj = _allProjects[idx];
+                    final isSelected = selectedProj['id'] == proj['id'];
+                    final hasCoords = proj['latitude'] != null && proj['longitude'] != null;
+
+                    return ListTile(
+                      onTap: () {
+                        setState(() {
+                          _selectedProjectForGeofence = proj;
+                        });
+                      },
+                      dense: true,
+                      selected: isSelected,
+                      selectedTileColor: Colors.white.withOpacity(0.04),
+                      title: Text(proj['name'] ?? '', style: TextStyle(fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
+                      subtitle: Text(
+                        hasCoords 
+                            ? 'Lat: ${proj['latitude']} | Lng: ${proj['longitude']} (${proj['allowedRadius'] ?? 100}m)' 
+                            : 'Geofence Not Configured',
+                        style: TextStyle(color: hasCoords ? Colors.white60 : VianTheme.danger, fontSize: 11),
+                      ),
+                      trailing: IconButton(
+                        icon: const Icon(Icons.edit_location_alt, size: 18, color: VianTheme.primaryGold),
+                        onPressed: () => _showEditGeofenceDialog(proj),
+                      ),
+                    );
+                  },
+                ),
               ],
             ),
           ),
         ),
+        const SizedBox(width: 16),
+        Expanded(
+          flex: 6,
+          child: VianCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            (selectedProj['name'] ?? '').toUpperCase(),
+                            style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: VianTheme.primaryGold),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'Site ID: ${selectedProj['projectId'] ?? "N/A"}',
+                            style: const TextStyle(color: Colors.white54, fontSize: 11),
+                          ),
+                        ],
+                      ),
+                    ),
+                    ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(backgroundColor: VianTheme.primaryGold, foregroundColor: Colors.black),
+                      icon: const Icon(Icons.edit_road, size: 14),
+                      label: const Text('Update Geofence', style: TextStyle(fontSize: 11)),
+                      onPressed: () => _showEditGeofenceDialog(selectedProj),
+                    ),
+                  ],
+                ),
+                const Divider(color: Colors.white10, height: 24),
+                ProjectGeofenceMap(
+                  projectName: selectedProj['name'] ?? 'Project Site',
+                  projectLatitude: selectedProj['latitude'] != null ? double.parse(selectedProj['latitude'].toString()) : 28.4595,
+                  projectLongitude: selectedProj['longitude'] != null ? double.parse(selectedProj['longitude'].toString()) : 77.0266,
+                  employeeLatitude: selectedProj['latitude'] != null ? double.parse(selectedProj['latitude'].toString()) : 28.4595,
+                  employeeLongitude: selectedProj['longitude'] != null ? double.parse(selectedProj['longitude'].toString()) : 77.0266,
+                  allowedRadius: selectedProj['allowedRadius'] != null ? double.parse(selectedProj['allowedRadius'].toString()) : 100.0,
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Site Geodetic Telemetry Details:',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.white70),
+                ),
+                const SizedBox(height: 10),
+                _telemetryRow('Latitude Coordinates', '${selectedProj['latitude'] ?? "Not Set"}'),
+                _telemetryRow('Longitude Coordinates', '${selectedProj['longitude'] ?? "Not Set"}'),
+                _telemetryRow('Allowed Geofence Radius', '${selectedProj['allowedRadius'] ?? 100} meters'),
+                _telemetryRow('Configured Landmark Address', '${selectedProj['siteAddress'] ?? "Gurugram Site"}'),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _telemetryRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: const TextStyle(color: Colors.white54, fontSize: 11)),
+          Text(value, style: const TextStyle(color: VianTheme.whiteText, fontSize: 11, fontWeight: FontWeight.w600)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPendingOverridesView() {
+    return VianCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: const [
+              Text('PENDING GEOFENCE BREACH APPROVALS', style: TextStyle(fontWeight: FontWeight.bold, color: VianTheme.primaryGold)),
+              Text('Roster manual verification overrides panel', style: TextStyle(color: Colors.white54, fontSize: 11)),
+            ],
+          ),
+          const Divider(color: Colors.white10, height: 24),
+          _pendingApprovals.isEmpty
+              ? const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 32.0),
+                  child: Center(
+                    child: Text('No pending geofence override approvals today.', style: TextStyle(color: Colors.white30, fontSize: 13)),
+                  ),
+                )
+              : ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: _pendingApprovals.length,
+                  itemBuilder: (context, idx) {
+                    final pending = _pendingApprovals[idx];
+                    final dist = pending['checkInGpsDistance'] != null 
+                        ? double.parse(pending['checkInGpsDistance'].toString()) 
+                        : 0.0;
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1E1E26),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: Colors.white.withOpacity(0.04)),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Text(
+                                      pending['user']?['name'] ?? 'Unknown User',
+                                      style: const TextStyle(fontWeight: FontWeight.bold, color: VianTheme.whiteText),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                      decoration: BoxDecoration(color: Colors.redAccent.withOpacity(0.12), borderRadius: BorderRadius.circular(4)),
+                                      child: const Text('Outside Geofence', style: TextStyle(color: Colors.redAccent, fontSize: 9, fontWeight: FontWeight.bold)),
+                                    )
+                                  ],
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  'Date: ${pending['date']} | Time: ${pending['checkInTime'] ?? "N/A"}',
+                                  style: const TextStyle(color: Colors.white54, fontSize: 11),
+                                ),
+                                Text(
+                                  'Captured GPS: ${pending['checkInLatitude'] ?? "N/A"}, ${pending['checkInLongitude'] ?? "N/A"}',
+                                  style: const TextStyle(color: Colors.white54, fontSize: 11),
+                                ),
+                                Text(
+                                  'Distance: ${dist.toStringAsFixed(1)} meters outside boundary',
+                                  style: const TextStyle(color: Colors.redAccent, fontSize: 11, fontWeight: FontWeight.bold),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Row(
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.cancel_outlined, color: VianTheme.danger),
+                                tooltip: 'Reject Override',
+                                onPressed: () => _showGeofenceOverrideApprovalDialog(pending),
+                              ),
+                              const SizedBox(width: 8),
+                              IconButton(
+                                icon: const Icon(Icons.check_circle_outline, color: Colors.greenAccent),
+                                tooltip: 'Approve Override',
+                                onPressed: () => _showGeofenceOverrideApprovalDialog(pending),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSuperAdminView() {
+    final gpsPct = _reports.isEmpty ? 100 : ((_reports.where((r) => r['checkInGpsDistance'] == null || r['attendanceStatus'] != 'Outside Geofence').length / _reports.length) * 100).toStringAsFixed(1);
+    final facePct = _reports.isEmpty ? 100 : ((_reports.where((r) => r['checkInFaceScore'] != null && safeToDouble(r['checkInFaceScore']) >= 95).length / _reports.length) * 100).toStringAsFixed(1);
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: const [
+                  Text('ATTENDANCE BUSINESS COMMAND CENTER', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: VianTheme.primaryGold)),
+                  Text('Super Admin Configuration & Security Audit Panel', style: TextStyle(color: Color(0xFF70707C))),
+                ],
+              ),
+              IconButton(icon: const Icon(Icons.refresh, color: VianTheme.primaryGold), onPressed: _loadTabContent),
+            ],
+          ),
+          const SizedBox(height: 24),
+          _buildSubTabNavigation(),
+          if (_activeSubTab == 'roster') ...[
+            Row(
+              children: [
+                Expanded(child: VianMetricCard(title: 'TOTAL PUNCHES', value: _reports.length.toString(), icon: Icons.history)),
+                const SizedBox(width: 12),
+                Expanded(child: VianMetricCard(title: 'GPS SUCCESS RATE', value: '$gpsPct%', icon: Icons.gps_fixed, iconColor: VianTheme.success)),
+                const SizedBox(width: 12),
+                Expanded(child: VianMetricCard(title: 'FACE MATCH RATE', value: '$facePct%', icon: Icons.face, iconColor: VianTheme.primaryGold)),
+              ],
+            ),
+            const SizedBox(height: 24),
+            VianCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('MONTH LOCKS AND COMPLIANCE', style: TextStyle(fontWeight: FontWeight.bold, color: VianTheme.primaryGold)),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: DropdownButtonFormField<String>(
+                          dropdownColor: const Color(0xFF1E1E26),
+                          value: _selectedMonthForLock,
+                          items: ['2026-05', '2026-06', '2026-07', '2026-08'].map((m) {
+                            return DropdownMenuItem<String>(value: m, child: Text(m));
+                          }).toList(),
+                          onChanged: (val) {
+                            setState(() {
+                              _selectedMonthForLock = val!;
+                            });
+                            _loadTabContent();
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: _currentMonthLocked ? Colors.redAccent : VianTheme.primaryGold,
+                          foregroundColor: Colors.black,
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                        ),
+                        icon: Icon(_currentMonthLocked ? Icons.lock : Icons.lock_open),
+                        label: Text(_currentMonthLocked ? 'Unlock Month' : 'Lock Month'),
+                        onPressed: _toggleMonthLock,
+                      ),
+                    ],
+                  ),
+                  if (_currentMonthLocked)
+                    const Padding(
+                      padding: EdgeInsets.only(top: 8.0),
+                      child: Text('⚠️ locked month: Attendance mutations are frozen for all users (except Super Admin).', style: TextStyle(color: Colors.redAccent, fontSize: 12)),
+                    ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+            _buildRosterTable(),
+            const SizedBox(height: 24),
+            VianCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('ATTENDANCE AUDIT LOGS', style: TextStyle(fontWeight: FontWeight.bold, color: VianTheme.primaryGold)),
+                  const SizedBox(height: 12),
+                  ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: _auditLogs.length > 8 ? 8 : _auditLogs.length,
+                    itemBuilder: (context, idx) {
+                      final log = _auditLogs[idx];
+                      return ListTile(
+                        dense: true,
+                        title: Text('${log['action']} - ${log['details']}'),
+                        subtitle: Text('By: ${log['user']} (${log['role']}) | GPS: ${log['gps'] ?? "N/A"}'),
+                        trailing: Text(log['timestamp'] != null ? log['timestamp'].toString().substring(0, 16).replaceAll('T', ' ') : ''),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ] else if (_activeSubTab == 'face') ...[
+            _buildFaceBiometricsView(),
+          ] else if (_activeSubTab == 'geofence') ...[
+            _buildGeofencesView(),
+          ] else if (_activeSubTab == 'pending') ...[
+            _buildPendingOverridesView(),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAdminView() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: const [
+                  Text('ADMIN ATTENDANCE CONTROL', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: VianTheme.primaryGold)),
+                  Text('Manual Entry, Corrections, and Live Operations Roster', style: TextStyle(color: Color(0xFF70707C))),
+                ],
+              ),
+              Row(
+                children: [
+                  VianButton(text: 'Add Manual Attendance', onPressed: _showManualAttendanceDialog),
+                  const SizedBox(width: 8),
+                  IconButton(icon: const Icon(Icons.refresh, color: VianTheme.primaryGold), onPressed: _loadTabContent),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          _buildSubTabNavigation(),
+          if (_activeSubTab == 'roster') ...[
+            _buildRosterTable(),
+          ] else if (_activeSubTab == 'face') ...[
+            _buildFaceBiometricsView(),
+          ] else if (_activeSubTab == 'geofence') ...[
+            _buildGeofencesView(),
+          ] else if (_activeSubTab == 'pending') ...[
+            _buildPendingOverridesView(),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStaffView() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Container(
+            constraints: const BoxConstraints(maxWidth: 500),
+            child: VianCard(
+              padding: const EdgeInsets.all(32.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const Icon(Icons.pin_drop, size: 48, color: VianTheme.primaryGold),
+                  const SizedBox(height: 16),
+                  const Text('GPS Geofenced Attendance', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: VianTheme.primaryGold)),
+                  const Text('Secure biometric & geofence validated punch terminal', style: TextStyle(color: Color(0xFF70707C), fontSize: 12), textAlign: TextAlign.center),
+                  const SizedBox(height: 28),
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(color: const Color(0xFF1E1E26), borderRadius: BorderRadius.circular(8)),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.my_location, color: VianTheme.primaryGold, size: 20),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('GPS Tracking Coordinates', style: TextStyle(fontSize: 10, color: Color(0xFF70707C))),
+                              Text(_gps, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: VianTheme.whiteText)),
+                            ],
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      VianButton(
+                        text: _checkInTime == null ? 'Check In' : 'Checked In: $_checkInTime',
+                        onPressed: _checkInTime == null ? _handleCheckIn : () {},
+                        color: _checkInTime == null ? VianTheme.primaryGold : Colors.grey,
+                      ),
+                      VianButton(
+                        text: _checkOutTime == null ? 'Check Out' : 'Checked Out: $_checkOutTime',
+                        onPressed: (_checkInTime != null && _checkOutTime == null) ? _handleCheckOut : () {},
+                        isSecondary: true,
+                      ),
+                    ],
+                  )
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 32),
+          Container(
+            constraints: const BoxConstraints(maxWidth: 700),
+            child: VianCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('PERSONAL PUNCH HISTORY (PAST 30 DAYS)', style: TextStyle(fontWeight: FontWeight.bold, color: VianTheme.primaryGold)),
+                  const SizedBox(height: 12),
+                  _reports.isEmpty
+                      ? const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 24.0),
+                          child: Center(child: Text('No attendance records logged this month.', style: TextStyle(color: Colors.white30))),
+                        )
+                      : ListView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: _reports.length,
+                          itemBuilder: (context, idx) {
+                            final r = _reports[idx];
+                            final isManual = r['manualEntry'] == true;
+                            final isLate = r['status'] == 'Late';
+                            return ListTile(
+                              leading: Icon(
+                                isManual ? Icons.edit_attributes : Icons.verified_user,
+                                color: isManual ? VianTheme.warning : (isLate ? Colors.blueAccent : Colors.greenAccent),
+                                size: 20,
+                              ),
+                              title: Text('${r['date']} - ${r['status']}'),
+                              subtitle: Text('In: ${r['checkInTime'] ?? "N/A"} | Out: ${r['checkOutTime'] ?? "N/A"}'),
+                              trailing: Text(
+                                isManual ? 'Manual Override' : 'GPS+Face Verified',
+                                style: TextStyle(color: isManual ? VianTheme.warning : Colors.greenAccent, fontSize: 11),
+                              ),
+                            );
+                          },
+                        ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRosterTable() {
+    return VianCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('COMPANY ROSTER LOG', style: TextStyle(fontWeight: FontWeight.bold, color: VianTheme.primaryGold)),
+          const SizedBox(height: 12),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: DataTable(
+              columns: const [
+                DataColumn(label: Text('Employee')),
+                DataColumn(label: Text('Date')),
+                DataColumn(label: Text('Status')),
+                DataColumn(label: Text('In Time')),
+                DataColumn(label: Text('Out Time')),
+                DataColumn(label: Text('Method')),
+                DataColumn(label: Text('Verification Score')),
+              ],
+              rows: _reports.map<DataRow>((r) {
+                final empName = r['user']?['name'] ?? 'Employee';
+                final isManual = r['manualEntry'] == true;
+                final faceScore = r['checkInFaceScore'] != null ? '${r['checkInFaceScore']}%' : 'N/A';
+                return DataRow(
+                  cells: [
+                    DataCell(Text(empName)),
+                    DataCell(Text(r['date'] ?? '')),
+                    DataCell(
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: r['status'] == 'Late' ? Colors.blueAccent.withOpacity(0.2) : Colors.greenAccent.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(r['status'] ?? '', style: TextStyle(color: r['status'] == 'Late' ? Colors.blueAccent : Colors.greenAccent)),
+                      ),
+                    ),
+                    DataCell(Text(r['checkInTime'] ?? 'N/A')),
+                    DataCell(Text(r['checkOutTime'] ?? 'N/A')),
+                    DataCell(Text(isManual ? 'Manual Override' : 'GPS+Face Verified')),
+                    DataCell(Text(faceScore)),
+                  ],
+                );
+              }).toList(),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -5919,6 +6526,7 @@ class ReportsTab extends StatelessWidget {
                 _reportCard(context, 'Income vs Expense Ledger', 'Consolidated billing records mapped against project purchases.', Icons.monetization_on_outlined, 'expenses'),
                 _reportCard(context, 'Project Construction Milestones', 'Deliverables tracking, timeline delays, and completed layouts.', Icons.playlist_add_check, 'projects'),
                 _reportCard(context, 'CRM Lead Conversion Ratios', 'Conversion stats showing website, referral, and visit performance.', Icons.trending_up, 'leads'),
+                _reportCard(context, 'Biometric & Geofence Audit Log', 'Confidence matches, GPS coordinates, geofence breaches, and manual approvals.', Icons.security_outlined, 'biometric-audit'),
               ],
             ),
           )

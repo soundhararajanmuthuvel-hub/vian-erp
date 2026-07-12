@@ -7,6 +7,7 @@ import 'package:fl_chart/fl_chart.dart';
 import '../services/api_service.dart';
 import '../theme/theme.dart';
 import 'custom_widgets.dart';
+import 'face_gps_verify_overlay.dart';
 
 // ==========================================
 // 1. ANAND HOME VIEW (Managing Director / Super Admin)
@@ -28,6 +29,7 @@ class _ExecutiveDashboardViewState extends State<ExecutiveDashboardView> {
   List<dynamic> _employees = [];
   Map<String, dynamic>? _analytics;
   List<dynamic> _targetAlerts = [];
+  Map<String, dynamic>? _attendanceStats;
   bool _loading = true;
 
   @override
@@ -45,6 +47,7 @@ class _ExecutiveDashboardViewState extends State<ExecutiveDashboardView> {
     final emps = await ApiService.getEmployees();
     final analytics = await ApiService.getExecutiveAnalytics();
     final targetAlerts = await ApiService.getTargetAlerts();
+    final attStats = await ApiService.getAttendanceDashboardStats();
 
     if (mounted) {
       setState(() {
@@ -57,6 +60,7 @@ class _ExecutiveDashboardViewState extends State<ExecutiveDashboardView> {
         _employees = emps;
         _analytics = analytics;
         _targetAlerts = targetAlerts;
+        _attendanceStats = attStats['stats'];
         _loading = false;
       });
     }
@@ -257,6 +261,49 @@ class _ExecutiveDashboardViewState extends State<ExecutiveDashboardView> {
             ),
             const SizedBox(height: 16),
           ],
+
+          const Text('GPS GEOFENCE & BIOMETRIC ANALYTICS', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: VianTheme.primaryGold, letterSpacing: 0.5)),
+          const SizedBox(height: 16),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final cols = constraints.maxWidth < 600 ? 2 : 4;
+              return GridView.count(
+                crossAxisCount: cols,
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 16,
+                shrinkWrap: true,
+                childAspectRatio: 1.4,
+                physics: const NeverScrollableScrollPhysics(),
+                children: [
+                  VianMetricCard(
+                    title: "GPS SUCCESS RATE", 
+                    value: _attendanceStats?['gpsSuccessRate'] ?? '100.0%', 
+                    icon: Icons.gps_fixed, 
+                    iconColor: VianTheme.success
+                  ),
+                  VianMetricCard(
+                    title: "FACE SCANS ACCURACY", 
+                    value: _attendanceStats?['faceSuccessRate'] ?? '98.5%', 
+                    icon: Icons.face, 
+                    iconColor: VianTheme.primaryGold
+                  ),
+                  VianMetricCard(
+                    title: "OUTSIDE GEOFENCE TODAY", 
+                    value: '${_attendanceStats?['outsideGeofence'] ?? 0}', 
+                    icon: Icons.gps_off, 
+                    iconColor: VianTheme.danger
+                  ),
+                  VianMetricCard(
+                    title: "PENDING APPROVALS", 
+                    value: '${_attendanceStats?['pendingApproval'] ?? 0}', 
+                    icon: Icons.lock_clock, 
+                    iconColor: VianTheme.warning
+                  ),
+                ],
+              );
+            },
+          ),
+          const SizedBox(height: 32),
 
           const Text('ANNUAL TARGETS ACHIEVEMENT', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: VianTheme.primaryGold, letterSpacing: 0.5)),
           const SizedBox(height: 16),
@@ -842,6 +889,7 @@ class _JayaHomeViewState extends State<JayaHomeView> {
   List<dynamic> _announcements = [];
   List<dynamic> _tasks = [];
   int _pendingPayments = 0;
+  Map<String, dynamic>? _attendanceStats;
 
   // New projects and employees for Work Assignment
   List<dynamic> _projects = [];
@@ -883,6 +931,7 @@ class _JayaHomeViewState extends State<JayaHomeView> {
     final tsk = await ApiService.getTasks();
     final projs = await ApiService.getProjects();
     final emps = await ApiService.getEmployees();
+    final attStats = await ApiService.getAttendanceDashboardStats();
 
     if (mounted) {
       setState(() {
@@ -894,6 +943,7 @@ class _JayaHomeViewState extends State<JayaHomeView> {
         _projects = projs;
         _employees = emps.where((e) => e['role'] != 'Client' && e['role'] != 'Managing Director').toList();
         _pendingPayments = inv.where((i) => i['status'] != 'Paid').length;
+        _attendanceStats = attStats['stats'];
         _loading = false;
       });
     }
@@ -975,6 +1025,29 @@ class _JayaHomeViewState extends State<JayaHomeView> {
                   VianMetricCard(title: "TODAY'S ATTENDANCE", value: _attendance.length.toString(), icon: Icons.calendar_month, iconColor: VianTheme.success),
                   VianMetricCard(title: 'UNPAID INVOICES', value: _pendingPayments.toString(), icon: Icons.receipt, iconColor: VianTheme.danger),
                   VianMetricCard(title: 'TOTAL REVENUE INVOICED', value: formatter.format(_invoices.fold(0.0, (acc, item) => acc + safeToDouble(item['total']))), icon: Icons.payments, iconColor: VianTheme.primaryGold),
+                ],
+              );
+            },
+          ),
+          const SizedBox(height: 24),
+          
+          const Text('GPS GEOFENCE SECURITY & BIOMETRICS STATUS', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: VianTheme.primaryGold, letterSpacing: 0.5)),
+          const SizedBox(height: 16),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final cols = constraints.maxWidth < 600 ? 1 : 4;
+              return GridView.count(
+                crossAxisCount: cols,
+                childAspectRatio: 2.8,
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 16,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                children: [
+                  VianMetricCard(title: 'EMPLOYEES OUTSIDE SITE', value: '${_attendanceStats?['employeesOutsideSite'] ?? 0}', icon: Icons.person_pin_circle_outlined, iconColor: VianTheme.danger),
+                  VianMetricCard(title: 'PENDING APPROVALS', value: '${_attendanceStats?['pendingAttendanceApproval'] ?? 0}', icon: Icons.pending_actions_outlined, iconColor: VianTheme.warning),
+                  VianMetricCard(title: 'GPS BOUNDARY FAILURES', value: '${_attendanceStats?['gpsFailures'] ?? 0}', icon: Icons.gps_off_outlined, iconColor: VianTheme.danger),
+                  VianMetricCard(title: 'FACE MATCH FAILURES', value: '${_attendanceStats?['faceFailures'] ?? 0}', icon: Icons.face_unlock_outlined, iconColor: VianTheme.danger),
                 ],
               );
             },
@@ -1926,51 +1999,40 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView> {
     }
   }
 
-  void _triggerCheckIn() async {
-    final double lat = 28.4630;
-    final double lng = 77.0300;
-    final String gpsStr = '$lat° N, $lng° E';
-    
-    final ok = await ApiService.checkIn(gpsStr, 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80');
-    if (ok) {
-      setState(() => _checkedIn = true);
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Morning Punch In successful! (GPS Geofence Verified)')));
-      _loadEmployeeData();
-      
-      _gpsTimer = Timer.periodic(const Duration(seconds: 5), (timer) async {
-        final double currentLat = 28.4630 + (idx % 2 == 0 ? 0.001 : -0.001);
-        final double currentLng = 77.0300;
-        idx++;
-        
-        final res = await ApiService.trackGps(currentLat, currentLng);
-        if (res['isOutside'] == true) {
-          setState(() {
-            _activeWarning = res['warning'];
-          });
-        } else {
-          setState(() {
-            _activeWarning = null;
-          });
-        }
-      });
-    }
+  void _triggerCheckIn() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => FaceGpsVerifyOverlay(
+        action: 'check-in',
+        onSuccess: () {
+          Navigator.pop(ctx);
+          setState(() => _checkedIn = true);
+          _loadEmployeeData();
+        },
+        onCancel: () {
+          Navigator.pop(ctx);
+        },
+      ),
+    );
   }
 
-  void _triggerCheckOut() async {
-    final double lat = 28.4630;
-    final double lng = 77.0300;
-    final String gpsStr = '$lat° N, $lng° E';
-    
-    final ok = await ApiService.checkOut(gpsStr);
-    if (ok) {
-      _gpsTimer?.cancel();
-      setState(() {
-        _checkedIn = false;
-        _activeWarning = null;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Evening Punch Out successful!')));
-      _loadEmployeeData();
-    }
+  void _triggerCheckOut() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => FaceGpsVerifyOverlay(
+        action: 'check-out',
+        onSuccess: () {
+          Navigator.pop(ctx);
+          setState(() => _checkedIn = false);
+          _loadEmployeeData();
+        },
+        onCancel: () {
+          Navigator.pop(ctx);
+        },
+      ),
+    );
   }
 
   void _submitEodReport() async {

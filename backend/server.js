@@ -114,6 +114,59 @@ async function runMigrations(sequelizeInstance) {
     await addColumnIfMissing('quotations', 'deleted_by', 'INT NULL');
     await addColumnIfMissing('invoices', 'deleted_at', 'TIMESTAMP NULL');
     await addColumnIfMissing('invoices', 'deleted_by', 'INT NULL');
+    await addColumnIfMissing('drawings', 'deleted_at', 'TIMESTAMP NULL');
+    await addColumnIfMissing('drawings', 'deleted_by', 'INT NULL');
+    await addColumnIfMissing('documents', 'deleted_at', 'TIMESTAMP NULL');
+    await addColumnIfMissing('documents', 'deleted_by', 'INT NULL');
+    await addColumnIfMissing('expenses', 'deleted_at', 'TIMESTAMP NULL');
+    await addColumnIfMissing('expenses', 'deleted_by', 'INT NULL');
+    await addColumnIfMissing('stage_checklists', 'deleted_at', 'TIMESTAMP NULL');
+    await addColumnIfMissing('stage_checklists', 'deleted_by', 'INT NULL');
+    await addColumnIfMissing('team_targets', 'deleted_at', 'TIMESTAMP NULL');
+    await addColumnIfMissing('team_targets', 'deleted_by', 'INT NULL');
+    await addColumnIfMissing('employee_targets', 'deleted_at', 'TIMESTAMP NULL');
+    await addColumnIfMissing('employee_targets', 'deleted_by', 'INT NULL');
+    await addColumnIfMissing('contractors', 'deleted_at', 'TIMESTAMP NULL');
+    await addColumnIfMissing('contractors', 'deleted_by', 'INT NULL');
+    await addColumnIfMissing('manager_attendance', 'deleted_at', 'TIMESTAMP NULL');
+    await addColumnIfMissing('manager_attendance', 'deleted_by', 'INT NULL');
+    
+    // Expanded attendance columns
+    await addColumnIfMissing('attendance', 'check_in_latitude', 'DECIMAL(9,6) NULL');
+    await addColumnIfMissing('attendance', 'check_in_longitude', 'DECIMAL(9,6) NULL');
+    await addColumnIfMissing('attendance', 'check_in_address', 'TEXT NULL');
+    await addColumnIfMissing('attendance', 'check_in_face_score', 'DECIMAL(5,2) NULL');
+    await addColumnIfMissing('attendance', 'check_in_gps_accuracy', 'DECIMAL(5,2) NULL');
+    await addColumnIfMissing('attendance', 'check_in_device', 'VARCHAR(255) NULL');
+    await addColumnIfMissing('attendance', 'check_in_browser', 'VARCHAR(255) NULL');
+    await addColumnIfMissing('attendance', 'check_in_ip_address', 'VARCHAR(255) NULL');
+    await addColumnIfMissing('attendance', 'check_in_network', 'VARCHAR(255) NULL');
+    await addColumnIfMissing('attendance', 'check_out_latitude', 'DECIMAL(9,6) NULL');
+    await addColumnIfMissing('attendance', 'check_out_longitude', 'DECIMAL(9,6) NULL');
+    await addColumnIfMissing('attendance', 'check_out_address', 'TEXT NULL');
+    await addColumnIfMissing('attendance', 'check_out_face_score', 'DECIMAL(5,2) NULL');
+    await addColumnIfMissing('attendance', 'check_out_gps_accuracy', 'DECIMAL(5,2) NULL');
+    await addColumnIfMissing('attendance', 'check_out_device', 'VARCHAR(255) NULL');
+    await addColumnIfMissing('attendance', 'check_out_browser', 'VARCHAR(255) NULL');
+    await addColumnIfMissing('attendance', 'check_out_ip_address', 'VARCHAR(255) NULL');
+    await addColumnIfMissing('attendance', 'check_out_network', 'VARCHAR(255) NULL');
+    await addColumnIfMissing('attendance', 'manual_entry', 'BOOLEAN DEFAULT FALSE');
+    await addColumnIfMissing('attendance', 'manual_reason', 'TEXT NULL');
+    await addColumnIfMissing('attendance', 'approved_by', 'VARCHAR(255) NULL');
+    await addColumnIfMissing('attendance', 'audit_id', 'INT NULL');
+
+    // Geofencing columns MySQL
+    await addColumnIfMissing('projects', 'latitude', 'DECIMAL(9,6) NULL');
+    await addColumnIfMissing('projects', 'longitude', 'DECIMAL(9,6) NULL');
+    await addColumnIfMissing('projects', 'allowed_radius', 'INT DEFAULT 100');
+
+    await addColumnIfMissing('attendance', 'project_id', 'INT NULL');
+    await addColumnIfMissing('attendance', 'check_in_gps_distance', 'DECIMAL(10,2) NULL');
+    await addColumnIfMissing('attendance', 'check_out_gps_distance', 'DECIMAL(10,2) NULL');
+    await addColumnIfMissing('attendance', 'attendance_status', 'VARCHAR(255) NULL');
+    await addColumnIfMissing('attendance', 'admin_approval_status', "ENUM('Pending', 'Approved', 'Rejected') NULL");
+    await addColumnIfMissing('attendance', 'override_reason', 'TEXT NULL');
+    await addColumnIfMissing('attendance', 'override_remarks', 'TEXT NULL');
   } else if (dialect === 'sqlite') {
     console.log('Running auto-migrations for SQLite...');
     const addColumnIfMissingSqlite = async (tableName, columnName, columnDefinition) => {
@@ -178,6 +231,59 @@ async function runMigrations(sequelizeInstance) {
     await addColumnIfMissingSqlite('quotations', 'deleted_by', 'INTEGER');
     await addColumnIfMissingSqlite('invoices', 'deleted_at', 'TEXT');
     await addColumnIfMissingSqlite('invoices', 'deleted_by', 'INTEGER');
+    await addColumnIfMissingSqlite('drawings', 'deleted_at', 'TEXT');
+    await addColumnIfMissingSqlite('drawings', 'deleted_by', 'INTEGER');
+    await addColumnIfMissingSqlite('documents', 'deleted_at', 'TEXT');
+    await addColumnIfMissingSqlite('documents', 'deleted_by', 'INTEGER');
+    await addColumnIfMissingSqlite('expenses', 'deleted_at', 'TEXT');
+    await addColumnIfMissingSqlite('expenses', 'deleted_by', 'INTEGER');
+    await addColumnIfMissingSqlite('stage_checklists', 'deleted_at', 'TEXT');
+    await addColumnIfMissingSqlite('stage_checklists', 'deleted_by', 'INTEGER');
+    await addColumnIfMissingSqlite('team_targets', 'deleted_at', 'TEXT');
+    await addColumnIfMissingSqlite('team_targets', 'deleted_by', 'INTEGER');
+    await addColumnIfMissingSqlite('employee_targets', 'deleted_at', 'TEXT');
+    await addColumnIfMissingSqlite('employee_targets', 'deleted_by', 'INTEGER');
+    await addColumnIfMissingSqlite('contractors', 'deleted_at', 'TEXT');
+    await addColumnIfMissingSqlite('contractors', 'deleted_by', 'INTEGER');
+    await addColumnIfMissingSqlite('manager_attendance', 'deleted_at', 'TEXT');
+    await addColumnIfMissingSqlite('manager_attendance', 'deleted_by', 'INTEGER');
+
+    // Expanded attendance columns SQLite
+    await addColumnIfMissingSqlite('attendance', 'check_in_latitude', 'REAL');
+    await addColumnIfMissingSqlite('attendance', 'check_in_longitude', 'REAL');
+    await addColumnIfMissingSqlite('attendance', 'check_in_address', 'TEXT');
+    await addColumnIfMissingSqlite('attendance', 'check_in_face_score', 'REAL');
+    await addColumnIfMissingSqlite('attendance', 'check_in_gps_accuracy', 'REAL');
+    await addColumnIfMissingSqlite('attendance', 'check_in_device', 'TEXT');
+    await addColumnIfMissingSqlite('attendance', 'check_in_browser', 'TEXT');
+    await addColumnIfMissingSqlite('attendance', 'check_in_ip_address', 'TEXT');
+    await addColumnIfMissingSqlite('attendance', 'check_in_network', 'TEXT');
+    await addColumnIfMissingSqlite('attendance', 'check_out_latitude', 'REAL');
+    await addColumnIfMissingSqlite('attendance', 'check_out_longitude', 'REAL');
+    await addColumnIfMissingSqlite('attendance', 'check_out_address', 'TEXT');
+    await addColumnIfMissingSqlite('attendance', 'check_out_face_score', 'REAL');
+    await addColumnIfMissingSqlite('attendance', 'check_out_gps_accuracy', 'REAL');
+    await addColumnIfMissingSqlite('attendance', 'check_out_device', 'TEXT');
+    await addColumnIfMissingSqlite('attendance', 'check_out_browser', 'TEXT');
+    await addColumnIfMissingSqlite('attendance', 'check_out_ip_address', 'TEXT');
+    await addColumnIfMissingSqlite('attendance', 'check_out_network', 'TEXT');
+    await addColumnIfMissingSqlite('attendance', 'manual_entry', 'INTEGER DEFAULT 0');
+    await addColumnIfMissingSqlite('attendance', 'manual_reason', 'TEXT');
+    await addColumnIfMissingSqlite('attendance', 'approved_by', 'TEXT');
+    await addColumnIfMissingSqlite('attendance', 'audit_id', 'INTEGER');
+
+    // Geofencing columns SQLite
+    await addColumnIfMissingSqlite('projects', 'latitude', 'REAL');
+    await addColumnIfMissingSqlite('projects', 'longitude', 'REAL');
+    await addColumnIfMissingSqlite('projects', 'allowed_radius', 'INTEGER DEFAULT 100');
+
+    await addColumnIfMissingSqlite('attendance', 'project_id', 'INTEGER');
+    await addColumnIfMissingSqlite('attendance', 'check_in_gps_distance', 'REAL');
+    await addColumnIfMissingSqlite('attendance', 'check_out_gps_distance', 'REAL');
+    await addColumnIfMissingSqlite('attendance', 'attendance_status', 'TEXT');
+    await addColumnIfMissingSqlite('attendance', 'admin_approval_status', 'TEXT');
+    await addColumnIfMissingSqlite('attendance', 'override_reason', 'TEXT');
+    await addColumnIfMissingSqlite('attendance', 'override_remarks', 'TEXT');
   }
 }
 
@@ -220,6 +326,25 @@ async function startServer() {
 
     // 4b. Seed Contractor specific data if empty
     await seedContractorData(models);
+
+    // Update existing projects with default latitude/longitude if null
+    try {
+      const existingProjs = await models.Project.findAll();
+      for (const proj of existingProjs) {
+        if (proj.latitude === null || proj.longitude === null) {
+          if (proj.name.includes('Bajaj')) {
+            await proj.update({ latitude: 28.4595, longitude: 77.0266, allowedRadius: 200 });
+          } else if (proj.name.includes('Oberoi')) {
+            await proj.update({ latitude: 28.4600, longitude: 77.0300, allowedRadius: 200 });
+          } else {
+            await proj.update({ latitude: 28.4630, longitude: 77.0300, allowedRadius: 500 });
+          }
+        }
+      }
+      console.log('Seeded project geofences checked and updated.');
+    } catch (e) {
+      console.warn('Failed to update project geofence defaults:', e.message);
+    }
 
     // 5. Register Routes
     registerRoutes(app, models);
@@ -422,7 +547,10 @@ async function seedDatabase(models, force = false) {
       startDate: '2026-01-10',
       completionDate: '2026-12-15',
       status: 'In Progress',
-      progressPercentage: 45
+      progressPercentage: 45,
+      latitude: 28.4595,
+      longitude: 77.0266,
+      allowedRadius: 200
     });
 
     const project2 = await Project.create({
@@ -436,7 +564,10 @@ async function seedDatabase(models, force = false) {
       startDate: '2026-05-01',
       completionDate: '2027-04-30',
       status: 'Planning',
-      progressPercentage: 10
+      progressPercentage: 10,
+      latitude: 28.4600,
+      longitude: 77.0300,
+      allowedRadius: 200
     });
 
     const project3 = await Project.create({
@@ -455,7 +586,10 @@ async function seedDatabase(models, force = false) {
       actualLabourCost: 3200000.00,
       actualTimelineMonths: 9,
       actualPurchaseCost: 8000000.00,
-      actualProfit: 1800000.00
+      actualProfit: 1800000.00,
+      latitude: 28.4630,
+      longitude: 77.0300,
+      allowedRadius: 500
     });
 
     // 3. Seed Workers
@@ -541,7 +675,26 @@ async function seedDatabase(models, force = false) {
           checkOutTime: '18:30:00',
           checkOutGps: gpsLocation,
           workingHours: 9.3,
-          status: 'Present'
+          status: 'Present',
+          checkInLatitude: 28.4595,
+          checkInLongitude: 77.0266,
+          checkInAddress: 'Plot 42, Galleria Commercial Complex, Phase V, Sector 43, Gurugram, India',
+          checkInFaceScore: 98.50,
+          checkInGpsAccuracy: 12.5,
+          checkInDevice: 'iPhone 15 Pro',
+          checkInBrowser: 'Mobile Safari',
+          checkInIpAddress: '192.168.1.15',
+          checkInNetwork: '5G',
+          checkOutLatitude: 28.4595,
+          checkOutLongitude: 77.0266,
+          checkOutAddress: 'Plot 42, Galleria Commercial Complex, Phase V, Sector 43, Gurugram, India',
+          checkOutFaceScore: 99.10,
+          checkOutGpsAccuracy: 10.2,
+          checkOutDevice: 'iPhone 15 Pro',
+          checkOutBrowser: 'Mobile Safari',
+          checkOutIpAddress: '192.168.1.15',
+          checkOutNetwork: '5G',
+          manualEntry: false
         });
       }
     }

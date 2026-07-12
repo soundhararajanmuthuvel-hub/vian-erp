@@ -54,7 +54,8 @@ function registerRoutes(app, models) {
     ProjectStage, StageTask, StageMaterial, StageLabour, StagePayment, StageDocument, StagePhoto, StageReport, StageApproval, StageHistory, Estimate, EstimateMaterial, EstimateBoq, EstimateLabour,
     AuditLog,
     ConferenceCall, Incentive,
-    StageChecklist, ConferenceCallAction, DrawingRevision, DrawingComment
+    StageChecklist, ConferenceCallAction, DrawingRevision, DrawingComment,
+    MonthlyAttendanceLock, EmployeeFace, EmployeeFaceAudit
   } = models;
 
   // Role permissions helper
@@ -76,7 +77,7 @@ function registerRoutes(app, models) {
   }
 
   // Audit logger helper
-  async function writeAuditLog(req, action, moduleName, oldValue = null, newValue = null) {
+  async function writeAuditLog(req, action, moduleName, oldValue = null, newValue = null, reason = null, gps = null, browser = null) {
     try {
       if (!req.user) return;
       const clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
@@ -90,7 +91,10 @@ function registerRoutes(app, models) {
         oldValue: oldValue ? (typeof oldValue === 'object' ? JSON.stringify(oldValue) : String(oldValue)) : null,
         newValue: newValue ? (typeof newValue === 'object' ? JSON.stringify(newValue) : String(newValue)) : null,
         ipAddress: clientIp,
-        device
+        device,
+        reason,
+        gps,
+        browser
       });
     } catch (err) {
       console.error('Failed writing audit log:', err.message);
@@ -102,6 +106,15 @@ function registerRoutes(app, models) {
     if (!req.user) return res.status(401).json({ message: 'Unauthorized' });
     if (getPermissionRole(req.user.role, req.user.username) !== 'Super Admin') {
       return res.status(403).json({ message: 'Forbidden: Super Admin role required' });
+    }
+    next();
+  };
+
+  const requireSuperAdminOrAdmin = (req, res, next) => {
+    if (!req.user) return res.status(401).json({ message: 'Unauthorized' });
+    const permissionRole = getPermissionRole(req.user.role, req.user.username);
+    if (permissionRole !== 'Super Admin' && permissionRole !== 'Admin') {
+      return res.status(403).json({ message: 'Forbidden: Admin or Super Admin role required' });
     }
     next();
   };
@@ -629,7 +642,7 @@ function registerRoutes(app, models) {
     }
   });
 
-  app.delete('/api/crm/leads/:leadId/stage1', authenticateToken, async (req, res) => {
+  app.delete('/api/crm/leads/:leadId/stage1', authenticateToken, requireSuperAdmin, async (req, res) => {
     try {
       const stage1 = await LeadStage1.findOne({ where: { leadId: req.params.leadId } });
       if (!stage1) return res.status(404).json({ message: 'Stage 1 form not found' });
@@ -1884,7 +1897,7 @@ function registerRoutes(app, models) {
   });
 
   // Delete Stage
-  app.delete('/api/projects/:id/stages/:stageId', authenticateToken, async (req, res) => {
+  app.delete('/api/projects/:id/stages/:stageId', authenticateToken, requireSuperAdmin, async (req, res) => {
     try {
       if (!checkStageManagerPermission(req.user)) {
         return res.status(403).json({ message: 'Permission denied.' });
@@ -2066,79 +2079,616 @@ function registerRoutes(app, models) {
   // GPS ATTENDANCE SYSTEM
   // ==========================================
   
+  // ==========================================
+  // GPS ATTENDANCE SYSTEM
+  // ==========================================
+  
+  async function checkIfMonthLocked(dateString) {
+    const month = dateString.substring(0, 7);
+    const lock = await MonthlyAttendanceLock.findOne({ where: { month, locked: true } });
+    return !!lock;
+  }
+
+  function getHaversineDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371e3; // metres
+    const phi1 = lat1 * Math.PI/180;
+    const phi2 = lat2 * Math.PI/180;
+    const deltaPhi = (lat2-lat1) * Math.PI/180;
+    const deltaLambda = (lon2-lon1) * Math.PI/180;
+
+    const a = Math.sin(deltaPhi/2) * Math.sin(deltaPhi/2) +
+              Math.cos(phi1) * Math.cos(phi2) *
+              Math.sin(deltaLambda/2) * Math.sin(deltaLambda/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+    return R * c; // in metres
+  }
+
   app.post('/api/attendance/check-in', authenticateToken, async (req, res) => {
-    const { gps, selfieUrl } = req.body;
     const today = new Date().toISOString().split('T')[0];
     const nowTime = new Date().toTimeString().split(' ')[0];
 
     try {
+      if (await checkIfMonthLocked(today)) {
+        return res.status(400).json({ message: 'Attendance for this month is locked' });
+      }
+
+      const {
+        latitude, longitude, accuracy, address, faceImageUrl, faceScore,
+        device, browser, ipAddress, network, projectId
+      } = req.body;
+
+      if (!projectId) {
+        return res.status(400).json({ message: 'Project selection is required' });
+      }
+
+      // Check if user has registered their face
+      const registeredFace = await EmployeeFace.findOne({ where: { userId: req.user.id, status: 'Active' } });
+      if (!registeredFace) {
+        return res.status(400).json({ message: 'Your face is not registered in the system. Please contact an administrator.' });
+      }
+
       const existing = await Attendance.findOne({ where: { userId: req.user.id, date: today } });
       if (existing) {
         return res.status(400).json({ message: 'Already checked in today' });
       }
 
-      // Simple late detection: check-in after 09:30:00
+      const project = await Project.findByPk(projectId);
+      if (!project) {
+        return res.status(404).json({ message: 'Selected project not found' });
+      }
+
+      // Calculate geofence distance
+      let distanceMeters = null;
+      let insideGeofence = true;
+      if (project.latitude !== null && project.longitude !== null && latitude && longitude) {
+        distanceMeters = getHaversineDistance(parseFloat(latitude), parseFloat(longitude), parseFloat(project.latitude), parseFloat(project.longitude));
+        const radius = project.allowedRadius || 100;
+        insideGeofence = distanceMeters <= radius;
+      }
+
       let status = 'Present';
       if (nowTime > '09:30:00') status = 'Late';
+
+      let attendanceStatus = 'Verified + Geofence';
+      let adminApprovalStatus = 'Approved';
+
+      if (!insideGeofence) {
+        attendanceStatus = 'Outside Geofence';
+        adminApprovalStatus = 'Pending';
+      }
+
+      if (faceScore && parseFloat(faceScore) < 90.0) {
+        attendanceStatus = 'Face Failed';
+        adminApprovalStatus = 'Pending';
+      }
 
       const record = await Attendance.create({
         userId: req.user.id,
         date: today,
         checkInTime: nowTime,
-        checkInGps: gps,
-        checkInSelfieUrl: selfieUrl || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80',
-        status: status
+        checkInGps: `${latitude || 28.4630}, ${longitude || 77.0300}`,
+        checkInSelfieUrl: faceImageUrl || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80',
+        status: status,
+        checkInLatitude: latitude || 28.4630,
+        checkInLongitude: longitude || 77.0300,
+        checkInAddress: address || 'Sector 43 Office',
+        checkInFaceScore: faceScore || 98.40,
+        checkInGpsAccuracy: accuracy || 10.0,
+        checkInDevice: device || req.headers['user-agent'] || 'Unknown Device',
+        checkInBrowser: browser || 'Unknown Browser',
+        checkInIpAddress: ipAddress || req.ip || req.socket.remoteAddress || '127.0.0.1',
+        checkInNetwork: network || 'Wi-Fi',
+        manualEntry: false,
+        projectId: project.id,
+        checkInGpsDistance: distanceMeters,
+        attendanceStatus: attendanceStatus,
+        adminApprovalStatus: adminApprovalStatus
       });
 
-      // Auto-trigger monthly performance score recalculation
+      // Track Geofence breach warning alert trigger
+      if (!insideGeofence) {
+        await GeofenceWarning.create({
+          userId: req.user.id,
+          projectId: project.id,
+          currentLocation: `${latitude ? latitude.toFixed(4) : "N/A"}, ${longitude ? longitude.toFixed(4) : "N/A"}`,
+          timeLeftSite: new Date(),
+          durationOutside: 0,
+          status: 'Warning Pending'
+        });
+      }
+
       const monthStr = today.substring(0, 7);
       await recalculateEmployeeIncentive(req.user.id, monthStr);
 
-      res.status(201).json({ message: 'Check-in successful', record });
+      await writeAuditLog(req, 'Punch In', 'Attendance', null, record, `GPS Geofence: ${insideGeofence ? "Inside" : "Outside"} (${distanceMeters ? distanceMeters.toFixed(1) : 0}m)`, `${latitude || 28.4630}, ${longitude || 77.0300}`, browser || 'Browser');
+
+      res.status(201).json({ message: 'Punch In Successful', record });
     } catch (error) {
-      res.status(500).json({ message: 'Check-in failed', error: error.message });
+      res.status(500).json({ message: 'Punch In failed', error: error.message });
     }
   });
 
   app.post('/api/attendance/check-out', authenticateToken, async (req, res) => {
-    const { gps } = req.body;
     const today = new Date().toISOString().split('T')[0];
     const nowTime = new Date().toTimeString().split(' ')[0];
 
     try {
+      if (await checkIfMonthLocked(today)) {
+        return res.status(400).json({ message: 'Attendance for this month is locked' });
+      }
+
+      const {
+        latitude, longitude, accuracy, address, faceImageUrl, faceScore,
+        device, browser, ipAddress, network
+      } = req.body;
+
       const record = await Attendance.findOne({ where: { userId: req.user.id, date: today } });
       if (!record) return res.status(404).json({ message: 'No check-in record found for today' });
       if (record.checkOutTime) return res.status(400).json({ message: 'Already checked out today' });
 
-      // Calculate working hours
+      // Determine geofence distance
+      let distanceMeters = null;
+      let insideGeofence = true;
+      if (record.projectId) {
+        const project = await Project.findByPk(record.projectId);
+        if (project && project.latitude !== null && project.longitude !== null && latitude && longitude) {
+          distanceMeters = getHaversineDistance(parseFloat(latitude), parseFloat(longitude), parseFloat(project.latitude), parseFloat(project.longitude));
+          const radius = project.allowedRadius || 100;
+          insideGeofence = distanceMeters <= radius;
+        }
+      }
+
       const [inH, inM, inS] = record.checkInTime.split(':').map(Number);
       const [outH, outM, outS] = nowTime.split(':').map(Number);
       const inDate = new Date(2000, 0, 1, inH, inM, inS);
       const outDate = new Date(2000, 0, 1, outH, outM, outS);
       const hours = (outDate - inDate) / (1000 * 60 * 60);
 
+      let finalStatus = record.attendanceStatus;
+      let approval = record.adminApprovalStatus;
+
+      if (!insideGeofence) {
+        finalStatus = 'Outside Geofence';
+        approval = 'Pending';
+      }
+
+      if (faceScore && parseFloat(faceScore) < 90.0) {
+        finalStatus = 'Face Failed';
+        approval = 'Pending';
+      }
+
       await record.update({
         checkOutTime: nowTime,
-        checkOutGps: gps,
-        workingHours: parseFloat(hours.toFixed(2))
+        checkOutGps: `${latitude || 28.4630}, ${longitude || 77.0300}`,
+        workingHours: parseFloat(hours.toFixed(2)),
+        checkOutLatitude: latitude || 28.4630,
+        checkOutLongitude: longitude || 77.0300,
+        checkOutAddress: address || 'Sector 43 Office',
+        checkOutFaceScore: faceScore || 98.40,
+        checkOutGpsAccuracy: accuracy || 10.0,
+        checkOutDevice: device || req.headers['user-agent'] || 'Unknown Device',
+        checkOutBrowser: browser || 'Unknown Browser',
+        checkOutIpAddress: ipAddress || req.ip || req.socket.remoteAddress || '127.0.0.1',
+        checkOutNetwork: network || 'Wi-Fi',
+        checkOutGpsDistance: distanceMeters,
+        attendanceStatus: finalStatus,
+        adminApprovalStatus: approval
       });
 
-      // Auto-trigger monthly performance score recalculation
       const monthStr = today.substring(0, 7);
       await recalculateEmployeeIncentive(req.user.id, monthStr);
 
-      res.json({ message: 'Check-out successful', record });
+      await writeAuditLog(req, 'Punch Out', 'Attendance', null, record, `GPS Geofence: ${insideGeofence ? "Inside" : "Outside"} (${distanceMeters ? distanceMeters.toFixed(1) : 0}m)`, `${latitude || 28.4630}, ${longitude || 77.0300}`, browser || 'Browser');
+
+      res.json({ message: 'Punch Out Successful', record });
     } catch (error) {
-      res.status(500).json({ message: 'Check-out failed', error: error.message });
+      res.status(500).json({ message: 'Punch Out failed', error: error.message });
     }
   });
 
   app.get('/api/attendance', authenticateToken, async (req, res) => {
     try {
-      const records = await Attendance.findAll({ include: ['user'] });
+      const records = await Attendance.findAll({ include: [{ model: User, as: 'user' }] });
       res.json({ attendance: records });
     } catch (error) {
       res.status(500).json({ message: 'Error loading attendance', error: error.message });
+    }
+  });
+
+  // Face Registration endpoints
+  app.post('/api/attendance/face-register', authenticateToken, authorizeRoles('Super Admin', 'Admin / Office Manager / Accounts'), async (req, res) => {
+    const { userId, frontFace, leftFace, rightFace, smileFace, qualityScore } = req.body;
+    if (!userId) {
+      return res.status(400).json({ message: 'userId is required' });
+    }
+
+    try {
+      const qScore = parseFloat(qualityScore || 98.5);
+      
+      const existingFace = await EmployeeFace.findOne({ where: { userId, status: 'Active' } });
+      let action = 'Register';
+      let oldValue = null;
+
+      if (existingFace) {
+        oldValue = JSON.stringify(existingFace);
+        await existingFace.update({ status: 'Archived' });
+        action = 'Update';
+      }
+
+      const newFace = await EmployeeFace.create({
+        userId,
+        frontFaceUrl: frontFace,
+        leftFaceUrl: leftFace,
+        rightFaceUrl: rightFace,
+        smileFaceUrl: smileFace,
+        faceEmbeddings: JSON.stringify([0.1, 0.2, 0.3]),
+        qualityScore: qScore,
+        capturedBy: req.user.name,
+        status: 'Active'
+      });
+
+      await EmployeeFaceAudit.create({
+        userId,
+        action,
+        performedBy: req.user.name,
+        remarks: action === 'Update' ? 'Employee face re-registered / updated by administrator.' : 'Employee face successfully enrolled in biometric database.',
+        changes: oldValue
+      });
+
+      res.json({ success: true, message: 'Face enrolled successfully', face: newFace });
+    } catch (error) {
+      res.status(500).json({ message: 'Face registration failed', error: error.message });
+    }
+  });
+
+  app.get('/api/attendance/face-status/:userId', authenticateToken, async (req, res) => {
+    try {
+      const face = await EmployeeFace.findOne({ where: { userId: req.params.userId, status: 'Active' } });
+      if (!face) {
+        return res.json({ registered: false });
+      }
+      res.json({
+        registered: true,
+        qualityScore: face.qualityScore,
+        lastUpdated: face.updatedAt,
+        capturedBy: face.capturedBy
+      });
+    } catch (error) {
+      res.status(500).json({ message: 'Error checking face status', error: error.message });
+    }
+  });
+
+  // Project Geofence CRUD Edit
+  app.put('/api/projects/:id/geofence', authenticateToken, authorizeRoles('Super Admin', 'Admin / Office Manager / Accounts'), async (req, res) => {
+    try {
+      const { latitude, longitude, allowedRadius, siteAddress } = req.body;
+      const project = await Project.findByPk(req.params.id);
+      if (!project) {
+        return res.status(404).json({ message: 'Project not found' });
+      }
+
+      await project.update({
+        latitude: latitude ? parseFloat(latitude) : project.latitude,
+        longitude: longitude ? parseFloat(longitude) : project.longitude,
+        allowedRadius: allowedRadius ? parseInt(allowedRadius) : project.allowedRadius,
+        siteAddress: siteAddress || project.siteAddress
+      });
+
+      res.json({ success: true, message: 'Project geofence updated successfully', project });
+    } catch (error) {
+      res.status(500).json({ message: 'Error updating project geofence', error: error.message });
+    }
+  });
+
+  // Pending geofence approvals
+  app.get('/api/attendance/pending-approvals', authenticateToken, authorizeRoles('Super Admin', 'Admin / Office Manager / Accounts'), async (req, res) => {
+    try {
+      const pending = await Attendance.findAll({
+        where: { adminApprovalStatus: 'Pending' },
+        include: [{ model: User, as: 'user' }]
+      });
+      res.json({ success: true, pending });
+    } catch (error) {
+      res.status(500).json({ message: 'Error loading pending overrides', error: error.message });
+    }
+  });
+
+  // Override decision
+  app.post('/api/attendance/override/:attendanceId', authenticateToken, authorizeRoles('Super Admin', 'Admin / Office Manager / Accounts'), async (req, res) => {
+    const { overrideStatus, overrideReason, overrideRemarks } = req.body;
+    if (!overrideStatus || !overrideReason) {
+      return res.status(400).json({ message: 'overrideStatus (Approved/Rejected) and overrideReason are required' });
+    }
+
+    try {
+      const record = await Attendance.findByPk(req.params.attendanceId);
+      if (!record) {
+        return res.status(404).json({ message: 'Attendance record not found' });
+      }
+
+      const oldValue = JSON.stringify(record);
+
+      await record.update({
+        adminApprovalStatus: overrideStatus,
+        attendanceStatus: overrideStatus === 'Approved' ? 'Manual' : record.attendanceStatus,
+        overrideReason,
+        overrideRemarks,
+        approvedBy: req.user.name
+      });
+      const monthStr = record.date.substring(0, 7);
+      await recalculateEmployeeIncentive(record.userId, monthStr);
+
+      await writeAuditLog(req, 'Override Attendance', 'Attendance', oldValue, record, `Override: ${overrideStatus} | Reason: ${overrideReason}`);
+
+      res.json({ success: true, message: `Attendance override marked as ${overrideStatus}`, record });
+    } catch (error) {
+      res.status(500).json({ message: 'Override action failed', error: error.message });
+    }
+  });
+
+  // Attendance Dashboard stats
+  app.get('/api/attendance/dashboard-stats', authenticateToken, async (req, res) => {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const role = getPermissionRole(req.user.role, req.user.username);
+
+      const activeProjectsCount = await Project.count({ where: { status: 'In Progress' } });
+
+      if (role === 'Super Admin' || role === 'Admin') {
+        const todayRecords = await Attendance.findAll({
+          where: { date: today },
+          include: [{ model: User, as: 'user' }, { model: Project, as: 'project' }]
+        });
+
+        const pendingApprovalCount = await Attendance.count({
+          where: { adminApprovalStatus: 'Pending' }
+        });
+
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        const recentRecords = await Attendance.findAll({
+          where: {
+            date: {
+              [Op.gte]: thirtyDaysAgo.toISOString().split('T')[0]
+            }
+          }
+        });
+
+        let gpsSuccessCount = 0;
+        let gpsTotal = 0;
+        let faceTotalScore = 0;
+        let faceTotalCount = 0;
+
+        recentRecords.forEach(r => {
+          if (r.checkInGpsDistance !== null) {
+            gpsTotal++;
+            if (r.attendanceStatus !== 'Outside Geofence') {
+              gpsSuccessCount++;
+            }
+          }
+          if (r.checkInFaceScore !== null) {
+            faceTotalCount++;
+            faceTotalScore += parseFloat(r.checkInFaceScore);
+          }
+        });
+
+        const gpsSuccessRate = gpsTotal > 0 ? ((gpsSuccessCount / gpsTotal) * 100).toFixed(1) : "100.0";
+        const faceSuccessRate = faceTotalCount > 0 ? (faceTotalScore / faceTotalCount).toFixed(1) : "98.5";
+
+        const stats = {
+          todayAttendanceCount: todayRecords.length,
+          verified: todayRecords.filter(r => r.attendanceStatus === 'Verified + Geofence' || r.attendanceStatus === 'Verified').length,
+          manual: todayRecords.filter(r => r.attendanceStatus === 'Manual' || r.manualEntry).length,
+          outsideGeofence: todayRecords.filter(r => r.attendanceStatus === 'Outside Geofence').length,
+          pendingApproval: pendingApprovalCount,
+          projectsActive: activeProjectsCount,
+          gpsSuccessRate: gpsSuccessRate + '%',
+          faceSuccessRate: faceSuccessRate + '%',
+          
+          employeesOutsideSite: todayRecords.filter(r => r.attendanceStatus === 'Outside Geofence').length,
+          pendingAttendanceApproval: pendingApprovalCount,
+          gpsFailures: todayRecords.filter(r => r.attendanceStatus === 'Outside Geofence').length,
+          faceFailures: todayRecords.filter(r => r.attendanceStatus === 'Face Failed').length
+        };
+
+        return res.json({ success: true, role, stats });
+      } else {
+        const todayRecord = await Attendance.findOne({
+          where: { userId: req.user.id, date: today },
+          include: [{ model: Project, as: 'project' }]
+        });
+
+        const stats = {
+          todayProject: todayRecord && todayRecord.project ? todayRecord.project.name : 'No Project Selected',
+          siteDistance: todayRecord && todayRecord.checkInGpsDistance ? parseFloat(todayRecord.checkInGpsDistance).toFixed(1) + ' meters' : 'N/A',
+          punchStatus: todayRecord ? (todayRecord.checkOutTime ? 'Punch Out' : 'Punch In') : 'Not Punched',
+          faceStatus: todayRecord && todayRecord.checkInFaceScore ? `Score: ${todayRecord.checkInFaceScore}%` : 'N/A',
+          gpsStatus: todayRecord ? (todayRecord.attendanceStatus === 'Outside Geofence' ? 'Outside Boundary' : 'Inside Boundary') : 'N/A'
+        };
+
+        return res.json({ success: true, role, stats });
+      }
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Error loading attendance dashboard stats', error: error.message });
+    }
+  });
+
+  // Admin Manual Create/Correct Attendance
+  app.post('/api/attendance/manual', authenticateToken, authorizeRoles('Super Admin', 'Admin / Office Manager / Accounts'), async (req, res) => {
+    const { userId, date, checkInTime, checkOutTime, status, reason, approvedBy } = req.body;
+    if (!userId || !date || !status || !reason) {
+      return res.status(400).json({ message: 'Employee, Date, Status, and Reason are required' });
+    }
+
+    try {
+      if (await checkIfMonthLocked(date)) {
+        return res.status(400).json({ message: 'Attendance for this month is locked' });
+      }
+
+      // Calculate working hours if both checkIn and checkOut are provided
+      let workingHours = 0.00;
+      if (checkInTime && checkOutTime) {
+        const [inH, inM, inS] = checkInTime.split(':').map(Number);
+        const [outH, outM, outS] = checkOutTime.split(':').map(Number);
+        const inDate = new Date(2000, 0, 1, inH, inM, inS || 0);
+        const outDate = new Date(2000, 0, 1, outH, outM, outS || 0);
+        const hours = (outDate - inDate) / (1000 * 60 * 60);
+        workingHours = parseFloat(hours.toFixed(2));
+      }
+
+      const existing = await Attendance.findOne({ where: { userId, date } });
+      let record;
+      const oldValue = existing ? JSON.stringify(existing) : null;
+
+      if (existing) {
+        record = await existing.update({
+          checkInTime: checkInTime || existing.checkInTime,
+          checkOutTime: checkOutTime || existing.checkOutTime,
+          workingHours,
+          status,
+          manualEntry: true,
+          manualReason: reason,
+          approvedBy: approvedBy || req.user.name
+        });
+      } else {
+        record = await Attendance.create({
+          userId,
+          date,
+          checkInTime: checkInTime || '09:00:00',
+          checkOutTime: checkOutTime || '18:00:00',
+          workingHours,
+          status,
+          manualEntry: true,
+          manualReason: reason,
+          approvedBy: approvedBy || req.user.name
+        });
+      }
+
+      const monthStr = date.substring(0, 7);
+      await recalculateEmployeeIncentive(userId, monthStr);
+
+      await writeAuditLog(req, 'Manual Attendance', 'Attendance', oldValue, record, reason);
+
+      res.status(201).json({ message: 'Manual attendance saved successfully', record });
+    } catch (error) {
+      res.status(500).json({ message: 'Failed to record manual attendance', error: error.message });
+    }
+  });
+
+  // Monthly Locks
+  app.post('/api/attendance/lock', authenticateToken, authorizeRoles('Super Admin'), async (req, res) => {
+    const { month } = req.body;
+    if (!month || month.length !== 7) {
+      return res.status(400).json({ message: 'Valid month (YYYY-MM) required' });
+    }
+
+    try {
+      const [lockRecord, created] = await MonthlyAttendanceLock.findOrCreate({
+        where: { month },
+        defaults: { locked: true, lockedBy: req.user.id }
+      });
+
+      if (!created) {
+        await lockRecord.update({ locked: true, lockedBy: req.user.id });
+      }
+
+      await writeAuditLog(req, 'Attendance Lock', 'Attendance', null, month, `Locked month ${month}`);
+      res.json({ message: `Successfully locked attendance for ${month}`, locked: true });
+    } catch (error) {
+      res.status(500).json({ message: 'Failed to lock month', error: error.message });
+    }
+  });
+
+  app.post('/api/attendance/unlock', authenticateToken, authorizeRoles('Super Admin'), async (req, res) => {
+    const { month } = req.body;
+    if (!month || month.length !== 7) {
+      return res.status(400).json({ message: 'Valid month (YYYY-MM) required' });
+    }
+
+    try {
+      const lockRecord = await MonthlyAttendanceLock.findOne({ where: { month } });
+      if (lockRecord) {
+        await lockRecord.update({ locked: false, lockedBy: req.user.id });
+      }
+
+      await writeAuditLog(req, 'Attendance Unlock', 'Attendance', null, month, `Unlocked month ${month}`);
+      res.json({ message: `Successfully unlocked attendance for ${month}`, locked: false });
+    } catch (error) {
+      res.status(500).json({ message: 'Failed to unlock month', error: error.message });
+    }
+  });
+
+  app.get('/api/attendance/lock-status/:month', authenticateToken, async (req, res) => {
+    const { month } = req.params;
+    try {
+      const lock = await MonthlyAttendanceLock.findOne({ where: { month } });
+      res.json({ month, locked: lock ? lock.locked : false });
+    } catch (error) {
+      res.status(500).json({ message: 'Error checking lock status', error: error.message });
+    }
+  });
+
+  // Reporting API
+  app.get('/api/attendance/reports', authenticateToken, authorizeRoles('Super Admin', 'Admin / Office Manager / Accounts'), async (req, res) => {
+    const { type, month, employeeId, format } = req.query;
+    try {
+      const where = {};
+      if (month) {
+        where.date = { [Op.like]: `${month}%` };
+      }
+      if (employeeId) {
+        where.userId = employeeId;
+      }
+
+      const records = await Attendance.findAll({
+        where,
+        include: [{ model: User, as: 'user' }],
+        order: [['date', 'ASC']]
+      });
+
+      if (format === 'csv' || format === 'excel') {
+        const data = records.map(r => ({
+          'Employee Name': r.user ? r.user.name : 'N/A',
+          'Employee ID': r.user ? r.user.employeeId : 'N/A',
+          'Date': r.date,
+          'Punch In': r.checkInTime || 'N/A',
+          'Punch Out': r.checkOutTime || 'N/A',
+          'Working Hours': r.workingHours || 0.0,
+          'Status': r.status,
+          'Method': r.manualEntry ? 'Manual' : 'Face+GPS',
+          'Device': r.checkInDevice || 'N/A',
+          'IP Address': r.checkInIpAddress || 'N/A',
+          'GPS Address': r.checkInAddress || 'N/A',
+          'Face Verification Score': r.checkInFaceScore || 'N/A'
+        }));
+
+        const ws = XLSX.utils.json_to_sheet(data);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Attendance Report');
+        const buffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+        res.setHeader('Content-Disposition', 'attachment; filename="attendance_report.xlsx"');
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        return res.send(buffer);
+      }
+
+      res.json({ reports: records });
+    } catch (error) {
+      res.status(500).json({ message: 'Error fetching reports', error: error.message });
+    }
+  });
+
+  // Audit Logs API
+  app.get('/api/attendance/audit-logs', authenticateToken, authorizeRoles('Super Admin'), async (req, res) => {
+    try {
+      const logs = await AuditLog.findAll({
+        where: { module: 'Attendance' },
+        order: [['id', 'DESC']]
+      });
+      res.json({ logs });
+    } catch (error) {
+      res.status(500).json({ message: 'Failed to fetch attendance audit logs', error: error.message });
     }
   });
 
@@ -2754,13 +3304,21 @@ function registerRoutes(app, models) {
     }
   });
 
-  app.put('/api/settings', authenticateToken, authorizeRoles('Super Admin'), async (req, res) => {
+  app.put('/api/settings', authenticateToken, requireSuperAdminOrAdmin, async (req, res) => {
     try {
       let settings = await CompanySettings.findOne();
+      const requesterRole = getPermissionRole(req.user.role, req.user.username);
+      let updates = { ...req.body };
+      if (requesterRole !== 'Super Admin') {
+        // Admin cannot edit Database/API Keys
+        delete updates.cloudinaryCloudName;
+        delete updates.cloudinaryApiKey;
+        delete updates.cloudinaryApiSecret;
+      }
       if (!settings) {
-        settings = await CompanySettings.create(req.body);
+        settings = await CompanySettings.create(updates);
       } else {
-        await settings.update(req.body);
+        await settings.update(updates);
       }
       res.json(settings);
     } catch (error) {
@@ -3120,7 +3678,7 @@ function registerRoutes(app, models) {
   // --- Contractors CRUD ---
   app.get('/api/contractors', authenticateToken, async (req, res) => {
     try {
-      const contractors = await Contractor.findAll();
+      const contractors = await Contractor.findAll({ where: { deletedAt: null } });
       res.json({ contractors });
     } catch (error) {
       res.status(500).json({ message: 'Error fetching contractors list', error: error.message });
@@ -3138,7 +3696,7 @@ function registerRoutes(app, models) {
 
   app.put('/api/contractors/:id', authenticateToken, async (req, res) => {
     try {
-      const contractor = await Contractor.findByPk(req.params.id);
+      const contractor = await Contractor.findOne({ where: { id: req.params.id, deletedAt: null } });
       if (!contractor) return res.status(404).json({ message: 'Contractor profile not found' });
       await contractor.update(req.body);
       res.json(contractor);
@@ -3147,12 +3705,15 @@ function registerRoutes(app, models) {
     }
   });
 
-  app.delete('/api/contractors/:id', authenticateToken, async (req, res) => {
+  app.delete('/api/contractors/:id', authenticateToken, requireSuperAdmin, async (req, res) => {
     try {
-      const contractor = await Contractor.findByPk(req.params.id);
+      const contractor = await Contractor.findOne({ where: { id: req.params.id, deletedAt: null } });
       if (!contractor) return res.status(404).json({ message: 'Contractor profile not found' });
-      await contractor.destroy();
-      res.json({ message: 'Contractor profile deleted successfully' });
+      const oldVal = { ...contractor.toJSON() };
+      const deletedAt = new Date();
+      await contractor.update({ deletedAt, deletedBy: req.user.id });
+      await writeAuditLog(req, 'Delete', 'Contractors', oldVal, { deletedAt, deletedBy: req.user.id });
+      res.json({ message: 'Contractor profile soft-deleted successfully' });
     } catch (error) {
       res.status(500).json({ message: 'Error deleting contractor profile', error: error.message });
     }
@@ -3188,7 +3749,7 @@ function registerRoutes(app, models) {
     }
   });
 
-  app.delete('/api/contractor-stages/:id', authenticateToken, authorizeRoles('Super Admin', 'Admin / Office Manager / Accounts'), async (req, res) => {
+  app.delete('/api/contractor-stages/:id', authenticateToken, requireSuperAdmin, async (req, res) => {
     try {
       const stage = await ContractorPaymentStage.findByPk(req.params.id);
       if (!stage) return res.status(404).json({ message: 'Payment stage not found' });
@@ -3250,7 +3811,7 @@ function registerRoutes(app, models) {
     }
   });
 
-  app.delete('/api/contractor-releases/:id', authenticateToken, async (req, res) => {
+  app.delete('/api/contractor-releases/:id', authenticateToken, requireSuperAdmin, async (req, res) => {
     try {
       const release = await ContractorPaymentRelease.findByPk(req.params.id);
       if (!release) return res.status(404).json({ message: 'Payment release record not found' });
@@ -3276,7 +3837,8 @@ function registerRoutes(app, models) {
       const markedRecords = await ManagerAttendance.findAll({
         where: {
           workerId: { [Op.in]: workerIds },
-          date: date
+          date: date,
+          deletedAt: null
         }
       });
 
@@ -5116,6 +5678,15 @@ function registerRoutes(app, models) {
     if (!username || !password || !name || !email || !role) {
       return res.status(400).json({ message: 'Username, password, name, email and role are required' });
     }
+    
+    const requesterRole = getPermissionRole(req.user.role, req.user.username);
+    if (requesterRole !== 'Super Admin') {
+      const targetRolePerm = getPermissionRole(role);
+      if (targetRolePerm === 'Super Admin') {
+        return res.status(403).json({ message: 'Forbidden: Admin cannot create Super Admin accounts' });
+      }
+    }
+
     try {
       const bcrypt = require('bcryptjs');
       const salt = await bcrypt.genSalt(10);
@@ -5142,6 +5713,18 @@ function registerRoutes(app, models) {
     try {
       const emp = await User.findByPk(req.params.id);
       if (!emp) return res.status(404).json({ message: 'User not found' });
+      
+      const requesterRole = getPermissionRole(req.user.role, req.user.username);
+      if (requesterRole !== 'Super Admin') {
+        if (req.body.role !== undefined && req.body.role !== emp.role) {
+          return res.status(403).json({ message: 'Forbidden: Admin cannot change user roles' });
+        }
+        const targetRolePerm = getPermissionRole(emp.role, emp.username);
+        if (targetRolePerm === 'Super Admin') {
+          return res.status(403).json({ message: 'Forbidden: Admin cannot modify Super Admin accounts' });
+        }
+      }
+
       await emp.update(req.body);
       res.json(emp);
     } catch (error) {
@@ -5149,7 +5732,7 @@ function registerRoutes(app, models) {
     }
   });
 
-  app.delete('/api/employees/:id', authenticateToken, authorizeRoles('Super Admin', 'Managing Director'), async (req, res) => {
+  app.delete('/api/employees/:id', authenticateToken, requireSuperAdmin, async (req, res) => {
     try {
       const emp = await User.findByPk(req.params.id);
       if (!emp) return res.status(404).json({ message: 'User not found' });
@@ -6074,7 +6657,7 @@ function registerRoutes(app, models) {
   });
 
   // DELETE /api/targets/annual/:id - Delete annual target and associated monthly targets
-  app.delete('/api/targets/annual/:id', authenticateToken, authorizeRoles('Super Admin', 'Managing Director'), async (req, res) => {
+  app.delete('/api/targets/annual/:id', authenticateToken, requireSuperAdmin, async (req, res) => {
     const { id } = req.params;
     try {
       const annual = await models.AnnualTarget.findByPk(id);
@@ -6133,7 +6716,8 @@ function registerRoutes(app, models) {
   app.get('/api/targets/team', authenticateToken, async (req, res) => {
     try {
       const { financialYear } = req.query;
-      const whereClause = financialYear ? { financialYear } : {};
+      const whereClause = { deletedAt: null };
+      if (financialYear) whereClause.financialYear = financialYear;
       const teamTargets = await models.TeamTarget.findAll({ where: whereClause });
       res.json(teamTargets);
     } catch (error) {
@@ -6162,7 +6746,7 @@ function registerRoutes(app, models) {
     const { id } = req.params;
     const { targetValue, targetMetric, unit } = req.body;
     try {
-      const target = await models.TeamTarget.findByPk(id);
+      const target = await models.TeamTarget.findOne({ where: { id, deletedAt: null } });
       if (!target) return res.status(404).json({ message: 'Team target not found' });
       await target.update({
         targetValue: targetValue !== undefined ? targetValue : target.targetValue,
@@ -6176,13 +6760,16 @@ function registerRoutes(app, models) {
   });
 
   // DELETE /api/targets/team/:id - Delete team target
-  app.delete('/api/targets/team/:id', authenticateToken, authorizeRoles('Super Admin', 'Managing Director'), async (req, res) => {
+  app.delete('/api/targets/team/:id', authenticateToken, requireSuperAdmin, async (req, res) => {
     const { id } = req.params;
     try {
-      const target = await models.TeamTarget.findByPk(id);
+      const target = await models.TeamTarget.findOne({ where: { id, deletedAt: null } });
       if (!target) return res.status(404).json({ message: 'Team target not found' });
-      await target.destroy();
-      res.json({ message: 'Team target deleted' });
+      const oldVal = { ...target.toJSON() };
+      const deletedAt = new Date();
+      await target.update({ deletedAt, deletedBy: req.user.id });
+      await writeAuditLog(req, 'Delete', 'TeamTargets', oldVal, { deletedAt, deletedBy: req.user.id });
+      res.json({ message: 'Team target soft-deleted' });
     } catch (error) {
       res.status(500).json({ message: 'Failed to delete team target', error: error.message });
     }
@@ -6192,7 +6779,7 @@ function registerRoutes(app, models) {
   app.get('/api/targets/employee', authenticateToken, async (req, res) => {
     try {
       const { role, id: userId } = req.user;
-      let whereClause = {};
+      let whereClause = { deletedAt: null };
 
       const isManagerOrAdmin = role === 'Managing Director' || role === 'Admin / Office Manager / Accounts' || role === 'Super Admin' || role === 'Design Engineer' || role === 'Site Engineer';
       
@@ -6264,7 +6851,7 @@ function registerRoutes(app, models) {
     const { id } = req.params;
     const { currentValue, status, targetDescription, targetValue } = req.body;
     try {
-      const target = await models.EmployeeTarget.findByPk(id);
+      const target = await models.EmployeeTarget.findOne({ where: { id, deletedAt: null } });
       if (!target) return res.status(404).json({ message: 'Employee target not found' });
 
       const role = req.user.role;
@@ -6298,18 +6885,16 @@ function registerRoutes(app, models) {
   });
 
   // DELETE /api/targets/employee/:id - Delete employee target
-  app.delete('/api/targets/employee/:id', authenticateToken, async (req, res) => {
+  app.delete('/api/targets/employee/:id', authenticateToken, requireSuperAdmin, async (req, res) => {
     const { id } = req.params;
-    const role = req.user.role;
-    const isAuthorized = role === 'Managing Director' || role === 'Admin / Office Manager / Accounts' || role === 'Super Admin' || role === 'Design Engineer' || role === 'Site Engineer';
-    if (!isAuthorized) {
-      return res.status(403).json({ message: 'Only managers can delete employee targets' });
-    }
     try {
-      const target = await models.EmployeeTarget.findByPk(id);
+      const target = await models.EmployeeTarget.findOne({ where: { id, deletedAt: null } });
       if (!target) return res.status(404).json({ message: 'Employee target not found' });
-      await target.destroy();
-      res.json({ message: 'Employee target deleted' });
+      const oldVal = { ...target.toJSON() };
+      const deletedAt = new Date();
+      await target.update({ deletedAt, deletedBy: req.user.id });
+      await writeAuditLog(req, 'Delete', 'EmployeeTargets', oldVal, { deletedAt, deletedBy: req.user.id });
+      res.json({ message: 'Employee target soft-deleted' });
     } catch (error) {
       res.status(500).json({ message: 'Failed to delete employee target', error: error.message });
     }
@@ -8549,7 +9134,7 @@ function registerRoutes(app, models) {
   });
 
   // DELETE /api/estimations/market-prices/:id - Delete a market price record
-  app.delete('/api/estimations/market-prices/:id', authenticateToken, async (req, res) => {
+  app.delete('/api/estimations/market-prices/:id', authenticateToken, requireSuperAdmin, async (req, res) => {
     try {
       const price = await models.MarketPrice.findByPk(req.params.id);
       if (!price) {
@@ -8662,8 +9247,64 @@ function registerRoutes(app, models) {
     }
   });
 
-  // GET /api/audit-logs (Super Admin Only)
-  app.get('/api/audit-logs', authenticateToken, requireSuperAdmin, async (req, res) => {
+  // GET /api/check-dependencies/:module/:id
+  app.get('/api/check-dependencies/:module/:id', authenticateToken, async (req, res) => {
+    const { module: targetModule, id } = req.params;
+    const normalizedModule = targetModule.toLowerCase();
+    try {
+      const counts = {};
+      if (normalizedModule === 'clients') {
+        const projects = await Project.findAll({ where: { clientId: id, deletedAt: null } });
+        const projectIds = projects.map(p => p.id);
+        const projectCount = projects.length;
+        
+        let invoiceCount = 0;
+        let documentCount = 0;
+        let quotationCount = 0;
+        
+        if (projectIds.length > 0) {
+          invoiceCount = await Invoice.count({ where: { projectId: projectIds, deletedAt: null } });
+          documentCount = await Document.count({ where: { projectId: projectIds, deletedAt: null } });
+          quotationCount = await Quotation.count({ where: { projectId: projectIds, deletedAt: null } });
+        }
+        
+        if (projectCount > 0) counts.Projects = projectCount;
+        if (invoiceCount > 0) counts.Invoices = invoiceCount;
+        if (documentCount > 0) counts.Documents = documentCount;
+        if (quotationCount > 0) counts.Quotations = quotationCount;
+      } else if (normalizedModule === 'projects') {
+        const taskCount = await Task.count({ where: { projectId: id, deletedAt: null } });
+        const drawingCount = await Drawing.count({ where: { projectId: id, deletedAt: null } });
+        const reportCount = await DailyReport.count({ where: { projectId: id, deletedAt: null } });
+        const expenseCount = await Expense.count({ where: { projectId: id, deletedAt: null } });
+        
+        const dailyReports = await DailyReport.findAll({ where: { projectId: id, deletedAt: null } });
+        let photoCount = 0;
+        dailyReports.forEach(r => {
+          if (r.photoUrls) {
+            try {
+              const urls = JSON.parse(r.photoUrls);
+              if (Array.isArray(urls)) photoCount += urls.length;
+            } catch (_) {
+              photoCount += r.photoUrls.split(',').filter(Boolean).length;
+            }
+          }
+        });
+
+        if (taskCount > 0) counts.Tasks = taskCount;
+        if (drawingCount > 0) counts.Drawings = drawingCount;
+        if (photoCount > 0) counts.Photos = photoCount;
+        if (reportCount > 0) counts.Reports = reportCount;
+        if (expenseCount > 0) counts.Expenses = expenseCount;
+      }
+      res.json({ hasDependencies: Object.keys(counts).length > 0, dependencies: counts });
+    } catch (error) {
+      res.status(500).json({ message: 'Error checking dependencies', error: error.message });
+    }
+  });
+
+  // GET /api/audit-logs (Admin & Super Admin)
+  app.get('/api/audit-logs', authenticateToken, requireSuperAdminOrAdmin, async (req, res) => {
     try {
       const page = parseInt(req.query.page) || 1;
       const limit = parseInt(req.query.limit) || 20;
@@ -8698,10 +9339,118 @@ function registerRoutes(app, models) {
     }
   });
 
-  // GET /api/trash (Super Admin Only)
-  app.get('/api/trash', authenticateToken, requireSuperAdmin, async (req, res) => {
+  // POST /api/archive/:module/:id (Admin and Super Admin)
+  app.post('/api/archive/:module/:id', authenticateToken, requireSuperAdminOrAdmin, async (req, res) => {
+    const { module: targetModule, id } = req.params;
+    const normalizedModule = targetModule.toLowerCase();
     try {
-      // Fetch soft-deleted records from each model
+      let model;
+      if (normalizedModule === 'leads' || normalizedModule === 'crm leads') model = Lead;
+      else if (normalizedModule === 'clients') model = Client;
+      else if (normalizedModule === 'projects') model = Project;
+      else if (normalizedModule === 'tasks') model = Task;
+      else if (normalizedModule === 'workers') model = Worker;
+      else if (normalizedModule === 'dailyreports' || normalizedModule === 'daily-reports' || normalizedModule === 'reports') model = DailyReport;
+      else if (normalizedModule === 'announcements') model = Announcement;
+      else if (normalizedModule === 'quotations') model = Quotation;
+      else if (normalizedModule === 'invoices') model = Invoice;
+      else if (normalizedModule === 'drawings') model = Drawing;
+      else if (normalizedModule === 'documents') model = Document;
+      else if (normalizedModule === 'expenses') model = Expense;
+      else if (normalizedModule === 'stage_checklists' || normalizedModule === 'stage-checklists' || normalizedModule === 'working checklist' || normalizedModule === 'drawing checklist' || normalizedModule === 'checklist') model = StageChecklist;
+      else if (normalizedModule === 'team_targets' || normalizedModule === 'team-targets' || normalizedModule === 'business targets' || normalizedModule === 'targets') model = models.TeamTarget;
+      else if (normalizedModule === 'employee_targets' || normalizedModule === 'employee-targets') model = models.EmployeeTarget;
+      else if (normalizedModule === 'contractors') model = Contractor;
+      else if (normalizedModule === 'manager_attendance' || normalizedModule === 'manager-attendance' || normalizedModule === 'attendance corrections' || normalizedModule === 'attendance') model = ManagerAttendance;
+      else return res.status(400).json({ message: `Invalid module specified: ${targetModule}` });
+
+      const record = await model.findOne({ where: { id, deletedAt: null } });
+      if (!record) return res.status(404).json({ message: 'Record not found' });
+
+      const oldVal = { ...record.toJSON() };
+      const deletedAt = new Date();
+      await record.update({ deletedAt, deletedBy: req.user.id });
+      await writeAuditLog(req, 'Archive', targetModule, oldVal, { deletedAt, deletedBy: req.user.id });
+
+      res.json({ message: 'Record archived successfully' });
+    } catch (error) {
+      res.status(500).json({ message: 'Error archiving record', error: error.message });
+    }
+  });
+
+  // DELETE /api/trash/purge/:module/:id (Super Admin Only)
+  app.delete('/api/trash/purge/:module/:id', authenticateToken, requireSuperAdmin, async (req, res) => {
+    const { module: targetModule, id } = req.params;
+    const normalizedModule = targetModule.toLowerCase();
+    try {
+      let model;
+      if (normalizedModule === 'leads' || normalizedModule === 'crm leads') model = Lead;
+      else if (normalizedModule === 'clients') model = Client;
+      else if (normalizedModule === 'projects') model = Project;
+      else if (normalizedModule === 'tasks') model = Task;
+      else if (normalizedModule === 'workers') model = Worker;
+      else if (normalizedModule === 'dailyreports' || normalizedModule === 'daily-reports' || normalizedModule === 'reports') model = DailyReport;
+      else if (normalizedModule === 'announcements') model = Announcement;
+      else if (normalizedModule === 'quotations') model = Quotation;
+      else if (normalizedModule === 'invoices') model = Invoice;
+      else if (normalizedModule === 'drawings') model = Drawing;
+      else if (normalizedModule === 'documents') model = Document;
+      else if (normalizedModule === 'expenses') model = Expense;
+      else if (normalizedModule === 'stage_checklists' || normalizedModule === 'stage-checklists' || normalizedModule === 'working checklist' || normalizedModule === 'drawing checklist' || normalizedModule === 'checklist') model = StageChecklist;
+      else if (normalizedModule === 'team_targets' || normalizedModule === 'team-targets' || normalizedModule === 'business targets' || normalizedModule === 'targets') model = models.TeamTarget;
+      else if (normalizedModule === 'employee_targets' || normalizedModule === 'employee-targets') model = models.EmployeeTarget;
+      else if (normalizedModule === 'contractors') model = Contractor;
+      else if (normalizedModule === 'manager_attendance' || normalizedModule === 'manager-attendance' || normalizedModule === 'attendance corrections' || normalizedModule === 'attendance') model = ManagerAttendance;
+      else return res.status(400).json({ message: `Invalid module specified: ${targetModule}` });
+
+      const record = await model.findOne({ where: { id } });
+      if (!record) return res.status(404).json({ message: 'Record not found' });
+
+      const oldVal = { ...record.toJSON() };
+      await record.destroy();
+      await writeAuditLog(req, 'PermanentDelete', targetModule, oldVal, null);
+
+      res.json({ message: 'Record permanently deleted successfully' });
+    } catch (error) {
+      res.status(500).json({ message: 'Error purging record', error: error.message });
+    }
+  });
+
+  // GET /api/trash/:module (Admin & Super Admin)
+  app.get('/api/trash/:module', authenticateToken, requireSuperAdminOrAdmin, async (req, res) => {
+    const { module: targetModule } = req.params;
+    const normalizedModule = targetModule.toLowerCase();
+    try {
+      let model;
+      if (normalizedModule === 'leads' || normalizedModule === 'crm leads') model = Lead;
+      else if (normalizedModule === 'clients') model = Client;
+      else if (normalizedModule === 'projects') model = Project;
+      else if (normalizedModule === 'tasks') model = Task;
+      else if (normalizedModule === 'workers') model = Worker;
+      else if (normalizedModule === 'dailyreports' || normalizedModule === 'daily-reports' || normalizedModule === 'reports') model = DailyReport;
+      else if (normalizedModule === 'announcements') model = Announcement;
+      else if (normalizedModule === 'quotations') model = Quotation;
+      else if (normalizedModule === 'invoices') model = Invoice;
+      else if (normalizedModule === 'drawings') model = Drawing;
+      else if (normalizedModule === 'documents') model = Document;
+      else if (normalizedModule === 'expenses') model = Expense;
+      else if (normalizedModule === 'stage_checklists' || normalizedModule === 'stage-checklists' || normalizedModule === 'working checklist' || normalizedModule === 'drawing checklist' || normalizedModule === 'checklist') model = StageChecklist;
+      else if (normalizedModule === 'team_targets' || normalizedModule === 'team-targets' || normalizedModule === 'business targets' || normalizedModule === 'targets') model = models.TeamTarget;
+      else if (normalizedModule === 'employee_targets' || normalizedModule === 'employee-targets') model = models.EmployeeTarget;
+      else if (normalizedModule === 'contractors') model = Contractor;
+      else if (normalizedModule === 'manager_attendance' || normalizedModule === 'manager-attendance' || normalizedModule === 'attendance corrections' || normalizedModule === 'attendance') model = ManagerAttendance;
+      else return res.status(400).json({ message: `Invalid module specified: ${targetModule}` });
+
+      const items = await model.findAll({ where: { deletedAt: { [Op.ne]: null } } });
+      res.json({ items });
+    } catch (error) {
+      res.status(500).json({ message: 'Error loading trash for module', error: error.message });
+    }
+  });
+
+  // GET /api/trash (Admin & Super Admin)
+  app.get('/api/trash', authenticateToken, requireSuperAdminOrAdmin, async (req, res) => {
+    try {
       const leads = await Lead.findAll({ where: { deletedAt: { [Op.ne]: null } } });
       const clients = await Client.findAll({ where: { deletedAt: { [Op.ne]: null } } });
       const projects = await Project.findAll({ where: { deletedAt: { [Op.ne]: null } } });
@@ -8711,6 +9460,14 @@ function registerRoutes(app, models) {
       const announcements = await Announcement.findAll({ where: { deletedAt: { [Op.ne]: null } } });
       const quotations = await Quotation.findAll({ where: { deletedAt: { [Op.ne]: null } } });
       const invoices = await Invoice.findAll({ where: { deletedAt: { [Op.ne]: null } } });
+      const drawings = await Drawing.findAll({ where: { deletedAt: { [Op.ne]: null } } });
+      const documents = await Document.findAll({ where: { deletedAt: { [Op.ne]: null } } });
+      const expenses = await Expense.findAll({ where: { deletedAt: { [Op.ne]: null } } });
+      const checklists = await StageChecklist.findAll({ where: { deletedAt: { [Op.ne]: null } } });
+      const teamTargets = await models.TeamTarget.findAll({ where: { deletedAt: { [Op.ne]: null } } });
+      const employeeTargets = await models.EmployeeTarget.findAll({ where: { deletedAt: { [Op.ne]: null } } });
+      const contractors = await Contractor.findAll({ where: { deletedAt: { [Op.ne]: null } } });
+      const attendance = await ManagerAttendance.findAll({ where: { deletedAt: { [Op.ne]: null } } });
 
       const trashItems = [];
       leads.forEach(x => trashItems.push({ id: x.id, module: 'Leads', label: `Lead: ${x.name}`, deletedAt: x.deletedAt }));
@@ -8722,6 +9479,14 @@ function registerRoutes(app, models) {
       announcements.forEach(x => trashItems.push({ id: x.id, module: 'Announcements', label: `Announcement: ${x.title}`, deletedAt: x.deletedAt }));
       quotations.forEach(x => trashItems.push({ id: x.id, module: 'Quotations', label: `Quotation: ${x.quotationNumber}`, deletedAt: x.deletedAt }));
       invoices.forEach(x => trashItems.push({ id: x.id, module: 'Invoices', label: `Invoice: ${x.invoiceNumber}`, deletedAt: x.deletedAt }));
+      drawings.forEach(x => trashItems.push({ id: x.id, module: 'Drawings', label: `Drawing: ${x.title}`, deletedAt: x.deletedAt }));
+      documents.forEach(x => trashItems.push({ id: x.id, module: 'Documents', label: `Document: ${x.title}`, deletedAt: x.deletedAt }));
+      expenses.forEach(x => trashItems.push({ id: x.id, module: 'Expenses', label: `Expense: ₹${x.amount} - ${x.category}`, deletedAt: x.deletedAt }));
+      checklists.forEach(x => trashItems.push({ id: x.id, module: 'StageChecklists', label: `Checklist Item: ${x.title}`, deletedAt: x.deletedAt }));
+      teamTargets.forEach(x => trashItems.push({ id: x.id, module: 'TeamTargets', label: `Team Target: ${x.teamName} (${x.targetMetric})`, deletedAt: x.deletedAt }));
+      employeeTargets.forEach(x => trashItems.push({ id: x.id, module: 'EmployeeTargets', label: `Employee Target: ${x.targetDescription}`, deletedAt: x.deletedAt }));
+      contractors.forEach(x => trashItems.push({ id: x.id, module: 'Contractors', label: `Contractor: ${x.name} (${x.contractorId})`, deletedAt: x.deletedAt }));
+      attendance.forEach(x => trashItems.push({ id: x.id, module: 'ManagerAttendance', label: `Attendance: ${x.date} - Worker ID ${x.workerId}`, deletedAt: x.deletedAt }));
 
       res.json({ trash: trashItems });
     } catch (error) {
@@ -8729,21 +9494,30 @@ function registerRoutes(app, models) {
     }
   });
 
-  // POST /api/trash/restore/:module/:id (Super Admin Only)
-  app.post('/api/trash/restore/:module/:id', authenticateToken, requireSuperAdmin, async (req, res) => {
+  // POST /api/trash/restore/:module/:id and /api/restore/:module/:id (Admin & Super Admin)
+  const restoreHandler = async (req, res) => {
     const { module: targetModule, id } = req.params;
+    const normalizedModule = targetModule.toLowerCase();
     try {
       let model;
-      if (targetModule === 'Leads') model = Lead;
-      else if (targetModule === 'Clients') model = Client;
-      else if (targetModule === 'Projects') model = Project;
-      else if (targetModule === 'Tasks') model = Task;
-      else if (targetModule === 'Workers') model = Worker;
-      else if (targetModule === 'DailyReports') model = DailyReport;
-      else if (targetModule === 'Announcements') model = Announcement;
-      else if (targetModule === 'Quotations') model = Quotation;
-      else if (targetModule === 'Invoices') model = Invoice;
-      else return res.status(400).json({ message: 'Invalid module specified' });
+      if (normalizedModule === 'leads' || normalizedModule === 'crm leads') model = Lead;
+      else if (normalizedModule === 'clients') model = Client;
+      else if (normalizedModule === 'projects') model = Project;
+      else if (normalizedModule === 'tasks') model = Task;
+      else if (normalizedModule === 'workers') model = Worker;
+      else if (normalizedModule === 'dailyreports' || normalizedModule === 'daily-reports' || normalizedModule === 'reports') model = DailyReport;
+      else if (normalizedModule === 'announcements') model = Announcement;
+      else if (normalizedModule === 'quotations') model = Quotation;
+      else if (normalizedModule === 'invoices') model = Invoice;
+      else if (normalizedModule === 'drawings') model = Drawing;
+      else if (normalizedModule === 'documents') model = Document;
+      else if (normalizedModule === 'expenses') model = Expense;
+      else if (normalizedModule === 'stage_checklists' || normalizedModule === 'stage-checklists' || normalizedModule === 'working checklist' || normalizedModule === 'drawing checklist' || normalizedModule === 'checklist') model = StageChecklist;
+      else if (normalizedModule === 'team_targets' || normalizedModule === 'team-targets' || normalizedModule === 'business targets' || normalizedModule === 'targets') model = models.TeamTarget;
+      else if (normalizedModule === 'employee_targets' || normalizedModule === 'employee-targets') model = models.EmployeeTarget;
+      else if (normalizedModule === 'contractors') model = Contractor;
+      else if (normalizedModule === 'manager_attendance' || normalizedModule === 'manager-attendance' || normalizedModule === 'attendance corrections' || normalizedModule === 'attendance') model = ManagerAttendance;
+      else return res.status(400).json({ message: `Invalid module specified: ${targetModule}` });
 
       const record = await model.findOne({ where: { id } });
       if (!record) return res.status(404).json({ message: 'Record not found' });
@@ -8755,7 +9529,10 @@ function registerRoutes(app, models) {
     } catch (error) {
       res.status(500).json({ message: 'Error restoring record', error: error.message });
     }
-  });
+  };
+
+  app.post('/api/trash/restore/:module/:id', authenticateToken, requireSuperAdminOrAdmin, restoreHandler);
+  app.post('/api/restore/:module/:id', authenticateToken, requireSuperAdminOrAdmin, restoreHandler);
 
   // Run initial daily backup (keeps registry current)
   async function runAutoBackup() {

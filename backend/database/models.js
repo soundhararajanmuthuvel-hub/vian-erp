@@ -139,7 +139,10 @@ function initModels() {
     floors: { type: DataTypes.INTEGER, defaultValue: 1 },
     isArchived: { type: DataTypes.BOOLEAN, defaultValue: false },
     deletedAt: { type: DataTypes.DATE, allowNull: true },
-    deletedBy: { type: DataTypes.INTEGER, allowNull: true }
+    deletedBy: { type: DataTypes.INTEGER, allowNull: true },
+    latitude: { type: DataTypes.DECIMAL(9, 6), allowNull: true },
+    longitude: { type: DataTypes.DECIMAL(9, 6), allowNull: true },
+    allowedRadius: { type: DataTypes.INTEGER, defaultValue: 100 }
   }, { tableName: 'projects', timestamps: true, underscored: true });
 
   // 7. Attendance Model
@@ -153,9 +156,38 @@ function initModels() {
     checkOutGps: { type: DataTypes.STRING, allowNull: true },
     workingHours: { type: DataTypes.DECIMAL(5, 2), defaultValue: 0.00 },
     status: {
-      type: DataTypes.ENUM('Present', 'Late', 'Half Day', 'Absent'),
+      type: DataTypes.ENUM('Present', 'Late', 'Half Day', 'Absent', 'Leave'),
       defaultValue: 'Present'
-    }
+    },
+    checkInLatitude: { type: DataTypes.DECIMAL(9, 6), allowNull: true },
+    checkInLongitude: { type: DataTypes.DECIMAL(9, 6), allowNull: true },
+    checkInAddress: { type: DataTypes.TEXT, allowNull: true },
+    checkInFaceScore: { type: DataTypes.DECIMAL(5, 2), allowNull: true },
+    checkInGpsAccuracy: { type: DataTypes.DECIMAL(5, 2), allowNull: true },
+    checkInDevice: { type: DataTypes.STRING, allowNull: true },
+    checkInBrowser: { type: DataTypes.STRING, allowNull: true },
+    checkInIpAddress: { type: DataTypes.STRING, allowNull: true },
+    checkInNetwork: { type: DataTypes.STRING, allowNull: true },
+    checkOutLatitude: { type: DataTypes.DECIMAL(9, 6), allowNull: true },
+    checkOutLongitude: { type: DataTypes.DECIMAL(9, 6), allowNull: true },
+    checkOutAddress: { type: DataTypes.TEXT, allowNull: true },
+    checkOutFaceScore: { type: DataTypes.DECIMAL(5, 2), allowNull: true },
+    checkOutGpsAccuracy: { type: DataTypes.DECIMAL(5, 2), allowNull: true },
+    checkOutDevice: { type: DataTypes.STRING, allowNull: true },
+    checkOutBrowser: { type: DataTypes.STRING, allowNull: true },
+    checkOutIpAddress: { type: DataTypes.STRING, allowNull: true },
+    checkOutNetwork: { type: DataTypes.STRING, allowNull: true },
+    manualEntry: { type: DataTypes.BOOLEAN, defaultValue: false },
+    manualReason: { type: DataTypes.TEXT, allowNull: true },
+    approvedBy: { type: DataTypes.STRING, allowNull: true },
+    auditId: { type: DataTypes.INTEGER, allowNull: true },
+    projectId: { type: DataTypes.INTEGER, allowNull: true },
+    checkInGpsDistance: { type: DataTypes.DECIMAL(10, 2), allowNull: true },
+    checkOutGpsDistance: { type: DataTypes.DECIMAL(10, 2), allowNull: true },
+    attendanceStatus: { type: DataTypes.STRING, allowNull: true },
+    adminApprovalStatus: { type: DataTypes.ENUM('Pending', 'Approved', 'Rejected'), allowNull: true },
+    overrideReason: { type: DataTypes.TEXT, allowNull: true },
+    overrideRemarks: { type: DataTypes.TEXT, allowNull: true }
   }, { tableName: 'attendance', timestamps: true, underscored: true });
 
   // 8. Task Model
@@ -206,7 +238,9 @@ function initModels() {
     completionPercentage: { type: DataTypes.INTEGER, defaultValue: 0 },
     approvalStatus: { type: DataTypes.STRING, defaultValue: 'Pending' },
     uploadDate: { type: DataTypes.DATEONLY, allowNull: true },
-    lastUpdated: { type: DataTypes.DATEONLY, allowNull: true }
+    lastUpdated: { type: DataTypes.DATEONLY, allowNull: true },
+    deletedAt: { type: DataTypes.DATE, allowNull: true },
+    deletedBy: { type: DataTypes.INTEGER, allowNull: true }
   }, { tableName: 'drawings', timestamps: true, underscored: true });
 
   // 11. Document Model
@@ -215,7 +249,9 @@ function initModels() {
     title: { type: DataTypes.STRING, allowNull: false },
     folder: { type: DataTypes.STRING, defaultValue: 'General' },
     fileUrl: { type: DataTypes.STRING, allowNull: false },
-    fileSize: { type: DataTypes.INTEGER, allowNull: true }
+    fileSize: { type: DataTypes.INTEGER, allowNull: true },
+    deletedAt: { type: DataTypes.DATE, allowNull: true },
+    deletedBy: { type: DataTypes.INTEGER, allowNull: true }
   }, { tableName: 'documents', timestamps: true, underscored: true });
 
   // 12. Quotation Model
@@ -270,7 +306,9 @@ function initModels() {
     status: {
       type: DataTypes.ENUM('Pending', 'Approved', 'Rejected'),
       defaultValue: 'Pending'
-    }
+    },
+    deletedAt: { type: DataTypes.DATE, allowNull: true },
+    deletedBy: { type: DataTypes.INTEGER, allowNull: true }
   }, { tableName: 'expenses', timestamps: true, underscored: true });
 
   // 15. Notification Model
@@ -320,7 +358,9 @@ function initModels() {
     overtimeHours: { type: DataTypes.DECIMAL(5, 2), defaultValue: 0.00 },
     remarks: { type: DataTypes.TEXT, allowNull: true },
     entryTime: { type: DataTypes.TIME, allowNull: false },
-    gpsLocation: { type: DataTypes.STRING, allowNull: true }
+    gpsLocation: { type: DataTypes.STRING, allowNull: true },
+    deletedAt: { type: DataTypes.DATE, allowNull: true },
+    deletedBy: { type: DataTypes.INTEGER, allowNull: true }
   }, { tableName: 'manager_attendance', timestamps: true, underscored: true });
 
   // 19. DailyReport Model
@@ -455,7 +495,6 @@ function initModels() {
     gstNumber: { type: DataTypes.STRING(15), allowNull: true }
   }, { tableName: 'vendors', underscored: true });
 
-  // 31. Contractor Model
   const Contractor = sequelize.define('Contractor', {
     id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
     contractorId: { type: DataTypes.STRING, unique: true, allowNull: false },
@@ -463,7 +502,9 @@ function initModels() {
     phone: { type: DataTypes.STRING, allowNull: true },
     email: { type: DataTypes.STRING, allowNull: true },
     address: { type: DataTypes.TEXT, allowNull: true },
-    serviceType: { type: DataTypes.STRING, allowNull: true }
+    serviceType: { type: DataTypes.STRING, allowNull: true },
+    deletedAt: { type: DataTypes.DATE, allowNull: true },
+    deletedBy: { type: DataTypes.INTEGER, allowNull: true }
   }, { tableName: 'contractors', underscored: true });
 
   // 31a. ContractorPaymentStage Model (Admin/Superadmin managed master list of stages)
@@ -692,7 +733,9 @@ function initModels() {
     teamName: { type: DataTypes.STRING, allowNull: false },
     targetMetric: { type: DataTypes.STRING, allowNull: false },
     targetValue: { type: DataTypes.DECIMAL(15, 2), defaultValue: 0.00 },
-    unit: { type: DataTypes.STRING, defaultValue: 'number' }
+    unit: { type: DataTypes.STRING, defaultValue: 'number' },
+    deletedAt: { type: DataTypes.DATE, allowNull: true },
+    deletedBy: { type: DataTypes.INTEGER, allowNull: true }
   }, { tableName: 'team_targets', underscored: true });
 
   // 36. EmployeeTarget Model
@@ -705,7 +748,9 @@ function initModels() {
     period: { type: DataTypes.STRING, defaultValue: 'Monthly' },
     startDate: { type: DataTypes.DATEONLY, allowNull: false },
     endDate: { type: DataTypes.DATEONLY, allowNull: false },
-    status: { type: DataTypes.STRING, defaultValue: 'Pending' }
+    status: { type: DataTypes.STRING, defaultValue: 'Pending' },
+    deletedAt: { type: DataTypes.DATE, allowNull: true },
+    deletedBy: { type: DataTypes.INTEGER, allowNull: true }
   }, { tableName: 'employee_targets', underscored: true });
 
   // 37. BuildHistory Model
@@ -1127,6 +1172,10 @@ function initModels() {
   User.hasMany(Attendance, { foreignKey: 'userId', as: 'attendanceRecords', onDelete: 'CASCADE' });
   Attendance.belongsTo(User, { foreignKey: 'userId', as: 'user' });
 
+  // Project <-> Attendance
+  Project.hasMany(Attendance, { foreignKey: 'projectId', as: 'attendanceRecords', onDelete: 'SET NULL' });
+  Attendance.belongsTo(Project, { foreignKey: 'projectId', as: 'project' });
+
   // Project <-> Task
   Project.hasMany(Task, { foreignKey: 'projectId', as: 'tasks', onDelete: 'CASCADE' });
   Task.belongsTo(Project, { foreignKey: 'projectId', as: 'project' });
@@ -1451,7 +1500,9 @@ function initModels() {
     title: { type: DataTypes.STRING(150), allowNull: false },
     status: { type: DataTypes.ENUM('Pending', 'Completed'), defaultValue: 'Pending' },
     completionPercentage: { type: DataTypes.INTEGER, defaultValue: 0 },
-    sequenceOrder: { type: DataTypes.INTEGER, defaultValue: 0 }
+    sequenceOrder: { type: DataTypes.INTEGER, defaultValue: 0 },
+    deletedAt: { type: DataTypes.DATE, allowNull: true },
+    deletedBy: { type: DataTypes.INTEGER, allowNull: true }
   }, { tableName: 'stage_checklists', underscored: true });
 
   StageChecklist.belongsTo(ProjectStage, { foreignKey: 'stageId', as: 'stage', onDelete: 'CASCADE' });
@@ -1500,6 +1551,45 @@ function initModels() {
   Drawing.hasMany(DrawingComment, { foreignKey: 'drawingId', as: 'comments', onDelete: 'CASCADE' });
   DrawingComment.belongsTo(User, { foreignKey: 'userId', as: 'user', onDelete: 'CASCADE' });
 
+  // 60. MonthlyAttendanceLock Model
+  const MonthlyAttendanceLock = sequelize.define('MonthlyAttendanceLock', {
+    id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    month: { type: DataTypes.STRING(7), allowNull: false, unique: true },
+    locked: { type: DataTypes.BOOLEAN, defaultValue: false },
+    lockedBy: { type: DataTypes.INTEGER, allowNull: true }
+  }, { tableName: 'monthly_attendance_locks', underscored: true });
+
+  MonthlyAttendanceLock.belongsTo(User, { foreignKey: 'lockedBy', as: 'locker', onDelete: 'SET NULL' });
+
+  // 61. EmployeeFace Model
+  const EmployeeFace = sequelize.define('EmployeeFace', {
+    id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    userId: { type: DataTypes.INTEGER, allowNull: false },
+    frontFaceUrl: { type: DataTypes.TEXT, allowNull: true },
+    leftFaceUrl: { type: DataTypes.TEXT, allowNull: true },
+    rightFaceUrl: { type: DataTypes.TEXT, allowNull: true },
+    smileFaceUrl: { type: DataTypes.TEXT, allowNull: true },
+    faceEmbeddings: { type: DataTypes.TEXT, allowNull: true },
+    qualityScore: { type: DataTypes.DECIMAL(5, 2), defaultValue: 0.0 },
+    capturedBy: { type: DataTypes.STRING, allowNull: true },
+    status: { type: DataTypes.ENUM('Active', 'Archived'), defaultValue: 'Active' }
+  }, { tableName: 'employee_faces', underscored: true });
+
+  EmployeeFace.belongsTo(User, { foreignKey: 'userId', as: 'user', onDelete: 'CASCADE' });
+
+  // 62. EmployeeFaceAudit Model
+  const EmployeeFaceAudit = sequelize.define('EmployeeFaceAudit', {
+    id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    userId: { type: DataTypes.INTEGER, allowNull: false },
+    action: { type: DataTypes.STRING(50), allowNull: false },
+    performedBy: { type: DataTypes.STRING(100), allowNull: false },
+    timestamp: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
+    remarks: { type: DataTypes.TEXT, allowNull: true },
+    changes: { type: DataTypes.TEXT, allowNull: true }
+  }, { tableName: 'employee_face_audits', underscored: true });
+
+  EmployeeFaceAudit.belongsTo(User, { foreignKey: 'userId', as: 'user', onDelete: 'CASCADE' });
+
   return {
     User, Session, Lead, LeadTimeline, LeadStage1, Client, ClientTimeline, Project,
     Attendance, Task, SiteVisit, Drawing, Document,
@@ -1515,7 +1605,8 @@ function initModels() {
     PublicEnquiryLink, PublicEnquirySubmission, PublicEnquiryDocument, PublicEnquiryHistory, PublicEnquiryDraft, PublicEnquiryNote,
     AuditLog,
     ConferenceCall, Incentive,
-    StageChecklist, ConferenceCallAction, DrawingRevision, DrawingComment
+    StageChecklist, ConferenceCallAction, DrawingRevision, DrawingComment,
+    MonthlyAttendanceLock, EmployeeFace, EmployeeFaceAudit
   };
 }
 
