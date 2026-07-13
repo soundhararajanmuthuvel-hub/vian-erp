@@ -50,7 +50,7 @@ vian-erp/
 For detailed production deployment steps, please refer to our documentation in the `docs` folder:
 
 - 📖 **[Main Deployment Guide](docs/deployment_guide.md)**
-- 🧡 **[Cloudflare Pages Deploy Guide](docs/cloudflare_guide.md)**
+- 🧡 **[Cloudflare Pages Deploy Guide](docs/deployment/cloudflare-pages.md)**
 - 🚂 **[Railway Backend Deploy Guide](docs/railway_guide.md)**
 - 🔑 **[Environment Variables Setup](docs/environment_variables.md)**
 

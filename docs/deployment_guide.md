@@ -26,6 +26,6 @@ Ensure you have the following accounts and installations before deploying:
 
 ## Table of Contents
 
-- [Cloudflare Pages Deployment Guide](cloudflare_guide.md)
+- [Cloudflare Pages Deployment Guide](deployment/cloudflare-pages.md)
 - [Railway Deployment Guide](railway_guide.md)
 - [Environment Variables Configuration](environment_variables.md)
