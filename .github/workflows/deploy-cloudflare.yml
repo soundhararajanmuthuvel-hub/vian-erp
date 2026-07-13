@@ -1,0 +1,53 @@
+name: Deploy Flutter Web to Cloudflare Pages
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy to Cloudflare Pages
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Setup Flutter SDK
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+          cache-key: "flutter-:os:-:channel:-:version:-:arch:-:hash:"
+          cache-path: "${{ runner.tool_cache }}/flutter"
+
+      - name: Enable Flutter Web
+        run: flutter config --enable-web
+
+      - name: Install Dependencies
+        run: |
+          cd apps/flutter_web
+          flutter pub get
+
+      - name: Build Web Production Bundle
+        run: |
+          cd apps/flutter_web
+          flutter build web --release
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: 'vian-erp'
+          directory: 'apps/flutter_web/build/web'
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}

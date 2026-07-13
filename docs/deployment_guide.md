@@ -5,13 +5,13 @@ This guide details the complete production architecture, prerequisite configurat
 ## Architecture Overview
 
 VIAN ERP uses a split-tier architecture:
-1. **Frontend (SPA Web Portal)**: Built with Flutter Web and deployed as a fast, cached Single Page Application (SPA) on **Netlify**.
+1. **Frontend (SPA Web Portal)**: Built with Flutter Web and deployed as a fast, cached Single Page Application (SPA) on **Cloudflare Pages**.
 2. **Backend (REST & Realtime Server)**: Powered by Node.js, Express, and Sequelize. Deployed on **Railway** with support for SQLite fallback and MySQL.
 
 ```mermaid
 graph TD
     Client[Web Browser / Mobile App] -->|HTTPS Requests| Backend[Node.js Express Server on Railway]
-    Client -->|Static Asset Fetch| Netlify[CDN Frontend Hosting]
+    Client -->|Static Asset Fetch| Cloudflare[Cloudflare Pages CDN]
     Backend -->|Sequelize ORM| MySQL[(MySQL Database)]
     Backend -->|Fallback SQLite| SQLite[(Local SQLite File)]
 ```
@@ -20,12 +20,12 @@ graph TD
 
 Ensure you have the following accounts and installations before deploying:
 - A GitHub repository containing the complete codebase.
-- A **Netlify** account (linked to GitHub).
+- A **Cloudflare** account (linked to GitHub).
 - A **Railway** account (linked to GitHub).
 - Production credentials for external services (Google Gemini API, Cloudinary, Gmail SMTP).
 
 ## Table of Contents
 
-- [Netlify Deployment Guide](netlify_guide.md)
+- [Cloudflare Pages Deployment Guide](cloudflare_guide.md)
 - [Railway Deployment Guide](railway_guide.md)
 - [Environment Variables Configuration](environment_variables.md)

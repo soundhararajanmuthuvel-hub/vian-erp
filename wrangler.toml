@@ -1,0 +1,4 @@
+#:schema node_modules/wrangler/config-schema.json
+name = "vian-erp"
+compatibility_date = "2026-07-13"
+pages_build_output_dir = "apps/flutter_web/build/web"

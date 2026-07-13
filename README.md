@@ -40,7 +40,7 @@ vian-erp/
 - **Frontend**: Flutter Web (Material 3 luxury dark/gold aesthetics, Google Fonts Outfit)
 - **Backend**: Node.js + Express
 - **Database**: MySQL (Production) / SQLite (Fallback Developer Mode)
-- **Deployment Targets**: Netlify (Frontend), Railway (Backend)
+- **Deployment Targets**: Cloudflare Pages (Frontend), Railway (Backend)
 - **Storage**: Cloudinary (Attachments & conceptual design sketches)
 
 ---
@@ -50,7 +50,7 @@ vian-erp/
 For detailed production deployment steps, please refer to our documentation in the `docs` folder:
 
 - 📖 **[Main Deployment Guide](docs/deployment_guide.md)**
-- ⚡ **[Netlify Frontend Deploy Guide](docs/netlify_guide.md)**
+- 🧡 **[Cloudflare Pages Deploy Guide](docs/cloudflare_guide.md)**
 - 🚂 **[Railway Backend Deploy Guide](docs/railway_guide.md)**
 - 🔑 **[Environment Variables Setup](docs/environment_variables.md)**
 
