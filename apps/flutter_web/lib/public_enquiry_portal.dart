@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'core/theme/theme.dart';
 import 'core/services/api_service.dart';
 import 'core/services/file_helper.dart';
+import 'core/services/gps_resolver.dart';
 import 'core/widgets/drawing_canvases.dart';
 import 'core/widgets/custom_widgets.dart';
 import 'package:file_picker/file_picker.dart';
@@ -1490,7 +1491,12 @@ class _EnquiryInboxTabState extends State<EnquiryInboxTab> {
                         'Pincode': _selectedSubmission!['pincode'] ?? 'N/A',
                         'Road Width': '${_selectedSubmission!['roadWidth'] ?? "N/A"} Feet',
                         'Site Facing Direction': _selectedSubmission!['siteFacing'] ?? 'N/A',
-                        'GPS Location': '${_selectedSubmission!['latitude'] ?? "N/A"}, ${_selectedSubmission!['longitude'] ?? "N/A"}',
+                        'GPS Location': _selectedSubmission!['latitude'] != null && _selectedSubmission!['longitude'] != null
+                            ? GpsAddressResolver.resolve(
+                                double.tryParse(_selectedSubmission!['latitude'].toString()) ?? 0.0,
+                                double.tryParse(_selectedSubmission!['longitude'].toString()) ?? 0.0,
+                              ).toShortString()
+                            : 'N/A',
                       }),
                       _buildDetailGroup('Road Specs', {
                         'Road Width': '${_selectedSubmission!['roadWidth'] ?? "N/A"} Feet',

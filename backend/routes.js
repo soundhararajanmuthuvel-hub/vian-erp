@@ -5056,7 +5056,7 @@ function registerRoutes(app, models) {
       });
 
       const progressReports = await ProgressReport.findAll({
-        where: { userId, date: { [Op.like]: `${datePrefix}%` } }
+        where: { managerId: userId, date: { [Op.like]: `${datePrefix}%` } }
       });
 
       const stageReports = await StageReport.findAll({
@@ -5715,28 +5715,77 @@ function registerRoutes(app, models) {
       if (!emp) return res.status(404).json({ message: 'User not found' });
       
       const requesterRole = getPermissionRole(req.user.role, req.user.username);
+      const targetRolePerm = getPermissionRole(emp.role, emp.username);
+
       if (requesterRole !== 'Super Admin') {
         if (req.body.role !== undefined && req.body.role !== emp.role) {
           return res.status(403).json({ message: 'Forbidden: Admin cannot change user roles' });
         }
-        const targetRolePerm = getPermissionRole(emp.role, emp.username);
-        if (targetRolePerm === 'Super Admin') {
-          return res.status(403).json({ message: 'Forbidden: Admin cannot modify Super Admin accounts' });
+        if (targetRolePerm === 'Super Admin' || targetRolePerm === 'Admin') {
+          return res.status(403).json({ message: 'Forbidden: Non-Superadmin cannot modify Super Admin or Admin accounts' });
+        }
+        if (emp.department !== req.user.department) {
+          return res.status(403).json({ message: 'Forbidden: Admin can only manage users within their own department' });
+        }
+      }
+
+      // Compute diff
+      const diff = {};
+      const oldVal = {};
+      const newVal = {};
+      for (const key in req.body) {
+        if (req.body[key] !== undefined && req.body[key] !== emp[key]) {
+          oldVal[key] = emp[key];
+          newVal[key] = req.body[key];
+          diff[key] = { from: emp[key], to: req.body[key] };
         }
       }
 
       await emp.update(req.body);
+
+      await writeAuditLog(
+        req, 
+        requesterRole === 'Super Admin' && targetRolePerm === 'Super Admin' ? 'Superadmin Edit Superadmin' : 'Edit User', 
+        'Employees', 
+        oldVal, 
+        newVal, 
+        `Edited fields: ${JSON.stringify(diff)}`
+      );
+
       res.json(emp);
     } catch (error) {
       res.status(400).json({ message: 'Failed to update user', error: error.message });
     }
   });
 
-  app.delete('/api/employees/:id', authenticateToken, requireSuperAdmin, async (req, res) => {
+  app.delete('/api/employees/:id', authenticateToken, async (req, res) => {
     try {
+      const requesterRole = getPermissionRole(req.user.role, req.user.username);
+      if (requesterRole !== 'Super Admin') {
+        return res.status(403).json({ message: 'Forbidden: Only Superadmin can delete accounts' });
+      }
+
       const emp = await User.findByPk(req.params.id);
       if (!emp) return res.status(404).json({ message: 'User not found' });
+
+      if (req.user.id === emp.id) {
+        return res.status(400).json({ message: 'Forbidden: You cannot delete your own account' });
+      }
+
+      const targetRolePerm = getPermissionRole(emp.role, emp.username);
+
+      const oldVal = emp.toJSON();
       await emp.destroy();
+
+      await writeAuditLog(
+        req, 
+        targetRolePerm === 'Super Admin' ? 'Superadmin Delete Superadmin' : 'Delete User', 
+        'Employees', 
+        oldVal, 
+        null, 
+        `Permanently deleted user: ${emp.name} (${emp.role})`
+      );
+
       res.json({ message: 'User deleted successfully' });
     } catch (error) {
       res.status(500).json({ message: 'Failed to delete user', error: error.message });

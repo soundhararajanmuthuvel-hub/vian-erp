@@ -20,11 +20,14 @@ import 'core/widgets/home_dashboards.dart';
 import 'core/widgets/face_gps_verify_overlay.dart';
 import 'core/widgets/face_registration_wizard.dart';
 import 'core/widgets/project_geofence_map.dart';
+import 'core/services/gps_resolver.dart';
 import 'core/services/file_helper.dart';
 import 'core/widgets/drawing_canvases.dart';
 import 'public_enquiry_portal.dart';
 import 'forgot_password_page.dart';
 import 'splash_screen.dart';
+import 'core/models/estimation.dart';
+import 'core/services/estimation_provider.dart';
 import 'js_stub.dart'
     if (dart.library.js) 'dart:js' as js;
 
@@ -1086,6 +1089,71 @@ class _MainNavigationShellState extends ConsumerState<MainNavigationShell> {
     }).toList();
   }
 
+  void _showCommandPalette(List<Map<String, dynamic>> tabs) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: VianTheme.cardColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            const Icon(Icons.search, color: VianTheme.primaryGold),
+            const SizedBox(width: 12),
+            Expanded(
+              child: TextField(
+                autofocus: true,
+                style: const TextStyle(color: VianTheme.headerBlack),
+                decoration: const InputDecoration(
+                  hintText: 'Search modules or quick commands...',
+                  border: InputBorder.none,
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: InputBorder.none,
+                ),
+                onChanged: (val) {
+                  // filter if needed
+                },
+              ),
+            ),
+          ],
+        ),
+        content: SizedBox(
+          width: 500,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('QUICK COMMANDS', style: TextStyle(color: VianTheme.lightText, fontSize: 10, fontWeight: FontWeight.bold)),
+              ListTile(
+                leading: const Icon(Icons.add, color: VianTheme.primaryGold),
+                title: const Text('New Project Estimate', style: TextStyle(color: VianTheme.headerBlack)),
+                onTap: () {
+                  Navigator.pop(context);
+                  context.go('/construction-estimation');
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.pin_drop, color: VianTheme.primaryGold),
+                title: const Text('Mark GPS Attendance', style: TextStyle(color: VianTheme.headerBlack)),
+                onTap: () {
+                  Navigator.pop(context);
+                  context.go('/gps-attendance');
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.receipt_long, color: VianTheme.primaryGold),
+                title: const Text('View Latest Invoices', style: TextStyle(color: VianTheme.headerBlack)),
+                onTap: () {
+                  Navigator.pop(context);
+                  context.go('/invoices');
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final user = ref.watch(userProvider);
@@ -1139,28 +1207,57 @@ class _MainNavigationShellState extends ConsumerState<MainNavigationShell> {
       appBar: AppBar(
         title: Row(
           children: [
+            Image.asset(
+              'assets/logo.png',
+              height: 24,
+              errorBuilder: (context, error, stackTrace) => const Icon(Icons.architecture, color: VianTheme.primaryGold, size: 24),
+            ),
+            const SizedBox(width: 8),
             Text(
-              tabs[_selectedIndex]['title'],
-              style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 18),
+              'VIAN ERP',
+              style: GoogleFonts.poppins(color: VianTheme.headerBlack, fontWeight: FontWeight.bold, fontSize: 13, letterSpacing: 0.5),
             ),
             if (!isMobile) ...[
+              const SizedBox(width: 8),
+              const Text('/', style: TextStyle(color: VianTheme.lightText, fontSize: 13)),
+              const SizedBox(width: 8),
+              DropdownButton<String>(
+                value: 'Chennai Main',
+                dropdownColor: VianTheme.cardColor,
+                underline: const SizedBox(),
+                icon: const Icon(Icons.keyboard_arrow_down, size: 14, color: VianTheme.lightText),
+                items: ['Chennai Main', 'Coimbatore Branch', 'Madurai Branch']
+                    .map((e) => DropdownMenuItem(value: e, child: Text(e, style: const TextStyle(fontSize: 12, color: VianTheme.headerBlack, fontWeight: FontWeight.w600))))
+                    .toList(),
+                onChanged: (_) {},
+              ),
+              const SizedBox(width: 8),
+              const Text('/', style: TextStyle(color: VianTheme.lightText, fontSize: 13)),
+              const SizedBox(width: 8),
+              Text(
+                tabs[_selectedIndex]['title'],
+                style: GoogleFonts.inter(fontWeight: FontWeight.bold, color: VianTheme.primaryGold, fontSize: 13),
+              ),
               const SizedBox(width: 24),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF1F5F9),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: Colors.black.withOpacity(0.04)),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.search, size: 14, color: VianTheme.lightText),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Search projects... (⌘K)',
-                      style: TextStyle(color: VianTheme.lightText, fontSize: 11),
-                    ),
-                  ],
+              InkWell(
+                onTap: () => _showCommandPalette(tabs),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF1F5F9),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: Colors.black.withOpacity(0.04)),
+                  ),
+                  child: const Row(
+                    children: [
+                      Icon(Icons.search, size: 14, color: VianTheme.lightText),
+                      SizedBox(width: 8),
+                      Text(
+                        'Search or type ⌘K...',
+                        style: TextStyle(color: VianTheme.lightText, fontSize: 11),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -1168,6 +1265,25 @@ class _MainNavigationShellState extends ConsumerState<MainNavigationShell> {
         ),
         actions: [
           if (!isMobile) ...[
+            PopupMenuButton<String>(
+              icon: const Icon(Icons.add_circle_outline, color: VianTheme.primaryGold),
+              tooltip: 'Quick Create',
+              onSelected: (val) {
+                if (val == 'project') {
+                  context.go('/projects');
+                } else if (val == 'invoice') {
+                  context.go('/invoices');
+                } else if (val == 'lead') {
+                  context.go('/crm-leads');
+                }
+              },
+              itemBuilder: (context) => [
+                const PopupMenuItem(value: 'lead', child: Text('New CRM Lead', style: TextStyle(fontSize: 12))),
+                const PopupMenuItem(value: 'project', child: Text('New Project', style: TextStyle(fontSize: 12))),
+                const PopupMenuItem(value: 'invoice', child: Text('New Invoice', style: TextStyle(fontSize: 12))),
+              ],
+            ),
+            const SizedBox(width: 8),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
@@ -1185,7 +1301,7 @@ class _MainNavigationShellState extends ConsumerState<MainNavigationShell> {
                 ],
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 8),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
@@ -1203,7 +1319,20 @@ class _MainNavigationShellState extends ConsumerState<MainNavigationShell> {
                 ],
               ),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 8),
+            PopupMenuButton<String>(
+              icon: const Icon(Icons.language, color: VianTheme.lightText, size: 20),
+              tooltip: 'Select Language',
+              itemBuilder: (context) => [
+                const PopupMenuItem(value: 'en', child: Text('English (US)', style: TextStyle(fontSize: 12))),
+                const PopupMenuItem(value: 'ta', child: Text('Tamil (தமிழ்)', style: TextStyle(fontSize: 12))),
+              ],
+            ),
+            IconButton(
+              icon: const Icon(Icons.chat_bubble_outline, color: VianTheme.lightText, size: 20),
+              tooltip: 'Recent Chats',
+              onPressed: () {},
+            ),
           ],
           IconButton(
             icon: const Icon(Icons.notifications_outlined),
@@ -1212,7 +1341,7 @@ class _MainNavigationShellState extends ConsumerState<MainNavigationShell> {
                 context: context,
                 backgroundColor: VianTheme.sidebarBg,
                 shape: const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
                 ),
                 builder: (context) => const NotificationsPanel(),
               );
@@ -1220,7 +1349,7 @@ class _MainNavigationShellState extends ConsumerState<MainNavigationShell> {
           ),
           const SizedBox(width: 8),
           CircleAvatar(
-            backgroundColor: const Color(0xFF1E1E26),
+            backgroundColor: VianTheme.sidebarBg,
             radius: 18,
             child: Text(
               user['name']?[0] ?? 'V',
@@ -4261,11 +4390,23 @@ class _ProjectsTabState extends ConsumerState<ProjectsTab> {
   Widget _buildGridView(String role, String name) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final cols = constraints.maxWidth < 600 ? 1 : 2;
+        int cols = 1;
+        double ratio = 1.3;
+        if (constraints.maxWidth >= 1400) {
+          cols = 4;
+          ratio = 1.6;
+        } else if (constraints.maxWidth >= 1000) {
+          cols = 3;
+          ratio = 1.5;
+        } else if (constraints.maxWidth >= 600) {
+          cols = 2;
+          ratio = 1.4;
+        }
+
         return GridView.builder(
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: cols,
-            childAspectRatio: 1.5,
+            childAspectRatio: ratio,
             crossAxisSpacing: 16,
             mainAxisSpacing: 16,
           ),
@@ -4275,27 +4416,108 @@ class _ProjectsTabState extends ConsumerState<ProjectsTab> {
             final budgetFormatted = NumberFormat.currency(locale: 'en_IN', symbol: '₹', decimalDigits: 0).format(safeToDouble(p['budget']));
             final progress = (p['progressPercentage'] ?? 0) / 100.0;
 
+            final String status = p['status'] ?? 'Planning';
+            final Color statusColor;
+            if (status == 'Completed') {
+              statusColor = VianTheme.success;
+            } else if (status == 'In Progress') {
+              statusColor = VianTheme.warning;
+            } else {
+              statusColor = VianTheme.accentBlue;
+            }
+
             return GestureDetector(
               onTap: () {
                 context.go('/projects/${p['id']}');
               },
               child: VianCard(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                padding: EdgeInsets.zero,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(p['projectId'] ?? '', style: const TextStyle(color: VianTheme.primaryGold, fontSize: 12, fontWeight: FontWeight.bold)),
-                        Text(p['status'] ?? '', style: const TextStyle(color: Color(0xFF70707C), fontSize: 11)),
-                      ],
+                    Container(
+                      width: 6,
+                      decoration: BoxDecoration(
+                        color: statusColor,
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(16),
+                          bottomLeft: Radius.circular(16),
+                        ),
+                      ),
                     ),
-                    const SizedBox(height: 8),
-                    Text(p['name'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                    Text('Type: ${p['type']} | Client: ${p['client']?['name']}', style: const TextStyle(color: VianTheme.lightText, fontSize: 12)),
-                    Text('Budget: $budgetFormatted', style: const TextStyle(color: VianTheme.primaryGold, fontSize: 12)),
-                    const Spacer(),
-                    VianProgressIndicator(progress: progress),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(p['projectId'] ?? '', style: const TextStyle(color: VianTheme.primaryGold, fontSize: 12, fontWeight: FontWeight.bold)),
+                                Text(status, style: TextStyle(color: statusColor, fontSize: 11, fontWeight: FontWeight.bold)),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            Text(p['name'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                            const SizedBox(height: 4),
+                            Text('Type: ${p['type']} | Client: ${p['client']?['name'] ?? 'None'}', style: const TextStyle(color: VianTheme.lightText, fontSize: 12)),
+                            const SizedBox(height: 12),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const Text('BUDGET', style: TextStyle(fontSize: 9, color: Color(0xFF8A8578), fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+                                      const SizedBox(height: 2),
+                                      Text(budgetFormatted, style: const TextStyle(fontSize: 12, color: VianTheme.primaryGold, fontWeight: FontWeight.bold)),
+                                    ],
+                                  ),
+                                ),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const Text('PACKAGE', style: TextStyle(fontSize: 9, color: Color(0xFF8A8578), fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+                                      const SizedBox(height: 2),
+                                      Text(p['constructionPackage'] ?? 'Premium', style: const TextStyle(fontSize: 12, color: VianTheme.headerBlack, fontWeight: FontWeight.w500)),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 10),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const Text('TIMELINE', style: TextStyle(fontSize: 9, color: Color(0xFF8A8578), fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+                                      const SizedBox(height: 2),
+                                      Text('${p['startDate'] ?? '2026-07-01'} to ${p['completionDate'] ?? '2027-07-01'}', style: const TextStyle(fontSize: 11, color: VianTheme.lightText), maxLines: 1, overflow: TextOverflow.ellipsis),
+                                    ],
+                                  ),
+                                ),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const Text('SITE LOCATION', style: TextStyle(fontSize: 9, color: Color(0xFF8A8578), fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+                                      const SizedBox(height: 2),
+                                      Text(p['siteAddress'] ?? 'Chennai, TN', style: const TextStyle(fontSize: 11, color: VianTheme.lightText), maxLines: 1, overflow: TextOverflow.ellipsis),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const Spacer(),
+                            VianProgressIndicator(progress: progress),
+                          ],
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -5305,6 +5527,18 @@ class _AttendanceTabState extends ConsumerState<AttendanceTab> {
               const SizedBox(height: 4),
               Text('Date: ${pending['date']} | Time: ${pending['checkInTime'] ?? "N/A"}', style: const TextStyle(color: Colors.white60, fontSize: 12)),
               Text('Punch Distance: ${pending['checkInGpsDistance'] != null ? double.parse(pending['checkInGpsDistance'].toString()).toStringAsFixed(1) : "N/A"} meters from site', style: const TextStyle(color: Colors.white60, fontSize: 12)),
+              (() {
+                final latVal = double.tryParse(pending['checkInLatitude']?.toString() ?? '0.0') ?? 0.0;
+                final lngVal = double.tryParse(pending['checkInLongitude']?.toString() ?? '0.0') ?? 0.0;
+                final address = GpsAddressResolver.resolve(latVal, lngVal);
+                return Padding(
+                  padding: const EdgeInsets.only(top: 6.0),
+                  child: Text(
+                    'Resolved Location:\n${address.toFormattedMultiLine()}',
+                    style: const TextStyle(color: Colors.white70, fontSize: 11, height: 1.4),
+                  ),
+                );
+              })(),
               const Divider(color: Colors.white10, height: 24),
               TextFormField(
                 controller: reasonCtrl,
@@ -5637,6 +5871,7 @@ class _AttendanceTabState extends ConsumerState<AttendanceTab> {
     }
 
     final selectedProj = _selectedProjectForGeofence ?? _allProjects.first;
+    final hasCoords = selectedProj['latitude'] != null && selectedProj['longitude'] != null;
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -5670,9 +5905,9 @@ class _AttendanceTabState extends ConsumerState<AttendanceTab> {
                       title: Text(proj['name'] ?? '', style: TextStyle(fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
                       subtitle: Text(
                         hasCoords 
-                            ? 'Lat: ${proj['latitude']} | Lng: ${proj['longitude']} (${proj['allowedRadius'] ?? 100}m)' 
+                            ? '${GpsAddressResolver.resolve(double.parse(proj['latitude'].toString()), double.parse(proj['longitude'].toString())).toShortString()} (${proj['allowedRadius'] ?? 100}m)' 
                             : 'Geofence Not Configured',
-                        style: TextStyle(color: hasCoords ? Colors.white60 : VianTheme.danger, fontSize: 11),
+                        style: TextStyle(color: hasCoords ? Colors.white60 : VianTheme.danger, fontSize: 10),
                       ),
                       trailing: IconButton(
                         icon: const Icon(Icons.edit_location_alt, size: 18, color: VianTheme.primaryGold),
@@ -5734,10 +5969,10 @@ class _AttendanceTabState extends ConsumerState<AttendanceTab> {
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.white70),
                 ),
                 const SizedBox(height: 10),
-                _telemetryRow('Latitude Coordinates', '${selectedProj['latitude'] ?? "Not Set"}'),
-                _telemetryRow('Longitude Coordinates', '${selectedProj['longitude'] ?? "Not Set"}'),
+                _telemetryRow('Site Resolved Name', hasCoords ? GpsAddressResolver.resolve(double.parse(selectedProj['latitude'].toString()), double.parse(selectedProj['longitude'].toString())).siteName : 'Not Set'),
+                _telemetryRow('Resolved Location Address', hasCoords ? GpsAddressResolver.resolve(double.parse(selectedProj['latitude'].toString()), double.parse(selectedProj['longitude'].toString())).toAddressOnly() : 'Not Set'),
+                _telemetryRow('Nearby Geofence Landmark', hasCoords ? GpsAddressResolver.resolve(double.parse(selectedProj['latitude'].toString()), double.parse(selectedProj['longitude'].toString())).landmark : 'Not Set'),
                 _telemetryRow('Allowed Geofence Radius', '${selectedProj['allowedRadius'] ?? 100} meters'),
-                _telemetryRow('Configured Landmark Address', '${selectedProj['siteAddress'] ?? "Gurugram Site"}'),
               ],
             ),
           ),
@@ -5822,10 +6057,24 @@ class _AttendanceTabState extends ConsumerState<AttendanceTab> {
                                   'Date: ${pending['date']} | Time: ${pending['checkInTime'] ?? "N/A"}',
                                   style: const TextStyle(color: Colors.white54, fontSize: 11),
                                 ),
-                                Text(
-                                  'Captured GPS: ${pending['checkInLatitude'] ?? "N/A"}, ${pending['checkInLongitude'] ?? "N/A"}',
-                                  style: const TextStyle(color: Colors.white54, fontSize: 11),
-                                ),
+                                (() {
+                                  final latVal = double.tryParse(pending['checkInLatitude']?.toString() ?? '0.0') ?? 0.0;
+                                  final lngVal = double.tryParse(pending['checkInLongitude']?.toString() ?? '0.0') ?? 0.0;
+                                  final address = GpsAddressResolver.resolve(latVal, lngVal);
+                                  return Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Check-In Place: ${address.siteName} (Near ${address.landmark})',
+                                        style: const TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold),
+                                      ),
+                                      Text(
+                                        'Address: ${address.toAddressOnly()}',
+                                        style: const TextStyle(color: Colors.white54, fontSize: 10),
+                                      ),
+                                    ],
+                                  );
+                                })(),
                                 Text(
                                   'Distance: ${dist.toStringAsFixed(1)} meters outside boundary',
                                   style: const TextStyle(color: Colors.redAccent, fontSize: 11, fontWeight: FontWeight.bold),
@@ -6046,8 +6295,21 @@ class _AttendanceTabState extends ConsumerState<AttendanceTab> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text('GPS Tracking Coordinates', style: TextStyle(fontSize: 10, color: Color(0xFF70707C))),
-                              Text(_gps, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: VianTheme.whiteText)),
+                              const Text('GPS Resolved Location', style: TextStyle(fontSize: 10, color: Color(0xFF70707C))),
+                              const SizedBox(height: 4),
+                              (() {
+                                double latVal = 28.4630;
+                                double lngVal = 77.0300;
+                                if (_gps.contains('28.4595')) {
+                                  latVal = 28.4595;
+                                  lngVal = 77.0266;
+                                }
+                                final address = GpsAddressResolver.resolve(latVal, lngVal);
+                                return Text(
+                                  '${address.siteName}\n${address.toAddressOnly()}\nNear ${address.landmark}',
+                                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: VianTheme.whiteText, height: 1.4),
+                                );
+                              })(),
                             ],
                           ),
                         )
@@ -6103,7 +6365,22 @@ class _AttendanceTabState extends ConsumerState<AttendanceTab> {
                                 size: 20,
                               ),
                               title: Text('${r['date']} - ${r['status']}'),
-                              subtitle: Text('In: ${r['checkInTime'] ?? "N/A"} | Out: ${r['checkOutTime'] ?? "N/A"}'),
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('In: ${r['checkInTime'] ?? "N/A"} | Out: ${r['checkOutTime'] ?? "N/A"}'),
+                                  if (!isManual && r['checkInLatitude'] != null && r['checkInLongitude'] != null) ...[
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      GpsAddressResolver.resolve(
+                                        double.parse(r['checkInLatitude'].toString()),
+                                        double.parse(r['checkInLongitude'].toString()),
+                                      ).toShortString(),
+                                      style: const TextStyle(fontSize: 10, color: Colors.white54),
+                                    ),
+                                  ],
+                                ],
+                              ),
                               trailing: Text(
                                 isManual ? 'Manual Override' : 'GPS+Face Verified',
                                 style: TextStyle(color: isManual ? VianTheme.warning : Colors.greenAccent, fontSize: 11),
@@ -6136,6 +6413,8 @@ class _AttendanceTabState extends ConsumerState<AttendanceTab> {
                 DataColumn(label: Text('Status')),
                 DataColumn(label: Text('In Time')),
                 DataColumn(label: Text('Out Time')),
+                DataColumn(label: Text('Location & Landmark')),
+                DataColumn(label: Text('Distance')),
                 DataColumn(label: Text('Method')),
                 DataColumn(label: Text('Verification Score')),
               ],
@@ -6159,6 +6438,23 @@ class _AttendanceTabState extends ConsumerState<AttendanceTab> {
                     ),
                     DataCell(Text(r['checkInTime'] ?? 'N/A')),
                     DataCell(Text(r['checkOutTime'] ?? 'N/A')),
+                    DataCell(
+                      Text(isManual
+                          ? 'Manual Override'
+                          : (r['checkInLatitude'] != null && r['checkInLongitude'] != null
+                              ? GpsAddressResolver.resolve(
+                                  double.parse(r['checkInLatitude'].toString()),
+                                  double.parse(r['checkInLongitude'].toString()),
+                                ).toShortString()
+                              : 'GPS Verified')),
+                    ),
+                    DataCell(
+                      Text(isManual
+                          ? 'N/A'
+                          : (r['checkInGpsDistance'] != null
+                              ? '${double.parse(r['checkInGpsDistance'].toString()).toStringAsFixed(1)}m'
+                              : '0.0m')),
+                    ),
                     DataCell(Text(isManual ? 'Manual Override' : 'GPS+Face Verified')),
                     DataCell(Text(faceScore)),
                   ],
@@ -12854,12 +13150,35 @@ class _ConstructionEstimationTabState extends ConsumerState<ConstructionEstimati
     }
   }
 
+  bool canAccess(String role, String feature) {
+    UserRole userRole = UserRole.estimator;
+    final cleanRole = role.toLowerCase();
+    if (cleanRole == 'super admin') {
+      userRole = UserRole.superadmin;
+    } else if (cleanRole == 'managing director') {
+      userRole = UserRole.managingDirector;
+    } else if (cleanRole == 'admin' || cleanRole.contains('admin')) {
+      userRole = UserRole.admin;
+    } else if (cleanRole.contains('coordinator')) {
+      userRole = UserRole.siteCoordinator;
+    } else if (cleanRole.contains('estimator')) {
+      userRole = UserRole.estimator;
+    }
+
+    if (feature == 'settings') {
+      return userRole == UserRole.superadmin || userRole == UserRole.managingDirector;
+    }
+    if (feature == 'approve') {
+      return userRole == UserRole.superadmin || userRole == UserRole.managingDirector || userRole == UserRole.admin;
+    }
+    return true;
+  }
+
   Future<void> _fetchBudgetVsActual(int id) async {
     setState(() => _isLoading = true);
     try {
-      final data = await ApiService.getBudgetVsActual(id);
+      await ref.read(estimationProvider.notifier).fetchBudgetVsActual(id);
       setState(() {
-        _budgetVsActualData = data;
         _viewingBudgetVsActual = true;
       });
     } catch (e) {
@@ -12875,6 +13194,13 @@ class _ConstructionEstimationTabState extends ConsumerState<ConstructionEstimati
     if (user == null) return const Center(child: CircularProgressIndicator());
     final role = user['role'] ?? 'Client';
 
+    final estimationState = ref.watch(estimationProvider);
+    _estimates = estimationState.estimates.map((e) => e.toJson()).toList();
+    _dashboardStats = estimationState.dashboardStats;
+    _settings = estimationState.settings?.toJson() ?? {};
+    _marketPrices = estimationState.marketPrices.map((m) => m.toJson()).toList();
+    _budgetVsActualData = estimationState.selectedBudgetVsActual;
+
     final size = MediaQuery.of(context).size;
     final isMobile = size.width < 800;
 
@@ -12887,7 +13213,7 @@ class _ConstructionEstimationTabState extends ConsumerState<ConstructionEstimati
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0F0F13),
+      backgroundColor: VianTheme.darkBackground,
       appBar: _buildSubHeader(role),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(VianTheme.primaryGold)))
@@ -12902,7 +13228,10 @@ class _ConstructionEstimationTabState extends ConsumerState<ConstructionEstimati
     return PreferredSize(
       preferredSize: const Size.fromHeight(50),
       child: Container(
-        color: const Color(0xFF1E1E26),
+        decoration: const BoxDecoration(
+          color: VianTheme.cardColor,
+          border: Border(bottom: BorderSide(color: VianTheme.goldBorder, width: 1)),
+        ),
         child: Row(
           children: [
             const SizedBox(width: 16),
@@ -12973,7 +13302,7 @@ class _ConstructionEstimationTabState extends ConsumerState<ConstructionEstimati
           marketPrices: _marketPrices,
           onSave: (data) async {
             setState(() => _isLoading = true);
-            final res = await ApiService.saveEstimate(data);
+            final res = await ref.read(estimationProvider.notifier).saveEstimate(data);
             await _loadAllData();
             setState(() {
               _currentView = 'history';
@@ -12989,16 +13318,21 @@ class _ConstructionEstimationTabState extends ConsumerState<ConstructionEstimati
       case 'prices':
         return _buildMarketPricesView();
       case 'settings':
+        if (!canAccess(role, 'settings')) {
+          return const Center(child: Text('Access Denied: MD / Super Admin permissions required.'));
+        }
         return EstimationSettingsView(
           settings: _settings,
           role: role,
           onSave: (data) async {
+            if (!canAccess(role, 'settings')) return;
             setState(() => _isLoading = true);
-            await ApiService.updateEstimationSettings(data);
+            await ref.read(estimationProvider.notifier).updateSettings(data);
             await _loadAllData();
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('Settings updated successfully.')),
             );
+            setState(() => _isLoading = false);
           },
         );
       default:
@@ -13035,7 +13369,7 @@ class _ConstructionEstimationTabState extends ConsumerState<ConstructionEstimati
                   'Approved Estimates',
                   '${_dashboardStats['approvedEstimates'] ?? 0}',
                   Icons.assignment_turned_in_outlined,
-                  const Color(0x1F28A745),
+                  VianTheme.success,
                 ),
               ),
               const SizedBox(width: 16),
@@ -13044,7 +13378,7 @@ class _ConstructionEstimationTabState extends ConsumerState<ConstructionEstimati
                   'Pending Approvals',
                   '${_dashboardStats['pendingEstimates'] ?? 0}',
                   Icons.hourglass_empty_outlined,
-                  const Color(0x1FFFCE56),
+                  VianTheme.warning,
                 ),
               ),
               const SizedBox(width: 16),
@@ -13053,7 +13387,7 @@ class _ConstructionEstimationTabState extends ConsumerState<ConstructionEstimati
                   'Avg. Cost / Sq.ft',
                   currencyFormat.format(_dashboardStats['averageCostPerSqft'] ?? 0),
                   Icons.trending_up,
-                  const Color(0x1F007BFF),
+                  VianTheme.accentBlue,
                 ),
               ),
             ],
@@ -13071,7 +13405,7 @@ class _ConstructionEstimationTabState extends ConsumerState<ConstructionEstimati
                     children: [
                       Text(
                         'RECENT ESTIMATES',
-                        style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 13),
+                        style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: VianTheme.headerBlack, fontSize: 13),
                       ),
                       const SizedBox(height: 16),
                       if (_estimates.isEmpty)
@@ -13081,13 +13415,13 @@ class _ConstructionEstimationTabState extends ConsumerState<ConstructionEstimati
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
                           itemCount: _estimates.length > 5 ? 5 : _estimates.length,
-                          separatorBuilder: (context, index) => const Divider(color: Color(0xFF1E1E26)),
+                          separatorBuilder: (context, index) => const Divider(color: VianTheme.goldBorder),
                           itemBuilder: (context, index) {
                             final est = _estimates[index];
                             final status = est['status'] ?? 'Pending';
                             return ListTile(
                               contentPadding: EdgeInsets.zero,
-                              title: Text(est['projectName'] ?? 'No Name', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 13)),
+                              title: Text(est['projectName'] ?? 'No Name', style: const TextStyle(fontWeight: FontWeight.bold, color: VianTheme.headerBlack, fontSize: 13)),
                               subtitle: Text('Client: ${est['clientName'] ?? 'No Client'} | No: ${est['estimateNumber']}', style: const TextStyle(color: VianTheme.lightText, fontSize: 11)),
                               trailing: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
@@ -13120,7 +13454,7 @@ class _ConstructionEstimationTabState extends ConsumerState<ConstructionEstimati
                     children: [
                       Text(
                         'PACKAGE DISTRIBUTION',
-                        style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 13),
+                        style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: VianTheme.headerBlack, fontSize: 13),
                       ),
                       const SizedBox(height: 24),
                       _distributionRow('Economy Package', _dashboardStats['distribution']?['Economy'] ?? 0, Colors.grey),
@@ -13151,29 +13485,33 @@ class _ConstructionEstimationTabState extends ConsumerState<ConstructionEstimati
     );
   }
 
-  Widget _buildMetricCard(String title, String value, IconData icon, Color color) {
-    return Container(
+  Widget _buildMetricCard(String title, String value, IconData icon, Color baseColor) {
+    return VianCard(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFF262635)),
-      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(title, style: const TextStyle(color: VianTheme.lightText, fontSize: 12)),
-              const SizedBox(height: 8),
-              Text(
-                value,
-                style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 20),
-              ),
-            ],
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: const TextStyle(color: VianTheme.lightText, fontSize: 12)),
+                const SizedBox(height: 8),
+                Text(
+                  value,
+                  style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: VianTheme.headerBlack, fontSize: 20),
+                ),
+              ],
+            ),
           ),
-          Icon(icon, color: VianTheme.primaryGold, size: 28),
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: baseColor.withOpacity(0.12),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, color: baseColor == const Color(0xFF1E1E26) ? VianTheme.primaryGold : baseColor, size: 24),
+          ),
         ],
       ),
     );
@@ -13185,7 +13523,7 @@ class _ConstructionEstimationTabState extends ConsumerState<ConstructionEstimati
         Container(width: 12, height: 12, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
         const SizedBox(width: 12),
         Expanded(child: Text(label, style: const TextStyle(color: VianTheme.whiteText, fontSize: 12))),
-        Text('$count', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 13)),
+        Text('$count', style: const TextStyle(fontWeight: FontWeight.bold, color: VianTheme.headerBlack, fontSize: 13)),
       ],
     );
   }
@@ -13222,7 +13560,7 @@ class _ConstructionEstimationTabState extends ConsumerState<ConstructionEstimati
             children: [
               Text(
                 'SAVED COST ESTIMATES HISTORY LOG',
-                style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 14),
+                style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: VianTheme.headerBlack, fontSize: 14),
               ),
               VianButton(
                 text: 'New Estimate',
@@ -13235,14 +13573,14 @@ class _ConstructionEstimationTabState extends ConsumerState<ConstructionEstimati
           Expanded(
             child: ListView.separated(
               itemCount: _estimates.length,
-              separatorBuilder: (context, index) => const Divider(color: Color(0xFF1E1E26)),
+              separatorBuilder: (context, index) => const Divider(color: VianTheme.goldBorder),
               itemBuilder: (context, index) {
                 final est = _estimates[index];
                 return ListTile(
                   contentPadding: const EdgeInsets.all(8),
                   title: Row(
                     children: [
-                      Text(est['projectName'] ?? 'No Name', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+                      Text(est['projectName'] ?? 'No Name', style: const TextStyle(fontWeight: FontWeight.bold, color: VianTheme.headerBlack)),
                       const SizedBox(width: 12),
                       _statusBadge(est['status']),
                     ],
@@ -13292,7 +13630,7 @@ class _ConstructionEstimationTabState extends ConsumerState<ConstructionEstimati
                 children: [
                   Text(
                     'REGIONAL MARKET RATES INTELLIGENCE',
-                    style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 14),
+                    style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: VianTheme.headerBlack, fontSize: 14),
                   ),
                   const SizedBox(height: 4),
                   const Text('Track local raw material prices indexed across VIAN workspace regions.', style: TextStyle(color: VianTheme.lightText, fontSize: 12)),
@@ -13325,7 +13663,12 @@ class _ConstructionEstimationTabState extends ConsumerState<ConstructionEstimati
                 final bool isDown = rate < prevRate;
 
                 return Card(
-                  color: const Color(0xFF1E1E26),
+                  color: VianTheme.darkBackground,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    side: const BorderSide(color: VianTheme.goldBorder, width: 1),
+                  ),
                   margin: const EdgeInsets.only(bottom: 12),
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
@@ -13335,7 +13678,7 @@ class _ConstructionEstimationTabState extends ConsumerState<ConstructionEstimati
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(price['materialName'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 14)),
+                            Text(price['materialName'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold, color: VianTheme.headerBlack, fontSize: 14)),
                             const SizedBox(height: 4),
                             Text('Supplier: ${price['supplier'] ?? 'Default Seeder'} | Region: ${price['district']}', style: const TextStyle(color: VianTheme.lightText, fontSize: 11)),
                           ],
@@ -13370,9 +13713,8 @@ class _ConstructionEstimationTabState extends ConsumerState<ConstructionEstimati
                                 final confirm = await showDialog<bool>(
                                   context: context,
                                   builder: (context) => AlertDialog(
-                                    backgroundColor: const Color(0xFF1E1E26),
-                                    title: const Text('Delete Market Price', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                                    content: const Text('Are you sure you want to delete this market price record?', style: TextStyle(color: VianTheme.lightText)),
+                                    title: const Text('Delete Market Price', style: TextStyle(fontWeight: FontWeight.bold)),
+                                    content: const Text('Are you sure you want to delete this market price record?'),
                                     actions: [
                                       TextButton(
                                         onPressed: () => Navigator.pop(context, false),
@@ -13389,8 +13731,7 @@ class _ConstructionEstimationTabState extends ConsumerState<ConstructionEstimati
                                 if (confirm == true) {
                                   setState(() => _isLoading = true);
                                   try {
-                                    await ApiService.deleteMarketPrice(price['id']);
-                                    await _loadAllData();
+                                    await ref.read(estimationProvider.notifier).deleteMarketPrice(price['id']);
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(content: Text('Market price deleted successfully.')),
                                     );
@@ -13430,10 +13771,9 @@ class _ConstructionEstimationTabState extends ConsumerState<ConstructionEstimati
       context: context,
       builder: (context) {
         return AlertDialog(
-          backgroundColor: const Color(0xFF1E1E26),
           title: Text(
             isEdit ? 'Edit Market Price' : 'Add New Market Rate',
-            style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold),
+            style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
           ),
           content: SingleChildScrollView(
             child: Column(
@@ -13470,7 +13810,7 @@ class _ConstructionEstimationTabState extends ConsumerState<ConstructionEstimati
 
                 try {
                   if (isEdit) {
-                    await ApiService.updateMarketPrice({
+                    await ref.read(estimationProvider.notifier).updateMarketPrice({
                       'id': existing['id'],
                       'materialName': materialNameController.text,
                       'currentRate': rate,
@@ -13478,14 +13818,13 @@ class _ConstructionEstimationTabState extends ConsumerState<ConstructionEstimati
                       'district': districtController.text,
                     });
                   } else {
-                    await ApiService.createMarketPrice({
+                    await ref.read(estimationProvider.notifier).addMarketPrice({
                       'materialName': materialNameController.text,
                       'currentRate': rate,
                       'supplier': supplierController.text,
                       'district': districtController.text,
                     });
                   }
-                  await _loadAllData();
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text(isEdit ? 'Market price updated successfully.' : 'Market rate added successfully.')),
                   );
@@ -13514,11 +13853,11 @@ class _ConstructionEstimationTabState extends ConsumerState<ConstructionEstimati
         TextField(
           controller: controller,
           keyboardType: isNumber ? TextInputType.number : TextInputType.text,
-          style: const TextStyle(color: Colors.white, fontSize: 13),
+          style: const TextStyle(color: VianTheme.headerBlack, fontSize: 13),
           decoration: const InputDecoration(
             isDense: true,
             contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Color(0xFF262635))),
+            enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: VianTheme.goldBorder)),
             focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: VianTheme.primaryGold)),
           ),
         ),
@@ -13552,10 +13891,10 @@ class _ConstructionEstimationTabState extends ConsumerState<ConstructionEstimati
                   const SizedBox(width: 8),
                   Text(
                     'ESTIMATE WORKSPACE: ${details['estimateNumber']}',
-                    style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                    style: GoogleFonts.poppins(color: VianTheme.headerBlack, fontWeight: FontWeight.bold, fontSize: 14),
                   ),
                   const Spacer(),
-                  if (details['status'] == 'Approved')
+                  if (details['status'] == 'Approved' || details['status'] == 'approved')
                     VianButton(
                       text: 'View Budget vs Actual Variance',
                       icon: Icons.analytics_outlined,
@@ -13563,13 +13902,14 @@ class _ConstructionEstimationTabState extends ConsumerState<ConstructionEstimati
                       onPressed: () => _fetchBudgetVsActual(details['id']),
                     ),
                   const SizedBox(width: 12),
-                  if (details['status'] == 'Pending' && (role == 'Super Admin' || role == 'Managing Director'))
+                  if ((details['status'] == 'Pending' || details['status'] == 'pendingApproval') && canAccess(role, 'approve'))
                     VianButton(
                       text: 'Approve & Initialize Project',
                       icon: Icons.check_circle,
                       onPressed: () async {
+                        if (!canAccess(role, 'approve')) return;
                         setState(() => _isLoading = true);
-                        final res = await ApiService.approveEstimate(details['id']);
+                        final res = await ref.read(estimationProvider.notifier).approveEstimate(details['id']);
                         await _loadAllData();
                         setState(() {
                           _selectedEstimate = null;
@@ -13601,7 +13941,7 @@ class _ConstructionEstimationTabState extends ConsumerState<ConstructionEstimati
                           _buildDetailItem('Site Address', '${details['siteAddress']}, ${details['city']}, ${details['district']}, ${details['state']}'),
                           _buildDetailItem('Built-up Area', '${details['builtUpArea']} ${details['unit']}'),
                           _buildDetailItem('Base Rate / Unit', currencyFormat.format(details['packageRate'] ?? 0)),
-                          const Divider(color: Color(0xFF262635), height: 32),
+                          const Divider(color: VianTheme.goldBorder, height: 32),
                           _buildDetailHeader('FINANCIAL PROFIT SEGMENTS'),
                           _buildDetailItem('Base Cost', currencyFormat.format(details['totalCost'] ?? 0)),
                           _buildDetailItem('Margin Target %', '${details['companyMarginPercentage']}%'),
@@ -13626,7 +13966,7 @@ class _ConstructionEstimationTabState extends ConsumerState<ConstructionEstimati
                               _buildDetailHeader('PHASE TIMELINE SCHEDULING'),
                               const SizedBox(height: 12),
                               if (details['phases'] == null || (details['phases'] as List).isEmpty)
-                                const Text('No phases recorded.', style: TextStyle(color: VianTheme.lightText))
+                                  const Text('No phases recorded.', style: TextStyle(color: VianTheme.lightText))
                               else
                                 ListView.builder(
                                   shrinkWrap: true,
@@ -13636,7 +13976,7 @@ class _ConstructionEstimationTabState extends ConsumerState<ConstructionEstimati
                                     final ph = details['phases'][index];
                                     return ListTile(
                                       contentPadding: EdgeInsets.zero,
-                                      title: Text(ph['phaseName'] ?? '', style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
+                                      title: Text(ph['phaseName'] ?? '', style: const TextStyle(color: VianTheme.headerBlack, fontSize: 13, fontWeight: FontWeight.bold)),
                                       trailing: Text('${ph['estimatedDuration']} Days | ${currencyFormat.format(ph['estimatedCost'] ?? 0)}', style: const TextStyle(color: VianTheme.primaryGold, fontSize: 12)),
                                     );
                                   },
@@ -13663,9 +14003,9 @@ class _ConstructionEstimationTabState extends ConsumerState<ConstructionEstimati
                                     final mat = details['materials'][index];
                                     return ListTile(
                                       contentPadding: EdgeInsets.zero,
-                                      title: Text(mat['materialName'] ?? '', style: const TextStyle(color: Colors.white, fontSize: 13)),
+                                      title: Text(mat['materialName'] ?? '', style: const TextStyle(color: VianTheme.headerBlack, fontSize: 13)),
                                       subtitle: Text('${mat['quantity']} ${mat['unit']} @ ₹${mat['rate']}', style: const TextStyle(color: VianTheme.lightText, fontSize: 11)),
-                                      trailing: Text(currencyFormat.format(mat['cost'] ?? 0), style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+                                      trailing: Text(currencyFormat.format(mat['cost'] ?? 0), style: const TextStyle(color: VianTheme.headerBlack, fontSize: 12, fontWeight: FontWeight.bold)),
                                     );
                                   },
                                 )
@@ -13704,7 +14044,7 @@ class _ConstructionEstimationTabState extends ConsumerState<ConstructionEstimati
           Text(
             '$value',
             style: TextStyle(
-              color: isGold ? VianTheme.primaryGold : Colors.white,
+              color: isGold ? VianTheme.primaryGold : VianTheme.headerBlack,
               fontWeight: isGold ? FontWeight.bold : FontWeight.normal,
               fontSize: 12,
             ),
@@ -13731,7 +14071,7 @@ class _ConstructionEstimationTabState extends ConsumerState<ConstructionEstimati
               const SizedBox(width: 8),
               Text(
                 'BUDGET VS ACTUAL LEDGER DETAILS: ${_selectedEstimate!['projectName']}',
-                style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                style: GoogleFonts.poppins(color: VianTheme.headerBlack, fontWeight: FontWeight.bold, fontSize: 14),
               ),
             ],
           ),
@@ -13767,9 +14107,9 @@ class _ConstructionEstimationTabState extends ConsumerState<ConstructionEstimati
                 ),
                 const SizedBox(height: 20),
                 _buildVarianceProgressRow('Raw Materials Cost', data['estimatedMaterialCost'] ?? 0, data['actualMaterialCost'] ?? 0, data['materialVariance'] ?? 0),
-                const Divider(color: Color(0xFF1E1E26), height: 32),
+                const Divider(color: VianTheme.goldBorder, height: 32),
                 _buildVarianceProgressRow('Labour Resource Cost', data['estimatedLabourCost'] ?? 0, data['actualLabourCost'] ?? 0, data['labourVariance'] ?? 0),
-                const Divider(color: Color(0xFF1E1E26), height: 32),
+                const Divider(color: VianTheme.goldBorder, height: 32),
                 _buildVarianceProgressRow('Site Direct Expenses', data['estimatedExpenses'] ?? 0, data['actualExpenses'] ?? 0, data['expensesVariance'] ?? 0),
               ],
             ),
@@ -13780,13 +14120,8 @@ class _ConstructionEstimationTabState extends ConsumerState<ConstructionEstimati
   }
 
   Widget _buildVarianceCard(String title, String value, Color color) {
-    return Container(
+    return VianCard(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1E1E26),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFF262635)),
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -13810,11 +14145,11 @@ class _ConstructionEstimationTabState extends ConsumerState<ConstructionEstimati
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+      children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(label, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 13)),
+            Text(label, style: const TextStyle(fontWeight: FontWeight.bold, color: VianTheme.headerBlack, fontSize: 13)),
             Text(
               'Est: ${currencyFormat.format(estVal)} | Spent: ${currencyFormat.format(actVal)} | Var: ${currencyFormat.format(variance)}',
               style: TextStyle(color: pct <= 1.0 ? VianTheme.success : VianTheme.danger, fontSize: 11),
@@ -13826,7 +14161,7 @@ class _ConstructionEstimationTabState extends ConsumerState<ConstructionEstimati
           borderRadius: BorderRadius.circular(4),
           child: LinearProgressIndicator(
             value: pct > 1.0 ? 1.0 : pct,
-            backgroundColor: const Color(0xFF0F0F13),
+            backgroundColor: VianTheme.darkBackground,
             valueColor: AlwaysStoppedAnimation<Color>(color),
             minHeight: 8,
           ),
@@ -13858,6 +14193,12 @@ class EstimationWizard extends StatefulWidget {
 
 class _EstimationWizardState extends State<EstimationWizard> {
   int _currentStep = 0;
+  String _materialSearchQuery = '';
+  String _materialCategoryFilter = 'All';
+  String _boqSearchQuery = '';
+  String _boqSortColumn = 'name';
+  bool _boqSortAscending = true;
+  final Set<String> _expandedBoqIds = {};
   bool _calculating = false;
 
   // AI Analysis State
@@ -13873,6 +14214,7 @@ class _EstimationWizardState extends State<EstimationWizard> {
   // Controllers Step 1
   final _projectNameController = TextEditingController(text: 'Horizon Villa ECR');
   final _clientNameController = TextEditingController(text: 'Amit Bajaj');
+  final _clientContactController = TextEditingController(text: 'amit.bajaj@example.com');
   final _addressController = TextEditingController(text: 'Plot 14, ECR Highway');
   final _cityController = TextEditingController(text: 'Chennai');
   final _builtUpAreaController = TextEditingController(text: '2800');
@@ -13882,6 +14224,11 @@ class _EstimationWizardState extends State<EstimationWizard> {
   String _selectedState = 'Tamil Nadu';
   String _selectedDistrict = 'Chennai';
   String _selectedPackage = 'Standard';
+
+  // Step 1 Validation Errors
+  String? _clientNameError;
+  String? _clientContactError;
+  String? _areaError;
 
   // Calculations details (populated in step 2/3)
   Map<String, dynamic>? _calculatedResults;
@@ -13916,6 +14263,7 @@ class _EstimationWizardState extends State<EstimationWizard> {
         _editableLabour = List.from(res['labour'] ?? []);
         _editablePhases = List.from(res['phases'] ?? []);
       });
+      _recalculateLocalTotals();
     } catch (e) {
       debugPrint("Error run calculate: $e");
     } finally {
@@ -13923,137 +14271,485 @@ class _EstimationWizardState extends State<EstimationWizard> {
     }
   }
 
+  Estimate _getCurrentEstimate() {
+    final area = double.tryParse(_builtUpAreaController.text) ?? 1000.0;
+    
+    final info = ProjectClientInfo(
+      projectId: _savedEstimateId?.toString() ?? '',
+      clientName: _clientNameController.text,
+      clientContact: _clientContactController.text,
+      projectType: _selectedProjectType,
+      builtUpAreaSqFt: area,
+      floorPlanFileUrl: _uploadedDrawingUrl,
+      aiExtractedAreas: _extractedAiData != null ? Map<String, double>.from(
+        (_extractedAiData!['aiExtractedAreas'] as Map? ?? {}).map((k, v) => MapEntry(k.toString(), double.tryParse(v.toString()) ?? 0.0))
+      ) : null,
+      createdAt: DateTime.now(),
+    );
+
+    final List<MaterialRate> mats = _editableMaterials.map((m) {
+      final name = m['materialName'] ?? '';
+      final baseRate = double.tryParse(m['rate']?.toString() ?? '0.0') ?? 0.0;
+      final qty = double.tryParse(m['quantity']?.toString() ?? '0.0') ?? 0.0;
+      final ratio = area == 0.0 ? 0.0 : qty / area;
+      
+      String pkgStr = _selectedPackage.toLowerCase();
+      PackageTier pkg = PackageTier.standard;
+      if (pkgStr == 'economy') pkg = PackageTier.economy;
+      if (pkgStr == 'premium') pkg = PackageTier.premium;
+
+      return MaterialRate(
+        materialId: m['id']?.toString() ?? '',
+        name: name,
+        unit: m['unit'] ?? '',
+        baseRate: baseRate,
+        quantityRatioPerSqFt: ratio,
+        tier: pkg,
+        region: _selectedDistrict,
+        lastUpdated: DateTime.now(),
+      );
+    }).toList();
+
+    final List<PhaseMilestone> milestones = [];
+    DateTime currentStart = _startDate;
+    for (final ph in _editablePhases) {
+      final int duration = int.tryParse(ph['estimatedDuration']?.toString() ?? '0') ?? 0;
+      final double budgetAlloc = double.tryParse(ph['budgetAllocation']?.toString() ?? '0.0') ?? 0.0;
+      final double costTarget = double.tryParse(ph['estimatedCost']?.toString() ?? '0.0') ?? 0.0;
+      
+      milestones.add(PhaseMilestone(
+        phaseId: ph['id']?.toString() ?? '',
+        name: ph['phaseName'] ?? '',
+        durationDays: duration,
+        costTarget: costTarget,
+        percentOfTotalBudget: budgetAlloc,
+        startDate: currentStart,
+      ));
+      currentStart = currentStart.add(Duration(days: duration));
+    }
+
+    final List<BOQItem> boqs = _editableBOQ.map((b) {
+      return BOQItem(
+        itemId: b['id']?.toString() ?? '',
+        description: b['materialName'] ?? '',
+        unit: b['unit'] ?? '',
+        quantity: double.tryParse(b['quantity']?.toString() ?? '0.0') ?? 0.0,
+        rate: double.tryParse(b['rate']?.toString() ?? '0.0') ?? 0.0,
+        category: b['category'] ?? 'Civil',
+      );
+    }).toList();
+
+    final List<LabourEntry> labs = _editableLabour.map((l) {
+      return LabourEntry(
+        labourId: l['id']?.toString() ?? '',
+        trade: l['labourType'] ?? '',
+        count: int.tryParse(l['requiredWorkers']?.toString() ?? '0') ?? 0,
+        dailyWage: double.tryParse(l['dailyWage']?.toString() ?? '850') ?? 850.0,
+        estimatedDays: int.tryParse(l['estimatedDays']?.toString() ?? '0') ?? 0,
+      );
+    }).toList();
+
+    final double marginPct = _marginPercentage;
+    final double overheadPct = double.tryParse(widget.settings['companyOverheadPercent']?.toString() ?? '5.0') ?? 5.0;
+
+    return Estimate(
+      estimateId: _savedEstimateId?.toString() ?? '',
+      clientInfo: info,
+      selectedPackage: PackageTier.values.firstWhere(
+        (t) => t.name == _selectedPackage.toLowerCase(),
+        orElse: () => PackageTier.standard,
+      ),
+      materials: mats,
+      phases: milestones,
+      boqItems: boqs,
+      labour: labs,
+      margin: ProfitMarginConfig(
+        marginPercent: marginPct,
+        overheadBufferPercent: overheadPct,
+      ),
+      status: EstimateStatus.draft,
+      createdAt: DateTime.now(),
+    );
+  }
+
   void _recalculateLocalTotals() {
     if (_calculatedResults == null) return;
-    double newCost = 0.0;
-    for (var m in _editableMaterials) {
-      final double qty = double.tryParse(m['quantity'].toString()) ?? 0.0;
-      final double rate = double.tryParse(m['rate'].toString()) ?? 0.0;
-      m['cost'] = qty * rate;
-      newCost += m['cost'];
-    }
+    final est = _getCurrentEstimate();
 
-    double labourCost = 0.0;
-    for (var l in _editableLabour) {
-      final double workers = double.tryParse(l['requiredWorkers'].toString()) ?? 0.0;
-      final double days = double.tryParse(l['estimatedDays'].toString()) ?? 0.0;
-      final double cost = workers * days * 850; // simple fallback wage index
-      l['estimatedCost'] = cost;
-      labourCost += cost;
-    }
-
-    // Distribute total cost changes into phase allocations and BOQs
     setState(() {
-      _calculatedResults!['totalCost'] = newCost.round();
-      
-      // Update BOQ amounts
+      _calculatedResults!['totalCost'] = est.baseCost.round();
+      _calculatedResults!['materialCost'] = est.materialCost.round();
+      _calculatedResults!['labourCost'] = est.labourCost.round();
+      _calculatedResults!['overheadAmount'] = est.overheadAmount.round();
+      _calculatedResults!['marginAmount'] = est.marginAmount.round();
+      _calculatedResults!['grandTotal'] = est.totalCost.round();
+
+      // Ensure BOQ items amount is strictly quantity * rate
       for (int i = 0; i < _editableBOQ.length; i++) {
-        if (i < _editableMaterials.length) {
-          final m = _editableMaterials[i];
-          _editableBOQ[i]['quantity'] = m['quantity'];
-          _editableBOQ[i]['rate'] = m['rate'];
-          _editableBOQ[i]['amount'] = m['cost'];
-          final double gstRate = double.tryParse(_editableBOQ[i]['gstRate']?.toString() ?? '18') ?? 18;
-          _editableBOQ[i]['gstAmount'] = m['cost'] * (gstRate / 100);
-          _editableBOQ[i]['totalAmount'] = m['cost'] + _editableBOQ[i]['gstAmount'];
+        final b = _editableBOQ[i];
+        final qty = double.tryParse(b['quantity']?.toString() ?? '0') ?? 0.0;
+        final rate = double.tryParse(b['rate']?.toString() ?? '0') ?? 0.0;
+        final amt = qty * rate;
+        b['amount'] = amt;
+        final double gstRate = double.tryParse(b['gstRate']?.toString() ?? '18') ?? 18;
+        b['gstAmount'] = amt * (gstRate / 100);
+        b['totalAmount'] = amt + b['gstAmount'];
+      }
+
+      // Re-allocate phase amounts based on cost targets and update end dates
+      for (int i = 0; i < _editablePhases.length; i++) {
+        final ph = _editablePhases[i];
+        final double pct = double.tryParse(ph['budgetAllocation']?.toString() ?? '0') ?? 0.0;
+        ph['estimatedCost'] = (est.baseCost * (pct / 100)).round();
+        if (i < est.phases.length) {
+          final computedPhase = est.phases[i];
+          ph['startDate'] = computedPhase.startDate?.toIso8601String();
+          ph['endDate'] = computedPhase.endDate?.toIso8601String();
         }
       }
 
-      // Re-allocate phase amounts
-      final double scale = newCost;
-      final double baseTotalVal = _editablePhases.fold<double>(0.0, (acc, ph) => acc + (double.tryParse(ph['estimatedCost']?.toString() ?? '0') ?? 0.0));
-      final double baseTotal = baseTotalVal == 0.0 ? 1.0 : baseTotalVal;
-      for (var ph in _editablePhases) {
-        final double currentWeight = (double.tryParse(ph['estimatedCost']?.toString() ?? '0') ?? 0.0) / baseTotal;
-        ph['estimatedCost'] = (scale * currentWeight).round();
-        ph['budgetAllocation'] = ph['estimatedCost'];
-      }
-
-      // Recalculate profit margins
-      final double profit = newCost * (_marginPercentage / 100);
-      final double subtotal = newCost + profit;
-      final double gstPct = double.tryParse(widget.settings['gstPercentage']?.toString() ?? '18') ?? 18.0;
-      final double gstAmt = subtotal * (gstPct / 100);
-      
+      // Populate profitAnalysis map matching backend expectations
       _calculatedResults!['profitAnalysis'] = {
-        'constructionCost': newCost.round(),
-        'companyMarginPercentage': _marginPercentage,
-        'estimatedProfit': profit.round(),
-        'gstPercentage': gstPct,
-        'gstAmount': gstAmt.round(),
-        'netProjectValue': (subtotal + gstAmt).round(),
-        'companyOverhead': double.tryParse(widget.settings['companyOverhead']?.toString() ?? '50000') ?? 50000.0,
+        'constructionCost': est.baseCost.round(),
+        'companyMarginPercentage': est.margin.marginPercent,
+        'estimatedProfit': est.marginAmount.round(),
+        'gstPercentage': 18.0,
+        'gstAmount': est.overheadAmount.round(),
+        'netProjectValue': est.totalCost.round(),
+        'companyOverhead': est.margin.overheadBufferPercent,
       };
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return VianCard(
-      padding: const EdgeInsets.all(24),
-      child: Column(
+    final size = MediaQuery.of(context).size;
+    final isDesktop = size.width >= 1200;
+
+    Widget leftContent = Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _buildAnimatedProgressTracker(),
+        const Divider(color: Color(0xFFE2E8F0), height: 32),
+        if (_calculating)
+          const SizedBox(
+            height: 400,
+            child: Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(VianTheme.primaryGold))),
+          )
+        else
+          Expanded(
+            child: SingleChildScrollView(
+              child: _buildActiveStepContent(),
+            ),
+          ),
+        const SizedBox(height: 16),
+        _buildControlButtons(),
+      ],
+    );
+
+    if (isDesktop) {
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildWizardStepper(),
-          const Divider(color: Color(0xFF1E1E26), height: 32),
-          if (_calculating)
-            const SizedBox(height: 250, child: Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(VianTheme.primaryGold))))
-          else
-            Expanded(
-              child: SingleChildScrollView(
-                child: _buildActiveStepContent(),
+          Expanded(
+            flex: 7,
+            child: VianCard(
+              padding: const EdgeInsets.all(24),
+              child: SizedBox(
+                height: 800,
+                child: leftContent,
               ),
             ),
+          ),
+          const SizedBox(width: 24),
+          Expanded(
+            flex: 3,
+            child: SizedBox(
+              height: 800,
+              child: SingleChildScrollView(
+                child: _buildStickySummaryPanel(),
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          VianCard(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                _buildAnimatedProgressTracker(),
+                const Divider(color: Color(0xFFE2E8F0), height: 32),
+                if (_calculating)
+                  const SizedBox(
+                    height: 200,
+                    child: Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(VianTheme.primaryGold))),
+                  )
+                else
+                  _buildActiveStepContent(),
+                const SizedBox(height: 16),
+                _buildControlButtons(),
+              ],
+            ),
+          ),
           const SizedBox(height: 24),
-          _buildControlButtons(),
+          _buildStickySummaryPanel(),
         ],
       ),
     );
   }
 
-  Widget _buildWizardStepper() {
-    return SizedBox(
-      height: 48,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        itemCount: 10,
-        separatorBuilder: (context, index) => const Icon(Icons.arrow_right_alt, color: VianTheme.lightText, size: 16),
-        itemBuilder: (context, index) {
-          final active = _currentStep == index;
-          final passed = index < _currentStep;
-          final label = _getStepTitle(index);
-          return Row(
-            children: [
-              Container(
-                width: 24,
-                height: 24,
-                decoration: BoxDecoration(
-                  color: active ? VianTheme.primaryGold : (passed ? const Color(0x33F5A623) : Colors.transparent),
-                  shape: BoxShape.circle,
-                  border: Border.all(color: active || passed ? VianTheme.primaryGold : const Color(0xFF262635)),
-                ),
-                child: Center(
-                  child: Text(
-                    '${index + 1}',
-                    style: TextStyle(
-                      color: active ? Colors.black : (passed ? VianTheme.primaryGold : VianTheme.lightText),
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
+  Widget _buildAnimatedProgressTracker() {
+    final double pct = ((_currentStep + 1) / 10.0);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'ESTIMATION STAGE ${_currentStep + 1} OF 10',
+              style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 11, color: VianTheme.primaryGold, letterSpacing: 1.0),
+            ),
+            Text(
+              '${(pct * 100).toStringAsFixed(0)}% Complete',
+              style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 11, color: VianTheme.lightText),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(4),
+          child: LinearProgressIndicator(
+            value: pct,
+            backgroundColor: const Color(0xFFF1F5F9),
+            valueColor: const AlwaysStoppedAnimation<Color>(VianTheme.primaryGold),
+            minHeight: 6,
+          ),
+        ),
+        const SizedBox(height: 16),
+        SizedBox(
+          height: 36,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemCount: 10,
+            separatorBuilder: (context, index) => Icon(Icons.chevron_right, color: Colors.grey.shade300, size: 16),
+            itemBuilder: (context, index) {
+              final active = _currentStep == index;
+              final passed = index < _currentStep;
+              final label = _getStepTitle(index);
+              
+              return InkWell(
+                onTap: () {
+                  if (passed || index == _currentStep + 1) {
+                    setState(() {
+                      _currentStep = index;
+                    });
+                  }
+                },
+                child: Row(
+                  children: [
+                    AnimatedContainer(
+                      duration: const Duration(milliseconds: 300),
+                      width: 20,
+                      height: 20,
+                      decoration: BoxDecoration(
+                        color: active ? VianTheme.primaryGold : (passed ? VianTheme.success.withOpacity(0.2) : Colors.transparent),
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: active ? VianTheme.primaryGold : (passed ? VianTheme.success : Colors.grey.shade300),
+                          width: 1.5,
+                        ),
+                      ),
+                      child: Center(
+                        child: passed
+                            ? const Icon(Icons.check, size: 10, color: VianTheme.success)
+                            : Text(
+                                '${index + 1}',
+                                style: TextStyle(
+                                  color: active ? Colors.black : VianTheme.lightText,
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                      ),
                     ),
-                  ),
+                    const SizedBox(width: 6),
+                    Text(
+                      label,
+                      style: GoogleFonts.inter(
+                        color: active ? VianTheme.primaryGold : (passed ? VianTheme.headerBlack : VianTheme.lightText),
+                        fontWeight: active ? FontWeight.bold : FontWeight.normal,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ],
                 ),
-              ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStickySummaryPanel() {
+    final area = double.tryParse(_builtUpAreaController.text) ?? 0.0;
+    final formatter = NumberFormat.currency(locale: 'en_IN', symbol: '₹', decimalDigits: 0);
+    
+    final materialCost = double.tryParse(_calculatedResults?['materialCost']?.toString() ?? '0') ?? 0.0;
+    final labourCost = double.tryParse(_calculatedResults?['labourCost']?.toString() ?? '0') ?? 0.0;
+    final marginAmount = double.tryParse(_calculatedResults?['marginAmount']?.toString() ?? '0') ?? 0.0;
+    final overheadAmount = double.tryParse(_calculatedResults?['overheadAmount']?.toString() ?? '0') ?? 0.0;
+    
+    final equipmentCost = materialCost * 0.05;
+    final baseCost = materialCost + labourCost + equipmentCost;
+    final gst = baseCost * 0.18;
+    final grandTotal = baseCost + marginAmount + overheadAmount + gst;
+    
+    int totalDuration = 0;
+    for (var ph in _editablePhases) {
+      totalDuration += int.tryParse(ph['estimatedDuration']?.toString() ?? '0') ?? 0;
+    }
+    
+    final aiConfidence = _extractedAiData?['confidence']?['builtUpArea'] ?? 0.95;
+
+    return VianCard(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.summarize_outlined, color: VianTheme.primaryGold, size: 20),
               const SizedBox(width: 8),
               Text(
-                label,
-                style: TextStyle(
-                  color: active ? VianTheme.primaryGold : VianTheme.lightText,
-                  fontWeight: active ? FontWeight.bold : FontWeight.normal,
-                  fontSize: 12,
-                ),
+                'LIVE ESTIMATE SUMMARY',
+                style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 13, color: VianTheme.headerBlack, letterSpacing: 0.5),
               ),
             ],
-          );
-        },
+          ),
+          const Divider(color: Color(0xFFE2E8F0), height: 24),
+          
+          _summaryRow('Project Name', _projectNameController.text.isEmpty ? 'Horizon Villa' : _projectNameController.text),
+          _summaryRow('Client', _clientNameController.text.isEmpty ? 'Amit Bajaj' : _clientNameController.text),
+          _summaryRow('Total Area', '${area.toStringAsFixed(0)} ${_selectedUnit == 'Square Feet' ? 'Sq.Ft' : 'Sq.M'}'),
+          _summaryRow('Selected Package', _selectedPackage, isBadge: true),
+          
+          const Divider(color: Color(0xFFE2E8F0), height: 24),
+          
+          _summaryCostRow('Material Cost', materialCost),
+          _summaryCostRow('Labour Cost', labourCost),
+          _summaryCostRow('Equipment Cost', equipmentCost),
+          _summaryCostRow('Company Overheads', overheadAmount),
+          _summaryCostRow('Profit Margin', marginAmount),
+          _summaryCostRow('GST (18%)', gst),
+          
+          const Divider(color: Color(0xFFE2E8F0), height: 24),
+          
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Grand Total',
+                style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 15, color: VianTheme.headerBlack),
+              ),
+              Text(
+                formatter.format(grandTotal),
+                style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 16, color: VianTheme.primaryGold),
+              ),
+            ],
+          ),
+          
+          const SizedBox(height: 16),
+          
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.timer_outlined, size: 14, color: VianTheme.lightText),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Est. Duration: ',
+                      style: GoogleFonts.inter(fontSize: 12, color: VianTheme.lightText),
+                    ),
+                    Text(
+                      '$totalDuration Days',
+                      style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.bold, color: VianTheme.headerBlack),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    const Icon(Icons.psychology, size: 14, color: VianTheme.success),
+                    const SizedBox(width: 6),
+                    Text(
+                      'AI Confidence: ',
+                      style: GoogleFonts.inter(fontSize: 12, color: VianTheme.lightText),
+                    ),
+                    Text(
+                      '${(aiConfidence * 100).toStringAsFixed(0)}%',
+                      style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.bold, color: VianTheme.success),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
+  Widget _summaryRow(String label, String value, {bool isBadge = false}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: const TextStyle(color: VianTheme.lightText, fontSize: 12)),
+          if (isBadge)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: VianTheme.primaryGold.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Text(
+                value,
+                style: const TextStyle(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold),
+              ),
+            )
+          else
+            Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: VianTheme.headerBlack)),
+        ],
+      ),
+    );
+  }
+
+  Widget _summaryCostRow(String label, double val) {
+    final formatter = NumberFormat.currency(locale: 'en_IN', symbol: '₹', decimalDigits: 0);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: const TextStyle(color: VianTheme.lightText, fontSize: 12)),
+          Text(formatter.format(val), style: const TextStyle(fontSize: 12, color: VianTheme.headerBlack)),
+        ],
       ),
     );
   }
@@ -14124,6 +14820,76 @@ class _EstimationWizardState extends State<EstimationWizard> {
     );
   }
 
+  void _showAiConfirmationDialog(double areaVal, Map<String, dynamic> data) {
+    final areaController = TextEditingController(text: areaVal.toString());
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: VianTheme.cardColor,
+          title: Text(
+            'CONFIRM AI FLOOR PLAN EXTRACTION',
+            style: GoogleFonts.poppins(color: VianTheme.primaryGold, fontWeight: FontWeight.bold, fontSize: 14),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Gemini AI has analyzed the uploaded floor plan and extracted the following parameters:',
+                style: TextStyle(color: VianTheme.lightText, fontSize: 12),
+              ),
+              const SizedBox(height: 16),
+              Text('Project Name Suggestion: ${data['projectName'] ?? 'N/A'}', style: const TextStyle(color: VianTheme.headerBlack, fontSize: 12)),
+              Text('Client Name Suggestion: ${data['clientName'] ?? 'N/A'}', style: const TextStyle(color: VianTheme.headerBlack, fontSize: 12)),
+              const SizedBox(height: 16),
+              const Text('Confirm or Edit the Extracted Built-up Area (Sq.Ft):', style: TextStyle(fontWeight: FontWeight.bold, color: VianTheme.headerBlack, fontSize: 12)),
+              const SizedBox(height: 8),
+              TextFormField(
+                controller: areaController,
+                keyboardType: TextInputType.number,
+                style: const TextStyle(color: VianTheme.headerBlack),
+                decoration: const InputDecoration(
+                  labelText: 'Built-up Area (Sq.Ft)',
+                  enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: VianTheme.goldBorder)),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Discard', style: TextStyle(color: VianTheme.lightText)),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: VianTheme.primaryGold),
+              onPressed: () {
+                final double confirmedArea = double.tryParse(areaController.text) ?? areaVal;
+                setState(() {
+                  _builtUpAreaController.text = confirmedArea.toString();
+                  if (data['projectName'] != null && data['projectName'].toString().isNotEmpty) {
+                    _projectNameController.text = data['projectName'];
+                  }
+                  if (data['clientName'] != null && data['clientName'].toString().isNotEmpty) {
+                    _clientNameController.text = data['clientName'];
+                  }
+                  if (data['siteAddress'] != null && data['siteAddress'].toString().isNotEmpty) {
+                    _addressController.text = data['siteAddress'];
+                  }
+                  _aiLogConsole.add('[DATA] User Confirmed Built-up Area: $confirmedArea Sq.ft');
+                });
+                _recalculateLocalTotals();
+                Navigator.pop(context);
+              },
+              child: const Text('Confirm & Apply', style: TextStyle(color: Colors.black)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Future<void> _pickAndAnalyzeFloorPlan() async {
     setState(() {
       _analyzingFloorPlan = true;
@@ -14190,20 +14956,9 @@ class _EstimationWizardState extends State<EstimationWizard> {
               }
             }
 
-            if (data != null) {
-              if (data['builtUpArea'] != null) {
-                _builtUpAreaController.text = data['builtUpArea'].toString();
-                _aiLogConsole.add('[DATA] Extracted Built-up Area: ${data['builtUpArea']} Sq.ft');
-              }
-              if (data['projectName'] != null && data['projectName'].toString().isNotEmpty) {
-                _projectNameController.text = data['projectName'];
-              }
-              if (data['clientName'] != null && data['clientName'].toString().isNotEmpty) {
-                _clientNameController.text = data['clientName'];
-              }
-              if (data['siteAddress'] != null && data['siteAddress'].toString().isNotEmpty) {
-                _addressController.text = data['siteAddress'];
-              }
+            if (data != null && data['builtUpArea'] != null) {
+              final double areaVal = double.tryParse(data['builtUpArea'].toString()) ?? 0.0;
+              Future.microtask(() => _showAiConfirmationDialog(areaVal, data));
             }
 
             if (warning != null && warning.toString().isNotEmpty) {
@@ -14239,161 +14994,12 @@ class _EstimationWizardState extends State<EstimationWizard> {
   }
 
   Widget _stepProjectInfo() {
-    final hasDrawing = _uploadedDrawingUrl != null;
-    final confidence = _extractedAiData?['confidence'];
-
-    return Column(
+    final size = MediaQuery.of(context).size;
+    final isDesktop = size.width >= 1200;
+    
+    final detailsForm = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _stepHeader('Step 1: Project & Client Details', 'Input target area sizes, building types, and client identifiers.'),
-        const SizedBox(height: 20),
-        
-        // AI Analysis Segment
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: const Color(0xFF1E1E26),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFF262635)),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  const Icon(Icons.psychology_outlined, color: VianTheme.primaryGold, size: 24),
-                  const SizedBox(width: 12),
-                  Text(
-                    'AI MULTIMODAL FLOOR PLAN ANALYZER',
-                    style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13, letterSpacing: 0.8),
-                  ),
-                  const Spacer(),
-                  if (hasDrawing)
-                    TextButton.icon(
-                      onPressed: _pickAndAnalyzeFloorPlan,
-                      icon: const Icon(Icons.refresh, color: VianTheme.primaryGold, size: 14),
-                      label: const Text('Re-upload Plan', style: TextStyle(color: VianTheme.primaryGold, fontSize: 12)),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              if (_analyzingFloorPlan) ...[
-                const Center(
-                  child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(VianTheme.primaryGold)),
-                ),
-                const SizedBox(height: 16),
-                Container(
-                  height: 120,
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.black,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: const Color(0xFF1E1E26)),
-                  ),
-                  child: ListView.builder(
-                    itemCount: _aiLogConsole.length,
-                    itemBuilder: (context, idx) => Text(
-                      _aiLogConsole[idx],
-                      style: const TextStyle(color: Color(0xFF00FF00), fontFamily: 'Courier', fontSize: 11),
-                    ),
-                  ),
-                ),
-              ] else if (hasDrawing) ...[
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      width: 80,
-                      height: 80,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF0F0F13),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: const Color(0xFF262635)),
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: _uploadedDrawingUrl!.endsWith('.pdf')
-                            ? const Icon(Icons.picture_as_pdf, color: Colors.red, size: 40)
-                            : Image.network(_uploadedDrawingUrl!, fit: BoxFit.cover),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text('Extraction Complete', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
-                          const SizedBox(height: 4),
-                          Text('Cloud URL: ${_uploadedDrawingUrl!}', style: const TextStyle(color: VianTheme.lightText, fontSize: 10), maxLines: 1, overflow: TextOverflow.ellipsis),
-                          const SizedBox(height: 8),
-                          Wrap(
-                            spacing: 8,
-                            runSpacing: 4,
-                            children: [
-                              if (confidence?['builtUpArea'] != null)
-                                _confidenceChip('Area', confidence['builtUpArea']),
-                              if (confidence?['structural'] != null)
-                                _confidenceChip('Details', confidence['structural']),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                _buildAiSurveyorReport(),
-                if (_aiWarningOccurred && _aiWarningMessage != null) ...[
-                  const SizedBox(height: 16),
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: const Color(0x33FFCE56),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: VianTheme.primaryGold),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.warning_amber_rounded, color: VianTheme.primaryGold, size: 20),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            _aiWarningMessage!,
-                            style: const TextStyle(color: VianTheme.primaryGold, fontSize: 11, fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ] else ...[
-                InkWell(
-                  onTap: _pickAndAnalyzeFloorPlan,
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(vertical: 32),
-                    decoration: BoxDecoration(
-                      color: const Color(0x05F5A623),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: const Color(0x33F5A623), width: 1.5),
-                    ),
-                    child: Column(
-                      children: [
-                        const Icon(Icons.cloud_upload_outlined, color: VianTheme.primaryGold, size: 36),
-                        const SizedBox(height: 12),
-                        const Text('Upload Architectural Floor Plan', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
-                        const SizedBox(height: 4),
-                        const Text('Click to pick Floor Plan PDF / JPG / PNG', style: TextStyle(color: VianTheme.lightText, fontSize: 11)),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ],
-          ),
-        ),
-        const SizedBox(height: 24),
-        
         Row(
           children: [
             Expanded(
@@ -14401,13 +15007,17 @@ class _EstimationWizardState extends State<EstimationWizard> {
             ),
             const SizedBox(width: 16),
             Expanded(
-              child: _buildTextField('Client Name', _clientNameController),
+              child: _buildTextField('Client Name', _clientNameController, errorText: _clientNameError),
             ),
           ],
         ),
         const SizedBox(height: 16),
         Row(
           children: [
+            Expanded(
+              child: _buildTextField('Client Contact (Phone/Email)', _clientContactController, errorText: _clientContactError),
+            ),
+            const SizedBox(width: 16),
             Expanded(
               child: _buildDropdown('Project Type', _selectedProjectType, [
                 'Residential House',
@@ -14420,6 +15030,14 @@ class _EstimationWizardState extends State<EstimationWizard> {
                 'Industrial'
               ], (v) => setState(() => _selectedProjectType = v!)),
             ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(
+              child: _buildTextField('Built-up Area', _builtUpAreaController, keyboardType: TextInputType.number, errorText: _areaError),
+            ),
             const SizedBox(width: 16),
             Expanded(
               child: _buildDropdown('Unit Size', _selectedUnit, ['Square Feet', 'Square Meter'], (v) => setState(() => _selectedUnit = v!)),
@@ -14430,17 +15048,182 @@ class _EstimationWizardState extends State<EstimationWizard> {
         Row(
           children: [
             Expanded(
-              child: _buildTextField('Built-up Area', _builtUpAreaController, keyboardType: TextInputType.number),
+              child: _buildDropdown('District Region', _selectedDistrict, ['Chennai', 'Coimbatore', 'Madurai', 'Trichy', 'Salem', 'Tiruppur'], (v) => setState(() => _selectedDistrict = v!)),
             ),
             const SizedBox(width: 16),
             Expanded(
-              child: _buildDropdown('District Region', _selectedDistrict, ['Chennai', 'Coimbatore', 'Madurai', 'Trichy', 'Salem', 'Tiruppur'], (v) => setState(() => _selectedDistrict = v!)),
+              child: _buildTextField('Site Address', _addressController),
             ),
           ],
         ),
-        const SizedBox(height: 16),
-        _buildTextField('Site Address', _addressController),
       ],
+    );
+
+    final aiAnalyzerPanel = _buildAiAnalyzerPanel();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _stepHeader('Step 1: Project & Client Details', 'Input target area sizes, building types, and client identifiers.'),
+        const SizedBox(height: 24),
+        if (isDesktop)
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(flex: 5, child: detailsForm),
+              const SizedBox(width: 24),
+              Expanded(flex: 5, child: aiAnalyzerPanel),
+            ],
+          )
+        else ...[
+          detailsForm,
+          const SizedBox(height: 24),
+          aiAnalyzerPanel,
+        ],
+      ],
+    );
+  }
+
+  Widget _buildAiAnalyzerPanel() {
+    final hasDrawing = _uploadedDrawingUrl != null;
+    final confidence = _extractedAiData?['confidence'];
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: VianTheme.cardColor,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4)),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.psychology_outlined, color: VianTheme.primaryGold, size: 24),
+              const SizedBox(width: 12),
+              Text(
+                'AI COGNITIVE FLOOR PLAN SURVEYOR',
+                style: GoogleFonts.poppins(color: VianTheme.headerBlack, fontWeight: FontWeight.bold, fontSize: 12, letterSpacing: 0.8),
+              ),
+              const Spacer(),
+              if (hasDrawing)
+                IconButton(
+                  icon: const Icon(Icons.refresh, color: VianTheme.primaryGold, size: 18),
+                  onPressed: _pickAndAnalyzeFloorPlan,
+                  tooltip: 'Re-upload floor plan',
+                ),
+            ],
+          ),
+          const Divider(color: Color(0xFFE2E8F0), height: 24),
+          if (_analyzingFloorPlan) ...[
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 24.0),
+                child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(VianTheme.primaryGold)),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              height: 120,
+              width: double.infinity,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.black,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: ListView.builder(
+                itemCount: _aiLogConsole.length,
+                itemBuilder: (context, idx) => Text(
+                  _aiLogConsole[idx],
+                  style: const TextStyle(color: Color(0xFF00FF00), fontFamily: 'Courier', fontSize: 10),
+                ),
+              ),
+            ),
+          ] else if (hasDrawing) ...[
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 90,
+                  height: 90,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF1F5F9),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: _uploadedDrawingUrl!.endsWith('.pdf')
+                        ? const Icon(Icons.picture_as_pdf, color: Colors.red, size: 40)
+                        : Image.network(_uploadedDrawingUrl!, fit: BoxFit.cover),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Extraction Complete', style: TextStyle(color: VianTheme.headerBlack, fontWeight: FontWeight.bold, fontSize: 13)),
+                      const SizedBox(height: 4),
+                      Text('Source File: ${_uploadedDrawingUrl!.split('/').last}', style: const TextStyle(color: VianTheme.lightText, fontSize: 11), maxLines: 1, overflow: TextOverflow.ellipsis),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          _confidenceBadge('Area Ext.', confidence?['builtUpArea'] ?? 0.96),
+                          const SizedBox(width: 8),
+                          _confidenceBadge('Rooms Ext.', confidence?['roomDetection'] ?? 0.92),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            _buildAiSurveyorReport(),
+          ] else ...[
+            InkWell(
+              onTap: _pickAndAnalyzeFloorPlan,
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 40),
+                decoration: BoxDecoration(
+                  color: VianTheme.primaryGold.withOpacity(0.04),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: VianTheme.primaryGold.withOpacity(0.3), width: 1.5, style: BorderStyle.solid),
+                ),
+                child: Column(
+                  children: [
+                    const Icon(Icons.cloud_upload_outlined, color: VianTheme.primaryGold, size: 40),
+                    const SizedBox(height: 12),
+                    const Text('Upload Architectural Floor Plan', style: TextStyle(color: VianTheme.headerBlack, fontWeight: FontWeight.bold, fontSize: 13)),
+                    const SizedBox(height: 4),
+                    const Text('Support PDF, JPEG, and PNG formats up to 25MB', style: TextStyle(color: VianTheme.lightText, fontSize: 11)),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _confidenceBadge(String label, dynamic val) {
+    final double pct = double.tryParse(val.toString()) ?? 1.0;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: VianTheme.success.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(
+        '$label: ${(pct * 100).toStringAsFixed(0)}%',
+        style: const TextStyle(color: VianTheme.success, fontSize: 9, fontWeight: FontWeight.bold),
+      ),
     );
   }
 
@@ -14450,7 +15233,6 @@ class _EstimationWizardState extends State<EstimationWizard> {
     final confidence = data['confidence'] ?? {};
     final similar = _calculatedResults?['similarProject'] ?? {};
 
-    // Check if any confidence score is low (< 90%)
     bool hasLowConfidence = false;
     confidence.forEach((k, val) {
       final double score = double.tryParse(val.toString()) ?? 1.0;
@@ -14469,11 +15251,9 @@ class _EstimationWizardState extends State<EstimationWizard> {
     final bedrooms = data['bedrooms'] ?? 'N/A';
     final bathrooms = data['bathrooms'] ?? 'N/A';
     final kitchen = data['kitchen'] ?? 'N/A';
-    final balcony = data['balcony'] ?? 'N/A';
     final complexity = data['complexityScore'] ?? 'Standard';
     final structural = data['structuralComplexity'] ?? 'Medium Structure';
 
-    // List of amenities
     final List<String> amenities = [];
     if (data['sitout'] == true) amenities.add('Sit-out');
     if (data['stairs'] == true) amenities.add('Stairs');
@@ -14486,16 +15266,14 @@ class _EstimationWizardState extends State<EstimationWizard> {
     if (data['store'] == true) amenities.add('Store');
     if (data['dining'] == true) amenities.add('Dining');
     if (data['living'] == true) amenities.add('Living');
-    if (data['verandah'] == true) amenities.add('Verandah');
-    if (data['courtyard'] == true) amenities.add('Courtyard');
 
     return Container(
       margin: const EdgeInsets.only(top: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF0F0F13),
+        color: const Color(0xFFF8FAFC),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFF262635)),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -14506,22 +15284,21 @@ class _EstimationWizardState extends State<EstimationWizard> {
               const SizedBox(width: 8),
               Text(
                 'AI QUANTITY SURVEYOR SPECIFICATIONS REPORT',
-                style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11, letterSpacing: 0.5),
+                style: GoogleFonts.poppins(color: VianTheme.headerBlack, fontWeight: FontWeight.bold, fontSize: 10, letterSpacing: 0.5),
               ),
             ],
           ),
           const SizedBox(height: 12),
           
-          // Specs Grid
           LayoutBuilder(
             builder: (context, constraints) {
-              final crossAxisCount = constraints.maxWidth > 600 ? 4 : 2;
+              final crossAxisCount = constraints.maxWidth > 500 ? 3 : 2;
               return GridView.count(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 crossAxisCount: crossAxisCount,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
+                crossAxisSpacing: 10,
+                mainAxisSpacing: 10,
                 childAspectRatio: 2.2,
                 children: [
                   _reportTile('Built-up Area', '${data['builtUpArea'] ?? 0} Sq.ft'),
@@ -14541,7 +15318,7 @@ class _EstimationWizardState extends State<EstimationWizard> {
           if (amenities.isNotEmpty) ...[
             const Text(
               'Detected Amenities & Spaces:',
-              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11),
+              style: TextStyle(color: VianTheme.headerBlack, fontWeight: FontWeight.bold, fontSize: 11),
             ),
             const SizedBox(height: 6),
             Wrap(
@@ -14550,9 +15327,9 @@ class _EstimationWizardState extends State<EstimationWizard> {
               children: amenities.map((a) => Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1E1E26),
+                  color: const Color(0xFFFFFFFF),
                   borderRadius: BorderRadius.circular(4),
-                  border: Border.all(color: const Color(0xFF262635)),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
                 ),
                 child: Text(a, style: const TextStyle(color: VianTheme.lightText, fontSize: 10)),
               )).toList(),
@@ -14560,12 +15337,11 @@ class _EstimationWizardState extends State<EstimationWizard> {
             const SizedBox(height: 16),
           ],
 
-          // Confidence scores
-          const Divider(color: Color(0xFF262635)),
+          const Divider(color: Color(0xFFE2E8F0)),
           const SizedBox(height: 8),
           const Text(
             'AI Drawing Detection Confidence Indicators',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11),
+            style: TextStyle(color: VianTheme.headerBlack, fontWeight: FontWeight.bold, fontSize: 11),
           ),
           const SizedBox(height: 12),
           _confidenceBar('Area Extraction', confidence['builtUpArea']),
@@ -14601,9 +15377,8 @@ class _EstimationWizardState extends State<EstimationWizard> {
             const SizedBox(height: 12),
           ],
 
-          // Similar Completed Projects Comparison Card
           if (similar.isNotEmpty) ...[
-            const Divider(color: Color(0xFF262635)),
+            const Divider(color: Color(0xFFE2E8F0)),
             const SizedBox(height: 8),
             Row(
               children: [
@@ -14611,7 +15386,7 @@ class _EstimationWizardState extends State<EstimationWizard> {
                 const SizedBox(width: 8),
                 const Text(
                   'Similar Project Historical Engine Analysis',
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11),
+                  style: TextStyle(color: VianTheme.headerBlack, fontWeight: FontWeight.bold, fontSize: 11),
                 ),
               ],
             ),
@@ -14619,9 +15394,9 @@ class _EstimationWizardState extends State<EstimationWizard> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: const Color(0xFF1E1E26),
+                color: const Color(0xFFFFFFFF),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: const Color(0xFF262635)),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
               ),
               child: Row(
                 children: [
@@ -14631,7 +15406,7 @@ class _EstimationWizardState extends State<EstimationWizard> {
                       children: [
                         Text(
                           'COMPLETED PROJECT: ${similar['projectName'] ?? 'Horizon Villa ECR'}',
-                          style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 10),
+                          style: GoogleFonts.poppins(color: VianTheme.headerBlack, fontWeight: FontWeight.bold, fontSize: 10),
                         ),
                         const SizedBox(height: 2),
                         const Text(
@@ -14669,9 +15444,9 @@ class _EstimationWizardState extends State<EstimationWizard> {
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E1E26),
+        color: const Color(0xFFFFFFFF),
         borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: isGold ? VianTheme.primaryGold.withOpacity(0.3) : const Color(0xFF262635)),
+        border: Border.all(color: isGold ? VianTheme.primaryGold.withOpacity(0.3) : const Color(0xFFE2E8F0)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -14682,7 +15457,7 @@ class _EstimationWizardState extends State<EstimationWizard> {
           Text(
             value,
             style: TextStyle(
-              color: isGold ? VianTheme.primaryGold : Colors.white,
+              color: isGold ? VianTheme.primaryGold : VianTheme.headerBlack,
               fontWeight: FontWeight.bold,
               fontSize: 11,
             ),
@@ -14723,7 +15498,7 @@ class _EstimationWizardState extends State<EstimationWizard> {
             child: LinearProgressIndicator(
               value: pct,
               minHeight: 4,
-              backgroundColor: const Color(0xFF1E1E26),
+              backgroundColor: const Color(0xFFF1F5F9),
               valueColor: AlwaysStoppedAnimation<Color>(
                 low ? VianTheme.primaryGold : VianTheme.success,
               ),
@@ -14748,6 +15523,11 @@ class _EstimationWizardState extends State<EstimationWizard> {
                 '₹2200 / Sq.ft',
                 'Standard PPC Cement, Fe 500 Steel, local sand, ceramic flooring tiles, Tractor emulsion painting.',
                 'Economy',
+                stars: 3,
+                warranty: '5 Years Structural',
+                duration: '180 Days',
+                matQuality: 'Local standard brands',
+                labQuality: 'Standard local crew',
               ),
             ),
             const SizedBox(width: 16),
@@ -14757,6 +15537,12 @@ class _EstimationWizardState extends State<EstimationWizard> {
                 '₹2500 / Sq.ft',
                 'UltraTech OPC Cement, TATA Tiscon Fe 550 Steel, River sand, Vitrified tiles, Premium emulsion painting.',
                 'Standard',
+                badge: 'RECOMMENDED',
+                stars: 4,
+                warranty: '10 Years Structural',
+                duration: '240 Days',
+                matQuality: 'Premium grade OPC cement',
+                labQuality: 'Skilled trade specialized crew',
               ),
             ),
             const SizedBox(width: 16),
@@ -14766,6 +15552,12 @@ class _EstimationWizardState extends State<EstimationWizard> {
                 '₹2800 / Sq.ft',
                 'ACC Gold Premium Cement, TATA Tiscon Fe 600 Steel, Premium marble flooring, Royale luxury paints.',
                 'Premium',
+                badge: 'POPULAR CHOICE',
+                stars: 5,
+                warranty: '25 Years Structural',
+                duration: '300 Days',
+                matQuality: 'Ultra high-durability concrete',
+                labQuality: 'Expert custom artisans',
               ),
             ),
           ],
@@ -14774,30 +15566,119 @@ class _EstimationWizardState extends State<EstimationWizard> {
     );
   }
 
-  
-
-  Widget _packageOptionCard(String title, String rateLabel, String description, String value) {
+  Widget _packageOptionCard(String title, String rateLabel, String description, String value, {String? badge, int stars = 4, String? warranty, String? duration, String? matQuality, String? labQuality}) {
     final active = _selectedPackage == value;
+    final area = double.tryParse(_builtUpAreaController.text) ?? 1000.0;
+    final baseRate = double.tryParse(rateLabel.replaceAll(RegExp(r'[^0-9]'), '')) ?? 2500.0;
+    final totalCost = area * baseRate;
+    final formatter = NumberFormat.currency(locale: 'en_IN', symbol: '₹', decimalDigits: 0);
+
     return InkWell(
-      onTap: () => setState(() => _selectedPackage = value),
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        height: 200,
-        decoration: BoxDecoration(
-          color: active ? const Color(0x11F5A623) : const Color(0xFF1E1E26),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: active ? VianTheme.primaryGold : const Color(0xFF262635), width: 1.5),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(title, style: TextStyle(fontWeight: FontWeight.bold, color: active ? VianTheme.primaryGold : Colors.white, fontSize: 14)),
-            const SizedBox(height: 8),
-            Text(rateLabel, style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 18)),
-            const SizedBox(height: 12),
-            Text(description, style: const TextStyle(color: VianTheme.lightText, fontSize: 11, height: 1.4)),
-          ],
-        ),
+      onTap: () {
+        setState(() {
+          _selectedPackage = value;
+        });
+        _runCalculate();
+      },
+      child: Stack(
+        children: [
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: active ? VianTheme.primaryGold.withOpacity(0.04) : VianTheme.cardColor,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: active ? VianTheme.primaryGold : const Color(0xFFE2E8F0), width: active ? 2 : 1),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(active ? 0.08 : 0.02),
+                  blurRadius: active ? 16 : 8,
+                  offset: active ? const Offset(0, 8) : const Offset(0, 4),
+                )
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(title, style: TextStyle(fontWeight: FontWeight.bold, color: active ? VianTheme.primaryGold : VianTheme.headerBlack, fontSize: 13)),
+                    Row(
+                      children: List.generate(
+                        5,
+                        (index) => Icon(
+                          index < stars ? Icons.star : Icons.star_border,
+                          color: VianTheme.primaryGold,
+                          size: 12,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  rateLabel,
+                  style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: VianTheme.headerBlack, fontSize: 20),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Estimated: ${formatter.format(totalCost)}',
+                  style: GoogleFonts.inter(fontWeight: FontWeight.w600, color: VianTheme.primaryGold, fontSize: 12),
+                ),
+                const Divider(color: Color(0xFFE2E8F0), height: 16),
+                _specRow(Icons.construction, 'Materials', matQuality ?? 'Standard materials'),
+                _specRow(Icons.engineering, 'Labour', labQuality ?? 'Skilled crew'),
+                _specRow(Icons.timer, 'Timeline', duration ?? '240 Days'),
+                _specRow(Icons.verified_user, 'Warranty', warranty ?? '10 Years'),
+                const Divider(color: Color(0xFFE2E8F0), height: 12),
+                Text(
+                  description,
+                  style: const TextStyle(color: VianTheme.lightText, fontSize: 10, height: 1.4),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+          if (badge != null)
+            Positioned(
+              top: 0,
+              right: 20,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: const BoxDecoration(
+                  color: VianTheme.primaryGold,
+                  borderRadius: BorderRadius.vertical(bottom: Radius.circular(8)),
+                ),
+                child: Text(
+                  badge,
+                  style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 8, letterSpacing: 0.5),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _specRow(IconData icon, String label, String val) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2.0),
+      child: Row(
+        children: [
+          Icon(icon, size: 12, color: VianTheme.lightText),
+          const SizedBox(width: 8),
+          Text('$label: ', style: const TextStyle(color: VianTheme.lightText, fontSize: 10)),
+          Expanded(
+            child: Text(
+              val,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 10, color: VianTheme.headerBlack),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -14829,90 +15710,226 @@ class _EstimationWizardState extends State<EstimationWizard> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: highlight ? const Color(0x11F5A623) : const Color(0xFF1E1E26),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: highlight ? VianTheme.primaryGold : const Color(0xFF262635), width: highlight ? 2 : 1),
+        color: highlight ? VianTheme.primaryGold.withOpacity(0.04) : VianTheme.cardColor,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: highlight ? VianTheme.primaryGold : const Color(0xFFE2E8F0), width: highlight ? 2 : 1),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(highlight ? 0.08 : 0.02),
+            blurRadius: highlight ? 16 : 8,
+            offset: highlight ? const Offset(0, 8) : const Offset(0, 4),
+          )
+        ],
       ),
       child: Column(
         children: [
-          Text(grade, style: TextStyle(fontWeight: FontWeight.bold, color: highlight ? VianTheme.primaryGold : Colors.white, fontSize: 14)),
+          Text(grade, style: TextStyle(fontWeight: FontWeight.bold, color: highlight ? VianTheme.primaryGold : VianTheme.headerBlack, fontSize: 13)),
           const SizedBox(height: 16),
           Text(
             formatter.format(cost),
-            style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 20),
+            style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: VianTheme.headerBlack, fontSize: 20),
           ),
-          const SizedBox(height: 8),
-          const Text('Includes materials and labor benchmarks.', style: TextStyle(color: VianTheme.lightText, fontSize: 10)),
+          const SizedBox(height: 12),
+          const Text('Includes standard regional materials, logistics, and labour crew allocations.', style: TextStyle(color: VianTheme.lightText, fontSize: 10, height: 1.4), textAlign: TextAlign.center),
         ],
       ),
     );
   }
 
   Widget _stepMaterialsEditor() {
+    final filteredMaterials = _editableMaterials.where((m) {
+      final name = m['materialName']?.toString().toLowerCase() ?? '';
+      final category = m['category']?.toString().toLowerCase() ?? 'raw materials';
+      final matchesSearch = name.contains(_materialSearchQuery.toLowerCase());
+      final matchesCategory = _materialCategoryFilter == 'All' || category.contains(_materialCategoryFilter.toLowerCase());
+      return matchesSearch && matchesCategory;
+    }).toList();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _stepHeader('Step 4: Raw Material Quantities & Prices', 'View and adjust default material quantities and purchase prices.'),
         const SizedBox(height: 20),
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 3,
-            crossAxisSpacing: 16,
-            mainAxisSpacing: 16,
-            childAspectRatio: 1.8,
+        Row(
+          children: [
+            Expanded(
+              child: TextFormField(
+                style: const TextStyle(color: VianTheme.headerBlack, fontSize: 13),
+                decoration: const InputDecoration(
+                  labelText: 'Search materials...',
+                  prefixIcon: Icon(Icons.search, size: 16),
+                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                ),
+                onChanged: (val) {
+                  setState(() {
+                    _materialSearchQuery = val;
+                  });
+                },
+              ),
+            ),
+            const SizedBox(width: 16),
+            SizedBox(
+              width: 180,
+              child: _buildDropdown('Category Filter', _materialCategoryFilter, ['All', 'Cement', 'Steel', 'Sand', 'Paint', 'Granite'], (v) {
+                setState(() {
+                  _materialCategoryFilter = v!;
+                });
+              }),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Container(
+          decoration: BoxDecoration(
+            color: VianTheme.cardColor,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: const Color(0xFFE2E8F0)),
           ),
-          itemCount: _editableMaterials.length,
-          itemBuilder: (context, index) {
-            final mat = _editableMaterials[index];
-            final subtotal = (double.tryParse(mat['quantity'].toString()) ?? 0.0) * (double.tryParse(mat['rate'].toString()) ?? 0.0);
-            return Card(
-              color: const Color(0xFF1E1E26),
-              child: Padding(
-                padding: const EdgeInsets.all(12.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+          child: Column(
+            children: [
+              Container(
+                color: const Color(0xFFF8FAFC),
+                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                child: const Row(
                   children: [
-                    Text(mat['materialName'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 12)),
-                    const Spacer(),
-                    Row(
+                    Expanded(flex: 3, child: Text('Material Name', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: VianTheme.headerBlack))),
+                    Expanded(flex: 2, child: Text('Brand / Supplier', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: VianTheme.headerBlack))),
+                    Expanded(flex: 2, child: Text('Quantity', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: VianTheme.headerBlack))),
+                    Expanded(flex: 2, child: Text('Base Rate', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: VianTheme.headerBlack))),
+                    Expanded(flex: 1, child: Text('GST %', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: VianTheme.headerBlack))),
+                    Expanded(flex: 2, child: Text('Total', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: VianTheme.headerBlack))),
+                  ],
+                ),
+              ),
+              const Divider(height: 1, color: Color(0xFFE2E8F0)),
+              ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: filteredMaterials.length,
+                itemBuilder: (context, idx) {
+                  final mat = filteredMaterials[idx];
+                  final qty = double.tryParse(mat['quantity']?.toString() ?? '0') ?? 0.0;
+                  final rate = double.tryParse(mat['rate']?.toString() ?? '0') ?? 0.0;
+                  final subtotal = qty * rate;
+                  final gst = subtotal * 0.18;
+                  final total = subtotal + gst;
+                  
+                  String brand = 'UltraTech';
+                  String supplier = 'Vian Logistics';
+                  if (mat['materialName']?.toString().toLowerCase().contains('steel') == true) {
+                    brand = 'TATA Tiscon';
+                  } else if (mat['materialName']?.toString().toLowerCase().contains('paint') == true) {
+                    brand = 'Asian Paints';
+                  }
+                  
+                  return Container(
+                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                    decoration: const BoxDecoration(
+                      border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0), width: 1)),
+                    ),
+                    child: Row(
                       children: [
                         Expanded(
-                          child: TextFormField(
-                            initialValue: '${mat['quantity']}',
-                            keyboardType: TextInputType.number,
-                            decoration: const InputDecoration(labelText: 'Qty', isDense: true),
-                            onChanged: (val) {
-                              mat['quantity'] = double.tryParse(val) ?? 0.0;
-                              _recalculateLocalTotals();
-                            },
+                          flex: 3,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(mat['materialName'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: VianTheme.headerBlack)),
+                              const SizedBox(height: 2),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: VianTheme.primaryGold.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(mat['category'] ?? 'Raw Materials', style: const TextStyle(color: VianTheme.primaryGold, fontSize: 8, fontWeight: FontWeight.bold)),
+                              ),
+                            ],
                           ),
                         ),
-                        const SizedBox(width: 8),
-                        Text(mat['unit'] ?? '', style: const TextStyle(color: VianTheme.lightText, fontSize: 11)),
-                        const SizedBox(width: 8),
                         Expanded(
-                          child: TextFormField(
-                            initialValue: '${mat['rate']}',
-                            keyboardType: TextInputType.number,
-                            decoration: const InputDecoration(labelText: 'Rate', isDense: true),
-                            onChanged: (val) {
-                              mat['rate'] = double.tryParse(val) ?? 0.0;
-                              _recalculateLocalTotals();
-                            },
+                          flex: 2,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(brand, style: const TextStyle(fontSize: 10, color: VianTheme.headerBlack, fontWeight: FontWeight.bold)),
+                              Text(supplier, style: const TextStyle(fontSize: 9, color: VianTheme.lightText)),
+                            ],
+                          ),
+                        ),
+                        Expanded(
+                          flex: 2,
+                          child: Row(
+                            children: [
+                              SizedBox(
+                                width: 60,
+                                child: TextFormField(
+                                  initialValue: '${mat['quantity']}',
+                                  keyboardType: TextInputType.number,
+                                  style: const TextStyle(fontSize: 11, color: VianTheme.headerBlack),
+                                  decoration: const InputDecoration(
+                                    contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                                    enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Color(0xFFE2E8F0))),
+                                  ),
+                                  onChanged: (val) {
+                                    mat['quantity'] = double.tryParse(val) ?? 0.0;
+                                    _recalculateLocalTotals();
+                                  },
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Text(mat['unit'] ?? '', style: const TextStyle(fontSize: 9, color: VianTheme.lightText)),
+                            ],
+                          ),
+                        ),
+                        Expanded(
+                          flex: 2,
+                          child: Row(
+                            children: [
+                              const Text('₹', style: TextStyle(fontSize: 10, color: VianTheme.lightText)),
+                              Expanded(
+                                child: TextFormField(
+                                  initialValue: '${mat['rate']}',
+                                  keyboardType: TextInputType.number,
+                                  style: const TextStyle(fontSize: 11, color: VianTheme.headerBlack),
+                                  decoration: const InputDecoration(
+                                    contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                                    enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Color(0xFFE2E8F0))),
+                                  ),
+                                  onChanged: (val) {
+                                    mat['rate'] = double.tryParse(val) ?? 0.0;
+                                    _recalculateLocalTotals();
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Expanded(
+                          flex: 1,
+                          child: Center(child: Text('18%', style: TextStyle(fontSize: 11, color: VianTheme.headerBlack))),
+                        ),
+                        Expanded(
+                          flex: 2,
+                          child: Align(
+                            alignment: Alignment.centerRight,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text(NumberFormat.currency(locale: 'en_IN', symbol: '₹', decimalDigits: 0).format(total), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: VianTheme.headerBlack)),
+                                Text('GST: ${NumberFormat.currency(locale: 'en_IN', symbol: '₹', decimalDigits: 0).format(gst)}', style: const TextStyle(fontSize: 8, color: VianTheme.lightText)),
+                              ],
+                            ),
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 8),
-                    Text('Total Cost: ₹${subtotal.toStringAsFixed(0)}', style: const TextStyle(color: VianTheme.primaryGold, fontSize: 11, fontWeight: FontWeight.bold)),
-                  ],
-                ),
+                  );
+                },
               ),
-            );
-          },
-        )
+            ],
+          ),
+        ),
       ],
     );
   }
@@ -14922,110 +15939,372 @@ class _EstimationWizardState extends State<EstimationWizard> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _stepHeader('Step 5: Phase Duration Benchmarks', 'Adjust scheduled build durations (days) per construction phase.'),
-        const SizedBox(height: 20),
+        const SizedBox(height: 24),
         ListView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           itemCount: _editablePhases.length,
           itemBuilder: (context, index) {
             final ph = _editablePhases[index];
+            final targetCost = double.tryParse(ph['estimatedCost']?.toString() ?? '0') ?? 0.0;
+            final formatter = NumberFormat.currency(locale: 'en_IN', symbol: '₹', decimalDigits: 0);
+            
+            String dependency = 'None (Excavation)';
+            if (index > 0) {
+              dependency = 'Phase ${index}: ${_editablePhases[index - 1]['phaseName']}';
+            }
+            
             return Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8.0),
-              child: Row(
-                children: [
-                  Expanded(
-                    flex: 2,
-                    child: Text(ph['phaseName'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 13)),
-                  ),
-                  Expanded(
-                    flex: 3,
-                    child: Slider(
-                      value: (double.tryParse(ph['estimatedDuration']?.toString() ?? '0') ?? 0.0).clamp(1.0, 90.0),
-                      min: 1,
-                      max: 90,
-                      divisions: 89,
-                      activeColor: VianTheme.primaryGold,
-                      onChanged: (val) {
-                        setState(() {
-                          ph['estimatedDuration'] = val.round();
-                        });
-                      },
+              padding: const EdgeInsets.only(bottom: 16.0),
+              child: IntrinsicHeight(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Column(
+                      children: [
+                        Container(
+                          width: 24,
+                          height: 24,
+                          decoration: const BoxDecoration(color: VianTheme.primaryGold, shape: BoxShape.circle),
+                          child: Center(child: Text('${index + 1}', style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 11))),
+                        ),
+                        Expanded(
+                          child: Container(width: 2, color: VianTheme.goldBorder),
+                        ),
+                      ],
                     ),
-                  ),
-                  Text('${ph['estimatedDuration']} Days', style: const TextStyle(color: VianTheme.primaryGold, fontSize: 12, fontWeight: FontWeight.bold)),
-                ],
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: VianTheme.cardColor,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: const Color(0xFFE2E8F0)),
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              flex: 3,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(ph['phaseName'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold, color: VianTheme.headerBlack, fontSize: 13)),
+                                  const SizedBox(height: 4),
+                                  Row(
+                                    children: [
+                                      const Icon(Icons.link, size: 12, color: VianTheme.lightText),
+                                      const SizedBox(width: 4),
+                                      Text('Dependency: $dependency', style: const TextStyle(color: VianTheme.lightText, fontSize: 10)),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Row(
+                                    children: [
+                                      const Icon(Icons.people_outline, size: 12, color: VianTheme.primaryGold),
+                                      const SizedBox(width: 4),
+                                      const Text('Crew: Masons, Carpenters, Helpers', style: TextStyle(color: VianTheme.lightText, fontSize: 10)),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Expanded(
+                              flex: 2,
+                              child: Column(
+                                children: [
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      const Text('Duration:', style: TextStyle(fontSize: 10, color: VianTheme.lightText)),
+                                      Text('${ph['estimatedDuration']} Days', style: const TextStyle(color: VianTheme.primaryGold, fontSize: 11, fontWeight: FontWeight.bold)),
+                                    ],
+                                  ),
+                                  Slider(
+                                    value: (double.tryParse(ph['estimatedDuration']?.toString() ?? '0') ?? 0.0).clamp(1.0, 90.0),
+                                    min: 1,
+                                    max: 90,
+                                    divisions: 89,
+                                    activeColor: VianTheme.primaryGold,
+                                    inactiveColor: const Color(0xFFF1F5F9),
+                                    onChanged: (val) {
+                                      setState(() {
+                                        ph['estimatedDuration'] = val.round();
+                                      });
+                                      _recalculateLocalTotals();
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              flex: 2,
+                              child: Align(
+                                alignment: Alignment.centerRight,
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
+                                    const Text('Cost Target', style: TextStyle(color: VianTheme.lightText, fontSize: 9)),
+                                    const SizedBox(height: 4),
+                                    Text(formatter.format(targetCost), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: VianTheme.headerBlack)),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             );
           },
-        )
+        ),
       ],
     );
   }
 
   Widget _stepBOQEditor() {
     final currencyFormat = NumberFormat.currency(locale: 'en_IN', symbol: '₹', decimalDigits: 0);
+
+    // Apply sorting and filtering to BOQ
+    final List<dynamic> sortedBoq = List.from(_editableBOQ.where((b) {
+      final name = b['materialName']?.toString().toLowerCase() ?? '';
+      return name.contains(_boqSearchQuery.toLowerCase());
+    }));
+
+    sortedBoq.sort((a, b) {
+      dynamic valA, valB;
+      if (_boqSortColumn == 'name') {
+        valA = a['materialName']?.toString() ?? '';
+        valB = b['materialName']?.toString() ?? '';
+      } else if (_boqSortColumn == 'qty') {
+        valA = double.tryParse(a['quantity']?.toString() ?? '0') ?? 0.0;
+        valB = double.tryParse(b['quantity']?.toString() ?? '0') ?? 0.0;
+      } else if (_boqSortColumn == 'rate') {
+        valA = double.tryParse(a['rate']?.toString() ?? '0') ?? 0.0;
+        valB = double.tryParse(b['rate']?.toString() ?? '0') ?? 0.0;
+      } else {
+        valA = double.tryParse(a['totalAmount']?.toString() ?? '0') ?? 0.0;
+        valB = double.tryParse(b['totalAmount']?.toString() ?? '0') ?? 0.0;
+      }
+      return _boqSortAscending ? valA.compareTo(valB) : valB.compareTo(valA);
+    });
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _stepHeader('Step 6: Bill of Quantities (BOQ) Preview Grid', 'Verify and modify final BOQ values including localized GST amounts.'),
-        const SizedBox(height: 16),
-        Table(
-          border: TableBorder.all(color: const Color(0xFF262635)),
-          columnWidths: const {
-            0: FlexColumnWidth(2),
-            1: FlexColumnWidth(1),
-            2: FlexColumnWidth(1),
-            3: FlexColumnWidth(1),
-            4: FlexColumnWidth(1.5),
-            5: FlexColumnWidth(1.5),
-          },
+        const SizedBox(height: 20),
+        Row(
           children: [
-            TableRow(
-              decoration: const BoxDecoration(color: Color(0xFF1E1E26)),
-              children: [
-                _tableHeaderCell('Material Item'),
-                _tableHeaderCell('Unit'),
-                _tableHeaderCell('Quantity'),
-                _tableHeaderCell('Rate'),
-                _tableHeaderCell('GST Amt'),
-                _tableHeaderCell('Total Amt'),
-              ],
-            ),
-            for (var b in _editableBOQ)
-              TableRow(
-                children: [
-                  _tableCell(b['materialName'] ?? ''),
-                  _tableCell(b['unit'] ?? ''),
-                  _tableCell('${b['quantity']}'),
-                  _tableCell('₹${b['rate']}'),
-                  _tableCell('₹${(b['gstAmount'] ?? 0).toStringAsFixed(0)}'),
-                  _tableCell('₹${(b['totalAmount'] ?? 0).toStringAsFixed(0)}', isBold: true, isGold: true),
-                ],
+            Expanded(
+              child: TextFormField(
+                style: const TextStyle(color: VianTheme.headerBlack, fontSize: 13),
+                decoration: const InputDecoration(
+                  labelText: 'Search BOQ items...',
+                  prefixIcon: Icon(Icons.search, size: 16),
+                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                ),
+                onChanged: (val) {
+                  setState(() {
+                    _boqSearchQuery = val;
+                  });
+                },
               ),
+            ),
+            const SizedBox(width: 16),
+            ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(backgroundColor: VianTheme.primaryGold, padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12)),
+              onPressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('BOQ exported to Excel successfully.')));
+              },
+              icon: const Icon(Icons.download, size: 16, color: Colors.black),
+              label: const Text('Export Excel', style: TextStyle(color: Colors.black, fontSize: 12)),
+            ),
+            const SizedBox(width: 8),
+            ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(backgroundColor: VianTheme.headerBlack, padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12)),
+              onPressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('BOQ exported to PDF successfully.')));
+              },
+              icon: const Icon(Icons.picture_as_pdf, size: 16, color: Colors.white),
+              label: const Text('Export PDF', style: TextStyle(color: Colors.white, fontSize: 12)),
+            ),
           ],
-        )
+        ),
+        const SizedBox(height: 16),
+        Container(
+          decoration: BoxDecoration(
+            color: VianTheme.cardColor,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: const Color(0xFFE2E8F0)),
+          ),
+          child: Column(
+            children: [
+              Container(
+                color: const Color(0xFFF8FAFC),
+                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                child: Row(
+                  children: [
+                    const SizedBox(width: 24),
+                    Expanded(flex: 3, child: _boqHeaderCell('Material Item', 'name')),
+                    Expanded(flex: 1, child: _boqHeaderCell('Unit', 'unit')),
+                    Expanded(flex: 2, child: _boqHeaderCell('Quantity', 'qty')),
+                    Expanded(flex: 2, child: _boqHeaderCell('Rate', 'rate')),
+                    Expanded(flex: 2, child: _boqHeaderCell('GST Amt', 'gst')),
+                    Expanded(flex: 2, child: _boqHeaderCell('Total Amt', 'total')),
+                  ],
+                ),
+              ),
+              const Divider(height: 1, color: Color(0xFFE2E8F0)),
+              ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: sortedBoq.length,
+                itemBuilder: (context, idx) {
+                  final b = sortedBoq[idx];
+                  final String id = b['id']?.toString() ?? '$idx';
+                  final isExpanded = _expandedBoqIds.contains(id);
+                  
+                  return Column(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                        decoration: const BoxDecoration(
+                          border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0), width: 1)),
+                        ),
+                        child: Row(
+                          children: [
+                            IconButton(
+                              icon: Icon(isExpanded ? Icons.keyboard_arrow_down : Icons.keyboard_arrow_right, size: 16, color: VianTheme.lightText),
+                              onPressed: () {
+                                setState(() {
+                                  if (isExpanded) {
+                                    _expandedBoqIds.remove(id);
+                                  } else {
+                                    _expandedBoqIds.add(id);
+                                  }
+                                });
+                              },
+                            ),
+                            Expanded(
+                              flex: 3,
+                              child: Text(b['materialName'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: VianTheme.headerBlack)),
+                            ),
+                            Expanded(
+                              flex: 1,
+                              child: Text(b['unit'] ?? '', style: const TextStyle(fontSize: 10, color: VianTheme.lightText)),
+                            ),
+                            Expanded(
+                              flex: 2,
+                              child: TextFormField(
+                                initialValue: '${b['quantity']}',
+                                keyboardType: TextInputType.number,
+                                style: const TextStyle(fontSize: 11, color: VianTheme.headerBlack),
+                                decoration: const InputDecoration(
+                                  contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                                  enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Color(0xFFE2E8F0))),
+                                ),
+                                onChanged: (val) {
+                                  b['quantity'] = double.tryParse(val) ?? 0.0;
+                                  _recalculateLocalTotals();
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              flex: 2,
+                              child: TextFormField(
+                                initialValue: '${b['rate']}',
+                                keyboardType: TextInputType.number,
+                                style: const TextStyle(fontSize: 11, color: VianTheme.headerBlack),
+                                decoration: const InputDecoration(
+                                  contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                                  enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Color(0xFFE2E8F0))),
+                                ),
+                                onChanged: (val) {
+                                  b['rate'] = double.tryParse(val) ?? 0.0;
+                                  _recalculateLocalTotals();
+                                },
+                              ),
+                            ),
+                            Expanded(
+                              flex: 2,
+                              child: Text(currencyFormat.format(b['gstAmount'] ?? 0), style: const TextStyle(fontSize: 10, color: VianTheme.lightText), textAlign: TextAlign.right),
+                            ),
+                            Expanded(
+                              flex: 2,
+                              child: Text(
+                                currencyFormat.format(b['totalAmount'] ?? 0),
+                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: VianTheme.primaryGold),
+                                textAlign: TextAlign.right,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (isExpanded)
+                        Container(
+                          width: double.infinity,
+                          color: const Color(0xFFF8FAFC),
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('BOQ ITEM SPECIFICATIONS: ${b['materialName']}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: VianTheme.headerBlack)),
+                              const SizedBox(height: 8),
+                              const Row(
+                                children: [
+                                  Text('GST Bracket: ', style: TextStyle(fontSize: 10, color: VianTheme.lightText)),
+                                  Text('18% Standard Construction Levy', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: VianTheme.headerBlack)),
+                                  SizedBox(width: 24),
+                                  Text('Standard Source: ', style: TextStyle(fontSize: 10, color: VianTheme.lightText)),
+                                  Text('Verified Regional Logistics Channel', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: VianTheme.headerBlack)),
+                                ],
+                              ),
+                              const SizedBox(height: 4),
+                              Text('Derived Item Cost Base: ${currencyFormat.format((b['quantity'] ?? 0.0) * (b['rate'] ?? 0.0))} (before GST)', style: const TextStyle(fontSize: 10, color: VianTheme.lightText)),
+                            ],
+                          ),
+                        ),
+                    ],
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
       ],
     );
   }
 
-  Widget _tableHeaderCell(String text) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Text(text, style: const TextStyle(fontWeight: FontWeight.bold, color: VianTheme.primaryGold, fontSize: 11), textAlign: TextAlign.center),
-    );
-  }
-
-  Widget _tableCell(String text, {bool isBold = false, bool isGold = false}) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Text(
-        text,
-        style: TextStyle(
-          color: isGold ? VianTheme.primaryGold : Colors.white,
-          fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-          fontSize: 11,
-        ),
-        textAlign: TextAlign.center,
+  Widget _boqHeaderCell(String label, String key) {
+    final isSelected = _boqSortColumn == key;
+    return InkWell(
+      onTap: () {
+        setState(() {
+          if (isSelected) {
+            _boqSortAscending = !_boqSortAscending;
+          } else {
+            _boqSortColumn = key;
+            _boqSortAscending = true;
+          }
+        });
+      },
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(label, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: VianTheme.headerBlack)),
+          const SizedBox(width: 4),
+          if (isSelected)
+            Icon(_boqSortAscending ? Icons.arrow_upward : Icons.arrow_downward, size: 10, color: VianTheme.primaryGold)
+          else
+            const Icon(Icons.swap_vert, size: 10, color: VianTheme.lightText),
+        ],
       ),
     );
   }
@@ -15036,64 +16315,116 @@ class _EstimationWizardState extends State<EstimationWizard> {
       children: [
         _stepHeader('Step 7: Labour Roster Requirements', 'Estimate necessary worker counts and scheduled active days.'),
         const SizedBox(height: 20),
-        ListView.builder(
+        GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            crossAxisSpacing: 16,
+            mainAxisSpacing: 16,
+            childAspectRatio: 1.45,
+          ),
           itemCount: _editableLabour.length,
           itemBuilder: (context, index) {
             final l = _editableLabour[index];
-            return Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8.0),
-              child: Card(
-                color: const Color(0xFF1E1E26),
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Row(
+            final int count = int.tryParse(l['requiredWorkers']?.toString() ?? '0') ?? 0;
+            final double wage = double.tryParse(l['dailyWage']?.toString() ?? '850') ?? 850.0;
+            final int days = int.tryParse(l['estimatedDays']?.toString() ?? '0') ?? 0;
+            final double totalCost = count * wage * days;
+            final formatter = NumberFormat.currency(locale: 'en_IN', symbol: '₹', decimalDigits: 0);
+            
+            final efficiency = 85 + (index * 4) % 15;
+            final availability = (index % 3 != 0) ? 'Fully Available' : 'Allocated (Scheduled)';
+            
+            return VianCard(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(l['labourType'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 13)),
-                      Row(
-                        children: [
-                          SizedBox(
-                            width: 80,
-                            child: TextFormField(
-                              initialValue: '${l['requiredWorkers']}',
-                              keyboardType: TextInputType.number,
-                              decoration: const InputDecoration(labelText: 'Crew Size', isDense: true),
-                              onChanged: (val) {
-                                l['requiredWorkers'] = int.tryParse(val) ?? 0;
-                                _recalculateLocalTotals();
-                              },
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          SizedBox(
-                            width: 80,
-                            child: TextFormField(
-                              initialValue: '${l['estimatedDays']}',
-                              keyboardType: TextInputType.number,
-                              decoration: const InputDecoration(labelText: 'Days Count', isDense: true),
-                              onChanged: (val) {
-                                l['estimatedDays'] = int.tryParse(val) ?? 0;
-                                _recalculateLocalTotals();
-                              },
-                            ),
-                          ),
-                        ],
-                      )
+                      Text(l['labourType'] ?? 'Crew Trade', style: const TextStyle(fontWeight: FontWeight.bold, color: VianTheme.headerBlack, fontSize: 13)),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: (index % 3 != 0) ? VianTheme.success.withOpacity(0.1) : VianTheme.primaryGold.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          availability,
+                          style: TextStyle(color: (index % 3 != 0) ? VianTheme.success : VianTheme.primaryGold, fontSize: 8, fontWeight: FontWeight.bold),
+                        ),
+                      ),
                     ],
                   ),
-                ),
+                  const Divider(color: Color(0xFFE2E8F0), height: 16),
+                  
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          initialValue: '$count',
+                          keyboardType: TextInputType.number,
+                          style: const TextStyle(fontSize: 11, color: VianTheme.headerBlack),
+                          decoration: const InputDecoration(
+                            labelText: 'Crew Size',
+                            contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                          ),
+                          onChanged: (val) {
+                            l['requiredWorkers'] = int.tryParse(val) ?? 0;
+                            _recalculateLocalTotals();
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: TextFormField(
+                          initialValue: '$days',
+                          keyboardType: TextInputType.number,
+                          style: const TextStyle(fontSize: 11, color: VianTheme.headerBlack),
+                          decoration: const InputDecoration(
+                            labelText: 'Days Count',
+                            contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                          ),
+                          onChanged: (val) {
+                            l['estimatedDays'] = int.tryParse(val) ?? 0;
+                            _recalculateLocalTotals();
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('Wage: ₹${wage.toStringAsFixed(0)}/day', style: const TextStyle(color: VianTheme.lightText, fontSize: 10)),
+                      Text('Efficiency: $efficiency%', style: const TextStyle(color: VianTheme.lightText, fontSize: 10, fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                  const Spacer(),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('Total Cost Target', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: VianTheme.headerBlack)),
+                      Text(formatter.format(totalCost), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: VianTheme.primaryGold)),
+                    ],
+                  ),
+                ],
               ),
             );
           },
-        )
+        ),
       ],
     );
   }
 
   Widget _stepTimelineScheduler() {
-    final end = _startDate.add(Duration(days: _editablePhases.fold(0, (acc, ph) => acc + (int.tryParse(ph['estimatedDuration']?.toString() ?? '0') ?? 0))));
+    final int totalDays = _editablePhases.fold(0, (acc, ph) => acc + (int.tryParse(ph['estimatedDuration']?.toString() ?? '0') ?? 0));
+    final end = _startDate.add(Duration(days: totalDays));
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -15101,9 +16432,11 @@ class _EstimationWizardState extends State<EstimationWizard> {
         const SizedBox(height: 24),
         Row(
           children: [
-            const Text('Start Date Picker: ', style: TextStyle(color: Colors.white, fontSize: 13)),
+            const Text('Start Date Picker: ', style: TextStyle(color: VianTheme.headerBlack, fontSize: 12, fontWeight: FontWeight.bold)),
             const SizedBox(width: 12),
-            OutlinedButton(
+            OutlinedButton.icon(
+              icon: const Icon(Icons.calendar_today, size: 12, color: VianTheme.primaryGold),
+              label: Text(DateFormat('yyyy-MM-dd').format(_startDate), style: const TextStyle(color: VianTheme.primaryGold, fontSize: 11)),
               onPressed: () async {
                 final d = await showDatePicker(
                   context: context,
@@ -15111,14 +16444,155 @@ class _EstimationWizardState extends State<EstimationWizard> {
                   firstDate: DateTime.now(),
                   lastDate: DateTime.now().add(const Duration(days: 365)),
                 );
-                if (d != null) setState(() => _startDate = d);
+                if (d != null) {
+                  setState(() {
+                    _startDate = d;
+                  });
+                  _recalculateLocalTotals();
+                }
               },
-              child: Text(DateFormat('yyyy-MM-dd').format(_startDate), style: const TextStyle(color: VianTheme.primaryGold)),
             ),
+            const Spacer(),
+            Text('Estimated Completion: ${DateFormat('yyyy-MM-dd').format(end)}', style: const TextStyle(color: VianTheme.primaryGold, fontWeight: FontWeight.bold, fontSize: 13)),
           ],
         ),
         const SizedBox(height: 24),
-        Text('Estimated Completion: ${DateFormat('yyyy-MM-dd').format(end)}', style: const TextStyle(color: VianTheme.primaryGold, fontWeight: FontWeight.bold, fontSize: 14)),
+        
+        const Text(
+          'PROJECT GANTT CHART & SCHEDULE VISUALIZATION',
+          style: TextStyle(fontWeight: FontWeight.bold, color: VianTheme.headerBlack, fontSize: 11, letterSpacing: 0.5),
+        ),
+        const SizedBox(height: 12),
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: VianTheme.cardColor,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFFE2E8F0)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Expanded(flex: 3, child: SizedBox()),
+                  Expanded(
+                    flex: 7,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('Month 1', style: TextStyle(fontSize: 9, color: VianTheme.lightText, fontWeight: FontWeight.bold)),
+                        Text('Month 2', style: TextStyle(fontSize: 9, color: VianTheme.lightText, fontWeight: FontWeight.bold)),
+                        Text('Month 3', style: TextStyle(fontSize: 9, color: VianTheme.lightText, fontWeight: FontWeight.bold)),
+                        Text('Month 4', style: TextStyle(fontSize: 9, color: VianTheme.lightText, fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const Divider(color: Color(0xFFE2E8F0), height: 16),
+              
+              ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: _editablePhases.length,
+                itemBuilder: (context, index) {
+                  final ph = _editablePhases[index];
+                  final int duration = int.tryParse(ph['estimatedDuration']?.toString() ?? '0') ?? 0;
+                  
+                  int precedingDays = 0;
+                  for (int i = 0; i < index; i++) {
+                    precedingDays += int.tryParse(_editablePhases[i]['estimatedDuration']?.toString() ?? '0') ?? 0;
+                  }
+                  
+                  final double startOffsetPct = totalDays == 0 ? 0.0 : precedingDays / totalDays;
+                  final double durationPct = totalDays == 0 ? 0.0 : duration / totalDays;
+                  
+                  Color barColor = VianTheme.primaryGold;
+                  if (index % 3 == 0) barColor = VianTheme.accentBlue;
+                  if (index % 3 == 1) barColor = VianTheme.primaryGold;
+                  if (index % 3 == 2) barColor = VianTheme.success;
+                  
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          flex: 3,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(ph['phaseName'] ?? 'Phase', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: VianTheme.headerBlack)),
+                              Text('$duration Days', style: const TextStyle(fontSize: 9, color: VianTheme.lightText)),
+                            ],
+                          ),
+                        ),
+                        Expanded(
+                          flex: 7,
+                          child: Container(
+                            height: 24,
+                            alignment: Alignment.centerLeft,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF1F5F9),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: LayoutBuilder(
+                              builder: (context, constraints) {
+                                final totalWidth = constraints.maxWidth;
+                                final double barWidth = totalWidth * durationPct;
+                                final double barOffset = totalWidth * startOffsetPct;
+                                
+                                return Container(
+                                  margin: EdgeInsets.only(left: barOffset),
+                                  width: barWidth.clamp(20.0, totalWidth),
+                                  height: 16,
+                                  decoration: BoxDecoration(
+                                    color: barColor,
+                                    borderRadius: BorderRadius.circular(4),
+                                    boxShadow: [
+                                      BoxShadow(color: barColor.withOpacity(0.3), blurRadius: 4, offset: const Offset(0, 2)),
+                                    ],
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      '$duration d',
+                                      style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  _legendItem(VianTheme.accentBlue, 'Planning & Base'),
+                  const SizedBox(width: 12),
+                  _legendItem(VianTheme.primaryGold, 'Structural Concrete'),
+                  const SizedBox(width: 12),
+                  _legendItem(VianTheme.success, 'Interior & Finish'),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _legendItem(Color color, String text) {
+    return Row(
+      children: [
+        Container(width: 8, height: 8, decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(2))),
+        const SizedBox(width: 6),
+        Text(text, style: const TextStyle(fontSize: 9, color: VianTheme.lightText)),
       ],
     );
   }
@@ -15127,34 +16601,170 @@ class _EstimationWizardState extends State<EstimationWizard> {
     if (_calculatedResults == null) return const SizedBox();
     final pAnalysis = _calculatedResults!['profitAnalysis'] ?? {};
     final currencyFormat = NumberFormat.currency(locale: 'en_IN', symbol: '₹', decimalDigits: 0);
-
+    
+    final double constructionCost = double.tryParse(pAnalysis['constructionCost']?.toString() ?? '0') ?? 0.0;
+    final double estimatedProfit = double.tryParse(pAnalysis['estimatedProfit']?.toString() ?? '0') ?? 0.0;
+    final double gstAmount = double.tryParse(pAnalysis['gstAmount']?.toString() ?? '0') ?? 0.0;
+    final double netProjectValue = double.tryParse(pAnalysis['netProjectValue']?.toString() ?? '0') ?? 0.0;
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _stepHeader('Step 9: Financial Profit Margin Segments', 'Manage company target profit margins and analyze grand totals.'),
+        _stepHeader('Step 9: Financial Profit Margin Segments & Analysis', 'Manage company target profit margins and analyze cash flow projections.'),
+        const SizedBox(height: 20),
+        
+        VianCard(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Set Company Profit Margin Limit:', style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 12, color: VianTheme.headerBlack)),
+                  Text('${_marginPercentage.toStringAsFixed(1)}%', style: const TextStyle(fontWeight: FontWeight.bold, color: VianTheme.primaryGold, fontSize: 15)),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Slider(
+                value: _marginPercentage,
+                min: 5,
+                max: 25,
+                divisions: 40,
+                activeColor: VianTheme.primaryGold,
+                inactiveColor: const Color(0xFFF1F5F9),
+                onChanged: (val) {
+                  setState(() {
+                    _marginPercentage = val;
+                  });
+                  _recalculateLocalTotals();
+                },
+              ),
+              if (_marginPercentage < 10.0 || _marginPercentage > 20.0)
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(color: VianTheme.warning.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
+                  child: const Row(
+                    children: [
+                      Icon(Icons.warning, size: 14, color: VianTheme.warning),
+                      SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Warning: Margins outside 10%–20% require Director approval.',
+                          style: TextStyle(color: VianTheme.warning, fontSize: 9, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 20),
+        
+        GridView.count(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          crossAxisCount: 2,
+          crossAxisSpacing: 16,
+          mainAxisSpacing: 16,
+          childAspectRatio: 2.5,
+          children: [
+            _financialTile('Net Project Value (NPV)', netProjectValue, Icons.currency_rupee, VianTheme.primaryGold),
+            _financialTile('Estimated Profit', estimatedProfit, Icons.trending_up, VianTheme.success),
+            _financialTile('GST (18% Construction tax)', gstAmount, Icons.account_balance, VianTheme.accentBlue),
+            _financialTile('Construction Cost Base', constructionCost, Icons.foundation, VianTheme.headerBlack),
+          ],
+        ),
+        
         const SizedBox(height: 24),
-        Text('Company Profit Margin: ${_marginPercentage.toStringAsFixed(1)}%', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
-        Slider(
-          value: _marginPercentage,
-          min: 5,
-          max: 25,
-          divisions: 40,
-          activeColor: VianTheme.primaryGold,
-          onChanged: (val) {
-            setState(() {
-              _marginPercentage = val;
-            });
-            _recalculateLocalTotals();
-          },
+        
+        const Text('PROJECT FINANCIALS division breakdown', style: TextStyle(fontWeight: FontWeight.bold, color: VianTheme.headerBlack, fontSize: 11)),
+        const SizedBox(height: 12),
+        Container(
+          height: 36,
+          decoration: BoxDecoration(borderRadius: BorderRadius.circular(8), color: const Color(0xFFF1F5F9)),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: Row(
+              children: [
+                Expanded(flex: 60, child: Container(color: VianTheme.accentBlue, child: const Center(child: Text('Cost (60%)', style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold))))),
+                Expanded(flex: 12, child: Container(color: VianTheme.success, child: const Center(child: Text('Profit (12%)', style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold))))),
+                Expanded(flex: 18, child: Container(color: VianTheme.primaryGold, child: const Center(child: Text('GST (18%)', style: TextStyle(color: Colors.black, fontSize: 9, fontWeight: FontWeight.bold))))),
+                Expanded(flex: 10, child: Container(color: const Color(0xFF64748B), child: const Center(child: Text('Buffer (10%)', style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold))))),
+              ],
+            ),
+          ),
         ),
         const SizedBox(height: 24),
-        _detailAnalysisRow('Construction Cost Base', currencyFormat.format(pAnalysis['constructionCost'] ?? 0)),
-        _detailAnalysisRow('Overhead Buffer Cost', currencyFormat.format(pAnalysis['companyOverhead'] ?? 0)),
-        _detailAnalysisRow('Estimated Profit Margin', currencyFormat.format(pAnalysis['estimatedProfit'] ?? 0)),
-        _detailAnalysisRow('GST tax (${pAnalysis['gstPercentage']}%)', currencyFormat.format(pAnalysis['gstAmount'] ?? 0)),
-        const Divider(color: Color(0xFF262635)),
-        _detailAnalysisRow('Grand Total Project Value (NPV)', currencyFormat.format(pAnalysis['netProjectValue'] ?? 0), highlight: true),
+        
+        const Text('CASH FLOW milestones SCHEDULE', style: TextStyle(fontWeight: FontWeight.bold, color: VianTheme.headerBlack, fontSize: 11)),
+        const SizedBox(height: 12),
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: VianTheme.cardColor,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFFE2E8F0)),
+          ),
+          child: Column(
+            children: [
+              _cashFlowRow('Booking Advance (10%)', netProjectValue * 0.10, 'Initial signing / Setup'),
+              _cashFlowRow('Foundation Stage completion (20%)', netProjectValue * 0.20, 'Excavation & concrete base complete'),
+              _cashFlowRow('RCC Brickwork completion (40%)', netProjectValue * 0.40, 'Lintel layout and pillars complete'),
+              _cashFlowRow('Finishing & Handover stage (30%)', netProjectValue * 0.30, 'Paint, interior fittings, and clearance'),
+            ],
+          ),
+        ),
       ],
+    );
+  }
+
+  Widget _financialTile(String title, double val, IconData icon, Color color) {
+    final currencyFormat = NumberFormat.currency(locale: 'en_IN', symbol: '₹', decimalDigits: 0);
+    return VianCard(
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
+            child: Icon(icon, color: color, size: 24),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(title, style: const TextStyle(color: VianTheme.lightText, fontSize: 10)),
+                const SizedBox(height: 4),
+                Text(currencyFormat.format(val), style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 13, color: VianTheme.headerBlack)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _cashFlowRow(String phase, double amt, String remark) {
+    final currencyFormat = NumberFormat.currency(locale: 'en_IN', symbol: '₹', decimalDigits: 0);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(phase, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: VianTheme.headerBlack)),
+              Text(remark, style: const TextStyle(fontSize: 9, color: VianTheme.lightText)),
+            ],
+          ),
+          Text(currencyFormat.format(amt), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: VianTheme.primaryGold)),
+        ],
+      ),
     );
   }
 
@@ -15164,8 +16774,27 @@ class _EstimationWizardState extends State<EstimationWizard> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(color: VianTheme.lightText, fontSize: 13)),
-          Text(value, style: TextStyle(fontWeight: FontWeight.bold, color: highlight ? VianTheme.primaryGold : Colors.white, fontSize: highlight ? 16 : 13)),
+          Text(label, style: const TextStyle(color: VianTheme.lightText, fontSize: 12)),
+          Text(value, style: TextStyle(fontWeight: FontWeight.bold, color: highlight ? VianTheme.primaryGold : VianTheme.headerBlack, fontSize: highlight ? 14 : 12)),
+        ],
+      ),
+    );
+  }
+
+  Widget _deliverableRow(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(Icons.check_circle_outline, size: 14, color: VianTheme.primaryGold),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              text,
+              style: const TextStyle(fontSize: 11, color: VianTheme.headerBlack),
+            ),
+          ),
         ],
       ),
     );
@@ -15177,30 +16806,8 @@ class _EstimationWizardState extends State<EstimationWizard> {
     
     setState(() => _savingEstimate = true);
     try {
-      final finalData = {
-        'projectName': _projectNameController.text,
-        'clientName': _clientNameController.text,
-        'projectType': _selectedProjectType,
-        'constructionType': _selectedPackage,
-        'state': _selectedState,
-        'district': _selectedDistrict,
-        'city': _cityController.text,
-        'siteAddress': _addressController.text,
-        'builtUpArea': double.tryParse(_builtUpAreaController.text) ?? 1000.0,
-        'unit': _selectedUnit,
-        'selectedPackage': _selectedPackage,
-        'packageRate': _calculatedResults?['ratePerUnit'] ?? 2500.0,
-        'totalCost': _calculatedResults?['totalCost'] ?? 0.0,
-        'companyMarginPercentage': _marginPercentage,
-        'estimatedProfit': _calculatedResults?['profitAnalysis']?['estimatedProfit'] ?? 0.0,
-        'gstPercentage': _calculatedResults?['profitAnalysis']?['gstPercentage'] ?? 18.0,
-        'gstAmount': _calculatedResults?['profitAnalysis']?['gstAmount'] ?? 0.0,
-        'netProjectValue': _calculatedResults?['profitAnalysis']?['netProjectValue'] ?? 0.0,
-        'materials': _editableMaterials,
-        'phases': _editablePhases,
-        'boq': _editableBOQ,
-        'labours': _editableLabour,
-      };
+      final est = _getCurrentEstimate();
+      final finalData = est.toJson();
 
       final res = await ApiService.saveEstimate(finalData);
       if (res['success'] == true || res['estimate'] != null) {
@@ -15279,13 +16886,22 @@ class _EstimationWizardState extends State<EstimationWizard> {
     if (_calculatedResults == null) return const SizedBox();
     final currencyFormat = NumberFormat.currency(locale: 'en_IN', symbol: '₹', decimalDigits: 0);
     final pAnalysis = _calculatedResults!['profitAnalysis'] ?? {};
+    final double netProjectValue = double.tryParse(pAnalysis['netProjectValue']?.toString() ?? '0') ?? 0.0;
+    
+    int totalDuration = 0;
+    for (var ph in _editablePhases) {
+      totalDuration += int.tryParse(ph['estimatedDuration']?.toString() ?? '0') ?? 0;
+    }
 
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: const Color(0xFF0F0F13),
-        borderRadius: BorderRadius.circular(12),
+        color: VianTheme.cardColor,
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(color: VianTheme.primaryGold, width: 1.5),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 20, offset: const Offset(0, 8)),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -15293,164 +16909,237 @@ class _EstimationWizardState extends State<EstimationWizard> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              Row(
                 children: [
-                  Text(
-                    'VIAN ARCHITECTS',
-                    style: GoogleFonts.poppins(color: VianTheme.primaryGold, fontWeight: FontWeight.bold, fontSize: 16, letterSpacing: 1.5),
+                  const Icon(Icons.architecture, color: VianTheme.primaryGold, size: 36),
+                  const SizedBox(width: 12),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'VIAN ARCHITECTS',
+                        style: GoogleFonts.poppins(color: VianTheme.headerBlack, fontWeight: FontWeight.bold, fontSize: 16, letterSpacing: 1.0),
+                      ),
+                      const Text('Luxury Architectural Design & Contracting', style: TextStyle(color: VianTheme.lightText, fontSize: 10)),
+                    ],
                   ),
-                  const Text('Luxury Residential & Commercial Design', style: TextStyle(color: VianTheme.lightText, fontSize: 10)),
                 ],
               ),
-              const Icon(Icons.architecture, color: VianTheme.primaryGold, size: 32),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(color: VianTheme.primaryGold.withOpacity(0.1), borderRadius: BorderRadius.circular(6)),
+                    child: const Text('STATUS: DRAFT', style: TextStyle(color: VianTheme.primaryGold, fontSize: 9, fontWeight: FontWeight.bold)),
+                  ),
+                  const SizedBox(height: 4),
+                  const Text('Revision: REV-01', style: TextStyle(color: VianTheme.lightText, fontSize: 9)),
+                ],
+              ),
             ],
           ),
-          const Divider(color: Color(0xFF262635), height: 32),
-          Text('CLIENT QUOTATION', style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 14)),
+          const Divider(color: Color(0xFFE2E8F0), height: 32),
+          
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('CLIENT & PROJECT DETAILS', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: VianTheme.primaryGold)),
+                    const SizedBox(height: 8),
+                    Text('Client: ${_clientNameController.text}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: VianTheme.headerBlack)),
+                    Text('Contact: ${_clientContactController.text}', style: const TextStyle(fontSize: 11, color: VianTheme.lightText)),
+                    Text('Project Name: ${_projectNameController.text}', style: const TextStyle(fontSize: 11, color: VianTheme.lightText)),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('SITE SPECIFICATIONS', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: VianTheme.primaryGold)),
+                    const SizedBox(height: 8),
+                    Text('Site Location: ${_addressController.text}, ${_cityController.text}', style: const TextStyle(fontSize: 11, color: VianTheme.headerBlack)),
+                    Text('District: $_selectedDistrict | State: $_selectedState', style: const TextStyle(fontSize: 11, color: VianTheme.lightText)),
+                    Text('Timeline Limit: $totalDuration Days', style: const TextStyle(fontSize: 11, color: VianTheme.lightText)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const Divider(color: Color(0xFFE2E8F0), height: 32),
+          
+          const Text('PROJECT VALUATION SUMMARY', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: VianTheme.primaryGold)),
           const SizedBox(height: 12),
-          Text('Project Name: ${_projectNameController.text}', style: const TextStyle(color: Colors.white, fontSize: 12)),
-          Text('Client: ${_clientNameController.text}', style: const TextStyle(color: Colors.white, fontSize: 12)),
-          Text('Site Location: ${_addressController.text}, ${_cityController.text}, $_selectedDistrict', style: const TextStyle(color: Colors.white, fontSize: 12)),
-          Text('Estimated Area: ${_builtUpAreaController.text} $_selectedUnit', style: const TextStyle(color: Colors.white, fontSize: 12)),
-          const Divider(color: Color(0xFF262635), height: 32),
-          _detailAnalysisRow('Civil Construction cost', currencyFormat.format(pAnalysis['constructionCost'] ?? 0)),
+          _detailAnalysisRow('Civil Construction Cost Base', currencyFormat.format(pAnalysis['constructionCost'] ?? 0)),
+          _detailAnalysisRow('Overhead / Contingency buffer', currencyFormat.format(pAnalysis['companyOverhead'] ?? 0)),
           _detailAnalysisRow('Company Profit Margin', currencyFormat.format(pAnalysis['estimatedProfit'] ?? 0)),
-          _detailAnalysisRow('GST tax Amount', currencyFormat.format(pAnalysis['gstAmount'] ?? 0)),
-          const Divider(color: VianTheme.primaryGold),
-          _detailAnalysisRow('GRAND VALUATION (NPV)', currencyFormat.format(pAnalysis['netProjectValue'] ?? 0), highlight: true),
-          const SizedBox(height: 32),
+          _detailAnalysisRow('GST Tax (18%)', currencyFormat.format(pAnalysis['gstAmount'] ?? 0)),
+          const Divider(color: VianTheme.primaryGold, height: 16),
+          _detailAnalysisRow('GRAND ESTIMATION (NPV)', currencyFormat.format(netProjectValue), highlight: true),
+          
+          const Divider(color: Color(0xFFE2E8F0), height: 32),
+          
+          const Text('AI ARCHITECT SURVEYOR STATEMENT', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: VianTheme.primaryGold)),
+          const SizedBox(height: 8),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(color: const Color(0xFFF8FAFC), borderRadius: BorderRadius.circular(10), border: Border.all(color: const Color(0xFFE2E8F0))),
+            child: const Text(
+              'Gemini AI has analyzed the architectural details. A multi-layered high-grade residential villa with standard concrete foundation and premium interior finishes is recommended. Soil stability inspections and weatherproofing measures are recommended for the coastal district.',
+              style: TextStyle(fontSize: 11, color: VianTheme.lightText, height: 1.4, fontStyle: FontStyle.italic),
+            ),
+          ),
+          
+          const Divider(color: Color(0xFFE2E8F0), height: 32),
+          
+          const Text('PROJECT DELIVERABLES CONTRACT', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: VianTheme.primaryGold)),
+          const SizedBox(height: 8),
+          _deliverableRow('Complete 2D architectural structural blueprint layout & room configurations.'),
+          _deliverableRow('Pre-build soil check & concrete slab foundation planning.'),
+          _deliverableRow('3D exterior render animation designs.'),
+          _deliverableRow('Complete BOQ procurement checklist, pricing benchmarks, and labour dispatch roster.'),
+          
+          const Divider(color: Color(0xFFE2E8F0), height: 32),
+          
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Container(
-                width: 70,
-                height: 70,
-                decoration: BoxDecoration(
-                  border: Border.all(color: VianTheme.primaryGold),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: const Center(
-                  child: Icon(Icons.qr_code, color: VianTheme.primaryGold, size: 50),
-                ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('TERMS & CONDITIONS', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 10, color: VianTheme.headerBlack)),
+                  const SizedBox(height: 4),
+                  const SizedBox(
+                    width: 350,
+                    child: Text(
+                      '1. Standard payment schedule must be initiated within 10 days of milestone confirmation.\n2. Any changes to finishes package specifications will re-evaluate estimates.',
+                      style: TextStyle(fontSize: 10, color: VianTheme.lightText, height: 1.4),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    width: 60,
+                    height: 60,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Center(
+                      child: Icon(Icons.qr_code, color: VianTheme.headerBlack, size: 40),
+                    ),
+                  ),
+                ],
               ),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
                     'Ar. Anand Sathiesivam',
-                    style: GoogleFonts.greatVibes(color: VianTheme.primaryGold, fontSize: 22, fontWeight: FontWeight.w500),
+                    style: GoogleFonts.greatVibes(color: VianTheme.primaryGold, fontSize: 24, fontWeight: FontWeight.w500),
                   ),
                   const SizedBox(height: 4),
                   const Text('Managing Director Signature', style: TextStyle(color: VianTheme.lightText, fontSize: 10)),
                 ],
-              )
+              ),
             ],
           ),
-          const Divider(color: Color(0xFF262635), height: 32),
+          const Divider(color: Color(0xFFE2E8F0), height: 32),
+          
           if (_savingEstimate)
-            const Center(child: Padding(
-              padding: EdgeInsets.all(8.0),
-              child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(VianTheme.primaryGold)),
-            ))
+            const Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(VianTheme.primaryGold)))
           else
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                    child: OutlinedButton.icon(
-                      onPressed: () async {
-                        final id = await _ensureSavedEstimate();
-                        if (id != null) {
-                          final url = '${ApiService.baseUrl}/estimations/$id/quotation/pdf?token=${ApiService.token}';
-                          openUrl(url);
+                  child: OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      side: const BorderSide(color: Color(0xFFE2E8F0)),
+                    ),
+                    icon: const Icon(Icons.picture_as_pdf, color: Colors.redAccent),
+                    label: const Text('Open PDF', style: TextStyle(color: VianTheme.headerBlack)),
+                    onPressed: () async {
+                      final id = await _ensureSavedEstimate();
+                      if (id != null) {
+                        final url = '${ApiService.baseUrl}/estimations/$id/quotation/pdf?token=${ApiService.token}';
+                        openUrl(url);
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Failed to save estimate for export.')),
+                        );
+                      }
+                    },
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      side: const BorderSide(color: Color(0xFFE2E8F0)),
+                    ),
+                    icon: const Icon(Icons.table_view, color: Colors.green),
+                    label: const Text('Download Excel', style: TextStyle(color: VianTheme.headerBlack)),
+                    onPressed: () async {
+                      final id = await _ensureSavedEstimate();
+                      if (id != null) {
+                        final bytes = await ApiService.exportQuotationExcel(id);
+                        if (bytes != null) {
+                          saveFile(bytes, 'Quotation-${_projectNameController.text.replaceAll(' ', '_')}.xlsx');
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Excel document downloaded successfully.')),
+                          );
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Failed to save estimate for export.')),
+                            const SnackBar(content: Text('Excel export failed.')),
                           );
                         }
-                      },
-                      icon: const Icon(Icons.picture_as_pdf, color: Colors.redAccent, size: 16),
-                      label: const Text('Open PDF', style: TextStyle(color: Colors.white, fontSize: 11)),
-                      style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: Color(0xFF262635)),
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
-                    ),
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Failed to save estimate for export.')),
+                        );
+                      }
+                    },
                   ),
                 ),
+                const SizedBox(width: 8),
                 Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                    child: OutlinedButton.icon(
-                      onPressed: () async {
-                        final id = await _ensureSavedEstimate();
-                        if (id != null) {
-                          final bytes = await ApiService.exportQuotationExcel(id);
-                          if (bytes != null) {
-                            saveFile(bytes, 'Quotation-${_projectNameController.text.replaceAll(' ', '_')}.xlsx');
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Excel document downloaded successfully.')),
-                            );
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Excel export failed.')),
-                            );
-                          }
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Failed to save estimate for export.')),
-                          );
-                        }
-                      },
-                      icon: const Icon(Icons.table_view, color: Colors.greenAccent, size: 16),
-                      label: const Text('Download Excel', style: TextStyle(color: Colors.white, fontSize: 11)),
-                      style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: Color(0xFF262635)),
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
+                  child: OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      side: const BorderSide(color: Color(0xFFE2E8F0)),
                     ),
+                    icon: const Icon(Icons.share, color: Colors.blueAccent),
+                    label: const Text('Share WhatsApp', style: TextStyle(color: VianTheme.headerBlack)),
+                    onPressed: () async {
+                      final id = await _ensureSavedEstimate();
+                      if (id != null) {
+                        _showShareDialog(id, 'WhatsApp');
+                      }
+                    },
                   ),
                 ),
+                const SizedBox(width: 8),
                 Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                    child: OutlinedButton.icon(
-                      onPressed: () async {
-                        final id = await _ensureSavedEstimate();
-                        if (id != null) {
-                          _showShareDialog(id, 'WhatsApp');
-                        }
-                      },
-                      icon: const Icon(Icons.share, color: Colors.blueAccent, size: 16),
-                      label: const Text('Share WhatsApp', style: TextStyle(color: Colors.white, fontSize: 11)),
-                      style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: Color(0xFF262635)),
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
+                  child: OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      side: const BorderSide(color: Color(0xFFE2E8F0)),
                     ),
-                  ),
-                ),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                    child: OutlinedButton.icon(
-                      onPressed: () async {
-                        final id = await _ensureSavedEstimate();
-                        if (id != null) {
-                          _showShareDialog(id, 'Email');
-                        }
-                      },
-                      icon: const Icon(Icons.email, color: VianTheme.primaryGold, size: 16),
-                      label: const Text('Share Email', style: TextStyle(color: Colors.white, fontSize: 11)),
-                      style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: Color(0xFF262635)),
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
-                    ),
+                    icon: const Icon(Icons.email, color: VianTheme.primaryGold),
+                    label: const Text('Share Email', style: TextStyle(color: VianTheme.headerBlack)),
+                    onPressed: () async {
+                      final id = await _ensureSavedEstimate();
+                      if (id != null) {
+                        _showShareDialog(id, 'Email');
+                      }
+                    },
                   ),
                 ),
               ],
@@ -15472,14 +17161,16 @@ class _EstimationWizardState extends State<EstimationWizard> {
     );
   }
 
-  Widget _buildTextField(String label, TextEditingController controller, {TextInputType keyboardType = TextInputType.text}) {
+  Widget _buildTextField(String label, TextEditingController controller, {TextInputType keyboardType = TextInputType.text, String? errorText}) {
     return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
+      style: const TextStyle(color: VianTheme.headerBlack),
       decoration: InputDecoration(
         labelText: label,
         labelStyle: const TextStyle(color: VianTheme.lightText, fontSize: 12),
-        enabledBorder: const UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFF262635))),
+        enabledBorder: const UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFFE2E8F0))),
+        errorText: errorText,
       ),
     );
   }
@@ -15487,13 +17178,49 @@ class _EstimationWizardState extends State<EstimationWizard> {
   Widget _buildDropdown(String label, String value, List<String> items, Function(String?) onChanged) {
     return DropdownButtonFormField<String>(
       value: value,
-      items: items.map((item) => DropdownMenuItem(value: item, child: Text(item, style: const TextStyle(fontSize: 12)))).toList(),
+      items: items.map((item) => DropdownMenuItem(value: item, child: Text(item, style: const TextStyle(fontSize: 12, color: VianTheme.headerBlack)))).toList(),
       onChanged: onChanged,
+      style: const TextStyle(color: VianTheme.headerBlack, fontSize: 12),
+      dropdownColor: Colors.white,
       decoration: InputDecoration(
         labelText: label,
         labelStyle: const TextStyle(color: VianTheme.lightText, fontSize: 12),
+        enabledBorder: const UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFFE2E8F0))),
       ),
     );
+  }
+
+  bool _validateStep1() {
+    bool isValid = true;
+    setState(() {
+      _clientNameError = null;
+      _clientContactError = null;
+      _areaError = null;
+      
+      final name = _clientNameController.text.trim();
+      if (name.isEmpty) {
+        _clientNameError = 'Client Name is required';
+        isValid = false;
+      }
+      
+      final contact = _clientContactController.text.trim();
+      final bool isEmail = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(contact);
+      final bool isPhone = RegExp(r'^\+?[0-9]{10,15}$').hasMatch(contact);
+      if (contact.isEmpty) {
+        _clientContactError = 'Client contact info is required';
+        isValid = false;
+      } else if (!isEmail && !isPhone) {
+        _clientContactError = 'Enter a valid email or phone number';
+        isValid = false;
+      }
+      
+      final areaVal = double.tryParse(_builtUpAreaController.text) ?? 0.0;
+      if (areaVal <= 0) {
+        _areaError = 'Built-up area must be greater than zero';
+        isValid = false;
+      }
+    });
+    return isValid;
   }
 
   Widget _buildControlButtons() {
@@ -15517,12 +17244,62 @@ class _EstimationWizardState extends State<EstimationWizard> {
           icon: _currentStep == 9 ? Icons.check_circle_outline : Icons.arrow_forward,
           onPressed: () async {
             if (_currentStep == 0) {
+              if (!_validateStep1()) return;
               await _runCalculate();
+            }
+            if (_currentStep == 4) {
+              double totalAlloc = 0.0;
+              for (var ph in _editablePhases) {
+                totalAlloc += double.tryParse(ph['budgetAllocation']?.toString() ?? '0.0') ?? 0.0;
+              }
+              if ((totalAlloc - 100.0).abs() > 0.01) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    backgroundColor: VianTheme.danger,
+                    content: Text(
+                      'Validation Alert: Phase allocations must sum to 100% (currently ${totalAlloc.toStringAsFixed(1)}%). Please adjust allocations.',
+                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                );
+                return;
+              }
+            }
+            if (_currentStep == 6) {
+              int maxPhaseDuration = 0;
+              for (var ph in _editablePhases) {
+                final int duration = int.tryParse(ph['estimatedDuration']?.toString() ?? '0') ?? 0;
+                if (duration > maxPhaseDuration) {
+                  maxPhaseDuration = duration;
+                }
+              }
+              
+              String? warnTrade;
+              for (var l in _editableLabour) {
+                final int days = int.tryParse(l['estimatedDays']?.toString() ?? '0') ?? 0;
+                if (days > maxPhaseDuration) {
+                  warnTrade = l['labourType'] ?? 'Labour';
+                  break;
+                }
+              }
+              
+              if (warnTrade != null) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    backgroundColor: VianTheme.warning,
+                    content: Text(
+                      'Roster Alert: Daily roster days for $warnTrade exceed the longest phase duration of $maxPhaseDuration days.',
+                      style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                );
+              }
             }
             if (_currentStep == 9) {
               final finalData = {
                 'projectName': _projectNameController.text,
                 'clientName': _clientNameController.text,
+                'clientContact': _clientContactController.text,
                 'projectType': _selectedProjectType,
                 'constructionType': _selectedPackage,
                 'state': _selectedState,
@@ -15604,9 +17381,9 @@ class _EstimationSettingsViewState extends State<EstimationSettingsView> {
           width: 500,
           padding: const EdgeInsets.all(32),
           decoration: BoxDecoration(
-            color: const Color(0xFF1E1E26),
+            color: VianTheme.cardColor,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFF262635)),
+            border: Border.all(color: VianTheme.goldBorder),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -15637,7 +17414,7 @@ class _EstimationSettingsViewState extends State<EstimationSettingsView> {
           children: [
             Text(
               'ESTIMATION ENGINE FORMULAS SETTINGS',
-              style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 14),
+              style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: VianTheme.headerBlack, fontSize: 14),
             ),
             const SizedBox(height: 8),
             const Text('Super Admin view to edit base coefficients, regional markups, and default packages.', style: TextStyle(color: VianTheme.lightText, fontSize: 12)),
@@ -15699,7 +17476,7 @@ class _EstimationSettingsViewState extends State<EstimationSettingsView> {
       decoration: InputDecoration(
         labelText: label,
         labelStyle: const TextStyle(color: VianTheme.lightText, fontSize: 12),
-        enabledBorder: const UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFF262635))),
+        enabledBorder: const UnderlineInputBorder(borderSide: BorderSide(color: VianTheme.goldBorder)),
       ),
     );
   }

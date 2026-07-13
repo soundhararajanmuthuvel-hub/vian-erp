@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 
 import '../theme/theme.dart';
 import '../services/api_service.dart';
+import '../services/gps_resolver.dart';
 import 'custom_widgets.dart';
 import 'project_geofence_map.dart';
 import '../../js_stub.dart'
@@ -444,6 +445,59 @@ class _FaceGpsVerifyOverlayState extends State<FaceGpsVerifyOverlay> with Single
                         allowedRadius: _selectedProject?['allowedRadius'] != null ? double.parse(_selectedProject['allowedRadius'].toString()) : 100,
                       ),
                       const SizedBox(height: 16),
+                      // Resolved Human-Readable Address Card
+                      (() {
+                        final address = GpsAddressResolver.resolve(lat, lng);
+                        return Container(
+                          width: double.infinity,
+                          margin: const EdgeInsets.only(bottom: 16),
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.05),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: Colors.white.withOpacity(0.1)),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.pin_drop,
+                                    color: _insideRadius ? Colors.greenAccent : VianTheme.primaryGold,
+                                    size: 20,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    widget.action == 'check-in' ? 'CHECK-IN LOCATION' : 'CHECK-OUT LOCATION',
+                                    style: GoogleFonts.poppins(
+                                      color: VianTheme.primaryGold,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 1.0,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const Divider(color: Colors.white10, height: 16),
+                              Text(
+                                address.siteName,
+                                style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 13),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                address.toAddressOnly(),
+                                style: const TextStyle(color: Colors.white70, fontSize: 11),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Near ${address.landmark}',
+                                style: const TextStyle(color: Colors.white54, fontSize: 10, fontStyle: FontStyle.italic),
+                              ),
+                            ],
+                          ),
+                        );
+                      })(),
                       if (!_insideRadius) ...[
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),

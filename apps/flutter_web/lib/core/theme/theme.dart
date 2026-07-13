@@ -2,18 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class VianTheme {
-  static const Color primaryGold = Color(0xFFD4AF37); // Gold Accent
-  static const Color darkBackground = Color(0xFFF7F9FC); // Primary Background
-  static const Color headerBlack = Color(0xFF0F172A); // Primary Text
-  static const Color cardColor = Color(0xFFFFFFFF); // Card Background
-  static const Color whiteText = Color(0xFF0F172A);
-  static const Color lightText = Color(0xFF64748B); // Secondary Text
-  static const Color goldBorder = Color(0xFFD4AF37);
-  static const Color success = Color(0xFF16A34A); // Success
-  static const Color warning = Color(0xFFF59E0B); // Warning
-  static const Color danger = Color(0xFFDC2626); // Danger
-  static const Color accentBlue = Color(0xFF2563EB); // Construction Blue
-  static const Color sidebarBg = Color(0xFF0F172A); // Sidebar 0F172A
+  static const Color primaryGold = Color(0xFFD4AF37); // Premium Antique Gold
+  static const Color champagneGold = Color(0xFFF1E4C3); // Champagne Gold Accent
+  static const Color darkBackground = Color(0xFFF8FAFC); // Slate 50 Background
+  static const Color headerBlack = Color(0xFF0F172A); // Slate 900 Title text
+  static const Color cardColor = Color(0xFFFFFFFF); // Pure White Card Surface
+  static const Color whiteText = Color(0xFF0F172A); // Primary Slate Text
+  static const Color lightText = Color(0xFF64748B); // Slate 500 Subtitle/Hint Text
+  static const Color goldBorder = Color(0xFFE2E8F0); // Slate 200 Border/Divider
+  static const Color success = Color(0xFF22C55E); // Emerald Success Green
+  static const Color warning = Color(0xFFF59E0B); // Amber Warning
+  static const Color danger = Color(0xFFEF4444); // Rose Red Danger
+  static const Color accentBlue = Color(0xFF2563EB); // Royal Blue Secondary
+  static const Color sidebarBg = Color(0xFF0F172A); // Deep Slate Navy Sidebar
 
   static ThemeData get darkTheme {
     return ThemeData(
@@ -41,15 +42,16 @@ class VianTheme {
           labelLarge: const TextStyle(fontSize: 14.0, fontWeight: FontWeight.w500, color: primaryGold),
         ),
       ),
-      appBarTheme: const AppBarTheme(
+      appBarTheme: AppBarTheme(
         backgroundColor: cardColor,
         elevation: 0,
-        iconTheme: IconThemeData(color: headerBlack),
-        titleTextStyle: TextStyle(
+        shadowColor: Colors.black.withOpacity(0.03),
+        iconTheme: const IconThemeData(color: headerBlack),
+        titleTextStyle: const TextStyle(
           color: headerBlack,
-          fontSize: 20.0,
+          fontSize: 18.0,
           fontWeight: FontWeight.bold,
-          letterSpacing: 1.2,
+          letterSpacing: 1.0,
         ),
       ),
       drawerTheme: const DrawerThemeData(
@@ -59,8 +61,9 @@ class VianTheme {
       cardTheme: CardThemeData(
         color: cardColor,
         elevation: 2,
+        shadowColor: Colors.black.withOpacity(0.03),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(20),
           side: BorderSide(color: Colors.black.withOpacity(0.04), width: 1),
         ),
       ),
@@ -70,7 +73,7 @@ class VianTheme {
           foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: BorderRadius.circular(20),
           ),
           textStyle: GoogleFonts.inter(
             fontWeight: FontWeight.bold,
@@ -85,7 +88,7 @@ class VianTheme {
           side: const BorderSide(color: headerBlack, width: 1.5),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: BorderRadius.circular(20),
           ),
           textStyle: GoogleFonts.inter(
             fontWeight: FontWeight.w600,
@@ -101,19 +104,19 @@ class VianTheme {
         hintStyle: const TextStyle(color: Color(0xFF94A3B8)),
         contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(20),
           borderSide: BorderSide(color: Colors.black.withOpacity(0.08), width: 1),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(20),
           borderSide: const BorderSide(color: headerBlack, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(20),
           borderSide: const BorderSide(color: danger, width: 1),
         ),
         focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(20),
           borderSide: const BorderSide(color: danger, width: 1.5),
         ),
       ),

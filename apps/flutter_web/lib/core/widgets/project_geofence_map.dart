@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../theme/theme.dart';
+import '../services/gps_resolver.dart';
 
 class ProjectGeofenceMap extends StatefulWidget {
   final String projectName;
@@ -126,8 +127,8 @@ class _ProjectGeofenceMapState extends State<ProjectGeofenceMap> with SingleTick
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          'Geofence Radius: ${widget.allowedRadius.toInt()}m',
-                          style: const TextStyle(color: Colors.white60, fontSize: 10),
+                          'Geofence Radius: ${widget.allowedRadius.toInt()}m | Near: ${GpsAddressResolver.resolve(widget.projectLatitude, widget.projectLongitude).landmark}',
+                          style: const TextStyle(color: Colors.white60, fontSize: 9),
                         ),
                       ],
                     ),
