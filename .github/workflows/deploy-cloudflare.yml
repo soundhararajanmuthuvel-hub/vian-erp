@@ -12,6 +12,9 @@ jobs:
     permissions:
       contents: read
       deployments: write
+    defaults:
+      run:
+        working-directory: apps/flutter_web
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -37,24 +40,16 @@ jobs:
         run: flutter doctor -v
 
       - name: Install Dependencies
-        run: |
-          cd apps/flutter_web
-          flutter pub get
+        run: flutter pub get
 
       - name: Static Code Analysis (Linter)
-        run: |
-          cd apps/flutter_web
-          flutter analyze
+        run: flutter analyze
 
       - name: Run Unit & Widget Tests
-        run: |
-          cd apps/flutter_web
-          flutter test
+        run: flutter test
 
       - name: Build Web Production Bundle
-        run: |
-          cd apps/flutter_web
-          flutter build web --release
+        run: flutter build web --release
 
       - name: Archive Production Build Artifacts
         uses: actions/upload-artifact@v4
