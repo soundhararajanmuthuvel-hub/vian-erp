@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:intl/intl.dart';
 import 'main.dart';
 import 'core/theme/theme.dart';
 import 'core/widgets/custom_widgets.dart';
@@ -268,8 +267,10 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
   void _showAddUserForm(BuildContext context, bool isMobile, bool isTablet, {dynamic existingUser}) {
     final nameCtrl = TextEditingController(text: existingUser != null ? existingUser['name'] : '');
     final emailCtrl = TextEditingController(text: existingUser != null ? existingUser['email'] : '');
+    final passwordCtrl = TextEditingController(text: existingUser != null ? (existingUser['password'] ?? 'Vian@123') : 'Vian@123');
     final roleCtrl = TextEditingController(text: existingUser != null ? existingUser['role'] : 'Employee');
     final deptCtrl = TextEditingController(text: existingUser != null ? existingUser['department'] : 'Site Team');
+    bool obscurePassword = true;
     
     final requesterRole = ApiService.currentUser?['role'] ?? 'Client';
     final isRequesterSuperAdmin = requesterRole == 'Super Admin' || requesterRole == 'Managing Director';
@@ -338,6 +339,20 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
             }).toList(),
             onChanged: (val) => setStateDlg(() => deptCtrl.text = val!),
           ),
+          const SizedBox(height: 16),
+          TextField(
+            controller: passwordCtrl,
+            obscureText: obscurePassword,
+            decoration: InputDecoration(
+              labelText: 'Account Password',
+              hintText: 'Enter login password',
+              border: const OutlineInputBorder(),
+              suffixIcon: IconButton(
+                icon: Icon(obscurePassword ? Icons.visibility_off : Icons.visibility),
+                onPressed: () => setStateDlg(() => obscurePassword = !obscurePassword),
+              ),
+            ),
+          ),
           const SizedBox(height: 32),
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
@@ -360,6 +375,7 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
                       'email': emailCtrl.text,
                       'role': roleCtrl.text,
                       'department': deptCtrl.text,
+                      'password': passwordCtrl.text,
                     };
                     
                     final Map<String, dynamic> ok;
@@ -367,7 +383,6 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
                       ok = await ApiService.updateEmployee(existingUser['id'], payload);
                     } else {
                       payload['username'] = emailCtrl.text.split('@').first;
-                      payload['password'] = 'Vian@123';
                       payload['isActive'] = true;
                       ok = await ApiService.createEmployee(payload);
                     }
