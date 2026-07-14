@@ -296,11 +296,11 @@ class _ExecutiveDashboardViewState extends State<ExecutiveDashboardView> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _chartLegend(VianTheme.primaryGold, 'Residential ($6.1M)'),
+              _chartLegend(VianTheme.primaryGold, 'Residential (\$6.1M)'),
               const SizedBox(height: 10),
-              _chartLegend(VianTheme.lightText, 'Commercial ($2.3M)'),
+              _chartLegend(VianTheme.lightText, 'Commercial (\$2.3M)'),
               const SizedBox(height: 10),
-              _chartLegend(VianTheme.goldBorder, 'Civic ($1.0M)'),
+              _chartLegend(VianTheme.goldBorder, 'Civic (\$1.0M)'),
             ],
           )
         ],
@@ -882,7 +882,6 @@ class _ExecutiveDashboardViewState extends State<ExecutiveDashboardView> {
         ),
       ],
     );
-  }
   }
 
   Widget _buildDeptProgressRow(String teamName, String metric, double rate) {
