@@ -14,6 +14,7 @@ require('dotenv').config();
 const app = express();
 
 const allowedOrigins = [
+  'https://vian-erp.pages.dev',
   'https://vianerp.netlify.app',
   'http://localhost:5050',
   'http://localhost:3000',
@@ -24,7 +25,14 @@ const allowedOrigins = [
 app.use(cors({
   origin: function (origin, callback) {
     if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) !== -1 || origin.startsWith('http://localhost') || origin.startsWith('http://127.0.0.1')) {
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      return callback(null, true);
+    }
+    if (origin.startsWith('http://localhost') || origin.startsWith('http://127.0.0.1')) {
+      return callback(null, true);
+    }
+    const isCloudflarePages = /^https:\/\/([a-zA-Z0-9-]+\.)*vian-erp\.pages\.dev$/.test(origin);
+    if (isCloudflarePages) {
       return callback(null, true);
     }
     return callback(new Error('The CORS policy for this site does not allow access from the specified Origin.'), false);
