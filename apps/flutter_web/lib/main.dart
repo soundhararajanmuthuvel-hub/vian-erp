@@ -14471,12 +14471,6 @@ class BuildCenterTab extends ConsumerStatefulWidget {
 class _BuildCenterTabState extends ConsumerState<BuildCenterTab> with SingleTickerProviderStateMixin {
   TabController? _tabController;
 
-  final _appNameController = TextEditingController();
-  final _packageNameController = TextEditingController();
-  final _versionController = TextEditingController();
-  final _buildNumberController = TextEditingController();
-  final _releaseNotesController = TextEditingController();
-
   final _keystoreFileCtrl = TextEditingController();
   final _keystoreAliasCtrl = TextEditingController();
   final _keystorePasswordCtrl = TextEditingController();
@@ -14486,7 +14480,6 @@ class _BuildCenterTabState extends ConsumerState<BuildCenterTab> with SingleTick
 
   final ScrollController _logScrollController = ScrollController();
 
-  String _selectedEnvironment = 'Production';
   String _selectedPlatformForSigning = 'Android';
   String _selectedPlatformForBuild = 'Web Production Build';
 
@@ -14499,8 +14492,8 @@ class _BuildCenterTabState extends ConsumerState<BuildCenterTab> with SingleTick
 
   List<dynamic> _buildHistory = [];
   bool _isLoadingHistory = true;
-  bool _isLoadingConfig = true;
-  Map<String, dynamic> _appConfig = {};
+  bool _isLoadingMetadata = true;
+  Map<String, dynamic> _buildMetadata = {};
 
   final List<String> _platforms = [
     'Android APK (Debug)',
@@ -14516,7 +14509,7 @@ class _BuildCenterTabState extends ConsumerState<BuildCenterTab> with SingleTick
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
-    _loadConfig();
+    _loadMetadata();
     _loadHistory();
     _loadSigningConfig(_selectedPlatformForSigning);
   }
@@ -14524,11 +14517,6 @@ class _BuildCenterTabState extends ConsumerState<BuildCenterTab> with SingleTick
   @override
   void dispose() {
     _statusTimer?.cancel();
-    _appNameController.dispose();
-    _packageNameController.dispose();
-    _versionController.dispose();
-    _buildNumberController.dispose();
-    _releaseNotesController.dispose();
     _keystoreFileCtrl.dispose();
     _keystoreAliasCtrl.dispose();
     _keystorePasswordCtrl.dispose();
@@ -14540,21 +14528,16 @@ class _BuildCenterTabState extends ConsumerState<BuildCenterTab> with SingleTick
     super.dispose();
   }
 
-  Future<void> _loadConfig() async {
-    setState(() => _isLoadingConfig = true);
+  Future<void> _loadMetadata() async {
+    setState(() => _isLoadingMetadata = true);
     try {
-      final config = await ApiService.getBuildAppConfig();
+      final meta = await ApiService.getBuildMetadata();
       setState(() {
-        _appConfig = config;
-        _appNameController.text = config['applicationName'] ?? 'VIAN ERP';
-        _packageNameController.text = config['packageName'] ?? 'com.vian.erp';
-        _versionController.text = config['version'] ?? '1.0.0';
-        _buildNumberController.text = (config['buildNumber'] ?? 1).toString();
-        _selectedEnvironment = config['environment'] ?? 'Production';
-        _isLoadingConfig = false;
+        _buildMetadata = meta;
+        _isLoadingMetadata = false;
       });
     } catch (_) {
-      setState(() => _isLoadingConfig = false);
+      setState(() => _isLoadingMetadata = false);
     }
   }
 
@@ -14585,20 +14568,6 @@ class _BuildCenterTabState extends ConsumerState<BuildCenterTab> with SingleTick
     } catch (_) {}
   }
 
-  Future<void> _saveConfig() async {
-    final payload = {
-      'applicationName': _appNameController.text,
-      'packageName': _packageNameController.text,
-      'version': _versionController.text,
-      'buildNumber': int.tryParse(_buildNumberController.text) ?? 1,
-      'environment': _selectedEnvironment,
-    };
-    await ApiService.updateBuildAppConfig(payload);
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Application build configuration saved successfully!')),
-    );
-  }
-
   Future<void> _saveSigningConfig() async {
     final payload = {
       'platform': _selectedPlatformForSigning,
@@ -14616,14 +14585,8 @@ class _BuildCenterTabState extends ConsumerState<BuildCenterTab> with SingleTick
   }
 
   Future<void> _triggerBuild() async {
-    await _saveConfig();
-
     final payload = {
       'platform': _selectedPlatformForBuild,
-      'versionName': _versionController.text,
-      'buildNumber': int.tryParse(_buildNumberController.text) ?? 1,
-      'releaseNotes': _releaseNotesController.text,
-      'environment': _selectedEnvironment,
     };
 
     final res = await ApiService.triggerBuild(payload);
@@ -14636,7 +14599,6 @@ class _BuildCenterTabState extends ConsumerState<BuildCenterTab> with SingleTick
         _activeBuildProgress = 0;
         _activeBuildLogs = 'Build enqueued. Waiting to start...\r\n';
         _isProgressMinimized = false;
-        _releaseNotesController.clear();
       });
       _startPollingBuild(buildId);
     } else {
@@ -14706,7 +14668,7 @@ class _BuildCenterTabState extends ConsumerState<BuildCenterTab> with SingleTick
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoadingConfig && _appConfig.isEmpty) {
+    if (_isLoadingMetadata && _buildMetadata.isEmpty) {
       return const Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(VianTheme.primaryGold)));
     }
 
@@ -14826,14 +14788,23 @@ class _BuildCenterTabState extends ConsumerState<BuildCenterTab> with SingleTick
   }
 
   Widget _buildBuildTab() {
+    final lastBuild = _buildHistory.firstWhere((b) => b['status'] == 'Completed', orElse: () => null);
+    final latestArtifactName = lastBuild != null ? lastBuild['fileName'] : 'N/A';
+    final latestArtifactId = lastBuild != null ? lastBuild['id'] : null;
+    final currentBranch = _buildMetadata['gitBranch'] ?? 'main';
+    final gitCommit = _buildMetadata['gitCommit'] ?? 'unknown';
+    final flutterVersion = _buildMetadata['flutterVersion'] ?? 'Flutter 3.12.0';
+    final buildQueueCount = _buildHistory.where((b) => b['status'] == 'Pending' || b['status'] == 'Building').length;
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Platform selection section
           Text(
             'SELECT COMPILATION TARGET PLATFORM',
-            style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: VianTheme.primaryGold, fontSize: 13),
+            style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: VianTheme.primaryGold, fontSize: 13, letterSpacing: 1.2),
           ),
           const SizedBox(height: 16),
           LayoutBuilder(
@@ -14847,7 +14818,7 @@ class _BuildCenterTabState extends ConsumerState<BuildCenterTab> with SingleTick
                   crossAxisCount: crossCount,
                   crossAxisSpacing: 16,
                   mainAxisSpacing: 16,
-                  childAspectRatio: 2.2,
+                  childAspectRatio: 2.5,
                 ),
                 itemBuilder: (context, index) {
                   final platformName = _platforms[index];
@@ -14925,114 +14896,272 @@ class _BuildCenterTabState extends ConsumerState<BuildCenterTab> with SingleTick
               );
             },
           ),
+          
           const SizedBox(height: 32),
+          
+          // Action button
           Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Expanded(
-                flex: 2,
-                child: VianCard(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'APP METADATA CONFIGURATION',
-                        style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: VianTheme.primaryGold, fontSize: 13),
-                      ),
-                      const SizedBox(height: 20),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextField(
-                              controller: _appNameController,
-                              decoration: const InputDecoration(labelText: 'Application Name'),
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: TextField(
-                              controller: _packageNameController,
-                              decoration: const InputDecoration(labelText: 'Package Name / Bundle Identifier'),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextField(
-                              controller: _versionController,
-                              decoration: const InputDecoration(labelText: 'Version Name (e.g. 1.0.0)'),
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: TextField(
-                              controller: _buildNumberController,
-                              keyboardType: TextInputType.number,
-                              decoration: const InputDecoration(labelText: 'Build Number (e.g. 1)'),
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: DropdownButtonFormField<String>(
-                              value: _selectedEnvironment,
-                              dropdownColor: VianTheme.headerBlack,
-                              decoration: const InputDecoration(labelText: 'Environment'),
-                              items: ['Development', 'Staging', 'Production'].map((e) {
-                                return DropdownMenuItem(value: e, child: Text(e));
-                              }).toList(),
-                              onChanged: (v) => setState(() => _selectedEnvironment = v!),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 20),
-                      VianButton(
-                        text: 'Save configuration Settings',
-                        icon: Icons.save_outlined,
-                        isSecondary: true,
-                        onPressed: _saveConfig,
-                      ),
-                    ],
-                  ),
-                ),
+              Text(
+                'CI/CD COMPILATION RUNNER',
+                style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: VianTheme.primaryGold, fontSize: 13, letterSpacing: 1.2),
               ),
-              const SizedBox(width: 16),
-              Expanded(
-                flex: 1,
-                child: VianCard(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'RELEASE BUILD CONSOLE',
-                        style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: VianTheme.primaryGold, fontSize: 13),
-                      ),
-                      const SizedBox(height: 20),
-                      TextField(
-                        controller: _releaseNotesController,
-                        maxLines: 4,
-                        decoration: const InputDecoration(
-                          labelText: 'Build Release Notes',
-                          hintText: 'Enter changelog summaries or notes for this build run...',
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      SizedBox(
-                        width: double.infinity,
-                        child: VianButton(
-                          text: _activeBuildId != null ? 'Build is Running...' : 'Build Now',
-                          icon: Icons.play_arrow,
-                          onPressed: _activeBuildId != null ? null : _triggerBuild,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+              VianButton(
+                text: _activeBuildId != null ? 'Build is Running...' : 'Build Now',
+                icon: Icons.play_arrow,
+                onPressed: _activeBuildId != null ? null : _triggerBuild,
               ),
             ],
+          ),
+          
+          const SizedBox(height: 24),
+          
+          // Modern CI/CD Dashboard Grid
+          GridView.count(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            crossAxisCount: MediaQuery.of(context).size.width > 1200 ? 4 : (MediaQuery.of(context).size.width > 800 ? 2 : 1),
+            crossAxisSpacing: 16,
+            mainAxisSpacing: 16,
+            childAspectRatio: 2.2,
+            children: [
+              _dashboardStatCard(
+                'Pipeline Status',
+                _activeBuildId != null ? _activeBuildStatus.toUpperCase() : 'IDLE',
+                _activeBuildId != null ? Icons.loop : Icons.check_circle_outline,
+                _activeBuildId != null ? VianTheme.primaryGold : VianTheme.success,
+              ),
+              _dashboardStatCard(
+                'Current Branch',
+                currentBranch,
+                Icons.fork_right_outlined,
+                VianTheme.accentBlue,
+              ),
+              _dashboardStatCard(
+                'Git Commit Hash',
+                gitCommit,
+                Icons.commit,
+                VianTheme.lightText,
+              ),
+              _dashboardStatCard(
+                'Flutter Engine Version',
+                flutterVersion,
+                Icons.bolt,
+                VianTheme.primaryGold,
+              ),
+              _dashboardStatCard(
+                'Build Queue',
+                '$buildQueueCount builds active',
+                Icons.queue,
+                buildQueueCount > 0 ? VianTheme.warning : VianTheme.lightText,
+              ),
+              _dashboardStatCard(
+                'Build Target Mode',
+                _selectedPlatformForBuild.contains('Debug') ? 'DEBUG MODE' : 'RELEASE MODE',
+                Icons.settings_suggest,
+                VianTheme.primaryGold,
+              ),
+              _dashboardStatCard(
+                'Last Successful Build',
+                lastBuild != null ? 'v${lastBuild['versionName'] ?? '1.0.0'} (${lastBuild['buildNumber'] ?? 1})' : 'N/A',
+                Icons.history_toggle_off,
+                VianTheme.success,
+              ),
+              _dashboardArtifactCard(
+                'Latest Package Artifact',
+                latestArtifactName,
+                latestArtifactId,
+              ),
+            ],
+          ),
+          
+          const SizedBox(height: 32),
+          
+          // Recent history section
+          Text(
+            'RECENT BUILD PIPELINE RUNS',
+            style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: VianTheme.primaryGold, fontSize: 13, letterSpacing: 1.2),
+          ),
+          const SizedBox(height: 16),
+          
+          if (_buildHistory.isEmpty)
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 32.0),
+                child: Text('No build runs recorded.', style: TextStyle(color: VianTheme.lightText)),
+              ),
+            )
+          else
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: _buildHistory.length > 5 ? 5 : _buildHistory.length,
+              itemBuilder: (context, index) {
+                final buildItem = _buildHistory[index];
+                final status = buildItem['status'] ?? 'Pending';
+                final isCompleted = status == 'Completed';
+                final isFailed = status == 'Failed';
+                final statusColor = isCompleted
+                    ? VianTheme.success
+                    : isFailed
+                        ? VianTheme.danger
+                        : VianTheme.primaryGold;
+                
+                final durationSec = buildItem['duration'] ?? 0;
+                final dateStr = buildItem['createdAt'] != null
+                    ? DateFormat('dd MMM yyyy, HH:mm').format(DateTime.parse(buildItem['createdAt']))
+                    : '';
+
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: VianTheme.cardColor,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFF262635)),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        buildItem['platform']?.toString().contains('Android') == true
+                            ? Icons.android
+                            : buildItem['platform']?.toString().contains('iOS') == true
+                                ? Icons.phone_iphone
+                                : buildItem['platform']?.toString().contains('Windows') == true
+                                    ? Icons.laptop_windows
+                                    : Icons.web_outlined,
+                        color: VianTheme.lightText,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '${buildItem['platform'] ?? "Build"} - v${buildItem['versionName'] ?? "1.0.0"} (${buildItem['buildNumber'] ?? 1})',
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.white),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Triggered on $dateStr | Duration: ${durationSec}s',
+                              style: const TextStyle(color: VianTheme.lightText, fontSize: 11),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: statusColor.withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: statusColor.withOpacity(0.4)),
+                        ),
+                        child: Text(
+                          status.toUpperCase(),
+                          style: TextStyle(color: statusColor, fontWeight: FontWeight.bold, fontSize: 10),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      if (isCompleted)
+                        IconButton(
+                          icon: const Icon(Icons.download, color: VianTheme.primaryGold, size: 18),
+                          onPressed: () {
+                            openUrl('${ApiService.baseUrl}/builds/download/${buildItem['id']}');
+                          },
+                        ),
+                      IconButton(
+                        icon: const Icon(Icons.terminal_outlined, color: VianTheme.whiteText, size: 18),
+                        onPressed: () => _showFullLogsDialog(buildItem['id'], buildItem['platform'] ?? 'Build'),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _dashboardStatCard(String label, String value, IconData icon, Color color) {
+    return VianCard(
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: color, size: 22),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(label, style: const TextStyle(color: VianTheme.lightText, fontSize: 10, letterSpacing: 0.8)),
+                const SizedBox(height: 6),
+                Text(
+                  value,
+                  style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.white),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _dashboardArtifactCard(String label, String fileName, int? id) {
+    return VianCard(
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: VianTheme.primaryGold.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: const Icon(Icons.inventory_2_outlined, color: VianTheme.primaryGold, size: 22),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(label, style: const TextStyle(color: VianTheme.lightText, fontSize: 10, letterSpacing: 0.8)),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        fileName,
+                        style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 11, color: Colors.white),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    if (id != null) ...[
+                      const SizedBox(width: 8),
+                      GestureDetector(
+                        onTap: () {
+                          openUrl('${ApiService.baseUrl}/builds/download/$id');
+                        },
+                        child: const Icon(Icons.download, color: VianTheme.primaryGold, size: 16),
+                      ),
+                    ],
+                  ],
+                ),
+              ],
+            ),
           ),
         ],
       ),

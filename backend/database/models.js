@@ -781,15 +781,7 @@ function initModels() {
     provisioningProfile: { type: DataTypes.STRING, allowNull: true }
   }, { tableName: 'signing_configs', underscored: true });
 
-  // 39. BuildConfiguration Model
-  const BuildConfiguration = sequelize.define('BuildConfiguration', {
-    id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-    applicationName: { type: DataTypes.STRING, allowNull: false },
-    packageName: { type: DataTypes.STRING, allowNull: false },
-    version: { type: DataTypes.STRING, allowNull: false },
-    buildNumber: { type: DataTypes.INTEGER, allowNull: false },
-    environment: { type: DataTypes.STRING, defaultValue: 'Production' }
-  }, { tableName: 'build_configurations', underscored: true });
+
 
   // 40. Estimate Model
   const Estimate = sequelize.define('Estimate', {
@@ -1598,7 +1590,7 @@ function initModels() {
     GeofenceWarning, Fine, HourlySiteProgress, AnnouncementAction,
     BoqItem, Material, ProjectPayment, Vendor, Contractor, ContractorPaymentStage, ContractorPaymentRelease, DrawingProgress,
     AnnualTarget, MonthlyTarget, TeamTarget, EmployeeTarget,
-    BuildHistory, SigningConfig, BuildConfiguration,
+    BuildHistory, SigningConfig,
     Estimate, EstimateMaterial, EstimatePhase, EstimateBoq, EstimateLabour, EstimationSetting, MarketPrice,
     BuildVersion, Build, BuildLog, BuildArtifact, AiSetting,
     ProjectStage, StageTask, StageMaterial, StageLabour, StagePayment, StageDocument, StagePhoto, StageReport, StageApproval, StageHistory,

@@ -2,8 +2,8 @@ const { Jimp } = require('jimp');
 const path = require('path');
 const fs = require('fs');
 
-const sourcePath = path.join(__dirname, '../frontend/assets/logo.png');
-const webDir = path.join(__dirname, '../frontend/web');
+const sourcePath = path.join(__dirname, '../apps/flutter_web/assets/logo.png');
+const webDir = path.join(__dirname, '../apps/flutter_web/web');
 const iconsDir = path.join(webDir, 'icons');
 
 // Favicon sizes to generate

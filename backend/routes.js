@@ -7530,7 +7530,7 @@ function registerRoutes(app, models) {
     }
 
     async executeActualBuild(build, platform, writeLog, logFile, startTime) {
-      const projectDir = path.join(__dirname, '../frontend');
+      const projectDir = path.join(__dirname, '../apps/flutter_web');
       writeLog('Executing actual Flutter compilation command...');
       activeBuildProgress.set(build.id, 10);
 
@@ -7626,39 +7626,87 @@ function registerRoutes(app, models) {
     }
   });
 
-  // GET /api/builds/config - Fetch latest build configuration metadata
-  app.get('/api/builds/config', authenticateToken, authorizeRoles('Super Admin', 'Managing Director'), async (req, res) => {
+  // GET /api/builds/metadata - Fetch dynamic auto-parsed configuration metadata
+  app.get('/api/builds/metadata', authenticateToken, authorizeRoles('Super Admin', 'Managing Director'), async (req, res) => {
     try {
-      let config = await models.BuildConfiguration.findOne({ order: [['createdAt', 'DESC']] });
-      if (!config) {
-        config = await models.BuildConfiguration.create({
-          applicationName: 'VIAN ERP',
-          packageName: 'com.vian.erp',
-          version: '1.0.0',
-          buildNumber: 1,
-          environment: 'Production'
-        });
-      }
-      res.json(config);
-    } catch (error) {
-      res.status(500).json({ message: 'Failed to fetch configuration', error: error.message });
-    }
-  });
+      const flutterDir = path.join(__dirname, '../apps/flutter_web');
+      let applicationName = 'VIAN ERP';
+      let packageName = 'com.vian.architects.vian_erp';
+      let version = '1.0.0';
+      let buildNumber = 1;
+      let gitBranch = 'main';
+      let gitCommit = 'unknown';
+      let flutterVersion = 'Flutter 3.12.0';
 
-  // POST /api/builds/config - Update or create build configurations
-  app.post('/api/builds/config', authenticateToken, authorizeRoles('Super Admin', 'Managing Director'), async (req, res) => {
-    try {
-      const { applicationName, packageName, version, buildNumber, environment } = req.body;
-      const config = await models.BuildConfiguration.create({
-        applicationName: applicationName || 'VIAN ERP',
-        packageName: packageName || 'com.vian.erp',
-        version: version || '1.0.0',
-        buildNumber: buildNumber || 1,
-        environment: environment || 'Production'
+      // 1. Parse pubspec.yaml
+      const pubspecPath = path.join(flutterDir, 'pubspec.yaml');
+      if (fs.existsSync(pubspecPath)) {
+        const content = fs.readFileSync(pubspecPath, 'utf8');
+        const versionMatch = content.match(/^version:\s*(.+)$/m);
+        if (versionMatch) {
+          const rawVersion = versionMatch[1].trim();
+          const parts = rawVersion.split('+');
+          version = parts[0];
+          if (parts[1]) {
+            buildNumber = parseInt(parts[1], 10) || 1;
+          }
+        }
+        const nameMatch = content.match(/^name:\s*(.+)$/m);
+        if (nameMatch) {
+          const rawName = nameMatch[1].trim();
+          applicationName = rawName.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+        }
+      }
+
+      // 2. Parse android gradle/kts for packageName
+      const gradlePath = path.join(flutterDir, 'android/app/build.gradle.kts');
+      if (fs.existsSync(gradlePath)) {
+        const content = fs.readFileSync(gradlePath, 'utf8');
+        const appIdMatch = content.match(/applicationId\s*=\s*["']([^"']+)["']/);
+        if (appIdMatch) {
+          packageName = appIdMatch[1];
+        }
+      }
+
+      // 3. Parse ios Info.plist for app display name
+      const plistPath = path.join(flutterDir, 'ios/Runner/Info.plist');
+      if (fs.existsSync(plistPath)) {
+        const content = fs.readFileSync(plistPath, 'utf8');
+        const displayNameMatch = content.match(/<key>CFBundleDisplayName<\/key>\s*<string>([^<]+)<\/string>/);
+        if (displayNameMatch) {
+          applicationName = displayNameMatch[1];
+        }
+      }
+
+      // 4. Git Branch & Commit
+      try {
+        const { execSync } = require('child_process');
+        gitBranch = execSync('git rev-parse --abbrev-ref HEAD', { encoding: 'utf8' }).trim();
+        gitCommit = execSync('git rev-parse --short HEAD', { encoding: 'utf8' }).trim();
+      } catch (err) {
+        // Fallback for git
+      }
+
+      // 5. Flutter version
+      try {
+        const { execSync } = require('child_process');
+        const fVer = execSync('flutter --version', { encoding: 'utf8' }).split('\n')[0].trim();
+        if (fVer) flutterVersion = fVer;
+      } catch (err) {
+        // Fallback
+      }
+
+      res.json({
+        applicationName,
+        packageName,
+        version,
+        buildNumber,
+        gitBranch,
+        gitCommit,
+        flutterVersion
       });
-      res.json(config);
     } catch (error) {
-      res.status(500).json({ message: 'Failed to save configuration', error: error.message });
+      res.status(500).json({ message: 'Failed to read build metadata', error: error.message });
     }
   });
 
@@ -7707,30 +7755,36 @@ function registerRoutes(app, models) {
   // POST /api/builds/trigger - Enqueue a compilation request
   app.post('/api/builds/trigger', authenticateToken, authorizeRoles('Super Admin', 'Managing Director'), async (req, res) => {
     try {
-      const { platform, versionName, buildNumber, releaseNotes, environment } = req.body;
-      
+      const { platform } = req.body;
+
+      const flutterDir = path.join(__dirname, '../apps/flutter_web');
+      let versionName = '1.0.0';
+      let buildNumber = 1;
+      const pubspecPath = path.join(flutterDir, 'pubspec.yaml');
+      if (fs.existsSync(pubspecPath)) {
+        const content = fs.readFileSync(pubspecPath, 'utf8');
+        const versionMatch = content.match(/^version:\s*(.+)$/m);
+        if (versionMatch) {
+          const rawVersion = versionMatch[1].trim();
+          const parts = rawVersion.split('+');
+          versionName = parts[0];
+          if (parts[1]) {
+            buildNumber = parseInt(parts[1], 10) || 1;
+          }
+        }
+      }
+
       const build = await models.BuildHistory.create({
-        versionName: versionName || '1.0.0',
-        buildNumber: buildNumber || 1,
+        versionName,
+        buildNumber,
         platform: platform || 'Web Production Build',
         status: 'Pending',
-        releaseNotes: releaseNotes || '',
+        releaseNotes: 'CI/CD Automated Build Run',
         builtBy: req.user.id
       });
 
-      const latestConfig = await models.BuildConfiguration.findOne({ order: [['createdAt', 'DESC']] });
-      if (latestConfig) {
-        await models.BuildConfiguration.create({
-          applicationName: latestConfig.applicationName,
-          packageName: latestConfig.packageName,
-          version: versionName || latestConfig.version,
-          buildNumber: (buildNumber || latestConfig.buildNumber) + 1,
-          environment: environment || latestConfig.environment
-        });
-      }
-
       buildQueueInstance.enqueue(build.id);
-      
+
       res.json({ success: true, message: 'Build enqueued successfully', build });
     } catch (error) {
       res.status(500).json({ message: 'Failed to trigger build', error: error.message });

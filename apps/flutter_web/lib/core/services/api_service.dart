@@ -2498,10 +2498,10 @@ class ApiService {
     }
   }
 
-  // Fetch build configs
-  static Future<Map<String, dynamic>> getBuildAppConfig() async {
+  // Fetch parsed build metadata directly from files (no DB storage)
+  static Future<Map<String, dynamic>> getBuildMetadata() async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/builds/config'), headers: _headers);
+      final response = await http.get(Uri.parse('$baseUrl/builds/metadata'), headers: _headers);
       if (response.statusCode == 200) {
         return json.decode(response.body);
       }
@@ -2509,28 +2509,13 @@ class ApiService {
     } catch (_) {
       return {
         'applicationName': 'VIAN ERP',
-        'packageName': 'com.vian.erp',
+        'packageName': 'com.vian.architects.vian_erp',
         'version': '1.0.0',
-        'buildNumber': 2,
-        'environment': 'Production'
+        'buildNumber': 1,
+        'gitBranch': 'main',
+        'gitCommit': 'unknown',
+        'flutterVersion': 'Flutter 3.12.0',
       };
-    }
-  }
-
-  // Save build config
-  static Future<Map<String, dynamic>> updateBuildAppConfig(Map<String, dynamic> data) async {
-    try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/builds/config'),
-        headers: _headers,
-        body: json.encode(data),
-      );
-      if (response.statusCode == 200) {
-        return json.decode(response.body);
-      }
-      throw Exception();
-    } catch (_) {
-      return data;
     }
   }
 
