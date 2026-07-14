@@ -33,8 +33,17 @@ function authorizeRoles(...allowedRoles) {
     if (!req.user) {
       return res.status(403).json({ message: 'Unauthorized. Insufficient permissions.' });
     }
-    const role = req.user.role === 'Managing Director' ? 'Super Admin' : req.user.role;
-    if (!allowedRoles.includes(role) && !allowedRoles.includes(req.user.role)) {
+    let role = req.user.role === 'Managing Director' ? 'Super Admin' : req.user.role;
+    if (role === 'Admin') {
+      role = 'Admin / Office Manager / Accounts';
+    }
+    const resolvedRole = getPermissionRole(req.user.role, req.user.username);
+    const isAllowed = allowedRoles.includes(role) || 
+                      allowedRoles.includes(req.user.role) || 
+                      (resolvedRole === 'Super Admin' && allowedRoles.includes('Super Admin')) ||
+                      (resolvedRole === 'Admin' && allowedRoles.includes('Admin / Office Manager / Accounts'));
+                      
+    if (!isAllowed) {
       return res.status(403).json({ message: 'Unauthorized. Insufficient permissions.' });
     }
     next();
@@ -3242,7 +3251,7 @@ function registerRoutes(app, models) {
   // EMPLOYEES & ATTENDANCE REPORTS
   // ==========================================
   
-  app.get('/api/employees', authenticateToken, async (req, res) => {
+  const getEmployeesHandler = async (req, res) => {
     try {
       const employees = await User.findAll({
         where: {
@@ -3256,7 +3265,10 @@ function registerRoutes(app, models) {
     } catch (error) {
       res.status(500).json({ message: 'Error loading employees', error: error.message });
     }
-  });
+  };
+
+  app.get('/api/employees', authenticateToken, getEmployeesHandler);
+  app.get('/api/users', authenticateToken, getEmployeesHandler);
 
   // ==========================================
   // NOTIFICATIONS MODULE
@@ -5673,7 +5685,7 @@ function registerRoutes(app, models) {
   // ==========================================
   // EMPLOYEE/USER CRUD ENDPOINTS
   // ==========================================
-  app.post('/api/employees', authenticateToken, authorizeRoles('Super Admin', 'Managing Director', 'Admin / Office Manager / Accounts'), async (req, res) => {
+  const postEmployeesHandler = async (req, res) => {
     const { username, password, name, email, role, department, designation, employeeId } = req.body;
     if (!username || !password || !name || !email || !role) {
       return res.status(400).json({ message: 'Username, password, name, email and role are required' });
@@ -5707,9 +5719,9 @@ function registerRoutes(app, models) {
     } catch (error) {
       res.status(400).json({ message: 'Failed to create user account', error: error.message });
     }
-  });
+  };
 
-  app.put('/api/employees/:id', authenticateToken, authorizeRoles('Super Admin', 'Managing Director', 'Admin / Office Manager / Accounts'), async (req, res) => {
+  const putEmployeesHandler = async (req, res) => {
     try {
       const emp = await User.findByPk(req.params.id);
       if (!emp) return res.status(404).json({ message: 'User not found' });
@@ -5718,15 +5730,20 @@ function registerRoutes(app, models) {
       const targetRolePerm = getPermissionRole(emp.role, emp.username);
 
       if (requesterRole !== 'Super Admin') {
-        if (req.body.role !== undefined && req.body.role !== emp.role) {
-          return res.status(403).json({ message: 'Forbidden: Admin cannot change user roles' });
+        if (req.body.role !== undefined && (req.body.role === 'Super Admin' || req.body.role === 'Managing Director')) {
+          return res.status(403).json({ message: 'Forbidden: Admin cannot assign Super Admin roles' });
         }
-        if (targetRolePerm === 'Super Admin' || targetRolePerm === 'Admin') {
-          return res.status(403).json({ message: 'Forbidden: Non-Superadmin cannot modify Super Admin or Admin accounts' });
+        if (targetRolePerm === 'Super Admin') {
+          return res.status(403).json({ message: 'Forbidden: Non-Superadmin cannot modify Super Admin accounts' });
         }
-        if (emp.department !== req.user.department) {
-          return res.status(403).json({ message: 'Forbidden: Admin can only manage users within their own department' });
-        }
+      }
+
+      // If password is being changed, hash it
+      if (req.body.password) {
+        const bcrypt = require('bcryptjs');
+        const salt = await bcrypt.genSalt(10);
+        req.body.passwordHash = await bcrypt.hash(req.body.password, salt);
+        delete req.body.password;
       }
 
       // Compute diff
@@ -5756,13 +5773,15 @@ function registerRoutes(app, models) {
     } catch (error) {
       res.status(400).json({ message: 'Failed to update user', error: error.message });
     }
-  });
+  };
 
-  app.delete('/api/employees/:id', authenticateToken, async (req, res) => {
+  const deleteEmployeesHandler = async (req, res) => {
     try {
       const requesterRole = getPermissionRole(req.user.role, req.user.username);
-      if (requesterRole !== 'Super Admin') {
-        return res.status(403).json({ message: 'Forbidden: Only Superadmin can delete accounts' });
+      const isAdmin = requesterRole === 'Super Admin' || (req.user.role && req.user.role.toLowerCase().includes('admin'));
+      
+      if (!isAdmin) {
+        return res.status(403).json({ message: 'Forbidden: Insufficient permissions to delete accounts' });
       }
 
       const emp = await User.findByPk(req.params.id);
@@ -5773,6 +5792,9 @@ function registerRoutes(app, models) {
       }
 
       const targetRolePerm = getPermissionRole(emp.role, emp.username);
+      if (requesterRole !== 'Super Admin' && targetRolePerm === 'Super Admin') {
+        return res.status(403).json({ message: 'Forbidden: Admin cannot delete Super Admin accounts' });
+      }
 
       const oldVal = emp.toJSON();
       await emp.destroy();
@@ -5790,7 +5812,16 @@ function registerRoutes(app, models) {
     } catch (error) {
       res.status(500).json({ message: 'Failed to delete user', error: error.message });
     }
-  });
+  };
+
+  app.post('/api/employees', authenticateToken, authorizeRoles('Super Admin', 'Managing Director', 'Admin / Office Manager / Accounts'), postEmployeesHandler);
+  app.post('/api/users', authenticateToken, authorizeRoles('Super Admin', 'Managing Director', 'Admin / Office Manager / Accounts'), postEmployeesHandler);
+
+  app.put('/api/employees/:id', authenticateToken, authorizeRoles('Super Admin', 'Managing Director', 'Admin / Office Manager / Accounts'), putEmployeesHandler);
+  app.put('/api/users/:id', authenticateToken, authorizeRoles('Super Admin', 'Managing Director', 'Admin / Office Manager / Accounts'), putEmployeesHandler);
+
+  app.delete('/api/employees/:id', authenticateToken, deleteEmployeesHandler);
+  app.delete('/api/users/:id', authenticateToken, deleteEmployeesHandler);
 
   // ==========================================
   // SMART IMPORT & EXPORT ENGINE APIS

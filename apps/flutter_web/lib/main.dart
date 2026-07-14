@@ -28,6 +28,7 @@ import 'forgot_password_page.dart';
 import 'splash_screen.dart';
 import 'core/models/estimation.dart';
 import 'core/services/estimation_provider.dart';
+import 'user_management.dart';
 import 'js_stub.dart'
     if (dart.library.js) 'dart:js' as js;
 
@@ -91,6 +92,18 @@ final GoRouter _router = GoRouter(
         GoRoute(
           path: '/dashboard',
           builder: (context, state) => const DashboardTab(),
+        ),
+        GoRoute(
+          path: '/users',
+          builder: (context, state) => const UserManagementTab(),
+        ),
+        GoRoute(
+          path: '/users/create',
+          builder: (context, state) => const UserManagementTab(showCreateDialog: true),
+        ),
+        GoRoute(
+          path: '/users/edit/:id',
+          builder: (context, state) => UserManagementTab(editUserId: state.pathParameters['id']),
         ),
         GoRoute(
           path: '/crm-leads',
@@ -1052,6 +1065,7 @@ class _MainNavigationShellState extends ConsumerState<MainNavigationShell> {
   List<Map<String, dynamic>> _getTabs(String role) {
     final allTabs = [
       {'title': 'Dashboard', 'icon': Icons.dashboard_outlined, 'route': '/dashboard', 'category': 'Core & CRM'},
+      {'title': 'User Management', 'icon': Icons.manage_accounts_outlined, 'route': '/users', 'roles': ['Super Admin', 'Managing Director', 'Admin', 'Admin / Office Manager / Accounts', 'Project Manager'], 'category': 'Core & CRM'},
       {'title': 'CRM Leads', 'icon': Icons.campaign_outlined, 'route': '/crm-leads', 'roles': ['Super Admin', 'Receptionist'], 'category': 'Core & CRM'},
       {'title': 'Enquiry Inbox', 'icon': Icons.inbox_outlined, 'route': '/enquiry-inbox', 'roles': ['Super Admin', 'Admin / Office Manager / Accounts', 'Tech Head + Senior Architect'], 'category': 'Core & CRM'},
       {'title': 'Clients', 'icon': Icons.people_outline, 'route': '/clients', 'roles': ['Super Admin', 'Receptionist'], 'category': 'Core & CRM'},

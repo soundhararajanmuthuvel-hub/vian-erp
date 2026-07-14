@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -36,7 +37,14 @@ class _HapticTapEffectState extends State<HapticTapEffect> {
 }
 
 class UserManagementTab extends ConsumerStatefulWidget {
-  const UserManagementTab({Key? key}) : super(key: key);
+  final bool showCreateDialog;
+  final String? editUserId;
+
+  const UserManagementTab({
+    Key? key,
+    this.showCreateDialog = false,
+    this.editUserId,
+  }) : super(key: key);
 
   @override
   ConsumerState<UserManagementTab> createState() => _UserManagementTabState();
@@ -46,7 +54,14 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
   List<dynamic> _users = [];
   bool _loading = true;
   int _activeTab = 0; // 0 = Users List, 1 = Permission Matrix, 2 = Audit Logs
-  
+
+  // Search, filter, pagination variables
+  String _searchQuery = '';
+  String _selectedRoleFilter = 'All';
+  String _selectedStatusFilter = 'All';
+  int _currentPage = 1;
+  final int _itemsPerPage = 6;
+
   // Simulated audit logs
   final List<Map<String, dynamic>> _auditLogs = [
     {
@@ -72,6 +87,37 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
     },
   ];
 
+  // Helper methods for password strength checking
+  String _checkPasswordStrength(String password) {
+    if (password.isEmpty) return '';
+    int score = 0;
+    if (password.length >= 8) score++;
+    if (password.contains(RegExp(r'[A-Z]'))) score++;
+    if (password.contains(RegExp(r'[0-9]'))) score++;
+    if (password.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'))) score++;
+    
+    if (score <= 1) return 'Weak';
+    if (score == 2) return 'Fair';
+    if (score == 3) return 'Good';
+    return 'Strong';
+  }
+
+  Color _getPasswordStrengthColor(String strength) {
+    switch (strength) {
+      case 'Weak': return Colors.red;
+      case 'Fair': return Colors.orange;
+      case 'Good': return Colors.blue;
+      case 'Strong': return Colors.green;
+      default: return Colors.transparent;
+    }
+  }
+
+  String _generateRandomPassword() {
+    const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#%^&*';
+    final rand = math.Random();
+    return List.generate(12, (index) => chars[rand.nextInt(chars.length)]).join();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -84,9 +130,29 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
       _users = list;
       _loading = false;
     });
+
+    if (widget.showCreateDialog) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        final size = MediaQuery.of(context).size;
+        _showAddUserForm(context, size.width < 650, size.width >= 650 && size.width < 1000);
+      });
+    } else if (widget.editUserId != null) {
+      final targetId = int.tryParse(widget.editUserId!);
+      if (targetId != null) {
+        final existing = list.firstWhere((element) => element['id'] == targetId, orElse: () => null);
+        if (existing != null) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!mounted) return;
+            final size = MediaQuery.of(context).size;
+            _showAddUserForm(context, size.width < 650, size.width >= 650 && size.width < 1000, existingUser: existing);
+          });
+        }
+      }
+    }
   }
 
-  bool _canEditUser(dynamic targetUser, String requesterRole, String requesterDept) {
+  bool _canEditUser(dynamic targetUser, String requesterRole) {
     final String r = requesterRole.toLowerCase();
     final bool isReqSuper = r == 'super admin' || r == 'managing director';
     if (isReqSuper) return true;
@@ -95,9 +161,7 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
     if (isReqAdmin) {
       final String tRole = (targetUser['role'] ?? 'Employee').toLowerCase();
       final bool isTargetSuper = tRole == 'super admin' || tRole == 'managing director';
-      final bool isTargetAdmin = tRole.contains('admin');
-      if (isTargetSuper || isTargetAdmin) return false;
-      return targetUser['department'] == requesterDept;
+      return !isTargetSuper;
     }
     return false;
   }
@@ -105,7 +169,15 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
   bool _canDeleteUser(dynamic targetUser, String requesterRole) {
     final String r = requesterRole.toLowerCase();
     final bool isReqSuper = r == 'super admin' || r == 'managing director';
-    return isReqSuper;
+    if (isReqSuper) return true;
+
+    final bool isReqAdmin = r.contains('admin');
+    if (isReqAdmin) {
+      final String tRole = (targetUser['role'] ?? 'Employee').toLowerCase();
+      final bool isTargetSuper = tRole == 'super admin' || tRole == 'managing director';
+      return !isTargetSuper;
+    }
+    return false;
   }
 
   void _confirmDeleteUser(dynamic targetUser, bool isMobile) {
@@ -267,10 +339,12 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
   void _showAddUserForm(BuildContext context, bool isMobile, bool isTablet, {dynamic existingUser}) {
     final nameCtrl = TextEditingController(text: existingUser != null ? existingUser['name'] : '');
     final emailCtrl = TextEditingController(text: existingUser != null ? existingUser['email'] : '');
-    final passwordCtrl = TextEditingController(text: existingUser != null ? (existingUser['password'] ?? 'Vian@123') : 'Vian@123');
+    final passwordCtrl = TextEditingController(text: '');
+    final confirmPasswordCtrl = TextEditingController(text: '');
     final roleCtrl = TextEditingController(text: existingUser != null ? existingUser['role'] : 'Employee');
     final deptCtrl = TextEditingController(text: existingUser != null ? existingUser['department'] : 'Site Team');
     bool obscurePassword = true;
+    bool showPasswordFields = existingUser == null;
     
     final requesterRole = ApiService.currentUser?['role'] ?? 'Client';
     final isRequesterSuperAdmin = requesterRole == 'Super Admin' || requesterRole == 'Managing Director';
@@ -339,20 +413,96 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
             }).toList(),
             onChanged: (val) => setStateDlg(() => deptCtrl.text = val!),
           ),
-          const SizedBox(height: 16),
-          TextField(
-            controller: passwordCtrl,
-            obscureText: obscurePassword,
-            decoration: InputDecoration(
-              labelText: 'Account Password',
-              hintText: 'Enter login password',
-              border: const OutlineInputBorder(),
-              suffixIcon: IconButton(
-                icon: Icon(obscurePassword ? Icons.visibility_off : Icons.visibility),
-                onPressed: () => setStateDlg(() => obscurePassword = !obscurePassword),
+          if (existingUser != null) ...[
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Checkbox(
+                  value: showPasswordFields,
+                  activeColor: VianTheme.primaryGold,
+                  onChanged: (val) => setStateDlg(() => showPasswordFields = val ?? false),
+                ),
+                const Text('Reset / Change Password', style: TextStyle(fontSize: 13, color: VianTheme.headerBlack)),
+              ],
+            ),
+          ],
+          if (showPasswordFields) ...[
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: passwordCtrl,
+                    obscureText: obscurePassword,
+                    onChanged: (_) => setStateDlg(() {}),
+                    decoration: InputDecoration(
+                      labelText: 'Password',
+                      hintText: 'Enter password',
+                      border: const OutlineInputBorder(),
+                      suffixIcon: IconButton(
+                        icon: Icon(obscurePassword ? Icons.visibility_off : Icons.visibility),
+                        onPressed: () => setStateDlg(() => obscurePassword = !obscurePassword),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                IconButton(
+                  icon: const Icon(Icons.shuffle, color: VianTheme.primaryGold),
+                  tooltip: 'Generate Random Password',
+                  onPressed: () {
+                    final pass = _generateRandomPassword();
+                    setStateDlg(() {
+                      passwordCtrl.text = pass;
+                      confirmPasswordCtrl.text = pass;
+                    });
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            if (passwordCtrl.text.isNotEmpty) ...[
+              (() {
+                final strength = _checkPasswordStrength(passwordCtrl.text);
+                final color = _getPasswordStrengthColor(strength);
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Strength: $strength', style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: List.generate(4, (index) {
+                        final filled = (strength == 'Weak' && index == 0) ||
+                                       (strength == 'Fair' && index <= 1) ||
+                                       (strength == 'Good' && index <= 2) ||
+                                       (strength == 'Strong');
+                        return Expanded(
+                          child: Container(
+                            height: 4,
+                            margin: const EdgeInsets.symmetric(horizontal: 2),
+                            decoration: BoxDecoration(
+                              color: filled ? color : Colors.grey.shade300,
+                              borderRadius: BorderRadius.circular(2),
+                            ),
+                          ),
+                        );
+                      }),
+                    ),
+                  ],
+                );
+              })(),
+            ],
+            const SizedBox(height: 16),
+            TextField(
+              controller: confirmPasswordCtrl,
+              obscureText: obscurePassword,
+              decoration: const InputDecoration(
+                labelText: 'Confirm Password',
+                hintText: 'Re-enter password',
+                border: OutlineInputBorder(),
               ),
             ),
-          ),
+          ],
           const SizedBox(height: 32),
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
@@ -370,13 +520,31 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
                 ),
                 onPressed: () async {
                   if (nameCtrl.text.isNotEmpty && emailCtrl.text.isNotEmpty) {
+                    if (showPasswordFields) {
+                      if (passwordCtrl.text.isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Password cannot be empty.')),
+                        );
+                        return;
+                      }
+                      if (passwordCtrl.text != confirmPasswordCtrl.text) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Passwords do not match.')),
+                        );
+                        return;
+                      }
+                    }
+                    
                     final Map<String, dynamic> payload = {
                       'name': nameCtrl.text,
                       'email': emailCtrl.text,
                       'role': roleCtrl.text,
                       'department': deptCtrl.text,
-                      'password': passwordCtrl.text,
                     };
+                    
+                    if (showPasswordFields) {
+                      payload['password'] = passwordCtrl.text;
+                    }
                     
                     final Map<String, dynamic> ok;
                     if (existingUser != null) {
@@ -389,6 +557,10 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
                     if (ok['success'] == true) {
                       Navigator.of(context).pop();
                       _loadUsers();
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(ok['message'] ?? 'Action failed.')),
+                      );
                     }
                   }
                 },
@@ -483,7 +655,20 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
     final currentUser = ref.watch(userProvider);
     final userRole = currentUser?['role'] ?? 'Client';
     
-    final isSuperAdmin = userRole == 'Super Admin' || userRole == 'Managing Director';
+    final r = userRole.toLowerCase();
+    final isSuperAdmin = r == 'super admin' || r == 'managing director';
+    final isAdmin = r.contains('admin');
+    final isPM = r.contains('project manager') || r.contains('manager');
+    final hasAccess = isSuperAdmin || isAdmin || isPM;
+
+    if (!hasAccess) {
+      return const Scaffold(
+        backgroundColor: VianTheme.darkBackground,
+        body: Center(
+          child: Text('Access Denied: You do not have permissions to manage users.', style: TextStyle(color: Colors.white70)),
+        ),
+      );
+    }
 
     if (_loading) return const Center(child: CircularProgressIndicator());
 
@@ -516,7 +701,7 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
                     ),
                   ],
                 ),
-                if (!isMobile)
+                if (!isMobile && (isSuperAdmin || isAdmin))
                   ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: VianTheme.primaryGold,
@@ -557,7 +742,7 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
           ],
         ),
       ),
-      floatingActionButton: isMobile
+      floatingActionButton: (isMobile && (isSuperAdmin || isAdmin))
           ? FloatingActionButton(
               backgroundColor: VianTheme.primaryGold,
               foregroundColor: Colors.white,
@@ -610,266 +795,461 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
   Widget _buildUsersList(bool isMobile, bool isTablet) {
     final currentUser = ref.watch(userProvider);
     final String userRole = currentUser?['role'] ?? 'Client';
-    final String requesterDept = currentUser?['department'] ?? 'Site Team';
     final int currentUserId = currentUser?['id'] ?? 0;
 
-    if (isMobile) {
-      return ListView.builder(
-        itemCount: _users.length,
-        itemBuilder: (context, index) {
-          final u = _users[index];
-          final bool showEdit = _canEditUser(u, userRole, requesterDept);
-          final bool showDelete = _canDeleteUser(u, userRole);
-          final bool isSelf = u['id'] == currentUserId;
+    // 1. Perform client-side filter and search
+    final filteredUsers = _users.where((u) {
+      final name = (u['name'] ?? '').toString().toLowerCase();
+      final email = (u['email'] ?? '').toString().toLowerCase();
+      final query = _searchQuery.toLowerCase();
+      final matchesSearch = name.contains(query) || email.contains(query);
 
-          return Container(
-            margin: const EdgeInsets.only(bottom: 12),
-            child: VianCard(
-              child: Stack(
-                children: [
-                  ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: CircleAvatar(
-                      backgroundColor: VianTheme.darkBackground,
-                      child: Text(u['name']?[0] ?? 'U', style: const TextStyle(color: VianTheme.primaryGold)),
-                    ),
-                    title: Text(u['name'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold)),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(u['email'] ?? '', style: const TextStyle(fontSize: 12)),
-                        const SizedBox(height: 4),
-                        _buildRoleBadge(u['role'] ?? 'Employee'),
-                      ],
-                    ),
-                  ),
-                  if (showEdit || showDelete)
-                    Positioned(
-                      top: 0,
-                      right: 0,
-                      child: HapticTapEffect(
-                        onTap: () => _showMobileActions(context, u, showEdit, showDelete, isSelf),
-                        child: Container(
-                          padding: const EdgeInsets.all(8),
-                          child: const Icon(Icons.more_vert, size: 20),
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          );
-        },
-      );
-    }
+      final roleStr = (u['role'] ?? 'Employee').toString();
+      final matchesRole = _selectedRoleFilter == 'All' || 
+          roleStr.toLowerCase() == _selectedRoleFilter.toLowerCase() ||
+          (roleStr.toLowerCase().contains('admin') && _selectedRoleFilter == 'Admin') ||
+          (roleStr.toLowerCase().contains('project manager') && _selectedRoleFilter == 'Project Manager');
 
-    if (isTablet) {
-      return ListView.builder(
-        itemCount: _users.length,
-        itemBuilder: (context, index) {
-          final u = _users[index];
-          final bool showEdit = _canEditUser(u, userRole, requesterDept);
-          final bool showDelete = _canDeleteUser(u, userRole);
-          final bool isSelf = u['id'] == currentUserId;
+      final bool isActive = u['isActive'] ?? true;
+      final matchesStatus = _selectedStatusFilter == 'All' || 
+          (_selectedStatusFilter == 'Active' && isActive) ||
+          (_selectedStatusFilter == 'Suspended' && !isActive);
 
-          return Container(
-            margin: const EdgeInsets.only(bottom: 12),
-            child: VianCard(
-              child: Row(
-                children: [
-                  CircleAvatar(
-                    backgroundColor: VianTheme.darkBackground,
-                    radius: 20,
-                    child: Text(u['name']?[0] ?? 'U', style: const TextStyle(color: VianTheme.primaryGold)),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(u['name'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 2),
-                        Text(u['email'] ?? '', style: const TextStyle(color: VianTheme.lightText, fontSize: 12)),
-                      ],
-                    ),
-                  ),
-                  _buildRoleBadge(u['role'] ?? 'Employee'),
-                  const SizedBox(width: 24),
-                  if (showEdit || showDelete)
-                    PopupMenuButton<String>(
-                      icon: const Icon(Icons.more_vert),
-                      onSelected: (val) {
-                        if (val == 'edit') {
-                          _showAddUserForm(context, false, true, existingUser: u);
-                        } else if (val == 'delete') {
-                          _confirmDeleteUser(u, false);
-                        }
-                      },
-                      itemBuilder: (ctx) => [
-                        if (showEdit)
-                          const PopupMenuItem(
-                            value: 'edit',
-                            child: Row(
-                              children: [
-                                Icon(Icons.edit_outlined, size: 16, color: Color(0xFF6B6560)),
-                                SizedBox(width: 8),
-                                Text('Edit User'),
-                              ],
-                            ),
-                          ),
-                        if (showDelete)
-                          PopupMenuItem(
-                            value: 'delete',
-                            enabled: !isSelf,
-                            child: Row(
-                              children: [
-                                Icon(Icons.delete_outline, size: 16, color: isSelf ? Colors.grey : Color(0xFFB33A3A)),
-                                SizedBox(width: 8),
-                                Text(
-                                  'Delete User',
-                                  style: TextStyle(color: isSelf ? Colors.grey : Color(0xFFB33A3A)),
-                                ),
-                              ],
-                            ),
-                          ),
-                      ],
-                    ),
-                ],
-              ),
-            ),
-          );
-        },
-      );
-    }
+      return matchesSearch && matchesRole && matchesStatus;
+    }).toList();
 
-    // Desktop view
-    return VianCard(
-      padding: EdgeInsets.zero,
-      child: Column(
+    // 2. Perform pagination
+    final int totalItems = filteredUsers.length;
+    final int totalPages = (totalItems / _itemsPerPage).ceil();
+    final int startIndex = (_currentPage - 1) * _itemsPerPage;
+    final int endIndex = math.min(startIndex + _itemsPerPage, totalItems);
+    
+    final paginatedUsers = (startIndex < totalItems) 
+        ? filteredUsers.sublist(startIndex, endIndex) 
+        : <dynamic>[];
+
+    // Filter controls UI
+    final Widget searchAndFilterRow = Padding(
+      padding: const EdgeInsets.only(bottom: 16.0),
+      child: Row(
         children: [
-          // Table header
-          Container(
-            color: const Color(0xFFF7F4EE),
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-            child: const Row(
-              children: [
-                Expanded(flex: 3, child: Text('NAME / EMAIL', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: VianTheme.lightText))),
-                Expanded(flex: 2, child: Text('ROLE', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: VianTheme.lightText))),
-                Expanded(flex: 2, child: Text('DEPARTMENT', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: VianTheme.lightText))),
-                Expanded(flex: 2, child: Text('STATUS', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: VianTheme.lightText))),
-                Expanded(flex: 2, child: Align(alignment: Alignment.centerRight, child: Text('ACTIONS', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: VianTheme.lightText)))),
-              ],
+          Expanded(
+            flex: 3,
+            child: TextField(
+              style: const TextStyle(color: VianTheme.headerBlack, fontSize: 13),
+              decoration: InputDecoration(
+                hintText: 'Search users by name or email...',
+                hintStyle: const TextStyle(color: Colors.grey, fontSize: 13),
+                prefixIcon: const Icon(Icons.search, color: VianTheme.primaryGold),
+                fillColor: const Color(0xFFF0EBE1),
+                filled: true,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: const BorderSide(color: VianTheme.goldBorder),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: const BorderSide(color: VianTheme.goldBorder),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: const BorderSide(color: VianTheme.primaryGold, width: 1.5),
+                ),
+              ),
+              onChanged: (val) {
+                setState(() {
+                  _searchQuery = val;
+                  _currentPage = 1;
+                });
+              },
             ),
           ),
+          const SizedBox(width: 12),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF0EBE1),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: VianTheme.goldBorder),
+            ),
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<String>(
+                dropdownColor: const Color(0xFFF0EBE1),
+                value: _selectedRoleFilter,
+                style: const TextStyle(color: VianTheme.headerBlack, fontSize: 13, fontWeight: FontWeight.bold),
+                items: ['All', 'Super Admin', 'Admin', 'Project Manager', 'Engineer', 'Staff'].map((r) {
+                  return DropdownMenuItem(value: r, child: Text(r));
+                }).toList(),
+                onChanged: (val) {
+                  setState(() {
+                    _selectedRoleFilter = val ?? 'All';
+                    _currentPage = 1;
+                  });
+                },
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF0EBE1),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: VianTheme.goldBorder),
+            ),
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<String>(
+                dropdownColor: const Color(0xFFF0EBE1),
+                value: _selectedStatusFilter,
+                style: const TextStyle(color: VianTheme.headerBlack, fontSize: 13, fontWeight: FontWeight.bold),
+                items: ['All', 'Active', 'Suspended'].map((s) {
+                  return DropdownMenuItem(value: s, child: Text(s));
+                }).toList(),
+                onChanged: (val) {
+                  setState(() {
+                    _selectedStatusFilter = val ?? 'All';
+                    _currentPage = 1;
+                  });
+                },
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    // Pagination controls UI
+    final Widget paginationRow = totalPages <= 1 ? const SizedBox() : Padding(
+      padding: const EdgeInsets.only(top: 16.0, bottom: 8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          IconButton(
+            icon: const Icon(Icons.chevron_left, color: VianTheme.primaryGold),
+            onPressed: _currentPage > 1
+                ? () => setState(() => _currentPage--)
+                : null,
+          ),
+          Text(
+            'Page $_currentPage of $totalPages',
+            style: const TextStyle(color: VianTheme.headerBlack, fontSize: 13, fontWeight: FontWeight.bold),
+          ),
+          IconButton(
+            icon: const Icon(Icons.chevron_right, color: VianTheme.primaryGold),
+            onPressed: _currentPage < totalPages
+                ? () => setState(() => _currentPage++)
+                : null,
+          ),
+        ],
+      ),
+    );
+
+    if (isMobile) {
+      return Column(
+        children: [
+          searchAndFilterRow,
           Expanded(
-            child: ListView.separated(
-              itemCount: _users.length,
-              separatorBuilder: (context, index) => const Divider(height: 1, color: VianTheme.goldBorder),
+            child: ListView.builder(
+              itemCount: paginatedUsers.length,
               itemBuilder: (context, index) {
-                final u = _users[index];
-                final bool isActive = u['isActive'] ?? true;
-                final bool showEdit = _canEditUser(u, userRole, requesterDept);
+                final u = paginatedUsers[index];
+                final bool showEdit = _canEditUser(u, userRole);
                 final bool showDelete = _canDeleteUser(u, userRole);
                 final bool isSelf = u['id'] == currentUserId;
 
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        flex: 3,
-                        child: Row(
-                          children: [
-                            CircleAvatar(
-                              backgroundColor: VianTheme.darkBackground,
-                              child: Text(u['name']?[0] ?? 'U', style: const TextStyle(color: VianTheme.primaryGold)),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(u['name'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold)),
-                                  Text(u['email'] ?? '', style: const TextStyle(color: VianTheme.lightText, fontSize: 11.5)),
-                                ],
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  child: VianCard(
+                    child: Stack(
+                      children: [
+                        ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          leading: CircleAvatar(
+                            backgroundColor: VianTheme.darkBackground,
+                            child: Text(u['name']?[0] ?? 'U', style: const TextStyle(color: VianTheme.primaryGold)),
+                          ),
+                          title: Text(u['name'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold)),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(u['email'] ?? '', style: const TextStyle(fontSize: 12)),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Created: ${u['createdAt'] != null ? u['createdAt'].toString().split('T').first : '2026-06-15'}',
+                                style: const TextStyle(fontSize: 11, color: Colors.grey),
+                              ),
+                              Text(
+                                'Last Login: ${u['lastLogin'] ?? 'Active Now'}',
+                                style: const TextStyle(fontSize: 11, color: Colors.grey),
+                              ),
+                              const SizedBox(height: 6),
+                              _buildRoleBadge(u['role'] ?? 'Employee'),
+                            ],
+                          ),
+                        ),
+                        if (showEdit || showDelete)
+                          Positioned(
+                            top: 0,
+                            right: 0,
+                            child: HapticTapEffect(
+                              onTap: () => _showMobileActions(context, u, showEdit, showDelete, isSelf),
+                              child: Container(
+                                padding: const EdgeInsets.all(8),
+                                child: const Icon(Icons.more_vert, size: 20),
                               ),
                             ),
-                          ],
-                        ),
-                      ),
-                      Expanded(
-                        flex: 2,
-                        child: Align(
-                          alignment: Alignment.centerLeft,
-                          child: _buildRoleBadge(u['role'] ?? 'Employee'),
-                        ),
-                      ),
-                      Expanded(
-                        flex: 2,
-                        child: Text(
-                          u['department'] ?? 'Site Team',
-                          style: const TextStyle(color: VianTheme.lightText),
-                        ),
-                      ),
-                      Expanded(
-                        flex: 2,
-                        child: Row(
-                          children: [
-                            Switch(
-                              value: isActive,
-                              activeColor: VianTheme.success,
-                              onChanged: (val) => _toggleUserStatus(u['id'], u['name'], isActive),
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              isActive ? 'Active' : 'Suspended',
-                              style: TextStyle(
-                                color: isActive ? VianTheme.success : VianTheme.danger,
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Expanded(
-                        flex: 2,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            if (showEdit)
-                              IconButton(
-                                icon: const Icon(Icons.edit_outlined, size: 18, color: Color(0xFF6B6560)),
-                                onPressed: () => _showAddUserForm(context, false, false, existingUser: u),
-                                tooltip: 'Edit User',
-                              ),
-                            if (showEdit && showDelete)
-                              const SizedBox(width: 8),
-                            if (showDelete)
-                              isSelf
-                                  ? const Tooltip(
-                                      message: 'You cannot delete your own account.',
-                                      child: IconButton(
-                                        icon: Icon(Icons.delete_outline, size: 18, color: Colors.grey),
-                                        onPressed: null,
-                                      ),
-                                    )
-                                  : IconButton(
-                                      icon: const Icon(Icons.delete_outline, size: 18, color: Color(0xFFB33A3A)),
-                                      onPressed: () => _confirmDeleteUser(u, false),
-                                      tooltip: 'Delete User',
-                                    ),
-                          ],
-                        ),
-                      ),
-                    ],
+                          ),
+                      ],
+                    ),
                   ),
                 );
               },
             ),
           ),
+          paginationRow,
         ],
-      ),
+      );
+    }
+
+    if (isTablet) {
+      return Column(
+        children: [
+          searchAndFilterRow,
+          Expanded(
+            child: ListView.builder(
+              itemCount: paginatedUsers.length,
+              itemBuilder: (context, index) {
+                final u = paginatedUsers[index];
+                final bool showEdit = _canEditUser(u, userRole);
+                final bool showDelete = _canDeleteUser(u, userRole);
+                final bool isSelf = u['id'] == currentUserId;
+
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  child: VianCard(
+                    child: Row(
+                      children: [
+                        CircleAvatar(
+                          backgroundColor: VianTheme.darkBackground,
+                          radius: 20,
+                          child: Text(u['name']?[0] ?? 'U', style: const TextStyle(color: VianTheme.primaryGold)),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(u['name'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold)),
+                              const SizedBox(height: 2),
+                              Text(u['email'] ?? '', style: const TextStyle(color: VianTheme.lightText, fontSize: 12)),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Created: ${u['createdAt'] != null ? u['createdAt'].toString().split('T').first : '2026-06-15'} | Last Login: ${u['lastLogin'] ?? 'Active Now'}',
+                                style: const TextStyle(color: VianTheme.lightText, fontSize: 10),
+                              ),
+                            ],
+                          ),
+                        ),
+                        _buildRoleBadge(u['role'] ?? 'Employee'),
+                        const SizedBox(width: 24),
+                        if (showEdit || showDelete)
+                          PopupMenuButton<String>(
+                            icon: const Icon(Icons.more_vert),
+                            onSelected: (val) {
+                              if (val == 'edit') {
+                                _showAddUserForm(context, false, true, existingUser: u);
+                              } else if (val == 'delete') {
+                                _confirmDeleteUser(u, false);
+                              }
+                            },
+                            itemBuilder: (ctx) => [
+                              if (showEdit)
+                                const PopupMenuItem(
+                                  value: 'edit',
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.edit_outlined, size: 16, color: Color(0xFF6B6560)),
+                                      SizedBox(width: 8),
+                                      Text('Edit User'),
+                                    ],
+                                  ),
+                                ),
+                              if (showDelete)
+                                PopupMenuItem(
+                                  value: 'delete',
+                                  enabled: !isSelf,
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.delete_outline, size: 16, color: isSelf ? Colors.grey : Color(0xFFB33A3A)),
+                                      SizedBox(width: 8),
+                                      Text(
+                                        'Delete User',
+                                        style: TextStyle(color: isSelf ? Colors.grey : Color(0xFFB33A3A)),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                            ],
+                          ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+          paginationRow,
+        ],
+      );
+    }
+
+    // Desktop view
+    return Column(
+      children: [
+        searchAndFilterRow,
+        Expanded(
+          child: VianCard(
+            padding: EdgeInsets.zero,
+            child: Column(
+              children: [
+                // Table header
+                Container(
+                  color: const Color(0xFFF7F4EE),
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                  child: const Row(
+                    children: [
+                      Expanded(flex: 3, child: Text('NAME / EMAIL', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: VianTheme.lightText))),
+                      Expanded(flex: 2, child: Text('ROLE', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: VianTheme.lightText))),
+                      Expanded(flex: 2, child: Text('CREATED DATE', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: VianTheme.lightText))),
+                      Expanded(flex: 2, child: Text('LAST LOGIN', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: VianTheme.lightText))),
+                      Expanded(flex: 2, child: Text('STATUS', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: VianTheme.lightText))),
+                      Expanded(flex: 2, child: Align(alignment: Alignment.centerRight, child: Text('ACTIONS', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: VianTheme.lightText)))),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: ListView.separated(
+                    itemCount: paginatedUsers.length,
+                    separatorBuilder: (context, index) => const Divider(height: 1, color: VianTheme.goldBorder),
+                    itemBuilder: (context, index) {
+                      final u = paginatedUsers[index];
+                      final bool isActive = u['isActive'] ?? true;
+                      final bool showEdit = _canEditUser(u, userRole);
+                      final bool showDelete = _canDeleteUser(u, userRole);
+                      final bool isSelf = u['id'] == currentUserId;
+
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              flex: 3,
+                              child: Row(
+                                children: [
+                                  CircleAvatar(
+                                    backgroundColor: VianTheme.darkBackground,
+                                    child: Text(u['name']?[0] ?? 'U', style: const TextStyle(color: VianTheme.primaryGold)),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(u['name'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold)),
+                                        Text(u['email'] ?? '', style: const TextStyle(color: VianTheme.lightText, fontSize: 11.5)),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Expanded(
+                              flex: 2,
+                              child: Align(
+                                alignment: Alignment.centerLeft,
+                                child: _buildRoleBadge(u['role'] ?? 'Employee'),
+                              ),
+                            ),
+                            Expanded(
+                              flex: 2,
+                              child: Text(
+                                u['createdAt'] != null
+                                    ? u['createdAt'].toString().split('T').first
+                                    : '2026-06-15',
+                                style: const TextStyle(color: VianTheme.lightText, fontSize: 12),
+                              ),
+                            ),
+                            Expanded(
+                              flex: 2,
+                              child: Text(
+                                u['lastLogin'] ?? 'Active Now',
+                                style: const TextStyle(color: VianTheme.lightText, fontSize: 12),
+                              ),
+                            ),
+                            Expanded(
+                              flex: 2,
+                              child: Row(
+                                children: [
+                                  Switch(
+                                    value: isActive,
+                                    activeColor: VianTheme.success,
+                                    onChanged: (val) => _toggleUserStatus(u['id'], u['name'], isActive),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    isActive ? 'Active' : 'Suspended',
+                                    style: TextStyle(
+                                      color: isActive ? VianTheme.success : VianTheme.danger,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Expanded(
+                              flex: 2,
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  if (showEdit)
+                                    IconButton(
+                                      icon: const Icon(Icons.edit_outlined, size: 18, color: Color(0xFF6B6560)),
+                                      onPressed: () => _showAddUserForm(context, false, false, existingUser: u),
+                                      tooltip: 'Edit User',
+                                    ),
+                                  if (showEdit && showDelete)
+                                    const SizedBox(width: 8),
+                                  if (showDelete)
+                                    isSelf
+                                        ? const Tooltip(
+                                            message: 'You cannot delete your own account.',
+                                            child: IconButton(
+                                              icon: Icon(Icons.delete_outline, size: 18, color: Colors.grey),
+                                              onPressed: null,
+                                            ),
+                                          )
+                                        : IconButton(
+                                            icon: const Icon(Icons.delete_outline, size: 18, color: Color(0xFFB33A3A)),
+                                            onPressed: () => _confirmDeleteUser(u, false),
+                                            tooltip: 'Delete User',
+                                          ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        paginationRow,
+      ],
     );
   }
 
