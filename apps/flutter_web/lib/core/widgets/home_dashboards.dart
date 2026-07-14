@@ -3036,8 +3036,10 @@ class _ClientPortalViewState extends State<ClientPortalView> {
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                color: VianTheme.primaryGold.withOpacity(0.08),
-                border: Border.all(color: VianTheme.primaryGold),
+                decoration: BoxDecoration(
+                  color: VianTheme.primaryGold.withOpacity(0.08),
+                  border: Border.all(color: VianTheme.primaryGold),
+                ),
                 child: Text(
                   'CONFIDENTIAL DOSSIER',
                   style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 9, fontWeight: FontWeight.bold),
@@ -3183,8 +3185,10 @@ class _ClientPortalViewState extends State<ClientPortalView> {
                   right: 32,
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    color: Colors.black.withOpacity(0.8),
-                    border: Border.all(color: Colors.white10),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.8),
+                      border: Border.all(color: Colors.white10),
+                    ),
                     child: Row(
                       children: [
                         Column(
@@ -3278,8 +3282,10 @@ class _ClientPortalViewState extends State<ClientPortalView> {
     ];
 
     return Container(
-      color: VianTheme.cardColor,
-      border: Border.all(color: Colors.white.withOpacity(0.04)),
+      decoration: BoxDecoration(
+        color: VianTheme.cardColor,
+        border: Border.all(color: Colors.white.withOpacity(0.04)),
+      ),
       padding: const EdgeInsets.all(32),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -3420,8 +3426,10 @@ class _ClientPortalViewState extends State<ClientPortalView> {
         ),
         const SizedBox(height: 20),
         Container(
-          color: VianTheme.cardColor,
-          border: Border.all(color: Colors.white.withOpacity(0.04)),
+          decoration: BoxDecoration(
+            color: VianTheme.cardColor,
+            border: Border.all(color: Colors.white.withOpacity(0.04)),
+          ),
           padding: const EdgeInsets.all(20),
           child: Row(
             children: [

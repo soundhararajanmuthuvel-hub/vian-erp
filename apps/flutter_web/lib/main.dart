@@ -2656,8 +2656,10 @@ class _CRMTabState extends State<CRMTab> {
                     ),
                     const SizedBox(height: 16),
                     Container(
-                      color: const Color(0xFF121317),
-                      border: Border.all(color: VianTheme.goldBorder.withOpacity(0.5)),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF121317),
+                        border: Border.all(color: VianTheme.goldBorder.withOpacity(0.5)),
+                      ),
                       padding: const EdgeInsets.all(20.0),
                       child: Column(
                         children: [
@@ -10886,8 +10888,10 @@ class _LabourAttendanceTabState extends State<LabourAttendanceTab> {
   Widget _summaryBlock(String title, String value) {
     return Expanded(
       child: Container(
-        color: const Color(0xFF121317),
-        border: Border.all(color: VianTheme.goldBorder.withOpacity(0.2)),
+        decoration: BoxDecoration(
+          color: const Color(0xFF121317),
+          border: Border.all(color: VianTheme.goldBorder.withOpacity(0.2)),
+        ),
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -12335,7 +12339,7 @@ class _ImportExportTabState extends ConsumerState<ImportExportTab> with SingleTi
     });
 
     try {
-      FilePickerResult? result = await FilePicker.platform.pickFiles(
+      FilePickerResult? result = await FilePicker.pickFiles(
         type: FileType.any,
       );
 
@@ -12807,7 +12811,7 @@ class _ImportExportTabState extends ConsumerState<ImportExportTab> with SingleTi
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Icon(Icons.upload_file, color: VianTheme.primaryGold, size: 28),
-                Text('MODULE_01', style: GoogleFonts.jetbrainsMono(color: VianTheme.lightText, fontSize: 9)),
+                Text('MODULE_01', style: GoogleFonts.jetBrainsMono(color: VianTheme.lightText, fontSize: 9)),
               ],
             ),
             const SizedBox(height: 32),
@@ -12869,7 +12873,7 @@ class _ImportExportTabState extends ConsumerState<ImportExportTab> with SingleTi
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Icon(Icons.ios_share, color: VianTheme.primaryGold, size: 28),
-                Text('MODULE_02', style: GoogleFonts.jetbrainsMono(color: VianTheme.lightText, fontSize: 9)),
+                Text('MODULE_02', style: GoogleFonts.jetBrainsMono(color: VianTheme.lightText, fontSize: 9)),
               ],
             ),
             const SizedBox(height: 32),
@@ -12936,7 +12940,7 @@ class _ImportExportTabState extends ConsumerState<ImportExportTab> with SingleTi
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Icon(Icons.construction, color: VianTheme.primaryGold, size: 28),
-                Text('MODULE_03', style: GoogleFonts.jetbrainsMono(color: VianTheme.lightText, fontSize: 9)),
+                Text('MODULE_03', style: GoogleFonts.jetBrainsMono(color: VianTheme.lightText, fontSize: 9)),
               ],
             ),
             const SizedBox(height: 32),
@@ -12952,7 +12956,7 @@ class _ImportExportTabState extends ConsumerState<ImportExportTab> with SingleTi
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text('STATUS: $_buildStatusText', style: GoogleFonts.outfit(color: VianTheme.lightText, fontSize: 8, letterSpacing: 1.0)),
-                      Text(_buildVersion, style: GoogleFonts.jetbrainsMono(color: VianTheme.primaryGold, fontSize: 9)),
+                      Text(_buildVersion, style: GoogleFonts.jetBrainsMono(color: VianTheme.primaryGold, fontSize: 9)),
                     ],
                   ),
                   const SizedBox(height: 12),
@@ -13008,7 +13012,7 @@ class _ImportExportTabState extends ConsumerState<ImportExportTab> with SingleTi
                 const SizedBox(width: 24),
                 Text(
                   'SYSTEM OUTPUT TERMINAL',
-                  style: GoogleFonts.jetbrainsMono(color: VianTheme.lightText, fontSize: 9, letterSpacing: 1.5),
+                  style: GoogleFonts.jetBrainsMono(color: VianTheme.lightText, fontSize: 9, letterSpacing: 1.5),
                 ),
                 const Spacer(),
                 IconButton(
@@ -13047,11 +13051,11 @@ class _ImportExportTabState extends ConsumerState<ImportExportTab> with SingleTi
                         children: [
                           Text(
                             'admin@atelier-erp:~\$ ',
-                            style: GoogleFonts.jetbrainsMono(color: VianTheme.primaryGold, fontSize: 11, fontWeight: FontWeight.bold),
+                            style: GoogleFonts.jetBrainsMono(color: VianTheme.primaryGold, fontSize: 11, fontWeight: FontWeight.bold),
                           ),
                           Text(
                             '_',
-                            style: GoogleFonts.jetbrainsMono(
+                            style: GoogleFonts.jetBrainsMono(
                               color: _cursorBlink ? VianTheme.primaryGold : Colors.transparent,
                               fontSize: 11,
                               fontWeight: FontWeight.bold,
@@ -13068,13 +13072,13 @@ class _ImportExportTabState extends ConsumerState<ImportExportTab> with SingleTi
                       children: [
                         Text(
                           _terminalTimes[idx],
-                          style: GoogleFonts.jetbrainsMono(color: VianTheme.lightText, fontSize: 11),
+                          style: GoogleFonts.jetBrainsMono(color: VianTheme.lightText, fontSize: 11),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
                             _terminalLogs[idx],
-                            style: GoogleFonts.jetbrainsMono(color: Colors.white70, fontSize: 11),
+                            style: GoogleFonts.jetBrainsMono(color: Colors.white70, fontSize: 11),
                           ),
                         )
                       ],
@@ -13086,7 +13090,9 @@ class _ImportExportTabState extends ConsumerState<ImportExportTab> with SingleTi
           ),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-            border: const Border(top: BorderSide(color: Colors.white10)),
+            decoration: const BoxDecoration(
+              border: Border(top: BorderSide(color: Colors.white10)),
+            ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -19529,8 +19535,10 @@ class _EstimationWizardState extends State<EstimationWizard> {
   Widget _exportFormatChip(String label, bool active) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      color: active ? VianTheme.primaryGold.withOpacity(0.08) : Colors.transparent,
-      border: Border.all(color: active ? VianTheme.primaryGold : Colors.white12),
+      decoration: BoxDecoration(
+        color: active ? VianTheme.primaryGold.withOpacity(0.08) : Colors.transparent,
+        border: Border.all(color: active ? VianTheme.primaryGold : Colors.white12),
+      ),
       child: Text(
         label.toUpperCase(),
         style: GoogleFonts.outfit(
@@ -19621,9 +19629,11 @@ class _EstimationWizardState extends State<EstimationWizard> {
                       children: [
                         Expanded(
                           child: Container(
-                            color: const Color(0xFF13131A),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF13131A),
+                              border: Border.all(color: Colors.white.withOpacity(0.04)),
+                            ),
                             padding: const EdgeInsets.all(20.0),
-                            border: Border.all(color: Colors.white.withOpacity(0.04)),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -19681,8 +19691,8 @@ class _EstimationWizardState extends State<EstimationWizard> {
                       children: [
                         Expanded(flex: 1, child: Text('ITEM', style: GoogleFonts.poppins(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold))),
                         Expanded(flex: 6, child: Text('DESCRIPTION', style: GoogleFonts.poppins(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold))),
-                        Expanded(flex: 2, child: Text('QTY', style: GoogleFonts.poppins(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold, textAlign: TextAlign.right))),
-                        Expanded(flex: 3, child: Text('TOTAL', style: GoogleFonts.poppins(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold, textAlign: TextAlign.right))),
+                        Expanded(flex: 2, child: Text('QTY', style: GoogleFonts.poppins(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold), textAlign: TextAlign.right)),
+                        Expanded(flex: 3, child: Text('TOTAL', style: GoogleFonts.poppins(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold), textAlign: TextAlign.right)),
                       ],
                     ),
                     const Divider(color: Colors.white10, height: 24),
@@ -19740,8 +19750,10 @@ class _EstimationWizardState extends State<EstimationWizard> {
 
         const SizedBox(height: 32),
         Container(
-          color: VianTheme.cardColor,
-          border: Border.all(color: Colors.white.withOpacity(0.05)),
+          decoration: BoxDecoration(
+            color: VianTheme.cardColor,
+            border: Border.all(color: Colors.white.withOpacity(0.05)),
+          ),
           padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -19822,7 +19834,7 @@ class _EstimationWizardState extends State<EstimationWizard> {
         )
       ],
     );
-
+  }
 
   Widget _stepHeader(String title, String desc) {
     return Column(
@@ -20004,6 +20016,32 @@ class _EstimationWizardState extends State<EstimationWizard> {
           },
         ),
       ],
+    );
+  }
+
+  Widget _headerCell(
+    String title, {
+    Alignment alignment = Alignment.centerLeft,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 12,
+        vertical: 10,
+      ),
+      alignment: alignment,
+      decoration: BoxDecoration(
+        color: Colors.grey.shade100,
+        border: Border.all(
+          color: Colors.grey.shade300,
+        ),
+      ),
+      child: Text(
+        title,
+        style: const TextStyle(
+          fontWeight: FontWeight.bold,
+          fontSize: 13,
+        ),
+      ),
     );
   }
 }

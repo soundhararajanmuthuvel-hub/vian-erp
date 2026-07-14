@@ -1354,8 +1354,10 @@ class _EnquiryInboxTabState extends State<EnquiryInboxTab> {
           // PANE 1: Channels (220px)
           Container(
             width: 220,
-            color: VianTheme.cardColor,
-            border: Border(right: BorderSide(color: Colors.white.withOpacity(0.03))),
+            decoration: BoxDecoration(
+              color: VianTheme.cardColor,
+              border: Border(right: BorderSide(color: Colors.white.withOpacity(0.03))),
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -1436,8 +1438,10 @@ class _EnquiryInboxTabState extends State<EnquiryInboxTab> {
           // PANE 2: Conversations List (360px)
           Container(
             width: 360,
-            color: const Color(0xFF0D0E12),
-            border: Border(right: BorderSide(color: Colors.white.withOpacity(0.05))),
+            decoration: BoxDecoration(
+              color: const Color(0xFF0D0E12),
+              border: Border(right: BorderSide(color: Colors.white.withOpacity(0.05))),
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
