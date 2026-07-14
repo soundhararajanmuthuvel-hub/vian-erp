@@ -36,28 +36,12 @@ class _VianCardState extends State<VianCard> {
         height: widget.height,
         padding: widget.padding ?? const EdgeInsets.all(16.0),
         decoration: BoxDecoration(
-          color: VianTheme.cardColor,
-          borderRadius: BorderRadius.circular(20),
+          color: _isHovered ? const Color(0xFF25262B) : VianTheme.cardColor,
+          borderRadius: BorderRadius.zero,
           border: Border.all(
-            color: _isHovered ? VianTheme.primaryGold.withOpacity(0.4) : VianTheme.goldBorder,
+            color: _isHovered ? VianTheme.primaryGold.withOpacity(0.5) : VianTheme.goldBorder,
             width: 1.0,
           ),
-          gradient: _isHovered
-              ? const LinearGradient(
-                  colors: [Colors.white, Color(0xFFF8FAFC)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                )
-              : null,
-          boxShadow: [
-            BoxShadow(
-              color: _isHovered 
-                  ? Colors.black.withOpacity(0.06) 
-                  : Colors.black.withOpacity(0.02),
-              blurRadius: _isHovered ? 20 : 12,
-              offset: _isHovered ? const Offset(0, 8) : const Offset(0, 4),
-            )
-          ],
         ),
         child: widget.child,
       ),
@@ -182,19 +166,19 @@ class VianButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final style = isSecondary
         ? OutlinedButton.styleFrom(
-            foregroundColor: color ?? VianTheme.headerBlack,
-            side: BorderSide(color: color ?? VianTheme.headerBlack, width: 1.5),
+            foregroundColor: color ?? VianTheme.primaryGold,
+            side: BorderSide(color: color ?? VianTheme.primaryGold, width: 1.0),
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(18),
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.zero,
             ),
           )
         : ElevatedButton.styleFrom(
-            backgroundColor: color ?? VianTheme.headerBlack,
-            foregroundColor: textColor ?? Colors.white,
+            backgroundColor: color ?? VianTheme.primaryGold,
+            foregroundColor: textColor ?? VianTheme.darkBackground,
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(18),
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.zero,
             ),
           );
 
@@ -274,5 +258,40 @@ class VianProgressIndicator extends StatelessWidget {
         ),
       ],
     );
+  }
+}
+
+class AtelierBracketPainter extends CustomPainter {
+  final Color color;
+  AtelierBracketPainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 1.0;
+
+    const double len = 8.0;
+
+    // Top Left Bracket
+    canvas.drawLine(Offset.zero, const Offset(len, 0), paint);
+    canvas.drawLine(Offset.zero, const Offset(0, len), paint);
+
+    // Top Right Bracket
+    canvas.drawLine(Offset(size.width, 0), Offset(size.width - len, 0), paint);
+    canvas.drawLine(Offset(size.width, 0), Offset(size.width, len), paint);
+
+    // Bottom Left Bracket
+    canvas.drawLine(Offset(0, size.height), Offset(len, size.height), paint);
+    canvas.drawLine(Offset(0, size.height), Offset(0, size.height - len), paint);
+
+    // Bottom Right Bracket
+    canvas.drawLine(Offset(size.width, size.height), Offset(size.width - len, size.height), paint);
+    canvas.drawLine(Offset(size.width, size.height), Offset(size.width, size.height - len), paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant AtelierBracketPainter oldDelegate) {
+    return oldDelegate.color != color;
   }
 }

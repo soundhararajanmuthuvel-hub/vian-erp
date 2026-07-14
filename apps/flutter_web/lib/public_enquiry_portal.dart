@@ -1346,60 +1346,186 @@ class _EnquiryInboxTabState extends State<EnquiryInboxTab> {
 
     final filteredList = _submissions.where((s) => s['status'] == _selectedStatus).toList();
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          flex: 2,
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
+    return Scaffold(
+      backgroundColor: const Color(0xFF121317),
+      body: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // PANE 1: Channels (220px)
+          Container(
+            width: 220,
+            color: VianTheme.cardColor,
+            border: Border(right: BorderSide(color: Colors.white.withOpacity(0.03))),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Public Client Enquiries', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: VianTheme.primaryGold)),
-                const SizedBox(height: 16),
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: ['New', 'In Review', 'Approved', 'Rejected', 'Converted'].map((status) {
-                      final selected = _selectedStatus == status;
-                      final count = _submissions.where((s) => s['status'] == status).length;
-                      return Padding(
-                        padding: const EdgeInsets.only(right: 8.0),
-                        child: ChoiceChip(
-                          label: Text('$status ($count)'),
-                          selected: selected,
-                          selectedColor: VianTheme.primaryGold.withOpacity(0.2),
-                          checkmarkColor: VianTheme.primaryGold,
-                          labelStyle: TextStyle(color: selected ? VianTheme.primaryGold : Colors.white, fontWeight: selected ? FontWeight.bold : FontWeight.normal),
-                          onSelected: (val) {
-                            if (val) setState(() => _selectedStatus = status);
-                          },
-                        ),
-                      );
-                    }).toList(),
+                Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Text(
+                    'CHANNELS',
+                    style: GoogleFonts.outfit(
+                      color: VianTheme.primaryGold,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.5,
+                    ),
                   ),
                 ),
-                const SizedBox(height: 16),
+                _channelTile(Icons.mail_outline, 'Direct Email', _submissions.length.toString(), true),
+                _channelTile(Icons.chat_bubble_outline, 'WhatsApp', '4', false),
+                _channelTile(Icons.language, 'Web Form', '0', false),
+                _channelTile(Icons.hub_outlined, 'ArchDaily', '1', false),
+                const SizedBox(height: 24),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                  child: Text(
+                    'STATUS',
+                    style: GoogleFonts.outfit(
+                      color: VianTheme.lightText,
+                      fontSize: 9,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.0,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                ...['New', 'In Review', 'Approved', 'Rejected', 'Converted'].map((status) {
+                  final active = _selectedStatus == status;
+                  final count = _submissions.where((s) => s['status'] == status).length;
+                  return InkWell(
+                    onTap: () => setState(() => _selectedStatus = status),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+                      color: active ? Colors.white.withOpacity(0.02) : Colors.transparent,
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 6,
+                            height: 6,
+                            decoration: BoxDecoration(
+                              color: active ? VianTheme.primaryGold : Colors.white24,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Text(
+                            status,
+                            style: GoogleFonts.inter(
+                              color: active ? Colors.white : VianTheme.lightText,
+                              fontSize: 13,
+                              fontWeight: active ? FontWeight.bold : FontWeight.normal,
+                            ),
+                          ),
+                          const Spacer(),
+                          Text(
+                            count.toString(),
+                            style: GoogleFonts.poppins(
+                              color: active ? VianTheme.primaryGold : Colors.white24,
+                              fontSize: 11,
+                            ),
+                          )
+                        ],
+                      ),
+                    ),
+                  );
+                }),
+              ],
+            ),
+          ),
+
+          // PANE 2: Conversations List (360px)
+          Container(
+            width: 360,
+            color: const Color(0xFF0D0E12),
+            border: Border(right: BorderSide(color: Colors.white.withOpacity(0.05))),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'CONVERSATIONS',
+                        style: GoogleFonts.outfit(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                      Text(
+                        '${filteredList.length} Items',
+                        style: GoogleFonts.poppins(color: VianTheme.primaryGold, fontSize: 11),
+                      ),
+                    ],
+                  ),
+                ),
+                const Divider(color: Colors.white10, height: 1),
                 Expanded(
                   child: filteredList.isEmpty
-                      ? const Center(child: Text('No submissions found in this status.'))
-                      : ListView.builder(
+                      ? Center(
+                          child: Text(
+                            'No enquiries found.',
+                            style: GoogleFonts.inter(color: VianTheme.lightText, fontSize: 13),
+                          ),
+                        )
+                      : ListView.separated(
                           itemCount: filteredList.length,
-                          itemBuilder: (context, index) {
-                            final sub = filteredList[index];
+                          separatorBuilder: (context, idx) => const Divider(color: Colors.white10, height: 1),
+                          itemBuilder: (context, idx) {
+                            final sub = filteredList[idx];
                             final isSel = _selectedSubmission != null && _selectedSubmission!['id'] == sub['id'];
-                            return Card(
-                              color: isSel ? const Color(0xFF1E1E26) : const Color(0xFF13131A),
-                              shape: RoundedRectangleBorder(
-                                side: BorderSide(color: isSel ? VianTheme.primaryGold : Colors.transparent, width: 1.5),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: ListTile(
-                                title: Text(sub['clientName'], style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
-                                subtitle: Text('Ref: VIAN-LEAD-${sub['leadId'].toString().padLeft(4, '0')} | Type: ${sub['buildingType']}'),
-                                trailing: Text(sub['date'] ?? ''),
-                                onTap: () => setState(() => _selectedSubmission = sub),
+
+                            return InkWell(
+                              onTap: () => setState(() => _selectedSubmission = sub),
+                              child: Container(
+                                color: isSel ? Colors.white.withOpacity(0.02) : Colors.transparent,
+                                padding: const EdgeInsets.all(20.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          sub['clientName'] ?? 'Unknown Client',
+                                          style: GoogleFonts.inter(
+                                            color: isSel ? VianTheme.primaryGold : Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 13.5,
+                                          ),
+                                        ),
+                                        Text(
+                                          sub['date'] ?? '',
+                                          style: GoogleFonts.poppins(color: Colors.white24, fontSize: 10),
+                                        )
+                                      ],
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      sub['buildingType'] ?? 'Residential',
+                                      style: GoogleFonts.outfit(
+                                        color: VianTheme.lightText,
+                                        fontSize: 9,
+                                        fontWeight: FontWeight.bold,
+                                        letterSpacing: 1.0,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      sub['clientRequirements'] ?? sub['notes'] ?? 'No requirements specified.',
+                                      style: GoogleFonts.inter(
+                                        color: Colors.white54,
+                                        fontSize: 12,
+                                        height: 1.4,
+                                      ),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
+                                ),
                               ),
                             );
                           },
@@ -1408,174 +1534,267 @@ class _EnquiryInboxTabState extends State<EnquiryInboxTab> {
               ],
             ),
           ),
-        ),
-        Container(width: 1, color: const Color(0xFF262630), height: double.infinity),
-        Expanded(
-          flex: 3,
-          child: _selectedSubmission == null
-              ? const Center(child: Text('Select an enquiry submission to review details.'))
-              : SingleChildScrollView(
-                  padding: const EdgeInsets.all(24.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'ENQUIRY DETAILS: ${_selectedSubmission!['clientName'].toUpperCase()}',
-                                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: VianTheme.primaryGold),
-                              ),
-                              const SizedBox(height: 4),
-                              Text('Submitted on: ${_selectedSubmission!['submissionTime']?.toString().split('T').first ?? ''} | IP: ${_selectedSubmission!['clientIp'] ?? ''}'),
-                            ],
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                            decoration: BoxDecoration(color: const Color(0xFF1E1E26), borderRadius: BorderRadius.circular(16)),
-                            child: Text(
-                              _selectedSubmission!['status'],
-                              style: const TextStyle(color: VianTheme.primaryGold, fontWeight: FontWeight.bold, fontSize: 12),
-                            ),
-                          )
-                        ],
-                      ),
-                      const Divider(color: Color(0xFF262630), height: 32),
-                      if (_selectedSubmission!['status'] != 'Converted') ...[
-                        Row(
-                          children: [
-                            if (_selectedSubmission!['status'] == 'New') ...[
-                              ElevatedButton(
-                                style: ElevatedButton.styleFrom(backgroundColor: VianTheme.primaryGold, foregroundColor: Colors.black),
-                                onPressed: () => _updateStatus('In Review'),
-                                child: const Text('Mark In Review'),
-                              ),
-                              const SizedBox(width: 12),
-                            ],
-                            if (_selectedSubmission!['status'] != 'Rejected') ...[
-                              OutlinedButton(
-                                style: OutlinedButton.styleFrom(foregroundColor: VianTheme.danger, side: const BorderSide(color: VianTheme.danger)),
-                                onPressed: () => _updateStatus('Rejected'),
-                                child: const Text('Reject'),
-                              ),
-                              const SizedBox(width: 12),
-                            ],
-                            if (_selectedSubmission!['status'] != 'Approved') ...[
-                              ElevatedButton(
-                                style: ElevatedButton.styleFrom(backgroundColor: VianTheme.success, foregroundColor: Colors.white),
-                                onPressed: _approveAndConvert,
-                                child: const Text('Approve & Convert to Project'),
-                              ),
-                            ],
-                          ],
+
+          // PANE 3: Conversation View (Fluid)
+          Expanded(
+            child: _selectedSubmission == null
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.inbox, size: 48, color: Colors.white12),
+                        const SizedBox(height: 16),
+                        Text(
+                          'SELECT AN ENQUIRY TO REVIEW DETAILS',
+                          style: GoogleFonts.outfit(color: VianTheme.lightText, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.0),
                         ),
-                        const SizedBox(height: 24),
                       ],
-                      _buildDetailGroup('Client & Contact', {
-                        'Client Name': _selectedSubmission!['clientName'],
-                        'Phone': _selectedSubmission!['contactNumber'],
-                        'WhatsApp': _selectedSubmission!['whatsappNumber'] ?? 'N/A',
-                        'Email': _selectedSubmission!['email'] ?? 'N/A',
-                        'Occupation': _selectedSubmission!['occupation'] ?? 'N/A',
-                        'Contact Time': _selectedSubmission!['preferredContactTime'] ?? 'N/A',
-                      }),
-                      _buildDetailGroup('Site Location Details', {
-                        'Site Address': _selectedSubmission!['siteAddress'],
-                        'Landmark': _selectedSubmission!['nearLandmark'] ?? 'N/A',
-                        'Village/City': _selectedSubmission!['village'] ?? 'N/A',
-                        'Taluk': _selectedSubmission!['taluk'] ?? 'N/A',
-                        'District': _selectedSubmission!['district'] ?? 'N/A',
-                        'Pincode': _selectedSubmission!['pincode'] ?? 'N/A',
-                        'Road Width': '${_selectedSubmission!['roadWidth'] ?? "N/A"} Feet',
-                        'Site Facing Direction': _selectedSubmission!['siteFacing'] ?? 'N/A',
-                        'GPS Location': _selectedSubmission!['latitude'] != null && _selectedSubmission!['longitude'] != null
-                            ? GpsAddressResolver.resolve(
-                                double.tryParse(_selectedSubmission!['latitude'].toString()) ?? 0.0,
-                                double.tryParse(_selectedSubmission!['longitude'].toString()) ?? 0.0,
-                              ).toShortString()
-                            : 'N/A',
-                      }),
-                      _buildDetailGroup('Road Specs', {
-                        'Road Width': '${_selectedSubmission!['roadWidth'] ?? "N/A"} Feet',
-                        'Front Road Width': '${_selectedSubmission!['frontRoadWidth'] ?? "N/A"} Feet',
-                        'Main Road Width': '${_selectedSubmission!['mainRoadWidth'] ?? "N/A"} Feet',
-                        'Connecting Road Width': '${_selectedSubmission!['connectingRoadWidth'] ?? "N/A"} Feet',
-                      }),
-                      _buildDetailGroup('Structure Configuration', {
-                        'Building Types': _selectedSubmission!['buildingType'],
-                        'Local Authority': _selectedSubmission!['localAuthority'] ?? 'N/A',
-                        'Purpose': _selectedSubmission!['buildingPurpose'] ?? 'N/A',
-                        'Staircase Location': _selectedSubmission!['staircase'] ?? 'N/A',
-                        'Terrace Access Type': _selectedSubmission!['terraceAccess'] ?? 'N/A',
-                      }),
-                      _buildDetailGroup('Soil & Utilities', {
-                        'Site Soil Condition': _selectedSubmission!['siteCondition'] ?? 'N/A',
-                        'Soil Condition Other': _selectedSubmission!['siteConditionOther'] ?? 'N/A',
-                        'Water Quality': _selectedSubmission!['waterCondition'] ?? 'N/A',
-                        'Borewell Available': _selectedSubmission!['boreAvailable'] == true ? 'Yes' : 'No',
-                        'Borewell Depth': '${_selectedSubmission!['boreDepth'] ?? "N/A"} Feet',
-                        'Water Table Level': '${_selectedSubmission!['waterLevel'] ?? "N/A"} Feet',
-                        'Electricity Connection': _selectedSubmission!['electricity'] ?? 'N/A',
-                        'EB Pole Distance': '${_selectedSubmission!['ebDistance'] ?? "N/A"} Meters',
-                        'Drainage Type': _selectedSubmission!['drainage'] ?? 'N/A',
-                        'Underground Sump required': _selectedSubmission!['undergroundSump'] == true ? 'Yes' : 'No',
-                        'Sump Capacity': '${_selectedSubmission!['undergroundSumpCapacity'] ?? "N/A"} Liters',
-                      }),
-                      _buildDetailGroup('Elevations & Levels', {
-                        'Height (Road to Plinth)': _selectedSubmission!['roadToPlinth'] ?? "N/A",
-                        'Site Level Offset': _selectedSubmission!['siteLevel'] ?? 'N/A',
-                        'Car Parking Spaces': '${_selectedSubmission!['parkingCars'] ?? 0} Cars',
-                        'Bike Parking Spaces': '${_selectedSubmission!['parkingBikes'] ?? 0} Bikes',
-                        'Water Tank Capacity': _selectedSubmission!['waterTankCapacity'] ?? 'N/A',
-                      }),
-                      _buildDetailGroup('Site Boundary Neighbors', {
-                        'North Context': 'Type: ${_selectedSubmission!['northContextType'] ?? "N/A"} | Note: ${_selectedSubmission!['northContext'] ?? "N/A"}',
-                        'South Context': 'Type: ${_selectedSubmission!['southContextType'] ?? "N/A"} | Note: ${_selectedSubmission!['southContext'] ?? "N/A"}',
-                        'East Context': 'Type: ${_selectedSubmission!['eastContextType'] ?? "N/A"} | Note: ${_selectedSubmission!['eastContext'] ?? "N/A"}',
-                        'West Context': 'Type: ${_selectedSubmission!['westContextType'] ?? "N/A"} | Note: ${_selectedSubmission!['westContext'] ?? "N/A"}',
-                      }),
-                      _buildDetailGroup('Room Requirements & Notes', {
-                        'Requirements': _selectedSubmission!['clientRequirements'] ?? 'N/A',
-                        'Notes': _selectedSubmission!['notes'] ?? 'N/A',
-                      }),
-                      const SizedBox(height: 24),
-                      const Text('Attachments & Documents:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: VianTheme.primaryGold)),
-                      const SizedBox(height: 8),
-                      _buildAttachmentsList(),
-                      const Divider(color: Color(0xFF262630), height: 48),
-                      const Text('Internal Review Notes:', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: VianTheme.primaryGold)),
-                      const SizedBox(height: 12),
-                      _buildNotesThread(),
-                      const SizedBox(height: 16),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextField(
-                              controller: _noteCtrl,
-                              decoration: const InputDecoration(
-                                hintText: 'Enter review comment/note...',
-                                filled: true,
-                                fillColor: Color(0xFF1E1E26),
-                                border: OutlineInputBorder(borderSide: BorderSide.none),
+                    ),
+                  )
+                : Container(
+                    color: const Color(0xFF121317),
+                    child: Column(
+                      children: [
+                        // Header
+                        Padding(
+                          padding: const EdgeInsets.all(32.0),
+                          child: Row(
+                            children: [
+                              CircleAvatar(
+                                radius: 24,
+                                backgroundColor: VianTheme.primaryGold.withOpacity(0.1),
+                                child: Text(
+                                  _selectedSubmission!['clientName']?[0]?.toUpperCase() ?? 'C',
+                                  style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 18, fontWeight: FontWeight.bold),
+                                ),
                               ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      _selectedSubmission!['clientName'] ?? '',
+                                      style: GoogleFonts.inter(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      '${_selectedSubmission!['email'] ?? "No Email"} • ${_selectedSubmission!['contactNumber'] ?? "No Phone"}',
+                                      style: GoogleFonts.inter(color: VianTheme.lightText, fontSize: 12),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              // Action buttons
+                              if (_selectedSubmission!['status'] != 'Converted') ...[
+                                if (_selectedSubmission!['status'] == 'New') ...[
+                                  OutlinedButton(
+                                    style: OutlinedButton.styleFrom(
+                                      foregroundColor: VianTheme.primaryGold,
+                                      side: const BorderSide(color: VianTheme.primaryGold),
+                                      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+                                    ),
+                                    onPressed: () => _updateStatus('In Review'),
+                                    child: const Text('MARK IN REVIEW'),
+                                  ),
+                                  const SizedBox(width: 12),
+                                ],
+                                if (_selectedSubmission!['status'] != 'Approved') ...[
+                                  ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: VianTheme.primaryGold,
+                                      foregroundColor: Colors.black,
+                                      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+                                    ),
+                                    onPressed: _approveAndConvert,
+                                    child: const Text('APPROVE & CONVERT'),
+                                  ),
+                                ],
+                              ],
+                            ],
+                          ),
+                        ),
+                        const Divider(color: Colors.white10, height: 1),
+
+                        // Detail view and note list
+                        Expanded(
+                          child: SingleChildScrollView(
+                            padding: const EdgeInsets.all(32.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Quote Block
+                                Container(
+                                  decoration: BoxDecoration(
+                                    border: Border(left: BorderSide(color: VianTheme.primaryGold, width: 2)),
+                                  ),
+                                  padding: const EdgeInsets.only(left: 20.0, top: 4, bottom: 4),
+                                  child: Text(
+                                    '"${_selectedSubmission!['clientRequirements'] ?? _selectedSubmission!['notes'] ?? "No initial description provided."}"',
+                                    style: GoogleFonts.bodoniModa(
+                                      color: Colors.white.withOpacity(0.9),
+                                      fontSize: 18,
+                                      fontStyle: FontStyle.italic,
+                                      height: 1.5,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 32),
+
+                                // Structured Info tables
+                                _buildDetailGroup('Client & Location', {
+                                  'Client Name': _selectedSubmission!['clientName'],
+                                  'Phone': _selectedSubmission!['contactNumber'],
+                                  'Email': _selectedSubmission!['email'] ?? 'N/A',
+                                  'Site Address': _selectedSubmission!['siteAddress'],
+                                  'Taluk': _selectedSubmission!['taluk'] ?? 'N/A',
+                                  'Road Width': '${_selectedSubmission!['roadWidth'] ?? "N/A"} Feet',
+                                  'Site facing': _selectedSubmission!['siteFacing'] ?? 'N/A',
+                                }),
+
+                                _buildDetailGroup('Structural Configuration', {
+                                  'Building Type': _selectedSubmission!['buildingType'],
+                                  'Local Authority': _selectedSubmission!['localAuthority'] ?? 'N/A',
+                                  'Soil Condition': _selectedSubmission!['siteCondition'] ?? 'N/A',
+                                  'EB Connection': _selectedSubmission!['electricity'] ?? 'N/A',
+                                }),
+                                const SizedBox(height: 24),
+
+                                // Attachments
+                                Text(
+                                  'ATTACHMENTS',
+                                  style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.5),
+                                ),
+                                const SizedBox(height: 12),
+                                _buildAttachmentsList(),
+                                const SizedBox(height: 32),
+
+                                // Internal notes
+                                Text(
+                                  'INTERNAL REVIEW NOTES',
+                                  style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.5),
+                                ),
+                                const SizedBox(height: 16),
+                                _buildNotesThread(),
+                                const SizedBox(height: 16),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: TextField(
+                                        controller: _noteCtrl,
+                                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                                        decoration: InputDecoration(
+                                          hintText: 'Enter review comment...',
+                                          hintStyle: const TextStyle(color: Colors.white24, fontSize: 13),
+                                          filled: true,
+                                          fillColor: const Color(0xFF1C1D21),
+                                          border: OutlineInputBorder(
+                                            borderRadius: BorderRadius.zero,
+                                            borderSide: BorderSide(color: Colors.white.withOpacity(0.08)),
+                                          ),
+                                          enabledBorder: OutlineInputBorder(
+                                            borderRadius: BorderRadius.zero,
+                                            borderSide: BorderSide(color: Colors.white.withOpacity(0.08)),
+                                          ),
+                                          focusedBorder: const OutlineInputBorder(
+                                            borderRadius: BorderRadius.zero,
+                                            borderSide: BorderSide(color: VianTheme.primaryGold),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    IconButton(
+                                      icon: const Icon(Icons.send, color: VianTheme.primaryGold),
+                                      onPressed: _addNote,
+                                    ),
+                                  ],
+                                ),
+                              ],
                             ),
                           ),
-                          const SizedBox(width: 12),
-                          IconButton(
-                            icon: const Icon(Icons.send, color: VianTheme.primaryGold),
-                            onPressed: _addNote,
+                        ),
+                        const Divider(color: Colors.white10, height: 1),
+
+                        // Compose / Reply Area
+                        Container(
+                          color: VianTheme.cardColor,
+                          padding: const EdgeInsets.all(24.0),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Container(
+                                  height: 48,
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF13131A),
+                                    border: Border.all(color: Colors.white.withOpacity(0.05)),
+                                  ),
+                                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                                  child: const TextField(
+                                    style: TextStyle(color: Colors.white, fontSize: 13),
+                                    decoration: InputDecoration(
+                                      hintText: 'Write a response correspondence to client...',
+                                      hintStyle: TextStyle(color: Colors.white24, fontSize: 13),
+                                      border: InputBorder.none,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: VianTheme.primaryGold,
+                                  foregroundColor: Colors.black,
+                                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                                  shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+                                ),
+                                onPressed: () {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Correspondence sent successfully!'), backgroundColor: VianTheme.success),
+                                  );
+                                },
+                                child: Text('SEND', style: GoogleFonts.outfit(fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
+                              )
+                            ],
                           ),
-                        ],
-                      ),
-                      const SizedBox(height: 48),
-                    ],
+                        )
+                      ],
+                    ),
                   ),
-                ),
-        ),
-      ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _channelTile(IconData icon, String title, String count, bool active) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+      color: active ? Colors.white.withOpacity(0.02) : Colors.transparent,
+      child: Row(
+        children: [
+          Icon(icon, color: active ? VianTheme.primaryGold : VianTheme.lightText, size: 18),
+          const SizedBox(width: 12),
+          Text(
+            title,
+            style: GoogleFonts.inter(
+              color: active ? Colors.white : VianTheme.lightText,
+              fontSize: 13.5,
+              fontWeight: active ? FontWeight.bold : FontWeight.normal,
+            ),
+          ),
+          const Spacer(),
+          if (count != '0')
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              color: active ? VianTheme.primaryGold.withOpacity(0.2) : Colors.white.withOpacity(0.05),
+              child: Text(
+                count,
+                style: GoogleFonts.poppins(color: active ? VianTheme.primaryGold : VianTheme.lightText, fontSize: 10),
+              ),
+            ),
+        ],
+      ),
     );
   }
 

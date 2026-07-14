@@ -357,218 +357,257 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
       roleCtrl.text = availableRoles.first;
     }
 
-    Widget formContent(StateSetter setStateDlg) => Padding(
-      padding: const EdgeInsets.all(24.0),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            existingUser != null ? 'Edit User' : 'Create New User Account',
-            style: GoogleFonts.inter(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: VianTheme.headerBlack,
-            ),
+    Widget formContent(StateSetter setStateDlg) => Theme(
+      data: ThemeData.dark().copyWith(
+        primaryColor: VianTheme.primaryGold,
+        colorScheme: const ColorScheme.dark(
+          primary: VianTheme.primaryGold,
+          surface: VianTheme.cardColor,
+        ),
+        inputDecorationTheme: InputDecorationTheme(
+          labelStyle: GoogleFonts.outfit(
+            color: VianTheme.primaryGold,
+            fontSize: 12,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1.0,
           ),
-          const SizedBox(height: 20),
-          TextField(
-            controller: nameCtrl,
-            decoration: const InputDecoration(
-              labelText: 'Full Name',
-              hintText: 'e.g. Ar. Rajesh Kumar',
-              border: OutlineInputBorder(),
-            ),
+          hintStyle: GoogleFonts.inter(color: Colors.white24, fontSize: 13),
+          enabledBorder: const UnderlineInputBorder(
+            borderSide: BorderSide(color: VianTheme.goldBorder),
           ),
-          const SizedBox(height: 16),
-          TextField(
-            controller: emailCtrl,
-            decoration: const InputDecoration(
-              labelText: 'Email Address',
-              hintText: 'name@vianarchitects.com',
-              border: OutlineInputBorder(),
-            ),
+          focusedBorder: const UnderlineInputBorder(
+            borderSide: BorderSide(color: VianTheme.primaryGold, width: 1.5),
           ),
-          const SizedBox(height: 16),
-          DropdownButtonFormField<String>(
-            value: roleCtrl.text,
-            decoration: const InputDecoration(
-              labelText: 'Access Permission Role',
-              border: OutlineInputBorder(),
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(32.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              existingUser != null ? 'EDIT PROFILE' : 'CREATE USER ACCOUNT',
+              style: GoogleFonts.outfit(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+                letterSpacing: 1.0,
+              ),
             ),
-            items: availableRoles.map((r) {
-              return DropdownMenuItem(value: r, child: Text(r));
-            }).toList(),
-            onChanged: (val) => setStateDlg(() => roleCtrl.text = val!),
-          ),
-          const SizedBox(height: 16),
-          DropdownButtonFormField<String>(
-            value: deptCtrl.text,
-            decoration: const InputDecoration(
-              labelText: 'Assigned Department',
-              border: OutlineInputBorder(),
+            const SizedBox(height: 8),
+            Text(
+              'LIVE UPDATE CONSOLE',
+              style: GoogleFonts.outfit(
+                fontSize: 9,
+                fontWeight: FontWeight.bold,
+                color: VianTheme.primaryGold,
+                letterSpacing: 1.5,
+              ),
             ),
-            items: ['Site Team', 'Designing Team', 'Core Team', 'Executive', 'Administration'].map((d) {
-              return DropdownMenuItem(value: d, child: Text(d));
-            }).toList(),
-            onChanged: (val) => setStateDlg(() => deptCtrl.text = val!),
-          ),
-          if (existingUser != null) ...[
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Checkbox(
-                  value: showPasswordFields,
-                  activeColor: VianTheme.primaryGold,
-                  onChanged: (val) => setStateDlg(() => showPasswordFields = val ?? false),
-                ),
-                const Text('Reset / Change Password', style: TextStyle(fontSize: 13, color: VianTheme.headerBlack)),
-              ],
+            const SizedBox(height: 32),
+            TextField(
+              controller: nameCtrl,
+              style: GoogleFonts.inter(color: Colors.white, fontSize: 14),
+              decoration: const InputDecoration(
+                labelText: 'FULL LEGAL NAME',
+                hintText: 'e.g. Sebastian Thorne',
+              ),
             ),
-          ],
-          if (showPasswordFields) ...[
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: passwordCtrl,
-                    obscureText: obscurePassword,
-                    onChanged: (_) => setStateDlg(() {}),
-                    decoration: InputDecoration(
-                      labelText: 'Password',
-                      hintText: 'Enter password',
-                      border: const OutlineInputBorder(),
-                      suffixIcon: IconButton(
-                        icon: Icon(obscurePassword ? Icons.visibility_off : Icons.visibility),
-                        onPressed: () => setStateDlg(() => obscurePassword = !obscurePassword),
+            const SizedBox(height: 24),
+            TextField(
+              controller: emailCtrl,
+              style: GoogleFonts.inter(color: Colors.white, fontSize: 14),
+              decoration: const InputDecoration(
+                labelText: 'EXECUTIVE EMAIL',
+                hintText: 's.thorne@atelier-exec.com',
+              ),
+            ),
+            const SizedBox(height: 24),
+            DropdownButtonFormField<String>(
+              value: roleCtrl.text,
+              dropdownColor: VianTheme.cardColor,
+              style: GoogleFonts.inter(color: Colors.white, fontSize: 14),
+              decoration: const InputDecoration(
+                labelText: 'ROLE ACCESS',
+              ),
+              items: availableRoles.map((r) {
+                return DropdownMenuItem(value: r, child: Text(r, style: const TextStyle(color: Colors.white)));
+              }).toList(),
+              onChanged: (val) => setStateDlg(() => roleCtrl.text = val!),
+            ),
+            const SizedBox(height: 24),
+            DropdownButtonFormField<String>(
+              value: deptCtrl.text,
+              dropdownColor: VianTheme.cardColor,
+              style: GoogleFonts.inter(color: Colors.white, fontSize: 14),
+              decoration: const InputDecoration(
+                labelText: 'DEPARTMENT',
+              ),
+              items: ['Site Team', 'Designing Team', 'Core Team', 'Executive', 'Administration'].map((d) {
+                return DropdownMenuItem(value: d, child: Text(d, style: const TextStyle(color: Colors.white)));
+              }).toList(),
+              onChanged: (val) => setStateDlg(() => deptCtrl.text = val!),
+            ),
+            if (existingUser != null) ...[
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Checkbox(
+                    value: showPasswordFields,
+                    activeColor: VianTheme.primaryGold,
+                    checkColor: VianTheme.cardColor,
+                    onChanged: (val) => setStateDlg(() => showPasswordFields = val ?? false),
+                  ),
+                  Text('RESET / CHANGE PASSWORD', style: GoogleFonts.outfit(fontSize: 10, fontWeight: FontWeight.bold, color: VianTheme.primaryGold, letterSpacing: 0.5)),
+                ],
+              ),
+            ],
+            if (showPasswordFields) ...[
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: passwordCtrl,
+                      obscureText: obscurePassword,
+                      onChanged: (_) => setStateDlg(() {}),
+                      style: GoogleFonts.inter(color: Colors.white, fontSize: 14),
+                      decoration: InputDecoration(
+                        labelText: 'PASSWORD',
+                        hintText: 'Enter password',
+                        suffixIcon: IconButton(
+                          icon: Icon(obscurePassword ? Icons.visibility_off : Icons.visibility, color: VianTheme.primaryGold, size: 18),
+                          onPressed: () => setStateDlg(() => obscurePassword = !obscurePassword),
+                        ),
                       ),
                     ),
                   ),
+                  const SizedBox(width: 8),
+                  IconButton(
+                    icon: const Icon(Icons.shuffle, color: VianTheme.primaryGold),
+                    tooltip: 'Generate Random Password',
+                    onPressed: () {
+                      final pass = _generateRandomPassword();
+                      setStateDlg(() {
+                        passwordCtrl.text = pass;
+                        confirmPasswordCtrl.text = pass;
+                      });
+                    },
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              if (passwordCtrl.text.isNotEmpty) ...[
+                (() {
+                  final strength = _checkPasswordStrength(passwordCtrl.text);
+                  final color = _getPasswordStrengthColor(strength);
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('STRENGTH: ${strength.toUpperCase()}', style: GoogleFonts.outfit(color: color, fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+                      const SizedBox(height: 6),
+                      Row(
+                        children: List.generate(4, (index) {
+                          final filled = (strength == 'Weak' && index == 0) ||
+                                         (strength == 'Fair' && index <= 1) ||
+                                         (strength == 'Good' && index <= 2) ||
+                                         (strength == 'Strong');
+                          return Expanded(
+                            child: Container(
+                              height: 3,
+                              margin: const EdgeInsets.symmetric(horizontal: 2),
+                              decoration: BoxDecoration(
+                                color: filled ? color : Colors.white10,
+                              ),
+                            ),
+                          );
+                        }),
+                      ),
+                    ],
+                  );
+                })(),
+              ],
+              const SizedBox(height: 24),
+              TextField(
+                controller: confirmPasswordCtrl,
+                obscureText: obscurePassword,
+                style: GoogleFonts.inter(color: Colors.white, fontSize: 14),
+                decoration: const InputDecoration(
+                  labelText: 'CONFIRM PASSWORD',
+                  hintText: 'Re-enter password',
                 ),
-                const SizedBox(width: 8),
-                IconButton(
-                  icon: const Icon(Icons.shuffle, color: VianTheme.primaryGold),
-                  tooltip: 'Generate Random Password',
-                  onPressed: () {
-                    final pass = _generateRandomPassword();
-                    setStateDlg(() {
-                      passwordCtrl.text = pass;
-                      confirmPasswordCtrl.text = pass;
-                    });
-                  },
+              ),
+            ],
+            const SizedBox(height: 48),
+            Row(
+              children: [
+                Expanded(
+                  child: VianButton(
+                    text: existingUser != null ? 'COMMIT CHANGES' : 'CREATE USER',
+                    onPressed: () async {
+                      if (nameCtrl.text.isNotEmpty && emailCtrl.text.isNotEmpty) {
+                        if (showPasswordFields) {
+                          if (passwordCtrl.text.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Password cannot be empty.')),
+                            );
+                            return;
+                          }
+                          if (passwordCtrl.text != confirmPasswordCtrl.text) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Passwords do not match.')),
+                            );
+                            return;
+                          }
+                        }
+                        
+                        final Map<String, dynamic> payload = {
+                          'name': nameCtrl.text,
+                          'email': emailCtrl.text,
+                          'role': roleCtrl.text,
+                          'department': deptCtrl.text,
+                        };
+                        
+                        if (showPasswordFields) {
+                          payload['password'] = passwordCtrl.text;
+                        }
+                        
+                        final Map<String, dynamic> ok;
+                        if (existingUser != null) {
+                          ok = await ApiService.updateEmployee(existingUser['id'], payload);
+                        } else {
+                          payload['username'] = emailCtrl.text.split('@').first;
+                          payload['isActive'] = true;
+                          ok = await ApiService.createEmployee(payload);
+                        }
+                        if (ok['success'] == true) {
+                          Navigator.of(context).pop();
+                          _loadUsers();
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(ok['message'] ?? 'Action failed.')),
+                          );
+                        }
+                      }
+                    },
+                  ),
+                ),
+                const SizedBox(width: 16),
+                OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: VianTheme.lightText,
+                    side: const BorderSide(color: VianTheme.goldBorder),
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+                  ),
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text('RESET', style: GoogleFonts.outfit(fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
                 ),
               ],
             ),
-            const SizedBox(height: 8),
-            if (passwordCtrl.text.isNotEmpty) ...[
-              (() {
-                final strength = _checkPasswordStrength(passwordCtrl.text);
-                final color = _getPasswordStrengthColor(strength);
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Strength: $strength', style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: List.generate(4, (index) {
-                        final filled = (strength == 'Weak' && index == 0) ||
-                                       (strength == 'Fair' && index <= 1) ||
-                                       (strength == 'Good' && index <= 2) ||
-                                       (strength == 'Strong');
-                        return Expanded(
-                          child: Container(
-                            height: 4,
-                            margin: const EdgeInsets.symmetric(horizontal: 2),
-                            decoration: BoxDecoration(
-                              color: filled ? color : Colors.grey.shade300,
-                              borderRadius: BorderRadius.circular(2),
-                            ),
-                          ),
-                        );
-                      }),
-                    ),
-                  ],
-                );
-              })(),
-            ],
-            const SizedBox(height: 16),
-            TextField(
-              controller: confirmPasswordCtrl,
-              obscureText: obscurePassword,
-              decoration: const InputDecoration(
-                labelText: 'Confirm Password',
-                hintText: 'Re-enter password',
-                border: OutlineInputBorder(),
-              ),
-            ),
           ],
-          const SizedBox(height: 32),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Cancel'),
-              ),
-              const SizedBox(width: 16),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: VianTheme.primaryGold,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-                ),
-                onPressed: () async {
-                  if (nameCtrl.text.isNotEmpty && emailCtrl.text.isNotEmpty) {
-                    if (showPasswordFields) {
-                      if (passwordCtrl.text.isEmpty) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Password cannot be empty.')),
-                        );
-                        return;
-                      }
-                      if (passwordCtrl.text != confirmPasswordCtrl.text) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Passwords do not match.')),
-                        );
-                        return;
-                      }
-                    }
-                    
-                    final Map<String, dynamic> payload = {
-                      'name': nameCtrl.text,
-                      'email': emailCtrl.text,
-                      'role': roleCtrl.text,
-                      'department': deptCtrl.text,
-                    };
-                    
-                    if (showPasswordFields) {
-                      payload['password'] = passwordCtrl.text;
-                    }
-                    
-                    final Map<String, dynamic> ok;
-                    if (existingUser != null) {
-                      ok = await ApiService.updateEmployee(existingUser['id'], payload);
-                    } else {
-                      payload['username'] = emailCtrl.text.split('@').first;
-                      payload['isActive'] = true;
-                      ok = await ApiService.createEmployee(payload);
-                    }
-                    if (ok['success'] == true) {
-                      Navigator.of(context).pop();
-                      _loadUsers();
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(ok['message'] ?? 'Action failed.')),
-                      );
-                    }
-                  }
-                },
-                child: Text(existingUser != null ? 'Save Changes' : 'Save User'),
-              ),
-            ],
-          ),
-        ],
+        ),
       ),
     );
 
@@ -576,9 +615,9 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
       showModalBottomSheet(
         context: context,
         isScrollControlled: true,
-        backgroundColor: Colors.white,
+        backgroundColor: VianTheme.cardColor,
         shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          borderRadius: BorderRadius.zero,
         ),
         builder: (ctx) => StatefulBuilder(
           builder: (ctx, setDlgState) => Padding(
@@ -594,11 +633,14 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
         builder: (ctx) => Align(
           alignment: Alignment.centerRight,
           child: Material(
-            color: Colors.white,
+            color: VianTheme.cardColor,
             elevation: 16,
             child: Container(
               width: 480,
               height: double.infinity,
+              decoration: const BoxDecoration(
+                border: Border(left: BorderSide(color: VianTheme.goldBorder, width: 1)),
+              ),
               child: StatefulBuilder(
                 builder: (ctx, setDlgState) => formContent(setDlgState),
               ),
@@ -687,30 +729,32 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'User Accounts Control',
-                      style: GoogleFonts.inter(
-                        fontSize: 22,
+                      'Directory',
+                      style: GoogleFonts.outfit(
+                        fontSize: 24,
                         fontWeight: FontWeight.bold,
-                        color: VianTheme.headerBlack,
+                        color: Colors.white,
+                        letterSpacing: -0.5,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Configure permissions, roles, and deactivations',
-                      style: TextStyle(color: VianTheme.lightText, fontSize: 13),
+                      'Manage organization access and hierarchical roles.',
+                      style: GoogleFonts.inter(color: VianTheme.lightText, fontSize: 13),
                     ),
                   ],
                 ),
                 if (!isMobile && (isSuperAdmin || isAdmin))
-                  ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: VianTheme.primaryGold,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                  OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: VianTheme.primaryGold,
+                      side: const BorderSide(color: VianTheme.primaryGold),
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
                     ),
                     onPressed: () => _showAddUserForm(context, isMobile, isTablet),
-                    icon: const Icon(Icons.add),
-                    label: const Text('Add User'),
+                    icon: const Icon(Icons.add, size: 16),
+                    label: Text('ADD NEW USER', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 11, letterSpacing: 1.0)),
                   ),
               ],
             ),
@@ -720,15 +764,16 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
               height: 44,
               padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(
-                color: const Color(0xFFE4DFD5),
-                borderRadius: BorderRadius.circular(10),
+                color: VianTheme.cardColor,
+                border: Border.all(color: VianTheme.goldBorder),
+                borderRadius: BorderRadius.zero,
               ),
               child: Row(
                 children: [
-                  _segmentButton(0, 'Users List', Icons.people_outline),
+                  _segmentButton(0, 'USERS DIRECTORY', Icons.people_outline),
                   if (isSuperAdmin) ...[
-                    _segmentButton(1, 'Permission Matrix', Icons.grid_on_outlined),
-                    _segmentButton(2, 'Audit Logs', Icons.history_toggle_off_outlined),
+                    _segmentButton(1, 'PERMISSION MATRIX', Icons.grid_on_outlined),
+                    _segmentButton(2, 'AUDIT LOGS', Icons.history_toggle_off_outlined),
                   ],
                 ],
               ),
@@ -745,7 +790,8 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
       floatingActionButton: (isMobile && (isSuperAdmin || isAdmin))
           ? FloatingActionButton(
               backgroundColor: VianTheme.primaryGold,
-              foregroundColor: Colors.white,
+              foregroundColor: VianTheme.cardColor,
+              shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
               onPressed: () => _showAddUserForm(context, isMobile, isTablet),
               child: const Icon(Icons.add),
             )
@@ -760,29 +806,22 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
         onTap: () => setState(() => _activeTab = index),
         child: Container(
           decoration: BoxDecoration(
-            color: active ? Colors.white : Colors.transparent,
-            borderRadius: BorderRadius.circular(8),
-            boxShadow: active
-                ? [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
-                    )
-                  ]
-                : null,
+            color: active ? VianTheme.primaryGold.withOpacity(0.08) : Colors.transparent,
+            border: active ? Border.all(color: VianTheme.primaryGold.withOpacity(0.3)) : null,
+            borderRadius: BorderRadius.zero,
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, size: 16, color: active ? VianTheme.headerBlack : VianTheme.lightText),
+              Icon(icon, size: 16, color: active ? VianTheme.primaryGold : VianTheme.lightText),
               const SizedBox(width: 8),
               Text(
                 label,
-                style: GoogleFonts.inter(
-                  fontSize: 12,
-                  fontWeight: active ? FontWeight.bold : FontWeight.normal,
-                  color: active ? VianTheme.headerBlack : VianTheme.lightText,
+                style: GoogleFonts.outfit(
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.0,
+                  color: active ? VianTheme.primaryGold : VianTheme.lightText,
                 ),
               ),
             ],
@@ -836,25 +875,25 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
           Expanded(
             flex: 3,
             child: TextField(
-              style: const TextStyle(color: VianTheme.headerBlack, fontSize: 13),
+              style: const TextStyle(color: Colors.white, fontSize: 13),
               decoration: InputDecoration(
-                hintText: 'Search users by name or email...',
-                hintStyle: const TextStyle(color: Colors.grey, fontSize: 13),
-                prefixIcon: const Icon(Icons.search, color: VianTheme.primaryGold),
-                fillColor: const Color(0xFFF0EBE1),
+                hintText: 'SEARCH DIRECTORY...',
+                hintStyle: const TextStyle(color: Colors.white30, fontSize: 12, letterSpacing: 0.5),
+                prefixIcon: const Icon(Icons.search, color: VianTheme.primaryGold, size: 18),
+                fillColor: VianTheme.cardColor,
                 filled: true,
                 contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: VianTheme.goldBorder),
+                border: const OutlineInputBorder(
+                  borderRadius: BorderRadius.zero,
+                  borderSide: BorderSide(color: VianTheme.goldBorder),
                 ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: VianTheme.goldBorder),
+                enabledBorder: const OutlineInputBorder(
+                  borderRadius: BorderRadius.zero,
+                  borderSide: BorderSide(color: VianTheme.goldBorder),
                 ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: VianTheme.primaryGold, width: 1.5),
+                focusedBorder: const OutlineInputBorder(
+                  borderRadius: BorderRadius.zero,
+                  borderSide: BorderSide(color: VianTheme.primaryGold, width: 1.5),
                 ),
               ),
               onChanged: (val) {
@@ -869,17 +908,17 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
             decoration: BoxDecoration(
-              color: const Color(0xFFF0EBE1),
-              borderRadius: BorderRadius.circular(10),
+              color: VianTheme.cardColor,
+              borderRadius: BorderRadius.zero,
               border: Border.all(color: VianTheme.goldBorder),
             ),
             child: DropdownButtonHideUnderline(
               child: DropdownButton<String>(
-                dropdownColor: const Color(0xFFF0EBE1),
+                dropdownColor: VianTheme.cardColor,
                 value: _selectedRoleFilter,
-                style: const TextStyle(color: VianTheme.headerBlack, fontSize: 13, fontWeight: FontWeight.bold),
+                style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
                 items: ['All', 'Super Admin', 'Admin', 'Project Manager', 'Engineer', 'Staff'].map((r) {
-                  return DropdownMenuItem(value: r, child: Text(r));
+                  return DropdownMenuItem(value: r, child: Text(r, style: const TextStyle(color: Colors.white)));
                 }).toList(),
                 onChanged: (val) {
                   setState(() {
@@ -894,17 +933,17 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
             decoration: BoxDecoration(
-              color: const Color(0xFFF0EBE1),
-              borderRadius: BorderRadius.circular(10),
+              color: VianTheme.cardColor,
+              borderRadius: BorderRadius.zero,
               border: Border.all(color: VianTheme.goldBorder),
             ),
             child: DropdownButtonHideUnderline(
               child: DropdownButton<String>(
-                dropdownColor: const Color(0xFFF0EBE1),
+                dropdownColor: VianTheme.cardColor,
                 value: _selectedStatusFilter,
-                style: const TextStyle(color: VianTheme.headerBlack, fontSize: 13, fontWeight: FontWeight.bold),
+                style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
                 items: ['All', 'Active', 'Suspended'].map((s) {
-                  return DropdownMenuItem(value: s, child: Text(s));
+                  return DropdownMenuItem(value: s, child: Text(s, style: const TextStyle(color: Colors.white)));
                 }).toList(),
                 onChanged: (val) {
                   setState(() {
@@ -1109,25 +1148,27 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
       children: [
         searchAndFilterRow,
         Expanded(
-          child: VianCard(
-            padding: EdgeInsets.zero,
-            child: Column(
-              children: [
-                // Table header
-                Container(
-                  color: const Color(0xFFF7F4EE),
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-                  child: const Row(
-                    children: [
-                      Expanded(flex: 3, child: Text('NAME / EMAIL', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: VianTheme.lightText))),
-                      Expanded(flex: 2, child: Text('ROLE', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: VianTheme.lightText))),
-                      Expanded(flex: 2, child: Text('CREATED DATE', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: VianTheme.lightText))),
-                      Expanded(flex: 2, child: Text('LAST LOGIN', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: VianTheme.lightText))),
-                      Expanded(flex: 2, child: Text('STATUS', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: VianTheme.lightText))),
-                      Expanded(flex: 2, child: Align(alignment: Alignment.centerRight, child: Text('ACTIONS', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: VianTheme.lightText)))),
-                    ],
+          child: CustomPaint(
+            painter: AtelierBracketPainter(color: VianTheme.primaryGold),
+            child: VianCard(
+              padding: EdgeInsets.zero,
+              child: Column(
+                children: [
+                  // Table header
+                  Container(
+                    color: const Color(0xFF1A1B1F),
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                    child: Row(
+                      children: [
+                        Expanded(flex: 3, child: Text('NAME / EMAIL', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 11, color: VianTheme.primaryGold, letterSpacing: 0.8))),
+                        Expanded(flex: 2, child: Text('ROLE', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 11, color: VianTheme.primaryGold, letterSpacing: 0.8))),
+                        Expanded(flex: 2, child: Text('CREATED DATE', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 11, color: VianTheme.primaryGold, letterSpacing: 0.8))),
+                        Expanded(flex: 2, child: Text('LAST LOGIN', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 11, color: VianTheme.primaryGold, letterSpacing: 0.8))),
+                        Expanded(flex: 2, child: Text('STATUS', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 11, color: VianTheme.primaryGold, letterSpacing: 0.8))),
+                        Expanded(flex: 2, child: Align(alignment: Alignment.centerRight, child: Text('ACTIONS', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 11, color: VianTheme.primaryGold, letterSpacing: 0.8)))),
+                      ],
+                    ),
                   ),
-                ),
                 Expanded(
                   child: ListView.separated(
                     itemCount: paginatedUsers.length,
@@ -1247,6 +1288,7 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
               ],
             ),
           ),
+        ),
         ),
         paginationRow,
       ],

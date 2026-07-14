@@ -161,6 +161,203 @@ class _ExecutiveDashboardViewState extends State<ExecutiveDashboardView> {
     );
   }
 
+  Widget _tableHeader(String text, {bool isRight = false}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12.0),
+      child: Text(
+        text.toUpperCase(),
+        style: GoogleFonts.outfit(
+          color: VianTheme.primaryGold,
+          fontSize: 10,
+          fontWeight: FontWeight.bold,
+          letterSpacing: 1.0,
+        ),
+        textAlign: isRight ? TextAlign.right : TextAlign.left,
+      ),
+    );
+  }
+
+  TableRow _tableRow(Map<String, dynamic> proj, NumberFormat currencyFormatter) {
+    final status = proj['status'] ?? 'Draft';
+    final valuation = safeToDouble(proj['budgetedCost'] ?? proj['budget'] ?? 0.0);
+    return TableRow(
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: VianTheme.goldBorder.withOpacity(0.4), width: 1)),
+      ),
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 12.0),
+          child: Row(
+            children: [
+              Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  border: Border.all(color: VianTheme.goldBorder, width: 1),
+                  color: const Color(0xFF1E1F23),
+                ),
+                child: const Icon(Icons.architecture, color: VianTheme.primaryGold, size: 14),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  proj['name'] ?? 'Untitled Project',
+                  style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.w500, fontSize: 13),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 16.0),
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              proj['clientName'] ?? proj['client']?['name'] ?? 'N/A',
+              style: GoogleFonts.inter(color: VianTheme.lightText, fontSize: 13),
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 16.0),
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              proj['address'] ?? 'Kyoto, JP',
+              style: GoogleFonts.inter(color: VianTheme.lightText, fontSize: 13),
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 12.0),
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: VianTheme.primaryGold.withOpacity(0.08),
+                border: Border.all(color: VianTheme.primaryGold.withOpacity(0.2), width: 1),
+              ),
+              child: Text(
+                status.toUpperCase(),
+                style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 0.5),
+              ),
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 16.0),
+          child: Align(
+            alignment: Alignment.centerRight,
+            child: Text(
+              currencyFormatter.format(valuation),
+              style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w500, fontSize: 13),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDonutChart() {
+    return SizedBox(
+      height: 180,
+      child: Row(
+        children: [
+          Expanded(
+            child: Center(
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  SizedBox(
+                    width: 110,
+                    height: 110,
+                    child: CircularProgressIndicator(
+                      value: 0.65,
+                      strokeWidth: 12,
+                      backgroundColor: VianTheme.goldBorder.withOpacity(0.2),
+                      valueColor: const AlwaysStoppedAnimation<Color>(VianTheme.primaryGold),
+                    ),
+                  ),
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text('65%', style: GoogleFonts.outfit(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
+                      Text('RESIDENTIAL', style: GoogleFonts.outfit(fontSize: 8, color: VianTheme.lightText, letterSpacing: 0.5)),
+                    ],
+                  )
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(width: 16),
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _chartLegend(VianTheme.primaryGold, 'Residential ($6.1M)'),
+              const SizedBox(height: 10),
+              _chartLegend(VianTheme.lightText, 'Commercial ($2.3M)'),
+              const SizedBox(height: 10),
+              _chartLegend(VianTheme.goldBorder, 'Civic ($1.0M)'),
+            ],
+          )
+        ],
+      ),
+    );
+  }
+
+  Widget _chartLegend(Color color, String label) {
+    return Row(
+      children: [
+        Container(width: 8, height: 8, color: color),
+        const SizedBox(width: 8),
+        Text(label, style: GoogleFonts.inter(color: VianTheme.lightText, fontSize: 11)),
+      ],
+    );
+  }
+
+  Widget _buildBarChart() {
+    return SizedBox(
+      height: 180,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          _barItem('Jan', 70),
+          _barItem('Feb', 95),
+          _barItem('Mar', 130, isHighlighted: true),
+          _barItem('Apr', 85),
+          _barItem('May', 110),
+          _barItem('Jun', 100),
+        ],
+      ),
+    );
+  }
+
+  Widget _barItem(String month, double height, {bool isHighlighted = false}) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        Container(
+          width: 18,
+          height: height,
+          color: isHighlighted ? VianTheme.primaryGold : VianTheme.goldBorder.withOpacity(0.5),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          month.toUpperCase(),
+          style: GoogleFonts.outfit(
+            color: isHighlighted ? VianTheme.primaryGold : VianTheme.lightText,
+            fontSize: 9,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_loading) return const Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(VianTheme.primaryGold)));
@@ -187,385 +384,505 @@ class _ExecutiveDashboardViewState extends State<ExecutiveDashboardView> {
 
     final monthlyRevenueData = List<double>.from((_analytics?['monthlyRevenue'] ?? []).map((e) => safeToDouble(e)));
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(24.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'EXECUTIVE BUSINESS COMMAND OVERVIEW',
-                    style: GoogleFonts.poppins(
-                      fontSize: 24, 
-                      fontWeight: FontWeight.bold, 
-                      color: VianTheme.primaryGold,
-                      letterSpacing: 1.0
-                    )
-                  ),
-                  const Text('Managing Director Command Panel (Anand)', style: TextStyle(color: VianTheme.lightText)),
-                ],
-              ),
-              IconButton(
-                icon: const Icon(Icons.sync, color: VianTheme.primaryGold), 
-                onPressed: () => setState(() { _loading = true; _loadAllData(); })
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Left Column (Main Area)
+        Expanded(
+          flex: 7,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(32.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Executive Command Overview',
+                          style: GoogleFonts.outfit(
+                            fontSize: 24, 
+                            fontWeight: FontWeight.bold, 
+                            color: Colors.white,
+                            letterSpacing: -0.5
+                          )
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Managing Director Command Panel (Anand)', 
+                          style: GoogleFonts.inter(color: VianTheme.lightText, fontSize: 13)
+                        ),
+                      ],
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.sync, color: VianTheme.primaryGold), 
+                      onPressed: () => setState(() { _loading = true; _loadAllData(); })
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 32),
 
-          if (_targetAlerts.isNotEmpty) ...[
-            Column(
-              children: _targetAlerts.map<Widget>((alert) {
-                final isHigh = alert['severity'] == 'High';
-                return Container(
-                  width: double.infinity,
-                  margin: const EdgeInsets.only(bottom: 12),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  decoration: BoxDecoration(
-                    color: isHigh ? const Color(0x22DC3545) : const Color(0x22F5A623),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: isHigh ? VianTheme.danger : VianTheme.primaryGold, width: 1),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        isHigh ? Icons.error_outline : Icons.warning_amber_rounded,
-                        color: isHigh ? VianTheme.danger : VianTheme.primaryGold,
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              '${alert['title']} (${alert['type']})', 
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold, 
-                                color: isHigh ? VianTheme.danger : VianTheme.primaryGold,
-                                fontSize: 13
-                              )
+                // KPI CARDS
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final cols = constraints.maxWidth < 700 ? 2 : 4;
+                    return GridView.count(
+                      crossAxisCount: cols,
+                      crossAxisSpacing: 24,
+                      mainAxisSpacing: 24,
+                      shrinkWrap: true,
+                      childAspectRatio: 1.4,
+                      physics: const NeverScrollableScrollPhysics(),
+                      children: [
+                        CustomPaint(
+                          painter: AtelierBracketPainter(color: VianTheme.primaryGold),
+                          child: Container(
+                            color: VianTheme.cardColor,
+                            padding: const EdgeInsets.all(24.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text('ACTIVE PROJECTS', style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1)),
+                                Text('142', style: GoogleFonts.bodoniModa(color: Colors.white, fontSize: 44, fontWeight: FontWeight.bold)),
+                                Row(
+                                  children: [
+                                    const Icon(Icons.trending_up, color: VianTheme.primaryGold, size: 14),
+                                    const SizedBox(width: 4),
+                                    Text('+12% since last month', style: GoogleFonts.inter(color: VianTheme.lightText, fontSize: 11)),
+                                  ],
+                                ),
+                              ],
                             ),
-                            Text(alert['message'] ?? '', style: const TextStyle(color: Colors.white70, fontSize: 12)),
+                          ),
+                        ),
+                        CustomPaint(
+                          painter: AtelierBracketPainter(color: VianTheme.primaryGold),
+                          child: Container(
+                            color: VianTheme.cardColor,
+                            padding: const EdgeInsets.all(24.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text('TOTAL REVENUE', style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1)),
+                                Text('₹9.4M', style: GoogleFonts.bodoniModa(color: Colors.white, fontSize: 44, fontWeight: FontWeight.bold)),
+                                Row(
+                                  children: [
+                                    const Icon(Icons.trending_up, color: VianTheme.primaryGold, size: 14),
+                                    const SizedBox(width: 4),
+                                    Text('+2.1M growth', style: GoogleFonts.inter(color: VianTheme.lightText, fontSize: 11)),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        CustomPaint(
+                          painter: AtelierBracketPainter(color: VianTheme.primaryGold),
+                          child: Container(
+                            color: VianTheme.cardColor,
+                            padding: const EdgeInsets.all(24.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text('UTILIZATION RATE', style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1)),
+                                Text('88%', style: GoogleFonts.bodoniModa(color: Colors.white, fontSize: 44, fontWeight: FontWeight.bold)),
+                                Row(
+                                  children: [
+                                    const Icon(Icons.check_circle_outline, color: VianTheme.primaryGold, size: 14),
+                                    const SizedBox(width: 4),
+                                    Text('Optimal capacity', style: GoogleFonts.inter(color: VianTheme.lightText, fontSize: 11)),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        CustomPaint(
+                          painter: AtelierBracketPainter(color: VianTheme.primaryGold),
+                          child: Container(
+                            color: VianTheme.cardColor,
+                            padding: const EdgeInsets.all(24.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text('AVG COMPLETION', style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1)),
+                                Text('240d', style: GoogleFonts.bodoniModa(color: Colors.white, fontSize: 44, fontWeight: FontWeight.bold)),
+                                Row(
+                                  children: [
+                                    const Icon(Icons.arrow_downward, color: VianTheme.primaryGold, size: 14),
+                                    const SizedBox(width: 4),
+                                    Text('-4% efficiency gain', style: GoogleFonts.inter(color: VianTheme.lightText, fontSize: 11)),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+                const SizedBox(height: 32),
+
+                // CHARTS ROW
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final isSmall = constraints.maxWidth < 700;
+                    return Flex(
+                      direction: isSmall ? Axis.vertical : Axis.horizontal,
+                      children: [
+                        Expanded(
+                          flex: isSmall ? 0 : 1,
+                          child: VianCard(
+                            padding: const EdgeInsets.all(24.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('REVENUE DISTRIBUTION', style: GoogleFonts.outfit(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1)),
+                                const SizedBox(height: 16),
+                                _buildDonutChart(),
+                              ],
+                            ),
+                          ),
+                        ),
+                        if (!isSmall) const SizedBox(width: 24),
+                        if (isSmall) const SizedBox(height: 24),
+                        Expanded(
+                          flex: isSmall ? 0 : 1,
+                          child: VianCard(
+                            padding: const EdgeInsets.all(24.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('PROJECT VELOCITY', style: GoogleFonts.outfit(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1)),
+                                const SizedBox(height: 16),
+                                _buildBarChart(),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+                const SizedBox(height: 32),
+
+                // TARGET PROGRESS VIEW
+                Text('ANNUAL TARGETS ACHIEVEMENT', style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.bold, color: VianTheme.primaryGold, letterSpacing: 1.0)),
+                const SizedBox(height: 16),
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final cols = constraints.maxWidth < 600 ? 2 : 4;
+                    return GridView.count(
+                      crossAxisCount: cols,
+                      crossAxisSpacing: 16,
+                      mainAxisSpacing: 16,
+                      shrinkWrap: true,
+                      childAspectRatio: 0.85,
+                      physics: const NeverScrollableScrollPhysics(),
+                      children: [
+                        TargetProgressIndicator(
+                          title: 'ANNUAL TURNOVER',
+                          actual: turnoverActual,
+                          target: turnoverTarget,
+                          label: currencyFormatter.format(turnoverActual),
+                        ),
+                        TargetProgressIndicator(
+                          title: 'ANNUAL NET PROFIT',
+                          actual: profitActual,
+                          target: profitTarget,
+                          label: currencyFormatter.format(profitActual),
+                        ),
+                        TargetProgressIndicator(
+                          title: 'COMPLETED PROJECTS',
+                          actual: projectsActual,
+                          target: projectsTarget,
+                          label: '${projectsActual.toInt()} / ${projectsTarget.toInt()} Projects',
+                        ),
+                        TargetProgressIndicator(
+                          title: 'CLIENT GROWTH',
+                          actual: clientsActual,
+                          target: clientsTarget,
+                          label: '${clientsActual.toInt()} Clients',
+                        ),
+                      ],
+                    );
+                  },
+                ),
+                const SizedBox(height: 32),
+
+                // GEOFENCE VIOLATIONS CARD
+                if (_warnings.isNotEmpty) ...[
+                  VianCard(
+                    padding: const EdgeInsets.all(24.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('GPS ATTENDANCE & GEOFENCE BREACHES', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: VianTheme.danger, letterSpacing: 1.0, fontSize: 13)),
+                        const SizedBox(height: 16),
+                        ListView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: _warnings.length,
+                          itemBuilder: (context, idx) {
+                            final warn = _warnings[idx];
+                            return Container(
+                              margin: const EdgeInsets.only(bottom: 8),
+                              decoration: const BoxDecoration(
+                                border: Border(bottom: BorderSide(color: VianTheme.goldBorder, width: 0.5)),
+                              ),
+                              child: ListTile(
+                                contentPadding: EdgeInsets.zero,
+                                leading: const CircleAvatar(backgroundColor: Color(0x1ADB5545), child: Icon(Icons.gps_off, color: VianTheme.danger, size: 16)),
+                                title: Text('${warn['user']?['name'] ?? 'Employee'} left assigned site boundary', style: GoogleFonts.inter(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w500)),
+                                subtitle: Text('Project: ${warn['project']?['name']} | Location: ${warn['currentLocation']}', style: GoogleFonts.inter(color: VianTheme.lightText, fontSize: 11.5)),
+                                trailing: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    IconButton(
+                                      icon: const Icon(Icons.gavel, color: VianTheme.danger, size: 18),
+                                      tooltip: 'Apply Fine',
+                                      onPressed: () => _showApplyFineDialog(warn),
+                                    ),
+                                    IconButton(
+                                      icon: const Icon(Icons.check, color: VianTheme.success, size: 18),
+                                      tooltip: 'Ignore',
+                                      onPressed: () async {
+                                        await ApiService.updateWarningStatus(warn['id'], 'Ignored');
+                                        setState(() => _loading = true);
+                                        _loadAllData();
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                ],
+
+                // RECENT PROJECTS TABLE
+                VianCard(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text('GLOBAL PROJECT STATUS', style: GoogleFonts.outfit(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1)),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              border: Border.all(color: VianTheme.primaryGold, width: 1),
+                            ),
+                            child: Text(
+                              'EXPORT DATA',
+                              style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 1),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      if (_projects.isEmpty)
+                        const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 24.0),
+                          child: Center(child: Text('No active projects registered.', style: TextStyle(color: VianTheme.lightText))),
+                        )
+                      else
+                        Table(
+                          columnWidths: const {
+                            0: FlexColumnWidth(3),
+                            1: FlexColumnWidth(2),
+                            2: FlexColumnWidth(2),
+                            3: FlexColumnWidth(2),
+                            4: FlexColumnWidth(2),
+                          },
+                          children: [
+                            TableRow(
+                              decoration: const BoxDecoration(
+                                border: Border(bottom: BorderSide(color: VianTheme.goldBorder, width: 1)),
+                              ),
+                              children: [
+                                _tableHeader('Project Identifier'),
+                                _tableHeader('Client'),
+                                _tableHeader('Region'),
+                                _tableHeader('Status'),
+                                _tableHeader('Valuation', isRight: true),
+                              ],
+                            ),
+                            ..._projects.map((p) => _tableRow(p, currencyFormatter)).toList(),
                           ],
                         ),
-                      )
                     ],
                   ),
-                );
-              }).toList(),
+                ),
+              ],
             ),
-            const SizedBox(height: 16),
-          ],
-
-          const Text('GPS GEOFENCE & BIOMETRIC ANALYTICS', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: VianTheme.primaryGold, letterSpacing: 0.5)),
-          const SizedBox(height: 16),
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final cols = constraints.maxWidth < 600 ? 2 : 4;
-              return GridView.count(
-                crossAxisCount: cols,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
-                shrinkWrap: true,
-                childAspectRatio: 1.4,
-                physics: const NeverScrollableScrollPhysics(),
-                children: [
-                  VianMetricCard(
-                    title: "GPS SUCCESS RATE", 
-                    value: _attendanceStats?['gpsSuccessRate'] ?? '100.0%', 
-                    icon: Icons.gps_fixed, 
-                    iconColor: VianTheme.success
-                  ),
-                  VianMetricCard(
-                    title: "FACE SCANS ACCURACY", 
-                    value: _attendanceStats?['faceSuccessRate'] ?? '98.5%', 
-                    icon: Icons.face, 
-                    iconColor: VianTheme.primaryGold
-                  ),
-                  VianMetricCard(
-                    title: "OUTSIDE GEOFENCE TODAY", 
-                    value: '${_attendanceStats?['outsideGeofence'] ?? 0}', 
-                    icon: Icons.gps_off, 
-                    iconColor: VianTheme.danger
-                  ),
-                  VianMetricCard(
-                    title: "PENDING APPROVALS", 
-                    value: '${_attendanceStats?['pendingApproval'] ?? 0}', 
-                    icon: Icons.lock_clock, 
-                    iconColor: VianTheme.warning
-                  ),
-                ],
-              );
-            },
           ),
-          const SizedBox(height: 32),
+        ),
 
-          const Text('ANNUAL TARGETS ACHIEVEMENT', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: VianTheme.primaryGold, letterSpacing: 0.5)),
-          const SizedBox(height: 16),
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final cols = constraints.maxWidth < 600 ? 2 : 4;
-              return GridView.count(
-                crossAxisCount: cols,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
-                shrinkWrap: true,
-                childAspectRatio: 0.85,
-                physics: const NeverScrollableScrollPhysics(),
-                children: [
-                  TargetProgressIndicator(
-                    title: 'ANNUAL TURNOVER',
-                    actual: turnoverActual,
-                    target: turnoverTarget,
-                    label: currencyFormatter.format(turnoverActual),
-                  ),
-                  TargetProgressIndicator(
-                    title: 'ANNUAL NET PROFIT',
-                    actual: profitActual,
-                    target: profitTarget,
-                    label: currencyFormatter.format(profitActual),
-                  ),
-                  TargetProgressIndicator(
-                    title: 'COMPLETED PROJECTS',
-                    actual: projectsActual,
-                    target: projectsTarget,
-                    label: '${projectsActual.toInt()} / ${projectsTarget.toInt()} Projects',
-                  ),
-                  TargetProgressIndicator(
-                    title: 'CLIENT GROWTH',
-                    actual: clientsActual,
-                    target: clientsTarget,
-                    label: '${clientsActual.toInt()} Clients',
-                  ),
-                ],
-              );
-            },
+        // Right Insights Rail
+        Container(
+          width: 320,
+          decoration: const BoxDecoration(
+            color: Color(0xFF121317),
+            border: Border(left: BorderSide(color: VianTheme.goldBorder, width: 1)),
           ),
-          const SizedBox(height: 32),
-
-          Row(
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                flex: 3,
+              Padding(
+                padding: const EdgeInsets.all(24.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    VianCard(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text('REVENUE COLLECTION TREND (FY)', style: TextStyle(fontWeight: FontWeight.bold, color: VianTheme.primaryGold)),
-                              Text('Apr 2026 - Mar 2027', style: TextStyle(color: VianTheme.lightText, fontSize: 11)),
-                            ],
-                          ),
-                          const SizedBox(height: 24),
-                          RevenueTrendChart(data: monthlyRevenueData),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-
-                    VianCard(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text('DEPARTMENT PERFORMANCE METRICS', style: TextStyle(fontWeight: FontWeight.bold, color: VianTheme.primaryGold)),
-                          const SizedBox(height: 16),
-                          _buildDeptProgressRow('Design Team', 'Drawing Completion Rate', safeToDouble(depts['design']?['completionRate'] ?? 84.0)),
-                          const SizedBox(height: 12),
-                          _buildDeptProgressRow('Site Team', 'Average Attendance Rate', safeToDouble(depts['site']?['attendanceRate'] ?? 92.0)),
-                          const SizedBox(height: 12),
-                          _buildDeptProgressRow('Accounts Team', 'Collection Efficiency Rate', safeToDouble(depts['accounts']?['collectionEfficiency'] ?? 72.0)),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-
-                    VianCard(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text('GPS ATTENDANCE & GEOFENCE VIOLATIONS', style: TextStyle(fontWeight: FontWeight.bold, color: VianTheme.danger)),
-                          const SizedBox(height: 12),
-                          if (_warnings.isEmpty)
-                            const Padding(
-                              padding: EdgeInsets.symmetric(vertical: 24.0),
-                              child: Center(child: Text('No active geofence breaches detected today.', style: TextStyle(color: VianTheme.lightText))),
-                            )
-                          else
-                            ListView.builder(
-                              shrinkWrap: true,
-                              physics: const NeverScrollableScrollPhysics(),
-                              itemCount: _warnings.length,
-                              itemBuilder: (context, idx) {
-                                final warn = _warnings[idx];
-                                return ListTile(
-                                  leading: const CircleAvatar(backgroundColor: Color(0x33DC3545), child: Icon(Icons.gps_off, color: VianTheme.danger)),
-                                  title: Text('${warn['user']?['name'] ?? 'Employee'} left designated boundary'),
-                                  subtitle: Text('Project: ${warn['project']?['name']} | Duration: ${warn['durationOutside']} mins | Location: ${warn['currentLocation']}'),
-                                  trailing: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      IconButton(
-                                        icon: const Icon(Icons.gavel, color: VianTheme.danger),
-                                        tooltip: 'Apply Fine',
-                                        onPressed: () => _showApplyFineDialog(warn),
-                                      ),
-                                      IconButton(
-                                        icon: const Icon(Icons.check, color: VianTheme.success),
-                                        tooltip: 'Ignore Warning',
-                                        onPressed: () async {
-                                          await ApiService.updateWarningStatus(warn['id'], 'Ignored');
-                                          setState(() => _loading = true);
-                                          _loadAllData();
-                                        },
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              },
-                            )
-                        ],
-                      ),
-                    ),
+                    Text('LIVE INSIGHTS', style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
+                    const SizedBox(height: 4),
+                    Text('Real-time updates and alerts', style: GoogleFonts.inter(color: VianTheme.lightText, fontSize: 12)),
                   ],
                 ),
               ),
-              const SizedBox(width: 24),
+              const Divider(color: VianTheme.goldBorder, height: 1),
 
+              // Activity logs
               Expanded(
-                flex: 2,
-                child: Column(
-                  children: [
-                    VianCard(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text('YEAR-END FORECAST ENGINE', style: TextStyle(fontWeight: FontWeight.bold, color: VianTheme.primaryGold)),
-                          const SizedBox(height: 16),
-                          _buildForecastRow('Expected Revenue', currencyFormatter.format(safeToDouble(forecasts['projectedYearEndRevenue'] ?? 12000000))),
-                          _buildForecastRow('Expected Profit', currencyFormatter.format(safeToDouble(forecasts['projectedYearEndProfit'] ?? 3600000))),
-                          _buildForecastRow('Expected Projects', '${forecasts['projectedYearEndProjects'] ?? 108} projects'),
-                          const Divider(color: Color(0xFF2E2E3E), height: 24),
-                          const Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text('Projections Status:', style: TextStyle(color: VianTheme.lightText, fontSize: 11)),
-                              Text('ON TARGET', style: TextStyle(color: VianTheme.success, fontWeight: FontWeight.bold, fontSize: 11)),
-                            ],
-                          )
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-
-                    VianCard(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text('BUSINESS HEALTH SCORECARD', style: TextStyle(fontWeight: FontWeight.bold, color: VianTheme.primaryGold)),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: VianTheme.primaryGold.withOpacity(0.15),
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(color: VianTheme.primaryGold, width: 1),
-                                ),
-                                child: Text(
-                                  '${_analytics?['financialHealthScore'] ?? 78} / 100', 
-                                  style: const TextStyle(color: VianTheme.primaryGold, fontWeight: FontWeight.bold, fontSize: 13)
-                                ),
-                              )
-                            ],
-                          ),
-                          _buildScoreItem('Financial Health', safeToDouble(scoreData['financial'] ?? 70)),
-                          _buildScoreItem('Projects Delivery', safeToDouble(scoreData['projects'] ?? 68)),
-                          _buildScoreItem('Operations Efficiency', safeToDouble(scoreData['operations'] ?? 82)),
-                          _buildScoreItem('Client Relations', safeToDouble(scoreData['clients'] ?? 72)),
-                          _buildScoreItem('Employee Health', safeToDouble(scoreData['employees'] ?? 88)),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-
-                    VianCard(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text('COMPANY ANNOUNCEMENTS', style: TextStyle(fontWeight: FontWeight.bold, color: VianTheme.primaryGold)),
-                              IconButton(
-                                icon: const Icon(Icons.add_comment_outlined, color: VianTheme.primaryGold, size: 20),
-                                onPressed: _showPublishAnnouncementDialog,
-                              )
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          ListView.builder(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            itemCount: _announcements.length > 3 ? 3 : _announcements.length,
-                            itemBuilder: (context, idx) {
-                              final ann = _announcements[idx];
-                              return Container(
-                                margin: const EdgeInsets.only(bottom: 8),
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(color: const Color(0xFFF1F5F9), borderRadius: BorderRadius.circular(8)),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('RECENT ACTIVITY', style: GoogleFonts.outfit(color: VianTheme.lightText, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1)),
+                      const SizedBox(height: 16),
+                      if (_logs.isEmpty)
+                        const Text('No recent activity logs.', style: TextStyle(color: Colors.white24, fontSize: 12))
+                      else
+                        ListView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: _logs.length > 5 ? 5 : _logs.length,
+                          itemBuilder: (context, idx) {
+                            final log = _logs[idx];
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 16.0),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Container(
+                                    margin: const EdgeInsets.only(top: 4),
+                                    width: 6,
+                                    height: 6,
+                                    decoration: const BoxDecoration(color: VianTheme.primaryGold, shape: BoxShape.circle),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        Text(ann['title'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold)),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                          decoration: BoxDecoration(
-                                            color: ann['type'] == 'Urgent' ? const Color(0x33DC3545) : const Color(0x33F5A623), 
-                                            borderRadius: BorderRadius.circular(4)
-                                          ),
-                                          child: Text(
-                                            ann['type'] ?? 'General', 
-                                            style: TextStyle(
-                                              color: ann['type'] == 'Urgent' ? VianTheme.danger : VianTheme.primaryGold, 
-                                              fontSize: 9
-                                            )
-                                          ),
-                                        )
+                                        Text(
+                                          log['message'] ?? log['action'] ?? 'System Action',
+                                          style: GoogleFonts.inter(color: Colors.white, fontSize: 12.5, height: 1.3),
+                                        ),
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          log['createdAt'] != null
+                                              ? DateFormat('hh:mm a').format(DateTime.parse(log['createdAt']))
+                                              : 'Just now',
+                                          style: GoogleFonts.inter(color: Colors.white24, fontSize: 10),
+                                        ),
                                       ],
                                     ),
-                                    const SizedBox(height: 4),
-                                    Text(ann['message'] ?? '', style: const TextStyle(color: VianTheme.lightText, fontSize: 11)),
-                                  ],
-                                ),
-                              );
-                            },
-                          ),
-                        ],
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                      const SizedBox(height: 32),
+
+                      // Market trend card
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: VianTheme.primaryGold.withOpacity(0.04),
+                          border: const Border(left: BorderSide(color: VianTheme.primaryGold, width: 2)),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('MARKET TREND', style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 1)),
+                            const SizedBox(height: 6),
+                            Text('+18.4%', style: GoogleFonts.outfit(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Demand for sustainable concrete wireframes is rising sharply this quarter.',
+                              style: GoogleFonts.inter(color: VianTheme.lightText, fontSize: 11, height: 1.3),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 32),
+
+                      // System check status list
+                      Text('COMMAND STATUS', style: GoogleFonts.outfit(color: VianTheme.lightText, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1)),
+                      const SizedBox(height: 16),
+                      _statusCheckItem('Cloud Sync Database', true),
+                      const SizedBox(height: 12),
+                      _statusCheckItem('GPS Attendance Nodes', true),
+                      const SizedBox(height: 12),
+                      _statusCheckItem('Atelier Vault Security', true),
+                    ],
+                  ),
+                ),
+              ),
+              const Divider(color: VianTheme.goldBorder, height: 1),
+
+              // Bottom CTA
+              Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: VianButton(
+                    text: 'GENERATE SUITE REPORT',
+                    onPressed: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Atelier Suite Report generated.')),
+                      );
+                    },
+                  ),
                 ),
               ),
             ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
+  }
+
+  Widget _statusCheckItem(String label, bool active) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label, style: GoogleFonts.inter(color: VianTheme.lightText, fontSize: 12)),
+        Icon(
+          active ? Icons.check_circle_outline : Icons.error_outline,
+          color: active ? VianTheme.success : VianTheme.danger,
+          size: 16,
+        ),
+      ],
+    );
+  }
   }
 
   Widget _buildDeptProgressRow(String teamName, String metric, double rate) {
@@ -2639,3 +2956,497 @@ class _LegendItem extends StatelessWidget {
     );
   }
 }
+
+// ==========================================
+// 6. CLIENT PORTAL VIEW
+// ==========================================
+class ClientPortalView extends StatefulWidget {
+  const ClientPortalView({Key? key}) : super(key: key);
+
+  @override
+  State<ClientPortalView> createState() => _ClientPortalViewState();
+}
+
+class _ClientPortalViewState extends State<ClientPortalView> {
+  bool _loading = true;
+  Map<String, dynamic>? _project;
+  List<dynamic> _stages = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadClientProject();
+  }
+
+  Future<void> _loadClientProject() async {
+    try {
+      final list = await ApiService.getProjects();
+      if (list.isNotEmpty) {
+        _project = list.first;
+        final details = await ApiService.getProjectDetails(_project!['id']);
+        if (details.isNotEmpty) {
+          _project = details;
+          _stages = details['stages'] ?? [];
+        }
+      }
+    } catch (e) {
+      debugPrint("Error loading client project: $e");
+    }
+    setState(() => _loading = false);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_loading) {
+      return const Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(VianTheme.primaryGold)));
+    }
+
+    final String projectName = _project?['name'] ?? "Maison L'Aube";
+    final double progress = (_project?['progressPercentage'] ?? 74).toDouble();
+    final String progressText = "${progress.toInt()}%";
+
+    final formatter = NumberFormat.currency(locale: 'en_IN', symbol: '₹', decimalDigits: 0);
+    final double budget = safeToDouble(_project?['budget'] ?? 14500000);
+    final double paid = safeToDouble(_project?['paidAmount'] ?? 11000000);
+    final double outstanding = budget - paid;
+
+    final double width = MediaQuery.of(context).size.width;
+    final bool isDesktop = width > 1000;
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(32.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'EXECUTIVE COMMAND',
+                    style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 2.0),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Project Dossier: $projectName',
+                    style: GoogleFonts.outfit(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                color: VianTheme.primaryGold.withOpacity(0.08),
+                border: Border.all(color: VianTheme.primaryGold),
+                child: Text(
+                  'CONFIDENTIAL DOSSIER',
+                  style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 9, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 48),
+
+          Center(
+            child: Column(
+              children: [
+                Text(
+                  'CURRENT CONSTRUCTION PHASE',
+                  style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 3.0),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  progressText,
+                  style: GoogleFonts.bodoniModa(
+                    color: VianTheme.primaryGold,
+                    fontSize: 100,
+                    fontWeight: FontWeight.bold,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+                Container(
+                  width: 200,
+                  height: 1,
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(colors: [Colors.transparent, VianTheme.primaryGold, Colors.transparent]),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: 500,
+                  child: Text(
+                    'Interior finishing, bespoke millwork, and stone masonry installations are currently in progress. Construction is on track for October delivery.',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.inter(color: VianTheme.lightText, fontSize: 13, height: 1.5),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 64),
+
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('TIMELINE & MILESTONES', style: GoogleFonts.outfit(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+              Text('VIEW FULL LOG', style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
+            ],
+          ),
+          const Divider(color: Colors.white10, height: 24),
+          const SizedBox(height: 12),
+          
+          SizedBox(
+            height: 250,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              children: [
+                _buildMilestoneCard(
+                  'Foundation & Site Prep',
+                  'MAY 12, 2023',
+                  'COMPLETED',
+                  'https://lh3.googleusercontent.com/aida-public/AB6AXuDqirUa-AkKOeqNn9YcaHGH-EIkR-86pRcVue2XWy9TU_-kQeg4nQ75QGJ-SrJpiQnyIzi6d0v9F6Pj_5FB5SU4eLWq2ooU7KaSKpcdW4kh8cY72Du2wgpD4nmGTmMiIzXTfRmuyKFbK7UEoMCjHIZPtZsbO8tDU4U1GoAj7bWvETUxaInOL-hM_BybojEe5VCLCXpBszJNjmPECF9o8u_naxCtcM5U98yeubg6hdqx9cO1gUa4kGsv9lCnvhsd-SisOuRWNosyqjI',
+                ),
+                const SizedBox(width: 20),
+                _buildMilestoneCard(
+                  'Structural Framework',
+                  'JULY 28, 2023',
+                  'COMPLETED',
+                  'https://lh3.googleusercontent.com/aida-public/AB6AXuBknk5pHYPaB1A1BRZQGzKzaMBwH7ttAFmxl6OX0-GrPV6edUUGodK2NwqmEMxROkb1S9ut4XtvJPhdrJPfwGUtGqkBoINv5XaRHw0sHqmEoKEKietE9zD_YQV8bE_zthFv5UuKpWMYw5o6Ok6UsVSsHtHg4OCBb8vG8qmXj2HFALyd6v8rB8Wrj0MTnUE2gIlHOPLSFUL9oaitbW249njKAACiwMiCvvvaTZWCpQw53C4p--gkn86cXmt1HChVL2LI6PJa4Zv1gk8',
+                ),
+                const SizedBox(width: 20),
+                _buildMilestoneCard(
+                  'Interior Millwork',
+                  'SEPTEMBER 14, 2023',
+                  'IN PROGRESS',
+                  'https://lh3.googleusercontent.com/aida-public/AB6AXuAVN-ovZpD6lonPMdXkXT13YIcHK_vZ5EXTm3uowjjt11OYkyTD48Pp41yatS7zi0_1jsvA5MJP9PxmJi0CxCg2lyQ2ofC4ugFj_MMAyHKtYToVS67PzpE6PYb89XW4eLbdYpFwgOW640H2dN3RwTXKHI__5bSxk-XltHJ9sNbnjnJC1V50WsLTOIVTOk4F6rUt-cCfgmysJJgVW7sAySWheLXYTvEqOtK78lSMSrEJvifnzVeaYYaw1y5LZwmwxH4V5fbhFFGHGa4',
+                  isActive: true,
+                ),
+                const SizedBox(width: 20),
+                _buildMilestoneCard(
+                  'Landscaping & Exterior',
+                  'OCTOBER 30, 2023',
+                  'UPCOMING',
+                  '',
+                  isUpcoming: true,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 48),
+
+          if (isDesktop)
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(flex: 7, child: _buildBlueprintsDossier()),
+                const SizedBox(width: 32),
+                Expanded(flex: 5, child: _buildFinancialSummary(formatter, budget, paid, outstanding)),
+              ],
+            )
+          else ...[
+            _buildBlueprintsDossier(),
+            const SizedBox(height: 32),
+            _buildFinancialSummary(formatter, budget, paid, outstanding),
+          ],
+          const SizedBox(height: 48),
+
+          Container(
+            height: 320,
+            decoration: BoxDecoration(
+              color: VianTheme.cardColor,
+              border: Border.all(color: Colors.white.withOpacity(0.04)),
+              image: const DecorationImage(
+                image: NetworkImage('https://lh3.googleusercontent.com/aida-public/AB6AXuDMAErbO4i1T_qkd_vzf5XsFhOH0Lr6B8bA86yZyC7TG_wOhJawrHq7QKGQd8sHUXrO23gO-4UyLoOD9K-j4dl8ZaMjjMOZkNLDRHFJyV033jeNhuvJLLtjMO4wsQKP6NsywnGtBvP482J9f1I142b0IeovY7L-gR_ZZ-wS3od8IG8-qABVTAlDTuT0JCuRY8wqiUdoibJFh4NG5_d22nm5GD5Lt9iLRCB9hPLO17B3Sw2zvHjAxm31N63cex5H9PjORJe-lTXmj7c'),
+                fit: BoxFit.cover,
+                opacity: 0.35,
+              ),
+            ),
+            child: Stack(
+              children: [
+                Positioned(
+                  bottom: 32,
+                  left: 32,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('PROJECT LOCATION', style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 2.0)),
+                      const SizedBox(height: 8),
+                      Text(
+                        _project?['siteAddress'] ?? 'Varenna Estate, Lake Como',
+                        style: GoogleFonts.outfit(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                ),
+                Positioned(
+                  top: 32,
+                  right: 32,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    color: Colors.black.withOpacity(0.8),
+                    border: Border.all(color: Colors.white10),
+                    child: Row(
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text('CURRENT WEATHER', style: GoogleFonts.outfit(color: VianTheme.lightText, fontSize: 8, letterSpacing: 1.0)),
+                            const SizedBox(height: 4),
+                            Text('22°C Clear', style: GoogleFonts.poppins(color: VianTheme.primaryGold, fontSize: 13, fontWeight: FontWeight.bold)),
+                          ],
+                        ),
+                        const SizedBox(width: 12),
+                        const Icon(Icons.wb_sunny, color: VianTheme.primaryGold, size: 24),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMilestoneCard(String title, String date, String status, String imageUrl, {bool isActive = false, bool isUpcoming = false}) {
+    return Container(
+      width: 280,
+      decoration: BoxDecoration(
+        color: VianTheme.cardColor,
+        border: Border.all(color: isActive ? VianTheme.primaryGold : Colors.white10),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: isUpcoming
+                ? Container(
+                    color: const Color(0xFF13131A),
+                    child: Center(
+                      child: Icon(Icons.landscape, color: Colors.white.withOpacity(0.08), size: 48),
+                    ),
+                  )
+                : Image.network(
+                    imageUrl,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => Container(color: const Color(0xFF13131A)),
+                  ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(date, style: GoogleFonts.poppins(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold)),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      color: isActive ? Colors.white : (isUpcoming ? Colors.white10 : VianTheme.primaryGold.withOpacity(0.1)),
+                      child: Text(
+                        status,
+                        style: GoogleFonts.outfit(
+                          color: isActive ? Colors.black : (isUpcoming ? VianTheme.lightText : VianTheme.primaryGold),
+                          fontSize: 8,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    )
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  title,
+                  style: GoogleFonts.inter(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBlueprintsDossier() {
+    final blueprints = [
+      {'name': 'L01_FLOORPLAN_V4.PDF', 'desc': 'Architectural Floor Plan Layout', 'url': 'https://lh3.googleusercontent.com/aida-public/AB6AXuDNp3L7QKmIg22J6AY_J0xQFbJ_GtPFvBo3A1i-zDyfjuvFmqk1mBAFF8aFWoXb6OuFS2eNIq3-OqiqWyCew7_ekeTg6Kb2WgJUeTqvaNbaUZgNmofIh53SDCPnm7NciFa3PDmnuZMQ1s0DPvZXnMoKUEc1pb8_QWUJj9yCw1CvOcTArEiRf9t41ldz7hmOn0Xuex0vvTeHKU7xAs9BuIgLvC8hnFbz6mwoNp4PJEC9KDEd9jFGjYApcZ7QLXYU_3rkVp26pYhpQe0'},
+      {'name': 'STAIR_DETAIL_A1.PDF', 'desc': 'Section Detail: Oak Staircase', 'url': 'https://lh3.googleusercontent.com/aida-public/AB6AXuAR9RyzG3djRghhGsMnRucSBlIfjITy4b4SkbvQiBMxeZ_-g1exWk27StLxjobrPRsZ9ThgB6OVjELdMRgB_KyppuRaNVPv3nFxfSVyBSxvGS6CBCGZxeRkNZcN0EXBwts63DLB84gPCvQC2gTXF_OICt1-xgfoCsQ80ky5waqpD_xTQyRcHmEGZBoFxKNOxAjYaIxCaBTrz0TYT-QKFCYRJq-GCP0fu3QyF95ITY1XwW-grNn4p8Hms70gfPF6po18gxoaR9GFjlM'},
+      {'name': 'ELEC_LAYOUT_FINAL.PDF', 'desc': 'Master Lighting Layout Scheme', 'url': 'https://lh3.googleusercontent.com/aida-public/AB6AXuDSosd_Ud9CnxDIP5NkuOZAEosZlh3b_rH_HS2Xa1HFejNP9XxtyDNLRoZhX8e4ZbYTv1ryCXKuR1MQgLfLfrU-KSq7pYAfpduT78bWZa6CGt1To80tVnvgy6ynTGSMzHkeNj9W3rlyddApxEEeZwe7r8za3S2FszU3kYTT68yAIL6-RkAXn4Trmbgo0AZIOdX6WTLPuNkFpQHdAkMCYCTKQWsxcgVsRfz0yrzvxbvnc5KsQcMtmDlR6EHEC7lIRZXXn9mGH0j8njI'},
+    ];
+
+    return Container(
+      color: VianTheme.cardColor,
+      border: Border.all(color: Colors.white.withOpacity(0.04)),
+      padding: const EdgeInsets.all(32),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('TECHNICAL DOSSIER', style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
+                  const SizedBox(height: 4),
+                  Text('Approved Blueprints', style: GoogleFonts.outfit(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                ],
+              ),
+              IconButton(
+                icon: const Icon(Icons.download, color: VianTheme.primaryGold, size: 20),
+                onPressed: () {},
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: 16,
+              mainAxisSpacing: 16,
+              childAspectRatio: 1.5,
+            ),
+            itemCount: blueprints.length + 1,
+            itemBuilder: (context, idx) {
+              if (idx == blueprints.length) {
+                return Container(
+                  height: 100,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF13131A),
+                    border: Border.all(color: Colors.white.withOpacity(0.05)),
+                  ),
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.add_circle_outline, color: VianTheme.lightText, size: 24),
+                        const SizedBox(height: 8),
+                        Text('REQUEST REVISION', style: GoogleFonts.outfit(color: VianTheme.lightText, fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
+                      ],
+                    ),
+                  ),
+                );
+              }
+              final bp = blueprints[idx];
+              return Container(
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.white.withOpacity(0.05)),
+                  image: DecorationImage(
+                    image: NetworkImage(bp['url']!),
+                    fit: BoxFit.cover,
+                    opacity: 0.5,
+                  ),
+                ),
+                child: Stack(
+                  children: [
+                    Positioned(
+                      bottom: 12,
+                      left: 12,
+                      right: 12,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(bp['name']!, style: GoogleFonts.poppins(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
+                          Text(bp['desc']!, style: GoogleFonts.inter(color: VianTheme.lightText, fontSize: 9)),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFinancialSummary(NumberFormat formatter, double budget, double paid, double outstanding) {
+    return Column(
+      children: [
+        CustomPaint(
+          painter: AtelierBracketPainter(color: VianTheme.primaryGold),
+          child: Container(
+            color: VianTheme.cardColor,
+            padding: const EdgeInsets.all(32),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('FINANCIAL SUMMARY', style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
+                const SizedBox(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('Current Valuation', style: GoogleFonts.inter(color: VianTheme.lightText, fontSize: 13)),
+                    Text(formatter.format(budget), style: GoogleFonts.poppins(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('Paid to Date', style: GoogleFonts.inter(color: VianTheme.lightText, fontSize: 13)),
+                    Text(formatter.format(paid), style: GoogleFonts.poppins(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
+                  ],
+                ),
+                const Divider(color: Colors.white10, height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('Outstanding Balance', style: GoogleFonts.inter(color: VianTheme.primaryGold, fontSize: 14, fontWeight: FontWeight.bold)),
+                    Text(formatter.format(outstanding), style: GoogleFonts.poppins(color: VianTheme.primaryGold, fontSize: 18, fontWeight: FontWeight.bold)),
+                  ],
+                ),
+                const SizedBox(height: 28),
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: VianTheme.primaryGold,
+                    foregroundColor: Colors.black,
+                    minimumSize: const Size(double.infinity, 50),
+                    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+                  ),
+                  icon: const Icon(Icons.account_balance_wallet, size: 16),
+                  label: Text('PAY NOW', style: GoogleFonts.outfit(fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 2.0)),
+                  onPressed: () {},
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 20),
+        Container(
+          color: VianTheme.cardColor,
+          border: Border.all(color: Colors.white.withOpacity(0.04)),
+          padding: const EdgeInsets.all(20),
+          child: Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                color: const Color(0xFF13131A),
+                child: const Icon(Icons.support_agent, color: VianTheme.primaryGold, size: 20),
+              ),
+              const SizedBox(width: 16),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('CONCIERGE SUPPORT', style: GoogleFonts.outfit(color: VianTheme.lightText, fontSize: 8, letterSpacing: 1.0)),
+                  Text('Chat with Lead Architect', style: GoogleFonts.inter(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+                ],
+              ),
+              const Spacer(),
+              const Icon(Icons.arrow_forward, color: VianTheme.primaryGold, size: 18),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
