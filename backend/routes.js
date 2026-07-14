@@ -2933,6 +2933,21 @@ function registerRoutes(app, models) {
         ];
       }
 
+      if (req.user.role === 'Client') {
+        const client = await Client.findOne({ where: { userId: req.user.id } });
+        if (!client) {
+          return res.json({
+            quotations: [],
+            total: 0,
+            page,
+            totalPages: 0
+          });
+        }
+        const clientProjects = await Project.findAll({ where: { clientId: client.id, deletedAt: null } });
+        const projectIds = clientProjects.map(p => p.id);
+        where.projectId = { [Op.in]: projectIds };
+      }
+
       const { count, rows } = await Quotation.findAndCountAll({
         where,
         include: ['project'],
@@ -3066,6 +3081,21 @@ function registerRoutes(app, models) {
         where[Op.or] = [
           { invoiceNumber: { [Op.like]: `%${search}%` } }
         ];
+      }
+
+      if (req.user.role === 'Client') {
+        const client = await Client.findOne({ where: { userId: req.user.id } });
+        if (!client) {
+          return res.json({
+            invoices: [],
+            total: 0,
+            page,
+            totalPages: 0
+          });
+        }
+        const clientProjects = await Project.findAll({ where: { clientId: client.id, deletedAt: null } });
+        const projectIds = clientProjects.map(p => p.id);
+        where.projectId = { [Op.in]: projectIds };
       }
 
       const { count, rows } = await Invoice.findAndCountAll({
@@ -4055,7 +4085,7 @@ function registerRoutes(app, models) {
   // PAYROLL WAGES MODULE
   // ==========================================
   
-  app.get('/api/payroll/wage-sheet', authenticateToken, async (req, res) => {
+  app.get('/api/payroll/wage-sheet', authenticateToken, authorizeRoles('Super Admin', 'Managing Director', 'Admin / Office Manager / Accounts', 'Accountant'), async (req, res) => {
     try {
       const { projectId, month, year } = req.query;
       const whereClause = projectId ? { projectId } : {};

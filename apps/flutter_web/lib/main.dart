@@ -7522,9 +7522,6 @@ class _DocumentsTabState extends State<DocumentsTab> {
   }
 }
 
-// ==========================================
-// 11. QUOTATIONS TAB
-// ==========================================
 class QuotationsTab extends StatefulWidget {
   const QuotationsTab({Key? key}) : super(key: key);
 
@@ -7533,120 +7530,398 @@ class QuotationsTab extends StatefulWidget {
 }
 
 class _QuotationsTabState extends State<QuotationsTab> {
-  final List<Map<String, dynamic>> _items = [
-    {'name': 'Structural RCC Pillars', 'rate': 45000.0, 'qty': 10},
-    {'name': 'Italian Marble Flooring (Sqft)', 'rate': 650.0, 'qty': 1500},
-    {'name': 'Modular Kitchen fitting set', 'rate': 450000.0, 'qty': 1},
-  ];
-
-  double get _subtotal {
-    double total = 0;
-    for (var item in _items) {
-      total += safeToDouble(item['rate']) * safeToInt(item['qty']);
-    }
-    return total;
-  }
-
-  double get _gst => _subtotal * 0.18;
-  double get _total => _subtotal + _gst;
+  List<dynamic> _quotations = [];
+  List<dynamic> _projects = [];
+  bool _loading = true;
 
   @override
-  Widget build(BuildContext context) {
-    final formatter = NumberFormat.currency(locale: 'en_IN', symbol: '₹', decimalDigits: 0);
+  void initState() {
+    super.initState();
+    _loadData();
+  }
 
-    return Padding(
-      padding: const EdgeInsets.all(24.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Items Builder
-          Expanded(
-            flex: 3,
-            child: VianCard(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('Quotation Creator Layout', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: VianTheme.primaryGold)),
-                  const SizedBox(height: 16),
-                  Expanded(
-                    child: ListView.builder(
-                      itemCount: _items.length,
+  Future<void> _loadData() async {
+    try {
+      final quotes = await ApiService.getQuotations();
+      final projects = await ApiService.getProjects();
+      setState(() {
+        _quotations = quotes;
+        _projects = projects;
+        _loading = false;
+      });
+    } catch (_) {
+      setState(() => _loading = false);
+    }
+  }
+
+  void _showCreateQuotationDialog(String role) {
+    int? selectedProjectId;
+    final discountCtrl = TextEditingController(text: '0');
+    final taxRateCtrl = TextEditingController(text: '18');
+    final itemsList = <Map<String, dynamic>>[
+      {'name': '', 'quantity': 1.0, 'rate': 0.0}
+    ];
+
+    String? projectError;
+    String? itemsError;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDlgState) {
+          final formatter = NumberFormat.currency(locale: 'en_IN', symbol: '₹', decimalDigits: 0);
+          double subtotal = 0;
+          for (var item in itemsList) {
+            final double qty = double.tryParse(item['quantity'].toString()) ?? 0;
+            final double rate = double.tryParse(item['rate'].toString()) ?? 0;
+            subtotal += qty * rate;
+          }
+          final double disc = double.tryParse(discountCtrl.text) ?? 0;
+          final double tax = double.tryParse(taxRateCtrl.text) ?? 18;
+          final double taxAmt = subtotal * (tax / 100);
+          final double grandTotal = subtotal + taxAmt - disc;
+
+          return AlertDialog(
+            backgroundColor: const Color(0xFF1E1E26),
+            title: const Text('Create Quotation', style: TextStyle(color: VianTheme.primaryGold)),
+            content: SizedBox(
+              width: 600,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    DropdownButtonFormField<int>(
+                      decoration: InputDecoration(
+                        labelText: 'Select Project *',
+                        errorText: projectError,
+                      ),
+                      dropdownColor: const Color(0xFF1E1E26),
+                      value: selectedProjectId,
+                      items: _projects.map<DropdownMenuItem<int>>((p) {
+                        return DropdownMenuItem<int>(
+                          value: p['id'] as int,
+                          child: Text(p['name'] ?? '', style: const TextStyle(color: Colors.white)),
+                        );
+                      }).toList(),
+                      onChanged: (val) {
+                        setDlgState(() {
+                          selectedProjectId = val;
+                          projectError = null;
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: taxRateCtrl,
+                            keyboardType: TextInputType.number,
+                            decoration: const InputDecoration(labelText: 'Tax Rate (%)'),
+                            onChanged: (_) => setDlgState(() {}),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: TextField(
+                            controller: discountCtrl,
+                            keyboardType: TextInputType.number,
+                            decoration: const InputDecoration(labelText: 'Discount (₹)'),
+                            onChanged: (_) => setDlgState(() {}),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('Line Items', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+                        TextButton.icon(
+                          onPressed: () {
+                            setDlgState(() {
+                              itemsList.add({'name': '', 'quantity': 1.0, 'rate': 0.0});
+                              itemsError = null;
+                            });
+                          },
+                          icon: const Icon(Icons.add, size: 16, color: VianTheme.primaryGold),
+                          label: const Text('Add Item', style: TextStyle(color: VianTheme.primaryGold)),
+                        ),
+                      ],
+                    ),
+                    if (itemsError != null)
+                      Text(itemsError!, style: const TextStyle(color: Colors.redAccent, fontSize: 11)),
+                    const SizedBox(height: 8),
+                    ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: itemsList.length,
                       itemBuilder: (context, index) {
-                        final item = _items[index];
-                        final rateStr = formatter.format(item['rate']);
-                        return ListTile(
-                          title: Text(item['name'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold)),
-                          subtitle: Text('Rate: $rateStr | Qty: ${item['qty']}'),
-                          trailing: Text(formatter.format(item['rate'] * item['qty']), style: const TextStyle(color: VianTheme.primaryGold)),
+                        final item = itemsList[index];
+                        final nameCtrl = TextEditingController(text: item['name']);
+                        final qtyCtrl = TextEditingController(text: item['quantity'].toString());
+                        final rateCtrl = TextEditingController(text: item['rate'].toString());
+
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 12.0),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                flex: 3,
+                                child: TextField(
+                                  controller: nameCtrl,
+                                  decoration: const InputDecoration(labelText: 'Item Name'),
+                                  onChanged: (val) => item['name'] = val,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                flex: 1,
+                                child: TextField(
+                                  controller: qtyCtrl,
+                                  keyboardType: TextInputType.number,
+                                  decoration: const InputDecoration(labelText: 'Qty'),
+                                  onChanged: (val) {
+                                    item['quantity'] = double.tryParse(val) ?? 0.0;
+                                    setDlgState(() {});
+                                  },
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                flex: 2,
+                                child: TextField(
+                                  controller: rateCtrl,
+                                  keyboardType: TextInputType.number,
+                                  decoration: const InputDecoration(labelText: 'Rate'),
+                                  onChanged: (val) {
+                                    item['rate'] = double.tryParse(val) ?? 0.0;
+                                    setDlgState(() {});
+                                  },
+                                ),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.delete, color: Colors.redAccent, size: 18),
+                                onPressed: () {
+                                  setDlgState(() {
+                                    itemsList.removeAt(index);
+                                  });
+                                },
+                              )
+                            ],
+                          ),
                         );
                       },
                     ),
-                  ),
-                  const Divider(color: Color(0x22F5A623)),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text('Add Line Item to Quotation', style: TextStyle(fontSize: 12, color: Color(0xFF70707C))),
-                      IconButton(
-                        icon: const Icon(Icons.add_circle, color: VianTheme.primaryGold),
-                        onPressed: () {
-                          setState(() {
-                            _items.add({'name': 'Teak Wood main doors', 'rate': 85000.0, 'qty': 2});
-                          });
-                        },
-                      )
-                    ],
-                  )
-                ],
+                    const Divider(color: Colors.white10, height: 32),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('Subtotal:', style: TextStyle(color: VianTheme.lightText)),
+                        Text(formatter.format(subtotal), style: const TextStyle(fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('Tax (${tax.toStringAsFixed(0)}%):', style: const TextStyle(color: VianTheme.lightText)),
+                        Text(formatter.format(taxAmt), style: const TextStyle(fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('Discount:', style: TextStyle(color: VianTheme.lightText)),
+                        Text('- ${formatter.format(disc)}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                    const Divider(color: Colors.white10),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('Grand Total:', style: TextStyle(color: VianTheme.primaryGold, fontWeight: FontWeight.bold)),
+                        Text(formatter.format(grandTotal), style: const TextStyle(color: VianTheme.primaryGold, fontWeight: FontWeight.bold, fontSize: 16)),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-          const SizedBox(width: 24),
-          // Billing Summary
-          Expanded(
-            flex: 2,
-            child: VianCard(
-              child: Column(
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+              VianButton(
+                text: 'Create',
+                onPressed: () async {
+                  bool valid = true;
+                  if (selectedProjectId == null) {
+                    setDlgState(() => projectError = 'Project selection required.');
+                    valid = false;
+                  }
+                  if (itemsList.isEmpty) {
+                    setDlgState(() => itemsError = 'At least one item required.');
+                    valid = false;
+                  } else {
+                    for (var item in itemsList) {
+                      if (item['name'].toString().trim().isEmpty) {
+                        setDlgState(() => itemsError = 'Item name cannot be empty.');
+                        valid = false;
+                      }
+                      if ((double.tryParse(item['quantity'].toString()) ?? 0.0) <= 0) {
+                        setDlgState(() => itemsError = 'Quantity must be greater than zero.');
+                        valid = false;
+                      }
+                      if ((double.tryParse(item['rate'].toString()) ?? 0.0) < 0) {
+                        setDlgState(() => itemsError = 'Rate cannot be negative.');
+                        valid = false;
+                      }
+                    }
+                  }
+
+                  if (valid) {
+                    final ok = await ApiService.createQuotation({
+                      'projectId': selectedProjectId,
+                      'items': itemsList,
+                      'taxRate': double.tryParse(taxRateCtrl.text) ?? 18,
+                      'discount': double.tryParse(discountCtrl.text) ?? 0,
+                    });
+                    if (ok) {
+                      Navigator.pop(ctx);
+                      setState(() => _loading = true);
+                      _loadData();
+                    } else {
+                      setDlgState(() => itemsError = 'Backend submission failed.');
+                    }
+                  }
+                },
+              )
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_loading) {
+      return const Center(child: CircularProgressIndicator(color: VianTheme.primaryGold));
+    }
+
+    final formatter = NumberFormat.currency(locale: 'en_IN', symbol: '₹', decimalDigits: 0);
+    final user = ApiService.currentUser;
+    final role = user?['role'] ?? 'Client';
+    final canCreate = role == 'Super Admin' || role == 'Managing Director' || role == 'Admin / Office Manager / Accounts' || role == 'Accountant';
+
+    return Padding(
+      padding: const EdgeInsets.all(24.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Invoice Audit Summaries', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: VianTheme.primaryGold)),
-                  const SizedBox(height: 24),
-                  _summaryRow('Subtotal Amount', formatter.format(_subtotal)),
-                  const SizedBox(height: 8),
-                  _summaryRow('GST Tax (18% default)', formatter.format(_gst)),
-                  const Divider(height: 32, color: Color(0x22F5A623)),
-                  _summaryRow('Grand Total Estimate', formatter.format(_total), isTotal: true),
-                  const Spacer(),
-                  SizedBox(
-                    width: double.infinity,
-                    child: VianButton(
-                      text: 'Export Estimate PDF',
-                      icon: Icons.picture_as_pdf,
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Quotation PDF generated & exported successfully.')));
-                      },
-                    ),
-                  )
+                  Text(
+                    'QUOTATIONS REGISTRY',
+                    style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 24, fontWeight: FontWeight.bold, letterSpacing: 1.0),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Manage cost projections and drafts presented to stakeholders',
+                    style: GoogleFonts.inter(color: VianTheme.lightText, fontSize: 13),
+                  ),
                 ],
               ),
-            ),
+              if (canCreate)
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: VianTheme.primaryGold,
+                    foregroundColor: Colors.black,
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+                  ),
+                  icon: const Icon(Icons.add, size: 16),
+                  label: Text('NEW QUOTATION', style: GoogleFonts.outfit(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
+                  onPressed: () => _showCreateQuotationDialog(role),
+                ),
+            ],
+          ),
+          const SizedBox(height: 32),
+          Expanded(
+            child: _quotations.isEmpty
+                ? const Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.description_outlined, size: 48, color: Colors.white24),
+                        SizedBox(height: 16),
+                        Text('No Quotations Recorded', style: TextStyle(color: VianTheme.lightText, fontSize: 14)),
+                      ],
+                    ),
+                  )
+                : ListView.builder(
+                    itemCount: _quotations.length,
+                    itemBuilder: (context, index) {
+                      final quote = _quotations[index];
+                      final double total = safeToDouble(quote['total']);
+                      final double subtotal = safeToDouble(quote['subtotal']);
+                      
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 16),
+                        child: VianCard(
+                          child: Row(
+                            children: [
+                              const CircleAvatar(
+                                backgroundColor: Color(0xFF1E1E26),
+                                child: Icon(Icons.description, color: VianTheme.primaryGold),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      quote['quotationNumber'] ?? 'VIAN-QT-XXXX',
+                                      style: const TextStyle(fontWeight: FontWeight.bold, color: VianTheme.whiteText, fontSize: 15),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      'Project: ${quote['project']?['name'] ?? 'General Concept'} | Date: ${quote['date']}',
+                                      style: const TextStyle(fontSize: 12, color: VianTheme.lightText),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  Text(
+                                    formatter.format(total),
+                                    style: const TextStyle(fontWeight: FontWeight.bold, color: VianTheme.primaryGold, fontSize: 16),
+                                  ),
+                                  Text(
+                                    'Subtotal: ${formatter.format(subtotal)}',
+                                    style: const TextStyle(fontSize: 11, color: VianTheme.lightText),
+                                  ),
+                                ],
+                              )
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
           ),
         ],
       ),
     );
   }
-
-  Widget _summaryRow(String label, String value, {bool isTotal = false}) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(label, style: TextStyle(fontSize: isTotal ? 14 : 12, color: isTotal ? VianTheme.primaryGold : VianTheme.lightText, fontWeight: isTotal ? FontWeight.bold : FontWeight.normal)),
-        Text(value, style: TextStyle(fontSize: isTotal ? 18 : 14, fontWeight: FontWeight.bold, color: isTotal ? VianTheme.primaryGold : VianTheme.whiteText)),
-      ],
-    );
-  }
 }
-
 // ==========================================
 // 12. INVOICES TAB
 // ==========================================
@@ -7659,6 +7934,7 @@ class InvoicesTab extends StatefulWidget {
 
 class _InvoicesTabState extends State<InvoicesTab> {
   List<dynamic> _invoices = [];
+  List<dynamic> _projects = [];
   bool _loading = true;
 
   @override
@@ -7668,11 +7944,311 @@ class _InvoicesTabState extends State<InvoicesTab> {
   }
 
   Future<void> _loadInvoices() async {
-    final list = await ApiService.getInvoices();
-    setState(() {
-      _invoices = list;
-      _loading = false;
-    });
+    try {
+      final list = await ApiService.getInvoices();
+      final projects = await ApiService.getProjects();
+      setState(() {
+        _invoices = list;
+        _projects = projects;
+        _loading = false;
+      });
+    } catch (_) {
+      setState(() => _loading = false);
+    }
+  }
+
+  void _showCreateInvoiceDialog(String role) {
+    int? selectedProjectId;
+    final discountCtrl = TextEditingController(text: '0');
+    final taxRateCtrl = TextEditingController(text: '18');
+    final dueDateCtrl = TextEditingController(
+      text: DateTime.now().add(const Duration(days: 15)).toString().split(' ').first
+    );
+    final itemsList = <Map<String, dynamic>>[
+      {'name': '', 'quantity': 1.0, 'rate': 0.0}
+    ];
+
+    String? projectError;
+    String? itemsError;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDlgState) {
+          final formatter = NumberFormat.currency(locale: 'en_IN', symbol: '₹', decimalDigits: 0);
+          double subtotal = 0;
+          for (var item in itemsList) {
+            final double qty = double.tryParse(item['quantity'].toString()) ?? 0;
+            final double rate = double.tryParse(item['rate'].toString()) ?? 0;
+            subtotal += qty * rate;
+          }
+          final double disc = double.tryParse(discountCtrl.text) ?? 0;
+          final double tax = double.tryParse(taxRateCtrl.text) ?? 18;
+          final double taxAmt = subtotal * (tax / 100);
+          final double grandTotal = subtotal + taxAmt - disc;
+
+          return AlertDialog(
+            backgroundColor: const Color(0xFF1E1E26),
+            title: const Text('Create Invoice', style: TextStyle(color: VianTheme.primaryGold)),
+            content: SizedBox(
+              width: 600,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    DropdownButtonFormField<int>(
+                      decoration: InputDecoration(
+                        labelText: 'Select Project *',
+                        errorText: projectError,
+                      ),
+                      dropdownColor: const Color(0xFF1E1E26),
+                      value: selectedProjectId,
+                      items: _projects.map<DropdownMenuItem<int>>((p) {
+                        return DropdownMenuItem<int>(
+                          value: p['id'] as int,
+                          child: Text(p['name'] ?? '', style: const TextStyle(color: Colors.white)),
+                        );
+                      }).toList(),
+                      onChanged: (val) {
+                        setDlgState(() {
+                          selectedProjectId = val;
+                          projectError = null;
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: dueDateCtrl,
+                      decoration: const InputDecoration(labelText: 'Due Date (YYYY-MM-DD)'),
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: taxRateCtrl,
+                            keyboardType: TextInputType.number,
+                            decoration: const InputDecoration(labelText: 'Tax Rate (%)'),
+                            onChanged: (_) => setDlgState(() {}),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: TextField(
+                            controller: discountCtrl,
+                            keyboardType: TextInputType.number,
+                            decoration: const InputDecoration(labelText: 'Discount (₹)'),
+                            onChanged: (_) => setDlgState(() {}),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('Invoice Items', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+                        TextButton.icon(
+                          onPressed: () {
+                            setDlgState(() {
+                              itemsList.add({'name': '', 'quantity': 1.0, 'rate': 0.0});
+                              itemsError = null;
+                            });
+                          },
+                          icon: const Icon(Icons.add, size: 16, color: VianTheme.primaryGold),
+                          label: const Text('Add Item', style: TextStyle(color: VianTheme.primaryGold)),
+                        ),
+                      ],
+                    ),
+                    if (itemsError != null)
+                      Text(itemsError!, style: const TextStyle(color: Colors.redAccent, fontSize: 11)),
+                    const SizedBox(height: 8),
+                    ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: itemsList.length,
+                      itemBuilder: (context, index) {
+                        final item = itemsList[index];
+                        final nameCtrl = TextEditingController(text: item['name']);
+                        final qtyCtrl = TextEditingController(text: item['quantity'].toString());
+                        final rateCtrl = TextEditingController(text: item['rate'].toString());
+
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 12.0),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                flex: 3,
+                                child: TextField(
+                                  controller: nameCtrl,
+                                  decoration: const InputDecoration(labelText: 'Item Name'),
+                                  onChanged: (val) => item['name'] = val,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                flex: 1,
+                                child: TextField(
+                                  controller: qtyCtrl,
+                                  keyboardType: TextInputType.number,
+                                  decoration: const InputDecoration(labelText: 'Qty'),
+                                  onChanged: (val) {
+                                    item['quantity'] = double.tryParse(val) ?? 0.0;
+                                    setDlgState(() {});
+                                  },
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                flex: 2,
+                                child: TextField(
+                                  controller: rateCtrl,
+                                  keyboardType: TextInputType.number,
+                                  decoration: const InputDecoration(labelText: 'Rate'),
+                                  onChanged: (val) {
+                                    item['rate'] = double.tryParse(val) ?? 0.0;
+                                    setDlgState(() {});
+                                  },
+                                ),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.delete, color: Colors.redAccent, size: 18),
+                                onPressed: () {
+                                  setDlgState(() {
+                                    itemsList.removeAt(index);
+                                  });
+                                },
+                              )
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                    const Divider(color: Colors.white10, height: 32),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('Subtotal:', style: TextStyle(color: VianTheme.lightText)),
+                        Text(formatter.format(subtotal), style: const TextStyle(fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('Tax (${tax.toStringAsFixed(0)}%):', style: const TextStyle(color: VianTheme.lightText)),
+                        Text(formatter.format(taxAmt), style: const TextStyle(fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('Discount:', style: TextStyle(color: VianTheme.lightText)),
+                        Text('- ${formatter.format(disc)}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                    const Divider(color: Colors.white10),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('Grand Total:', style: TextStyle(color: VianTheme.primaryGold, fontWeight: FontWeight.bold)),
+                        Text(formatter.format(grandTotal), style: const TextStyle(color: VianTheme.primaryGold, fontWeight: FontWeight.bold, fontSize: 16)),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+              VianButton(
+                text: 'Create',
+                onPressed: () async {
+                  bool valid = true;
+                  if (selectedProjectId == null) {
+                    setDlgState(() => projectError = 'Project selection required.');
+                    valid = false;
+                  }
+                  if (itemsList.isEmpty) {
+                    setDlgState(() => itemsError = 'At least one item required.');
+                    valid = false;
+                  } else {
+                    for (var item in itemsList) {
+                      if (item['name'].toString().trim().isEmpty) {
+                        setDlgState(() => itemsError = 'Item name cannot be empty.');
+                        valid = false;
+                      }
+                      if ((double.tryParse(item['quantity'].toString()) ?? 0.0) <= 0) {
+                        setDlgState(() => itemsError = 'Quantity must be greater than zero.');
+                        valid = false;
+                      }
+                      if ((double.tryParse(item['rate'].toString()) ?? 0.0) < 0) {
+                        setDlgState(() => itemsError = 'Rate cannot be negative.');
+                        valid = false;
+                      }
+                    }
+                  }
+
+                  if (valid) {
+                    final ok = await ApiService.createInvoice({
+                      'projectId': selectedProjectId,
+                      'items': itemsList,
+                      'taxRate': double.tryParse(taxRateCtrl.text) ?? 18,
+                      'discount': double.tryParse(discountCtrl.text) ?? 0,
+                      'dueDate': dueDateCtrl.text,
+                    });
+                    if (ok) {
+                      Navigator.pop(ctx);
+                      setState(() => _loading = true);
+                      _loadInvoices();
+                    } else {
+                      setDlgState(() => itemsError = 'Backend submission failed.');
+                    }
+                  }
+                },
+              )
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  void _showUpdateStatusDialog(Map<String, dynamic> invoice) {
+    String selectedStatus = invoice['status'] ?? 'Draft';
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setStateModal) => AlertDialog(
+          backgroundColor: const Color(0xFF1E1E26),
+          title: const Text('Update Invoice Status', style: TextStyle(color: VianTheme.primaryGold)),
+          content: DropdownButtonFormField<String>(
+            value: selectedStatus,
+            dropdownColor: const Color(0xFF1E1E26),
+            items: ['Draft', 'Sent', 'Paid', 'Overdue'].map((s) {
+              return DropdownMenuItem(value: s, child: Text(s, style: const TextStyle(color: Colors.white)));
+            }).toList(),
+            onChanged: (v) => setStateModal(() => selectedStatus = v!),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+            VianButton(
+              text: 'Update',
+              onPressed: () async {
+                final ok = await ApiService.updateInvoiceStatus(invoice['id'], selectedStatus);
+                if (ok) {
+                  Navigator.pop(ctx);
+                  setState(() => _loading = true);
+                  _loadInvoices();
+                }
+              },
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -7682,6 +8258,10 @@ class _InvoicesTabState extends State<InvoicesTab> {
     final formatter = NumberFormat.currency(locale: 'en_IN', symbol: '₹', decimalDigits: 0);
     final width = MediaQuery.of(context).size.width;
     final isDesktop = width > 1100;
+
+    final user = ApiService.currentUser;
+    final role = user?['role'] ?? 'Client';
+    final canCreate = role == 'Super Admin' || role == 'Managing Director' || role == 'Admin / Office Manager / Accounts' || role == 'Accountant';
 
     // Calculate aggregated statistics from invoices
     double totalInvoiced = 0;
@@ -7731,21 +8311,18 @@ class _InvoicesTabState extends State<InvoicesTab> {
                   ),
                 ],
               ),
-              ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: VianTheme.primaryGold,
-                  foregroundColor: Colors.black,
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                  shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+              if (canCreate)
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: VianTheme.primaryGold,
+                    foregroundColor: Colors.black,
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+                  ),
+                  icon: const Icon(Icons.add, size: 16),
+                  label: Text('NEW INVOICE', style: GoogleFonts.outfit(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
+                  onPressed: () => _showCreateInvoiceDialog(role),
                 ),
-                icon: const Icon(Icons.add, size: 16),
-                label: Text('NEW INVOICE', style: GoogleFonts.outfit(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Invoice creation panel is currently in read-only mode.'), backgroundColor: VianTheme.primaryGold),
-                  );
-                },
-              ),
             ],
           ),
           const SizedBox(height: 32),
@@ -7861,49 +8438,37 @@ class _InvoicesTabState extends State<InvoicesTab> {
                       Expanded(flex: 4, child: Text('CLIENT & PROJECT', style: GoogleFonts.poppins(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold))),
                       Expanded(flex: 2, child: Text('ISSUE DATE', style: GoogleFonts.poppins(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold))),
                       Expanded(flex: 2, child: Text('STATUS', style: GoogleFonts.poppins(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold))),
-                      Expanded(flex: 3, child: Text('AMOUNT', style: GoogleFonts.poppins(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold, textAlign: TextAlign.right))),
+                      Expanded(flex: 3, child: Text('AMOUNT', style: GoogleFonts.poppins(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold), textAlign: TextAlign.right)),
                     ],
                   ),
                 ),
                 const Divider(color: Colors.white10, height: 1),
 
-                // Table Rows
-                ListView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: _invoices.isEmpty ? 4 : math.min(_invoices.length, 6),
-                  itemBuilder: (context, index) {
-                    if (_invoices.isEmpty) {
-                      // Render high-fidelity mockup rows if empty
-                      final mockData = [
-                        {'id': 'INV-2024-001', 'client': 'Lumina Valley Estates', 'project': 'Lumina Club House', 'date': 'Oct 12, 2023', 'status': 'Paid', 'amount': 425000.0},
-                        {'id': 'INV-2024-002', 'client': 'Skyline Commercial Hub', 'project': 'Skyline Tower B', 'date': 'Oct 18, 2023', 'status': 'Pending', 'amount': 128400.0},
-                        {'id': 'INV-2023-098', 'client': 'Riverfront Residences', 'project': 'Riverfront Villa 4', 'date': 'Sep 05, 2023', 'status': 'Overdue', 'amount': 82000.0},
-                        {'id': 'INV-2024-004', 'client': 'Penthouse 42 - Soho', 'project': 'Soho Penthouse Suite', 'date': 'Oct 20, 2023', 'status': 'Paid', 'amount': 1250000.0},
-                      ];
-                      final row = mockData[index];
-                      return _buildTableRow(
-                        row['id'] as String,
-                        row['client'] as String,
-                        row['project'] as String,
-                        row['date'] as String,
-                        row['status'] as String,
-                        formatter.format(row['amount']),
-                      );
-                    } else {
-                      final inv = _invoices[index];
-                      final total = safeToDouble(inv['total']);
-                      return _buildTableRow(
-                        inv['invoiceNumber'] ?? 'INV-XXXX',
-                        inv['project']?['clientName'] ?? 'Walk-in Client',
-                        inv['project']?['name'] ?? 'General Architecture',
-                        inv['date'] ?? 'N/A',
-                        inv['status'] ?? 'Draft',
-                        formatter.format(total),
-                      );
-                    }
-                  },
-                ),
+                _invoices.isEmpty
+                    ? const Padding(
+                        padding: EdgeInsets.all(32.0),
+                        child: Center(child: Text('No Invoices Recorded', style: TextStyle(color: VianTheme.lightText))),
+                      )
+                    : ListView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: _invoices.length,
+                        itemBuilder: (context, index) {
+                          final inv = _invoices[index];
+                          final total = safeToDouble(inv['total']);
+                          return InkWell(
+                            onTap: canCreate ? () => _showUpdateStatusDialog(inv) : null,
+                            child: _buildTableRow(
+                              inv['invoiceNumber'] ?? 'INV-XXXX',
+                              inv['project']?['client']?['name'] ?? inv['project']?['clientName'] ?? 'Walk-in Client',
+                              inv['project']?['name'] ?? 'General Architecture',
+                              inv['date'] ?? 'N/A',
+                              inv['status'] ?? 'Draft',
+                              formatter.format(total),
+                            ),
+                          );
+                        },
+                      ),
 
                 // Table Pagination footer
                 Padding(
@@ -8007,8 +8572,10 @@ class _InvoicesTabState extends State<InvoicesTab> {
   Widget _buildAgingChartCard() {
     return Container(
       height: 285,
-      color: VianTheme.cardColor,
-      border: Border.all(color: Colors.white.withOpacity(0.04)),
+      decoration: BoxDecoration(
+        color: VianTheme.cardColor,
+        border: Border.all(color: Colors.white.withOpacity(0.04)),
+      ),
       padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -8077,7 +8644,7 @@ class _InvoicesTabState extends State<InvoicesTab> {
 
     return Container(
       decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: Colors.white05, width: 0.5)),
+        border: Border(bottom: BorderSide(color: Colors.white10, width: 0.5)),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
       child: Row(
@@ -8089,7 +8656,7 @@ class _InvoicesTabState extends State<InvoicesTab> {
               children: [
                 CircleAvatar(
                   radius: 14,
-                  backgroundColor: Colors.white05,
+                  backgroundColor: Colors.white10,
                   child: Text(clientName[0].toUpperCase(), style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold)),
                 ),
                 const SizedBox(width: 12),
@@ -8151,8 +8718,10 @@ class _InvoicesTabState extends State<InvoicesTab> {
   Widget _buildRevenueForecastCard() {
     return Container(
       height: 320,
-      color: VianTheme.cardColor,
-      border: Border.all(color: Colors.white.withOpacity(0.04)),
+      decoration: BoxDecoration(
+        color: VianTheme.cardColor,
+        border: Border.all(color: Colors.white.withOpacity(0.04)),
+      ),
       padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -8236,8 +8805,10 @@ class _InvoicesTabState extends State<InvoicesTab> {
 
   Widget _buildGatewaysCard() {
     return Container(
-      color: VianTheme.cardColor,
-      border: Border.all(color: Colors.white.withOpacity(0.04)),
+      decoration: BoxDecoration(
+        color: VianTheme.cardColor,
+        border: Border.all(color: Colors.white.withOpacity(0.04)),
+      ),
       padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -8266,8 +8837,10 @@ class _InvoicesTabState extends State<InvoicesTab> {
   Widget _buildGatewayRow(String name, String status, IconData icon) {
     return Container(
       padding: const EdgeInsets.all(12),
-      color: const Color(0xFF13131A),
-      border: Border.all(color: Colors.white.withOpacity(0.03)),
+      decoration: BoxDecoration(
+        color: const Color(0xFF13131A),
+        border: Border.all(color: Colors.white.withOpacity(0.03)),
+      ),
       child: Row(
         children: [
           Icon(icon, color: VianTheme.primaryGold, size: 16),
@@ -8282,8 +8855,10 @@ class _InvoicesTabState extends State<InvoicesTab> {
 
   Widget _buildReviewCard() {
     return Container(
-      color: VianTheme.primaryGold.withOpacity(0.03),
-      border: Border.all(color: VianTheme.primaryGold.withOpacity(0.15)),
+      decoration: BoxDecoration(
+        color: VianTheme.primaryGold.withOpacity(0.03),
+        border: Border.all(color: VianTheme.primaryGold.withOpacity(0.15)),
+      ),
       padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -8320,6 +8895,7 @@ class ExpensesTab extends StatefulWidget {
 
 class _ExpensesTabState extends State<ExpensesTab> {
   List<dynamic> _expenses = [];
+  List<dynamic> _projects = [];
   bool _loading = true;
 
   @override
@@ -8329,11 +8905,189 @@ class _ExpensesTabState extends State<ExpensesTab> {
   }
 
   Future<void> _loadExpenses() async {
-    final list = await ApiService.getExpenses();
-    setState(() {
-      _expenses = list;
-      _loading = false;
-    });
+    try {
+      final list = await ApiService.getExpenses();
+      final projects = await ApiService.getProjects();
+      setState(() {
+        _expenses = list;
+        _projects = projects;
+        _loading = false;
+      });
+    } catch (_) {
+      setState(() => _loading = false);
+    }
+  }
+
+  void _showCreateExpenseDialog() {
+    int? selectedProjectId;
+    String selectedCategory = 'Site Expenses';
+    final amountCtrl = TextEditingController();
+    final descriptionCtrl = TextEditingController();
+    final receiptUrlCtrl = TextEditingController();
+    final dateCtrl = TextEditingController(
+      text: DateTime.now().toString().split(' ').first
+    );
+
+    String? projectError;
+    String? amountError;
+    String? descError;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDlgState) => AlertDialog(
+          backgroundColor: const Color(0xFF1E1E26),
+          title: const Text('New Expense/Disbursement', style: TextStyle(color: VianTheme.primaryGold)),
+          content: SizedBox(
+            width: 450,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  DropdownButtonFormField<int>(
+                    decoration: InputDecoration(
+                      labelText: 'Project *',
+                      errorText: projectError,
+                    ),
+                    dropdownColor: const Color(0xFF1E1E26),
+                    value: selectedProjectId,
+                    items: _projects.map<DropdownMenuItem<int>>((p) {
+                      return DropdownMenuItem<int>(
+                        value: p['id'] as int,
+                        child: Text(p['name'] ?? '', style: const TextStyle(color: Colors.white)),
+                      );
+                    }).toList(),
+                    onChanged: (val) {
+                      setDlgState(() {
+                        selectedProjectId = val;
+                        projectError = null;
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<String>(
+                    decoration: const InputDecoration(labelText: 'Category *'),
+                    dropdownColor: const Color(0xFF1E1E26),
+                    value: selectedCategory,
+                    items: ['Site Expenses', 'Material Expenses', 'Labour Expenses', 'Travel Expenses'].map((c) {
+                      return DropdownMenuItem<String>(
+                        value: c,
+                        child: Text(c, style: const TextStyle(color: Colors.white)),
+                      );
+                    }).toList(),
+                    onChanged: (val) {
+                      setDlgState(() => selectedCategory = val!);
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: amountCtrl,
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      labelText: 'Amount (₹) *',
+                      errorText: amountError,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: descriptionCtrl,
+                    decoration: InputDecoration(
+                      labelText: 'Description *',
+                      errorText: descError,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: dateCtrl,
+                    decoration: const InputDecoration(labelText: 'Date (YYYY-MM-DD)'),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: receiptUrlCtrl,
+                    decoration: const InputDecoration(labelText: 'Receipt URL (Optional)'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+            VianButton(
+              text: 'Submit',
+              onPressed: () async {
+                bool valid = true;
+                if (selectedProjectId == null) {
+                  setDlgState(() => projectError = 'Project required');
+                  valid = false;
+                }
+                final amt = double.tryParse(amountCtrl.text) ?? 0.0;
+                if (amt <= 0) {
+                  setDlgState(() => amountError = 'Enter a valid amount > 0');
+                  valid = false;
+                }
+                if (descriptionCtrl.text.trim().isEmpty) {
+                  setDlgState(() => descError = 'Description is required');
+                  valid = false;
+                }
+
+                if (valid) {
+                  final ok = await ApiService.addExpense({
+                    'projectId': selectedProjectId,
+                    'category': selectedCategory,
+                    'amount': amt,
+                    'description': descriptionCtrl.text,
+                    'date': dateCtrl.text,
+                    'receiptUrl': receiptUrlCtrl.text.isEmpty ? null : receiptUrlCtrl.text,
+                  });
+                  if (ok) {
+                    Navigator.pop(ctx);
+                    setState(() => _loading = true);
+                    _loadExpenses();
+                  } else {
+                    setDlgState(() => descError = 'Submission failed');
+                  }
+                }
+              },
+            )
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showApproveRejectDialog(Map<String, dynamic> exp) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1E1E26),
+        title: const Text('Review Expense Claim', style: TextStyle(color: VianTheme.primaryGold)),
+        content: Text('Would you like to approve or reject the expense of ₹${exp['amount']} submitted by ${exp['user']?['name']}?'),
+        actions: [
+          TextButton(
+            onPressed: () async {
+              final ok = await ApiService.updateExpenseStatus(exp['id'], 'Rejected');
+              if (ok) {
+                Navigator.pop(ctx);
+                setState(() => _loading = true);
+                _loadExpenses();
+              }
+            },
+            child: const Text('Reject', style: TextStyle(color: Colors.redAccent)),
+          ),
+          VianButton(
+            text: 'Approve',
+            onPressed: () async {
+              final ok = await ApiService.updateExpenseStatus(exp['id'], 'Approved');
+              if (ok) {
+                Navigator.pop(ctx);
+                setState(() => _loading = true);
+                _loadExpenses();
+              }
+            },
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -8341,55 +9095,85 @@ class _ExpensesTabState extends State<ExpensesTab> {
     if (_loading) return const Center(child: CircularProgressIndicator());
     final formatter = NumberFormat.currency(locale: 'en_IN', symbol: '₹', decimalDigits: 0);
 
+    final user = ApiService.currentUser;
+    final role = user?['role'] ?? 'Client';
+    final canApprove = role == 'Super Admin' || role == 'Accountant' || role == 'Managing Director';
+
     return Padding(
       padding: const EdgeInsets.all(24.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Expenses & Disbursements Ledger', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: VianTheme.primaryGold)),
-          const Text('Review site material expenses, labor payments, and travel disbursements', style: TextStyle(color: Color(0xFF70707C))),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Expenses & Disbursements Ledger', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: VianTheme.primaryGold)),
+                  const Text('Review site material expenses, labor payments, and travel disbursements', style: TextStyle(color: Color(0xFF70707C))),
+                ],
+              ),
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: VianTheme.primaryGold,
+                  foregroundColor: Colors.black,
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                  shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+                ),
+                icon: const Icon(Icons.add, size: 16),
+                label: Text('NEW EXPENSE', style: GoogleFonts.outfit(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
+                onPressed: _showCreateExpenseDialog,
+              ),
+            ],
+          ),
           const SizedBox(height: 24),
           Expanded(
-            child: ListView.builder(
-              itemCount: _expenses.length,
-              itemBuilder: (context, index) {
-                final exp = _expenses[index];
-                final status = exp['status'] ?? 'Pending';
-                Color statusColor = VianTheme.warning;
-                if (status == 'Approved') statusColor = VianTheme.success;
-                if (status == 'Rejected') statusColor = VianTheme.danger;
+            child: _expenses.isEmpty
+                ? const Center(child: Text('No expenses recorded', style: TextStyle(color: VianTheme.lightText)))
+                : ListView.builder(
+                    itemCount: _expenses.length,
+                    itemBuilder: (context, index) {
+                      final exp = _expenses[index];
+                      final status = exp['status'] ?? 'Pending';
+                      Color statusColor = VianTheme.warning;
+                      if (status == 'Approved') statusColor = VianTheme.success;
+                      if (status == 'Rejected') statusColor = VianTheme.danger;
 
-                return Container(
-                  margin: const EdgeInsets.only(bottom: 16),
-                  child: VianCard(
-                    child: Row(
-                      children: [
-                        const CircleAvatar(
-                          backgroundColor: Color(0xFF1E1E26),
-                          child: Icon(Icons.receipt, color: VianTheme.primaryGold),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(formatter.format(safeToDouble(exp['amount'])), style: const TextStyle(fontWeight: FontWeight.bold, color: VianTheme.whiteText, fontSize: 16)),
-                              Text('Category: ${exp['category']} | Project: ${exp['project']?['name']}', style: const TextStyle(fontSize: 12)),
-                              Text('Submitted by: ${exp['user']?['name']} on ${exp['date']}', style: const TextStyle(fontSize: 11, color: Color(0xFF70707C))),
-                            ],
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 16),
+                        child: InkWell(
+                          onTap: canApprove && status == 'Pending' ? () => _showApproveRejectDialog(exp) : null,
+                          child: VianCard(
+                            child: Row(
+                              children: [
+                                const CircleAvatar(
+                                  backgroundColor: Color(0xFF1E1E26),
+                                  child: Icon(Icons.receipt, color: VianTheme.primaryGold),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(formatter.format(safeToDouble(exp['amount'])), style: const TextStyle(fontWeight: FontWeight.bold, color: VianTheme.whiteText, fontSize: 16)),
+                                      Text('Category: ${exp['category']} | Project: ${exp['project']?['name'] ?? 'General'}', style: const TextStyle(fontSize: 12)),
+                                      Text('Submitted by: ${exp['user']?['name'] ?? 'Unknown'} on ${exp['date']}', style: const TextStyle(fontSize: 11, color: Color(0xFF70707C))),
+                                    ],
+                                  ),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                  decoration: BoxDecoration(color: statusColor.withOpacity(0.2), borderRadius: BorderRadius.circular(6)),
+                                  child: Text(status, style: TextStyle(color: statusColor, fontSize: 11, fontWeight: FontWeight.bold)),
+                                )
+                              ],
+                            ),
                           ),
                         ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                          decoration: BoxDecoration(color: statusColor.withOpacity(0.2), borderRadius: BorderRadius.circular(6)),
-                          child: Text(status, style: TextStyle(color: statusColor, fontSize: 11, fontWeight: FontWeight.bold)),
-                        )
-                      ],
-                    ),
+                      );
+                    },
                   ),
-                );
-              },
-            ),
           )
         ],
       ),
@@ -10452,25 +11236,55 @@ class PayrollTab extends StatefulWidget {
 
 class _PayrollTabState extends State<PayrollTab> {
   List<dynamic> _wages = [];
+  List<dynamic> _projects = [];
+  int? _selectedProjectId;
   bool _loading = true;
 
   @override
   void initState() {
     super.initState();
-    _loadPayroll();
+    _loadInitialData();
+  }
+
+  Future<void> _loadInitialData() async {
+    try {
+      final projects = await ApiService.getProjects();
+      setState(() {
+        _projects = projects;
+        if (projects.isNotEmpty) {
+          _selectedProjectId = projects.first['id'] as int;
+        }
+      });
+      if (_selectedProjectId != null) {
+        await _loadPayroll();
+      } else {
+        setState(() => _loading = false);
+      }
+    } catch (_) {
+      setState(() => _loading = false);
+    }
   }
 
   Future<void> _loadPayroll() async {
-    final list = await ApiService.getWageSheet(1); // Load for project 1
-    setState(() {
-      _wages = list;
-      _loading = false;
-    });
+    if (_selectedProjectId == null) return;
+    setState(() => _loading = true);
+    try {
+      final list = await ApiService.getWageSheet(_selectedProjectId!);
+      setState(() {
+        _wages = list;
+        _loading = false;
+      });
+    } catch (_) {
+      setState(() {
+        _wages = [];
+        _loading = false;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_loading) return const Center(child: CircularProgressIndicator());
+    if (_loading && _projects.isEmpty) return const Center(child: CircularProgressIndicator());
     final formatter = NumberFormat.currency(locale: 'en_IN', symbol: '₹', decimalDigits: 0);
 
     return Padding(
@@ -10481,11 +11295,11 @@ class _PayrollTabState extends State<PayrollTab> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Column(
+              Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Payroll Integrated Wage Sheet', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: VianTheme.primaryGold)),
-                  Text('Wages auto-calculated from manager attendance grids (Base wage + 1.5x Overtime multiplier)', style: TextStyle(color: Color(0xFF70707C))),
+                  const Text('Payroll Integrated Wage Sheet', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: VianTheme.primaryGold)),
+                  const Text('Wages auto-calculated from manager attendance grids (Base wage + 1.5x Overtime multiplier)', style: TextStyle(color: Color(0xFF70707C))),
                 ],
               ),
               VianButton(
@@ -10498,39 +11312,73 @@ class _PayrollTabState extends State<PayrollTab> {
             ],
           ),
           const SizedBox(height: 24),
-          Expanded(
-            child: ListView.builder(
-              itemCount: _wages.length,
-              itemBuilder: (context, index) {
-                final w = _wages[index];
-                return Container(
-                  margin: const EdgeInsets.only(bottom: 12),
-                  child: VianCard(
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(w['name'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                              Text('ID: ${w['workerId']} | Skill: ${w['skillType']} | Contractor: ${w['contractor'] ?? "Self"}'),
-                              Text('Days: ${w['presentDays']} Present, ${w['halfDays']} Half | OT: ${w['overtimeHours']} Hrs', style: const TextStyle(fontSize: 11, color: Color(0xFF70707C))),
-                            ],
-                          ),
-                        ),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text(formatter.format(safeToDouble(w['totalWage'])), style: const TextStyle(fontWeight: FontWeight.bold, color: VianTheme.primaryGold, fontSize: 16)),
-                            Text('Base: ${formatter.format(safeToDouble(w['basePay']))} | OT: ${formatter.format(safeToDouble(w['overtimePay']))}', style: const TextStyle(fontSize: 11)),
-                          ],
-                        )
-                      ],
-                    ),
+          if (_projects.isNotEmpty) ...[
+            Row(
+              children: [
+                const Text('Select Project: ', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                const SizedBox(width: 12),
+                SizedBox(
+                  width: 300,
+                  child: DropdownButtonFormField<int>(
+                    dropdownColor: const Color(0xFF1E1E26),
+                    value: _selectedProjectId,
+                    items: _projects.map<DropdownMenuItem<int>>((p) {
+                      return DropdownMenuItem<int>(
+                        value: p['id'] as int,
+                        child: Text(p['name'] ?? '', style: const TextStyle(color: Colors.white)),
+                      );
+                    }).toList(),
+                    onChanged: (val) {
+                      if (val != null) {
+                        setState(() {
+                          _selectedProjectId = val;
+                        });
+                        _loadPayroll();
+                      }
+                    },
                   ),
-                );
-              },
+                ),
+              ],
             ),
+            const SizedBox(height: 24),
+          ],
+          Expanded(
+            child: _loading
+                ? const Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(VianTheme.primaryGold)))
+                : (_wages.isEmpty
+                    ? const Center(child: Text('No wage records calculated for this project.', style: TextStyle(color: VianTheme.lightText)))
+                    : ListView.builder(
+                        itemCount: _wages.length,
+                        itemBuilder: (context, index) {
+                          final w = _wages[index];
+                          return Container(
+                            margin: const EdgeInsets.only(bottom: 12),
+                            child: VianCard(
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(w['name'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                                        Text('ID: ${w['workerId']} | Skill: ${w['skillType']} | Contractor: ${w['contractor'] ?? "Self"}'),
+                                        Text('Days: ${w['presentDays']} Present, ${w['halfDays']} Half | OT: ${w['overtimeHours']} Hrs', style: const TextStyle(fontSize: 11, color: Color(0xFF70707C))),
+                                      ],
+                                    ),
+                                  ),
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: [
+                                      Text(formatter.format(safeToDouble(w['totalWage'])), style: const TextStyle(fontWeight: FontWeight.bold, color: VianTheme.primaryGold, fontSize: 16)),
+                                      Text('Base: ${formatter.format(safeToDouble(w['basePay']))} | OT: ${formatter.format(safeToDouble(w['overtimePay']))}', style: const TextStyle(fontSize: 11)),
+                                    ],
+                                  )
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      )),
           )
         ],
       ),
