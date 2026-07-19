@@ -560,7 +560,7 @@ class _LoginPageState extends ConsumerState<LoginPage> with SingleTickerProvider
                         const SizedBox(width: 12),
                         Text(
                           'VIAN COMMAND',
-                          style: GoogleFonts.hankenGrotesk(
+                          style: GoogleFonts.outfit(
                             color: VianTheme.lightText,
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
@@ -596,7 +596,7 @@ class _LoginPageState extends ConsumerState<LoginPage> with SingleTickerProvider
                               const SizedBox(width: 12),
                               Text(
                                 'PRECISION. LEGACY. COMMAND.',
-                                style: GoogleFonts.hankenGrotesk(
+                                style: GoogleFonts.outfit(
                                   color: VianTheme.lightText,
                                   fontSize: 12,
                                   fontWeight: FontWeight.w600,
@@ -619,12 +619,12 @@ class _LoginPageState extends ConsumerState<LoginPage> with SingleTickerProvider
                       children: [
                         Text(
                           'Coordinates: 13.0827° N, 80.2707° E',
-                          style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold.withOpacity(0.4), fontSize: 10, letterSpacing: 1),
+                          style: GoogleFonts.outfit(color: VianTheme.primaryGold.withOpacity(0.4), fontSize: 10, letterSpacing: 1),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           'System Status: Connected',
-                          style: GoogleFonts.hankenGrotesk(color: VianTheme.lightText, fontSize: 10, letterSpacing: 1),
+                          style: GoogleFonts.outfit(color: VianTheme.lightText, fontSize: 10, letterSpacing: 1),
                         ),
                       ],
                     ),
@@ -676,7 +676,7 @@ class _LoginPageState extends ConsumerState<LoginPage> with SingleTickerProvider
                 children: [
                   Text(
                     'EXECUTIVE COMMAND',
-                    style: GoogleFonts.hankenGrotesk(
+                    style: GoogleFonts.outfit(
                       color: VianTheme.primaryGold,
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
@@ -686,7 +686,7 @@ class _LoginPageState extends ConsumerState<LoginPage> with SingleTickerProvider
                   const SizedBox(height: 4),
                   Text(
                     'Secure Access',
-                    style: GoogleFonts.hankenGrotesk(
+                    style: GoogleFonts.outfit(
                       color: Colors.white,
                       fontSize: 22,
                       fontWeight: FontWeight.w600,
@@ -720,7 +720,7 @@ class _LoginPageState extends ConsumerState<LoginPage> with SingleTickerProvider
           ],
           Text(
             'CORPORATE EMAIL',
-            style: GoogleFonts.hankenGrotesk(
+            style: GoogleFonts.outfit(
               color: VianTheme.lightText,
               fontSize: 10,
               fontWeight: FontWeight.bold,
@@ -739,7 +739,7 @@ class _LoginPageState extends ConsumerState<LoginPage> with SingleTickerProvider
           const SizedBox(height: 24),
           Text(
             'MASTER CREDENTIAL',
-            style: GoogleFonts.hankenGrotesk(
+            style: GoogleFonts.outfit(
               color: VianTheme.lightText,
               fontSize: 10,
               fontWeight: FontWeight.bold,
@@ -783,7 +783,7 @@ class _LoginPageState extends ConsumerState<LoginPage> with SingleTickerProvider
                   const SizedBox(width: 8),
                   Text(
                     'Maintain Session',
-                    style: GoogleFonts.hankenGrotesk(fontSize: 11, color: VianTheme.lightText, letterSpacing: 0.5),
+                    style: GoogleFonts.outfit(fontSize: 11, color: VianTheme.lightText, letterSpacing: 0.5),
                   ),
                 ],
               ),
@@ -792,7 +792,7 @@ class _LoginPageState extends ConsumerState<LoginPage> with SingleTickerProvider
                 style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: Size.zero),
                 child: Text(
                   'Recover Access',
-                  style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold.withOpacity(0.8), fontSize: 11),
+                  style: GoogleFonts.outfit(color: VianTheme.primaryGold.withOpacity(0.8), fontSize: 11),
                 ),
               ),
             ],
@@ -813,7 +813,7 @@ class _LoginPageState extends ConsumerState<LoginPage> with SingleTickerProvider
           Center(
             child: Text(
               'SELECT EXECUTIVE ENVIRONMENT',
-              style: GoogleFonts.hankenGrotesk(
+              style: GoogleFonts.outfit(
                 color: VianTheme.lightText,
                 fontSize: 9,
                 fontWeight: FontWeight.bold,
@@ -838,11 +838,11 @@ class _LoginPageState extends ConsumerState<LoginPage> with SingleTickerProvider
             children: [
               Text(
                 'VER 4.2.0-EXEC',
-                style: GoogleFonts.hankenGrotesk(color: VianTheme.lightText, fontSize: 9),
+                style: GoogleFonts.outfit(color: VianTheme.lightText, fontSize: 9),
               ),
               Text(
                 '© 2026 VIAN GLOBAL',
-                style: GoogleFonts.hankenGrotesk(color: VianTheme.lightText, fontSize: 9),
+                style: GoogleFonts.outfit(color: VianTheme.lightText, fontSize: 9),
               ),
             ],
           ),
@@ -862,7 +862,7 @@ class _LoginPageState extends ConsumerState<LoginPage> with SingleTickerProvider
         ),
         child: Text(
           label.toUpperCase(),
-          style: GoogleFonts.hankenGrotesk(
+          style: GoogleFonts.outfit(
             color: VianTheme.primaryGold,
             fontSize: 10,
             fontWeight: FontWeight.w600,
@@ -2158,7 +2158,7 @@ class _CRMTabState extends State<CRMTab> {
 
             return AlertDialog(
               backgroundColor: VianTheme.headerBlack,
-              title: Text('Public Enquiry Link', style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontWeight: FontWeight.bold)),
+              title: Text('Public Enquiry Link', style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontWeight: FontWeight.bold)),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -2300,7 +2300,7 @@ class _CRMTabState extends State<CRMTab> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: GoogleFonts.hankenGrotesk(color: VianTheme.lightText, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+        Text(label, style: GoogleFonts.outfit(color: VianTheme.lightText, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
         const SizedBox(width: 16),
         Expanded(
           child: Text(
@@ -2363,7 +2363,7 @@ class _CRMTabState extends State<CRMTab> {
                       const SizedBox(width: 8),
                       Text(
                         title.toUpperCase(),
-                        style: GoogleFonts.hankenGrotesk(
+                        style: GoogleFonts.outfit(
                           color: Colors.white,
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
@@ -2377,7 +2377,7 @@ class _CRMTabState extends State<CRMTab> {
                     color: VianTheme.primaryGold.withOpacity(0.08),
                     child: Text(
                       leads.length.toString().padLeft(2, '0'),
-                      style: GoogleFonts.hankenGrotesk(
+                      style: GoogleFonts.outfit(
                         color: VianTheme.primaryGold,
                         fontSize: 10,
                         fontWeight: FontWeight.bold,
@@ -2394,7 +2394,7 @@ class _CRMTabState extends State<CRMTab> {
                   ? Center(
                       child: Text(
                         'NO LEADS',
-                        style: GoogleFonts.hankenGrotesk(color: VianTheme.lightText, fontSize: 10, letterSpacing: 0.5),
+                        style: GoogleFonts.outfit(color: VianTheme.lightText, fontSize: 10, letterSpacing: 0.5),
                       ),
                     )
                   : ListView.builder(
@@ -2431,7 +2431,7 @@ class _CRMTabState extends State<CRMTab> {
                                 children: [
                                   Text(
                                     budgetFormatted,
-                                    style: GoogleFonts.hankenGrotesk(
+                                    style: GoogleFonts.outfit(
                                       color: VianTheme.primaryGold,
                                       fontSize: 11.5,
                                       fontWeight: FontWeight.w600,
@@ -2439,7 +2439,7 @@ class _CRMTabState extends State<CRMTab> {
                                   ),
                                   Text(
                                     (lead['status'] ?? 'New').toString().toUpperCase(),
-                                    style: GoogleFonts.hankenGrotesk(
+                                    style: GoogleFonts.outfit(
                                       color: VianTheme.lightText,
                                       fontSize: 8.5,
                                       fontWeight: FontWeight.bold,
@@ -2486,7 +2486,7 @@ class _CRMTabState extends State<CRMTab> {
               children: [
                 Text(
                   'PIPELINE: RESIDENTIAL 2026',
-                  style: GoogleFonts.hankenGrotesk(
+                  style: GoogleFonts.outfit(
                     color: VianTheme.lightText,
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
@@ -2495,7 +2495,7 @@ class _CRMTabState extends State<CRMTab> {
                 ),
                 Text(
                   'ACTIVE LEADS: ${_leads.length}',
-                  style: GoogleFonts.hankenGrotesk(
+                  style: GoogleFonts.outfit(
                     color: VianTheme.lightText,
                     fontSize: 11,
                     fontWeight: FontWeight.w500,
@@ -2531,7 +2531,7 @@ class _CRMTabState extends State<CRMTab> {
           child: Center(
             child: Text(
               'SELECT A LEAD TO VIEW DETAILS',
-              style: GoogleFonts.hankenGrotesk(color: VianTheme.lightText, fontSize: 11, letterSpacing: 1.0),
+              style: GoogleFonts.outfit(color: VianTheme.lightText, fontSize: 11, letterSpacing: 1.0),
             ),
           ),
         );
@@ -2564,7 +2564,7 @@ class _CRMTabState extends State<CRMTab> {
                     children: [
                       Text(
                         'SELECTED LEAD',
-                        style: GoogleFonts.hankenGrotesk(
+                        style: GoogleFonts.outfit(
                           color: VianTheme.primaryGold,
                           fontSize: 10,
                           fontWeight: FontWeight.bold,
@@ -2589,7 +2589,7 @@ class _CRMTabState extends State<CRMTab> {
                   const SizedBox(height: 8),
                   Text(
                     lead['name'] ?? 'Untitled Lead',
-                    style: GoogleFonts.hankenGrotesk(
+                    style: GoogleFonts.outfit(
                       color: Colors.white,
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
@@ -2602,16 +2602,16 @@ class _CRMTabState extends State<CRMTab> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('ESTIMATED VALUE', style: GoogleFonts.hankenGrotesk(color: VianTheme.lightText, fontSize: 9, letterSpacing: 0.5)),
+                          Text('ESTIMATED VALUE', style: GoogleFonts.outfit(color: VianTheme.lightText, fontSize: 9, letterSpacing: 0.5)),
                           const SizedBox(height: 4),
-                          Text(budgetFormatted, style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontSize: 18, fontWeight: FontWeight.bold)),
+                          Text(budgetFormatted, style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 18, fontWeight: FontWeight.bold)),
                         ],
                       ),
                       const SizedBox(width: 48),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('LEAD OWNER', style: GoogleFonts.hankenGrotesk(color: VianTheme.lightText, fontSize: 9, letterSpacing: 0.5)),
+                          Text('LEAD OWNER', style: GoogleFonts.outfit(color: VianTheme.lightText, fontSize: 9, letterSpacing: 0.5)),
                           const SizedBox(height: 4),
                           Row(
                             children: [
@@ -2651,7 +2651,7 @@ class _CRMTabState extends State<CRMTab> {
                       children: [
                         Container(width: 6, height: 6, color: VianTheme.primaryGold),
                         const SizedBox(width: 8),
-                        Text('PRIMARY CONTACT', style: GoogleFonts.hankenGrotesk(color: VianTheme.whiteText, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
+                        Text('PRIMARY CONTACT', style: GoogleFonts.outfit(color: VianTheme.whiteText, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
                       ],
                     ),
                     const SizedBox(height: 16),
@@ -2678,7 +2678,7 @@ class _CRMTabState extends State<CRMTab> {
                       children: [
                         Container(width: 6, height: 6, color: VianTheme.primaryGold),
                         const SizedBox(width: 8),
-                        Text('NOTES TIMELINE', style: GoogleFonts.hankenGrotesk(color: VianTheme.whiteText, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
+                        Text('NOTES TIMELINE', style: GoogleFonts.outfit(color: VianTheme.whiteText, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
                       ],
                     ),
                     const SizedBox(height: 20),
@@ -2721,7 +2721,7 @@ class _CRMTabState extends State<CRMTab> {
                                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                           children: [
                                             Text(entry['action'] ?? '', style: GoogleFonts.inter(color: VianTheme.whiteText, fontWeight: FontWeight.bold, fontSize: 12)),
-                                            Text(dateFormatted, style: GoogleFonts.hankenGrotesk(color: VianTheme.lightText, fontSize: 9)),
+                                            Text(dateFormatted, style: GoogleFonts.outfit(color: VianTheme.lightText, fontSize: 9)),
                                           ],
                                         ),
                                         if (entry['notes'] != null && entry['notes'].toString().isNotEmpty) ...[
@@ -2779,7 +2779,7 @@ class _CRMTabState extends State<CRMTab> {
                             shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
                           ),
                           onPressed: () => _showLeadTrackingSheet(lead),
-                          child: Text('TRACK PROGRESS', style: GoogleFonts.hankenGrotesk(fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
+                          child: Text('TRACK PROGRESS', style: GoogleFonts.outfit(fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -2799,7 +2799,7 @@ class _CRMTabState extends State<CRMTab> {
                               ),
                             ).then((_) => _fetchLeads());
                           },
-                          child: Text('STAGE 1 FORM', style: GoogleFonts.hankenGrotesk(fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
+                          child: Text('STAGE 1 FORM', style: GoogleFonts.outfit(fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
                         ),
                       ),
                     ],
@@ -5350,7 +5350,7 @@ class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
                   padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
                   child: Text(
                     bp['name']!,
-                    style: GoogleFonts.hankenGrotesk(
+                    style: GoogleFonts.outfit(
                       color: VianTheme.primaryGold,
                       fontSize: 9,
                       fontWeight: FontWeight.bold,
@@ -5408,7 +5408,7 @@ class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
           children: [
             Text(
               'Project Timeline',
-              style: GoogleFonts.hankenGrotesk(
+              style: GoogleFonts.outfit(
                 color: Colors.white,
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -5419,7 +5419,7 @@ class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
               children: [
                 Container(width: 8, height: 8, color: VianTheme.primaryGold),
                 const SizedBox(width: 6),
-                Text('PROGRESS', style: GoogleFonts.hankenGrotesk(color: VianTheme.lightText, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+                Text('PROGRESS', style: GoogleFonts.outfit(color: VianTheme.lightText, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
                 const SizedBox(width: 16),
                 Container(
                   width: 8,
@@ -5427,7 +5427,7 @@ class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
                   decoration: const BoxDecoration(color: VianTheme.primaryGold, shape: BoxShape.circle),
                 ),
                 const SizedBox(width: 6),
-                Text('MILESTONE', style: GoogleFonts.hankenGrotesk(color: VianTheme.lightText, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+                Text('MILESTONE', style: GoogleFonts.outfit(color: VianTheme.lightText, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
               ],
             )
           ],
@@ -5449,7 +5449,7 @@ class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL'].map((m) {
-                        return Text(m, style: GoogleFonts.hankenGrotesk(color: VianTheme.lightText, fontSize: 10, fontWeight: FontWeight.bold));
+                        return Text(m, style: GoogleFonts.outfit(color: VianTheme.lightText, fontSize: 10, fontWeight: FontWeight.bold));
                       }).toList(),
                     ),
                   ),
@@ -5468,7 +5468,7 @@ class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
           children: [
             Text(
               'Project Blueprints',
-              style: GoogleFonts.hankenGrotesk(
+              style: GoogleFonts.outfit(
                 color: Colors.white,
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -5477,7 +5477,7 @@ class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
             ),
             Text(
               'VIEW FULL ARCHIVE',
-              style: GoogleFonts.hankenGrotesk(
+              style: GoogleFonts.outfit(
                 color: VianTheme.primaryGold,
                 fontSize: 10,
                 fontWeight: FontWeight.bold,
@@ -5500,17 +5500,17 @@ class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('PROJECT META', style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
+          Text('PROJECT META', style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
           const SizedBox(height: 16),
-          Text('Client Entity', style: GoogleFonts.hankenGrotesk(color: VianTheme.lightText, fontSize: 9, letterSpacing: 0.5)),
+          Text('Client Entity', style: GoogleFonts.outfit(color: VianTheme.lightText, fontSize: 9, letterSpacing: 0.5)),
           const SizedBox(height: 4),
           Text(_project['client']?['name'] ?? 'Vanguard Estate Group', style: GoogleFonts.inter(color: VianTheme.whiteText, fontSize: 14, fontWeight: FontWeight.w600)),
           const SizedBox(height: 16),
-          Text('Site Address', style: GoogleFonts.hankenGrotesk(color: VianTheme.lightText, fontSize: 9, letterSpacing: 0.5)),
+          Text('Site Address', style: GoogleFonts.outfit(color: VianTheme.lightText, fontSize: 9, letterSpacing: 0.5)),
           const SizedBox(height: 4),
           Text(_project['siteAddress'] ?? '42 Knightsbridge Row', style: GoogleFonts.inter(color: VianTheme.whiteText, fontSize: 13, fontWeight: FontWeight.w500)),
           const SizedBox(height: 16),
-          Text('Package Tier', style: GoogleFonts.hankenGrotesk(color: VianTheme.lightText, fontSize: 9, letterSpacing: 0.5)),
+          Text('Package Tier', style: GoogleFonts.outfit(color: VianTheme.lightText, fontSize: 9, letterSpacing: 0.5)),
           const SizedBox(height: 8),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -5523,12 +5523,12 @@ class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
               children: [
                 const Icon(Icons.workspace_premium, color: VianTheme.primaryGold, size: 14),
                 const SizedBox(width: 6),
-                Text('PLATINUM ATELIER', style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
+                Text('PLATINUM ATELIER', style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
               ],
             ),
           ),
           const SizedBox(height: 24),
-          Text('Assigned Team', style: GoogleFonts.hankenGrotesk(color: VianTheme.lightText, fontSize: 9, letterSpacing: 0.5)),
+          Text('Assigned Team', style: GoogleFonts.outfit(color: VianTheme.lightText, fontSize: 9, letterSpacing: 0.5)),
           const SizedBox(height: 12),
           Row(
             children: [
@@ -5549,7 +5549,7 @@ class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
                 radius: 14,
                 backgroundColor: VianTheme.lightText,
                 child: Center(
-                  child: Text('+4', style: GoogleFonts.hankenGrotesk(color: VianTheme.whiteText, fontSize: 9, fontWeight: FontWeight.bold)),
+                  child: Text('+4', style: GoogleFonts.outfit(color: VianTheme.whiteText, fontSize: 9, fontWeight: FontWeight.bold)),
                 ),
               )
             ],
@@ -5567,7 +5567,7 @@ class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
                 shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
               ),
               onPressed: () {},
-              child: Text('VIEW PROJECT SPECS', style: GoogleFonts.hankenGrotesk(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
+              child: Text('VIEW PROJECT SPECS', style: GoogleFonts.outfit(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
             ),
           ),
           if (_isSuperAdmin) ...[
@@ -6501,7 +6501,7 @@ class _AttendanceTabState extends ConsumerState<AttendanceTab> {
               const SizedBox(width: 8),
               Text(
                 label,
-                style: GoogleFonts.hankenGrotesk(
+                style: GoogleFonts.outfit(
                   color: active ? Colors.black : VianTheme.lightText,
                   fontSize: 12,
                   fontWeight: active ? FontWeight.bold : FontWeight.normal,
@@ -6664,7 +6664,7 @@ class _AttendanceTabState extends ConsumerState<AttendanceTab> {
                         children: [
                           Text(
                             (selectedProj['name'] ?? '').toUpperCase(),
-                            style: GoogleFonts.hankenGrotesk(fontWeight: FontWeight.bold, color: VianTheme.primaryGold),
+                            style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: VianTheme.primaryGold),
                           ),
                           const SizedBox(height: 2),
                           Text(
@@ -7830,7 +7830,7 @@ class _QuotationsTabState extends State<QuotationsTab> {
                 children: [
                   Text(
                     'QUOTATIONS REGISTRY',
-                    style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontSize: 24, fontWeight: FontWeight.bold, letterSpacing: 1.0),
+                    style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 24, fontWeight: FontWeight.bold, letterSpacing: 1.0),
                   ),
                   const SizedBox(height: 4),
                   Text(
@@ -7848,7 +7848,7 @@ class _QuotationsTabState extends State<QuotationsTab> {
                     shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
                   ),
                   icon: const Icon(Icons.add, size: 16),
-                  label: Text('NEW QUOTATION', style: GoogleFonts.hankenGrotesk(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
+                  label: Text('NEW QUOTATION', style: GoogleFonts.outfit(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
                   onPressed: () => _showCreateQuotationDialog(role),
                 ),
             ],
@@ -8304,7 +8304,7 @@ class _InvoicesTabState extends State<InvoicesTab> {
                 children: [
                   Text(
                     'FINANCIALS HUB',
-                    style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontSize: 24, fontWeight: FontWeight.bold, letterSpacing: 1.0),
+                    style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 24, fontWeight: FontWeight.bold, letterSpacing: 1.0),
                   ),
                   const SizedBox(height: 4),
                   Text(
@@ -8322,7 +8322,7 @@ class _InvoicesTabState extends State<InvoicesTab> {
                     shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
                   ),
                   icon: const Icon(Icons.add, size: 16),
-                  label: Text('NEW INVOICE', style: GoogleFonts.hankenGrotesk(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
+                  label: Text('NEW INVOICE', style: GoogleFonts.outfit(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
                   onPressed: () => _showCreateInvoiceDialog(role),
                 ),
             ],
@@ -8396,7 +8396,7 @@ class _InvoicesTabState extends State<InvoicesTab> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('RECENT TRANSACTIONS', style: GoogleFonts.hankenGrotesk(color: VianTheme.whiteText, fontSize: 15, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+                          Text('RECENT TRANSACTIONS', style: GoogleFonts.outfit(color: VianTheme.whiteText, fontSize: 15, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
                           const SizedBox(height: 4),
                           Text('Detailed breakdown of architectural project billing cycles', style: GoogleFonts.inter(color: VianTheme.lightText, fontSize: 12)),
                         ],
@@ -8436,11 +8436,11 @@ class _InvoicesTabState extends State<InvoicesTab> {
                   padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
                   child: Row(
                     children: [
-                      Expanded(flex: 2, child: Text('INVOICE ID', style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold))),
-                      Expanded(flex: 4, child: Text('CLIENT & PROJECT', style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold))),
-                      Expanded(flex: 2, child: Text('ISSUE DATE', style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold))),
-                      Expanded(flex: 2, child: Text('STATUS', style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold))),
-                      Expanded(flex: 3, child: Text('AMOUNT', style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold), textAlign: TextAlign.right)),
+                      Expanded(flex: 2, child: Text('INVOICE ID', style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold))),
+                      Expanded(flex: 4, child: Text('CLIENT & PROJECT', style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold))),
+                      Expanded(flex: 2, child: Text('ISSUE DATE', style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold))),
+                      Expanded(flex: 2, child: Text('STATUS', style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold))),
+                      Expanded(flex: 3, child: Text('AMOUNT', style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold), textAlign: TextAlign.right)),
                     ],
                   ),
                 ),
@@ -8478,7 +8478,7 @@ class _InvoicesTabState extends State<InvoicesTab> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('SHOWING ${_invoices.isEmpty ? 4 : _invoices.length} OF 128 TRANSACTIONS', style: GoogleFonts.hankenGrotesk(color: VianTheme.lightText, fontSize: 10, fontWeight: FontWeight.bold)),
+                      Text('SHOWING ${_invoices.isEmpty ? 4 : _invoices.length} OF 128 TRANSACTIONS', style: GoogleFonts.outfit(color: VianTheme.lightText, fontSize: 10, fontWeight: FontWeight.bold)),
                       Row(
                         children: [
                           _buildPageButton('<', active: false),
@@ -8548,7 +8548,7 @@ class _InvoicesTabState extends State<InvoicesTab> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(title, style: GoogleFonts.hankenGrotesk(color: VianTheme.lightText, fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
+                Text(title, style: GoogleFonts.outfit(color: VianTheme.lightText, fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
                 Icon(icon, color: color.withOpacity(0.4), size: 20),
               ],
             ),
@@ -8585,7 +8585,7 @@ class _InvoicesTabState extends State<InvoicesTab> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('AGING ANALYSIS', style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
+              Text('AGING ANALYSIS', style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
               const Icon(Icons.query_stats, color: VianTheme.lightText, size: 16),
             ],
           ),
@@ -8651,7 +8651,7 @@ class _InvoicesTabState extends State<InvoicesTab> {
       padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
       child: Row(
         children: [
-          Expanded(flex: 2, child: Text(invId, style: GoogleFonts.hankenGrotesk(color: VianTheme.lightText, fontSize: 13))),
+          Expanded(flex: 2, child: Text(invId, style: GoogleFonts.outfit(color: VianTheme.lightText, fontSize: 13))),
           Expanded(
             flex: 4,
             child: Row(
@@ -8659,7 +8659,7 @@ class _InvoicesTabState extends State<InvoicesTab> {
                 CircleAvatar(
                   radius: 14,
                   backgroundColor: VianTheme.goldBorder,
-                  child: Text(clientName[0].toUpperCase(), style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold)),
+                  child: Text(clientName[0].toUpperCase(), style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold)),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -8674,7 +8674,7 @@ class _InvoicesTabState extends State<InvoicesTab> {
               ],
             ),
           ),
-          Expanded(flex: 2, child: Text(date, style: GoogleFonts.hankenGrotesk(color: VianTheme.lightText, fontSize: 12))),
+          Expanded(flex: 2, child: Text(date, style: GoogleFonts.outfit(color: VianTheme.lightText, fontSize: 12))),
           Expanded(
             flex: 2,
             child: Row(
@@ -8684,13 +8684,13 @@ class _InvoicesTabState extends State<InvoicesTab> {
                   color: statusColor.withOpacity(0.1),
                   child: Text(
                     status.toUpperCase(),
-                    style: GoogleFonts.hankenGrotesk(color: statusColor, fontSize: 9, fontWeight: FontWeight.bold),
+                    style: GoogleFonts.outfit(color: statusColor, fontSize: 9, fontWeight: FontWeight.bold),
                   ),
                 ),
               ],
             ),
           ),
-          Expanded(flex: 3, child: Text(amount, style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontSize: 13, fontWeight: FontWeight.bold), textAlign: TextAlign.right)),
+          Expanded(flex: 3, child: Text(amount, style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 13, fontWeight: FontWeight.bold), textAlign: TextAlign.right)),
         ],
       ),
     );
@@ -8707,7 +8707,7 @@ class _InvoicesTabState extends State<InvoicesTab> {
       child: Center(
         child: Text(
           label,
-          style: GoogleFonts.hankenGrotesk(
+          style: GoogleFonts.outfit(
             color: active ? VianTheme.primaryGold : VianTheme.lightText,
             fontSize: 11,
             fontWeight: active ? FontWeight.bold : FontWeight.normal,
@@ -8734,7 +8734,7 @@ class _InvoicesTabState extends State<InvoicesTab> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('REVENUE FORECAST', style: GoogleFonts.hankenGrotesk(color: VianTheme.whiteText, fontSize: 14, fontWeight: FontWeight.bold)),
+                  Text('REVENUE FORECAST', style: GoogleFonts.outfit(color: VianTheme.whiteText, fontSize: 14, fontWeight: FontWeight.bold)),
                   Text('Projected cash receipts based on upcoming phases', style: GoogleFonts.inter(color: VianTheme.lightText, fontSize: 11)),
                 ],
               ),
@@ -8815,7 +8815,7 @@ class _InvoicesTabState extends State<InvoicesTab> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('PAYMENT GATEWAYS', style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
+          Text('PAYMENT GATEWAYS', style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
           const SizedBox(height: 16),
           _buildGatewayRow('Chase Corporate', 'ACTIVE', Icons.account_balance),
           const SizedBox(height: 12),
@@ -8829,7 +8829,7 @@ class _InvoicesTabState extends State<InvoicesTab> {
               shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
             ),
             onPressed: () {},
-            child: Text('MANAGE METHODS', style: GoogleFonts.hankenGrotesk(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
+            child: Text('MANAGE METHODS', style: GoogleFonts.outfit(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
           )
         ],
       ),
@@ -8849,7 +8849,7 @@ class _InvoicesTabState extends State<InvoicesTab> {
           const SizedBox(width: 12),
           Text(name, style: GoogleFonts.inter(color: VianTheme.whiteText, fontSize: 12, fontWeight: FontWeight.bold)),
           const Spacer(),
-          Text(status, style: GoogleFonts.hankenGrotesk(color: VianTheme.success, fontSize: 9, fontWeight: FontWeight.bold)),
+          Text(status, style: GoogleFonts.outfit(color: VianTheme.success, fontSize: 9, fontWeight: FontWeight.bold)),
         ],
       ),
     );
@@ -8865,7 +8865,7 @@ class _InvoicesTabState extends State<InvoicesTab> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('QUARTERLY REVIEW', style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
+          Text('QUARTERLY REVIEW', style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
           const SizedBox(height: 8),
           Text(
             'Your collection efficiency has improved by 8.4% compared to Q3. Current outstanding invoices average 14 days delay.',
@@ -8876,7 +8876,7 @@ class _InvoicesTabState extends State<InvoicesTab> {
             onTap: () {},
             child: Text(
               'VIEW INSIGHTS REPORT →',
-              style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.0),
+              style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.0),
             ),
           )
         ],
@@ -9124,7 +9124,7 @@ class _ExpensesTabState extends State<ExpensesTab> {
                   shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
                 ),
                 icon: const Icon(Icons.add, size: 16),
-                label: Text('NEW EXPENSE', style: GoogleFonts.hankenGrotesk(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
+                label: Text('NEW EXPENSE', style: GoogleFonts.outfit(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
                 onPressed: _showCreateExpenseDialog,
               ),
             ],
@@ -10560,7 +10560,7 @@ class _LabourAttendanceTabState extends State<LabourAttendanceTab> {
               children: [
                 Text(
                   'GEOFENCE MONITORING',
-                  style: GoogleFonts.hankenGrotesk(
+                  style: GoogleFonts.outfit(
                     color: VianTheme.primaryGold,
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
@@ -10576,7 +10576,7 @@ class _LabourAttendanceTabState extends State<LabourAttendanceTab> {
                       const SizedBox(width: 6),
                       Text(
                         'LIVE RADAR ACTIVE',
-                        style: GoogleFonts.hankenGrotesk(
+                        style: GoogleFonts.outfit(
                           color: VianTheme.success,
                           fontSize: 9,
                           fontWeight: FontWeight.bold,
@@ -10621,7 +10621,7 @@ class _LabourAttendanceTabState extends State<LabourAttendanceTab> {
                 children: [
                   Text(
                     'MAP LEGEND',
-                    style: GoogleFonts.hankenGrotesk(
+                    style: GoogleFonts.outfit(
                       color: Colors.white,
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
@@ -10664,7 +10664,7 @@ class _LabourAttendanceTabState extends State<LabourAttendanceTab> {
                     children: [
                       Text(
                         'DAILY ATTENDANCE',
-                        style: GoogleFonts.hankenGrotesk(
+                        style: GoogleFonts.outfit(
                           color: Colors.white,
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
@@ -10686,7 +10686,7 @@ class _LabourAttendanceTabState extends State<LabourAttendanceTab> {
                       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
                     ),
                     onPressed: _submitAttendance,
-                    child: Text('SUBMIT LOGS', style: GoogleFonts.hankenGrotesk(fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
+                    child: Text('SUBMIT LOGS', style: GoogleFonts.outfit(fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
                   )
                 ],
               ),
@@ -10753,11 +10753,11 @@ class _LabourAttendanceTabState extends State<LabourAttendanceTab> {
                               children: [
                                 Text(
                                   hasAlert ? '08:15 AM' : '08:02 AM',
-                                  style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontSize: 12, fontWeight: FontWeight.bold),
+                                  style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 12, fontWeight: FontWeight.bold),
                                 ),
                                 Text(
                                   'CHECK-IN',
-                                  style: GoogleFonts.hankenGrotesk(color: VianTheme.lightText, fontSize: 8, fontWeight: FontWeight.bold),
+                                  style: GoogleFonts.outfit(color: VianTheme.lightText, fontSize: 8, fontWeight: FontWeight.bold),
                                 ),
                               ],
                             ),
@@ -10783,11 +10783,11 @@ class _LabourAttendanceTabState extends State<LabourAttendanceTab> {
                               width: 80,
                               height: 36,
                               child: TextField(
-                                style: GoogleFonts.hankenGrotesk(color: VianTheme.whiteText, fontSize: 12),
+                                style: GoogleFonts.outfit(color: VianTheme.whiteText, fontSize: 12),
                                 keyboardType: TextInputType.number,
                                 decoration: InputDecoration(
                                   labelText: 'OT HOURS',
-                                  labelStyle: GoogleFonts.hankenGrotesk(fontSize: 8, color: VianTheme.primaryGold, fontWeight: FontWeight.bold),
+                                  labelStyle: GoogleFonts.outfit(fontSize: 8, color: VianTheme.primaryGold, fontWeight: FontWeight.bold),
                                   contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                                   border: const OutlineInputBorder(borderRadius: BorderRadius.zero, borderSide: BorderSide(color: VianTheme.goldBorder)),
                                   enabledBorder: const OutlineInputBorder(borderRadius: BorderRadius.zero, borderSide: BorderSide(color: VianTheme.goldBorder)),
@@ -10874,7 +10874,7 @@ class _LabourAttendanceTabState extends State<LabourAttendanceTab> {
         ),
         child: Text(
           status.toUpperCase(),
-          style: GoogleFonts.hankenGrotesk(
+          style: GoogleFonts.outfit(
             color: active ? VianTheme.primaryGold : VianTheme.lightText,
             fontSize: 9,
             fontWeight: FontWeight.bold,
@@ -10898,12 +10898,12 @@ class _LabourAttendanceTabState extends State<LabourAttendanceTab> {
           children: [
             Text(
               title,
-              style: GoogleFonts.hankenGrotesk(color: VianTheme.lightText, fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 0.5),
+              style: GoogleFonts.outfit(color: VianTheme.lightText, fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 0.5),
             ),
             const SizedBox(height: 4),
             Text(
               value,
-              style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontSize: 22, fontWeight: FontWeight.bold),
+              style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 22, fontWeight: FontWeight.bold),
             ),
           ],
         ),
@@ -11787,7 +11787,7 @@ class _ClientOnboardingTabState extends State<ClientOnboardingTab> {
         children: [
           Text(
             'Client Onboarding Wizard',
-            style: GoogleFonts.hankenGrotesk(fontSize: 22, fontWeight: FontWeight.bold, color: VianTheme.primaryGold),
+            style: GoogleFonts.outfit(fontSize: 22, fontWeight: FontWeight.bold, color: VianTheme.primaryGold),
           ),
           const SizedBox(height: 8),
           const Text(
@@ -12569,7 +12569,7 @@ class _ImportExportTabState extends ConsumerState<ImportExportTab> with SingleTi
       builder: (context) => StatefulBuilder(
         builder: (context, setDlgState) => AlertDialog(
           backgroundColor: VianTheme.headerBlack,
-          title: Text('DATABASE BACKUP & RESTORE CONSOLE', style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontSize: 16, fontWeight: FontWeight.bold)),
+          title: Text('DATABASE BACKUP & RESTORE CONSOLE', style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 16, fontWeight: FontWeight.bold)),
           content: SizedBox(
             width: 500,
             height: 400,
@@ -12658,7 +12658,7 @@ class _ImportExportTabState extends ConsumerState<ImportExportTab> with SingleTi
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: VianTheme.headerBlack,
-        title: Text('PASTE CSV DATA MANUALLY', style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontSize: 14, fontWeight: FontWeight.bold)),
+        title: Text('PASTE CSV DATA MANUALLY', style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 14, fontWeight: FontWeight.bold)),
         content: SizedBox(
           width: 600,
           child: Column(
@@ -12747,12 +12747,12 @@ class _ImportExportTabState extends ConsumerState<ImportExportTab> with SingleTi
                 children: [
                   Text(
                     'SYSTEM ENVIRONMENT',
-                    style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 2.0),
+                    style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 2.0),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     'Build Center',
-                    style: GoogleFonts.hankenGrotesk(color: VianTheme.whiteText, fontSize: 32, fontWeight: FontWeight.bold),
+                    style: GoogleFonts.outfit(color: VianTheme.whiteText, fontSize: 32, fontWeight: FontWeight.bold),
                   ),
                 ],
               ),
@@ -12768,7 +12768,7 @@ class _ImportExportTabState extends ConsumerState<ImportExportTab> with SingleTi
                     icon: const Icon(Icons.settings_backup_restore, size: 14),
                     label: Text(
                       'BACKUP CONSOLE',
-                      style: GoogleFonts.hankenGrotesk(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.0),
+                      style: GoogleFonts.outfit(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.0),
                     ),
                     onPressed: _showBackupConsole,
                   ),
@@ -12815,7 +12815,7 @@ class _ImportExportTabState extends ConsumerState<ImportExportTab> with SingleTi
               ],
             ),
             const SizedBox(height: 32),
-            Text('Data Injection', style: GoogleFonts.hankenGrotesk(color: VianTheme.whiteText, fontSize: 18, fontWeight: FontWeight.bold)),
+            Text('Data Injection', style: GoogleFonts.outfit(color: VianTheme.whiteText, fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 12),
             Text(
               'System-wide resource synchronization and structural data ingestion via CSV/JSON.',
@@ -12837,7 +12837,7 @@ class _ImportExportTabState extends ConsumerState<ImportExportTab> with SingleTi
                     const SizedBox(height: 8),
                     Text(
                       'Drop CSV Manifest',
-                      style: GoogleFonts.hankenGrotesk(color: VianTheme.lightText, fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 1.0),
+                      style: GoogleFonts.outfit(color: VianTheme.lightText, fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 1.0),
                     ),
                   ],
                 ),
@@ -12850,7 +12850,7 @@ class _ImportExportTabState extends ConsumerState<ImportExportTab> with SingleTi
                 onPressed: _showPasteCsvDialog,
                 child: Text(
                   'PASTE RAW CSV DATA',
-                  style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 1.0),
+                  style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 1.0),
                 ),
               ),
             )
@@ -12877,7 +12877,7 @@ class _ImportExportTabState extends ConsumerState<ImportExportTab> with SingleTi
               ],
             ),
             const SizedBox(height: 32),
-            Text('Export Protocol', style: GoogleFonts.hankenGrotesk(color: VianTheme.whiteText, fontSize: 18, fontWeight: FontWeight.bold)),
+            Text('Export Protocol', style: GoogleFonts.outfit(color: VianTheme.whiteText, fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 20),
             Expanded(
               child: ListView(
@@ -12898,7 +12898,7 @@ class _ImportExportTabState extends ConsumerState<ImportExportTab> with SingleTi
                 shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
               ),
               onPressed: _initiateExportAction,
-              child: Text('INITIATE EXPORT', style: GoogleFonts.hankenGrotesk(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
+              child: Text('INITIATE EXPORT', style: GoogleFonts.outfit(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
             ),
           ],
         ),
@@ -12944,7 +12944,7 @@ class _ImportExportTabState extends ConsumerState<ImportExportTab> with SingleTi
               ],
             ),
             const SizedBox(height: 32),
-            Text('Build & Deploy', style: GoogleFonts.hankenGrotesk(color: VianTheme.whiteText, fontSize: 18, fontWeight: FontWeight.bold)),
+            Text('Build & Deploy', style: GoogleFonts.outfit(color: VianTheme.whiteText, fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
             Container(
               padding: const EdgeInsets.all(16),
@@ -12955,7 +12955,7 @@ class _ImportExportTabState extends ConsumerState<ImportExportTab> with SingleTi
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('STATUS: $_buildStatusText', style: GoogleFonts.hankenGrotesk(color: VianTheme.lightText, fontSize: 8, letterSpacing: 1.0)),
+                      Text('STATUS: $_buildStatusText', style: GoogleFonts.outfit(color: VianTheme.lightText, fontSize: 8, letterSpacing: 1.0)),
                       Text(_buildVersion, style: GoogleFonts.jetBrainsMono(color: VianTheme.primaryGold, fontSize: 9)),
                     ],
                   ),
@@ -12978,7 +12978,7 @@ class _ImportExportTabState extends ConsumerState<ImportExportTab> with SingleTi
                 shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
               ),
               onPressed: _isBuilding ? null : _executeBuildSimulated,
-              child: Text('EXECUTE BUILD', style: GoogleFonts.hankenGrotesk(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
+              child: Text('EXECUTE BUILD', style: GoogleFonts.outfit(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
             ),
           ],
         ),
@@ -13098,11 +13098,11 @@ class _ImportExportTabState extends ConsumerState<ImportExportTab> with SingleTi
               children: [
                 Row(
                   children: [
-                    Text('REGION: EU-WEST-1', style: GoogleFonts.hankenGrotesk(color: VianTheme.lightText, fontSize: 8, letterSpacing: 1.0)),
+                    Text('REGION: EU-WEST-1', style: GoogleFonts.outfit(color: VianTheme.lightText, fontSize: 8, letterSpacing: 1.0)),
                     const SizedBox(width: 20),
-                    Text('LAT: 48.8566° N', style: GoogleFonts.hankenGrotesk(color: VianTheme.lightText, fontSize: 8, letterSpacing: 1.0)),
+                    Text('LAT: 48.8566° N', style: GoogleFonts.outfit(color: VianTheme.lightText, fontSize: 8, letterSpacing: 1.0)),
                     const SizedBox(width: 20),
-                    Text('LONG: 2.3522° E', style: GoogleFonts.hankenGrotesk(color: VianTheme.lightText, fontSize: 8, letterSpacing: 1.0)),
+                    Text('LONG: 2.3522° E', style: GoogleFonts.outfit(color: VianTheme.lightText, fontSize: 8, letterSpacing: 1.0)),
                   ],
                 ),
                 Row(
@@ -13117,7 +13117,7 @@ class _ImportExportTabState extends ConsumerState<ImportExportTab> with SingleTi
                       ),
                     ),
                     const SizedBox(width: 8),
-                    Text('LINKED TO CENTRAL GRID', style: GoogleFonts.hankenGrotesk(color: VianTheme.lightText, fontSize: 8, letterSpacing: 1.0)),
+                    Text('LINKED TO CENTRAL GRID', style: GoogleFonts.outfit(color: VianTheme.lightText, fontSize: 8, letterSpacing: 1.0)),
                   ],
                 )
               ],
@@ -13154,7 +13154,7 @@ class _ImportExportTabState extends ConsumerState<ImportExportTab> with SingleTi
             children: [
               Text(
                 'STEP 2: PREVIEW PARSED DATA ROWS',
-                style: GoogleFonts.hankenGrotesk(fontWeight: FontWeight.bold, color: VianTheme.primaryGold, fontSize: 13),
+                style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: VianTheme.primaryGold, fontSize: 13),
               ),
               if (_workbookSheets.length > 1)
                 DropdownButton<int>(
@@ -13228,7 +13228,7 @@ class _ImportExportTabState extends ConsumerState<ImportExportTab> with SingleTi
         children: [
           Text(
             'STEP 3: COLUMN FIELD MAPPING',
-            style: GoogleFonts.hankenGrotesk(fontWeight: FontWeight.bold, color: VianTheme.primaryGold, fontSize: 13),
+            style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: VianTheme.primaryGold, fontSize: 13),
           ),
           const SizedBox(height: 8),
           Text(
@@ -13293,7 +13293,7 @@ class _ImportExportTabState extends ConsumerState<ImportExportTab> with SingleTi
         children: [
           Text(
             'STEP 4: IMPORT DATA AUDIT & RESOLUTION',
-            style: GoogleFonts.hankenGrotesk(fontWeight: FontWeight.bold, color: VianTheme.primaryGold, fontSize: 13),
+            style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: VianTheme.primaryGold, fontSize: 13),
           ),
           const SizedBox(height: 16),
           Container(
@@ -14404,7 +14404,7 @@ class _BusinessTargetsTabState extends ConsumerState<BusinessTargetsTab> with Si
             ],
           ),
           const SizedBox(height: 10),
-          Text(value, style: GoogleFonts.hankenGrotesk(fontSize: 16, fontWeight: FontWeight.bold, color: VianTheme.whiteText)),
+          Text(value, style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.bold, color: VianTheme.whiteText)),
         ],
       ),
     );
@@ -14427,7 +14427,7 @@ class _BusinessTargetsTabState extends ConsumerState<BusinessTargetsTab> with Si
       children: [
         Text(label, style: const TextStyle(color: VianTheme.lightText, fontSize: 10, fontWeight: FontWeight.bold)),
         const SizedBox(height: 6),
-        Text(value, style: GoogleFonts.hankenGrotesk(fontSize: 15, fontWeight: FontWeight.bold, color: VianTheme.primaryGold)),
+        Text(value, style: GoogleFonts.outfit(fontSize: 15, fontWeight: FontWeight.bold, color: VianTheme.primaryGold)),
       ],
     );
   }
@@ -14804,7 +14804,7 @@ class _BuildCenterTabState extends ConsumerState<BuildCenterTab> with SingleTick
           // Platform selection section
           Text(
             'SELECT COMPILATION TARGET PLATFORM',
-            style: GoogleFonts.hankenGrotesk(fontWeight: FontWeight.bold, color: VianTheme.primaryGold, fontSize: 13, letterSpacing: 1.2),
+            style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: VianTheme.primaryGold, fontSize: 13, letterSpacing: 1.2),
           ),
           const SizedBox(height: 16),
           LayoutBuilder(
@@ -14905,7 +14905,7 @@ class _BuildCenterTabState extends ConsumerState<BuildCenterTab> with SingleTick
             children: [
               Text(
                 'CI/CD COMPILATION RUNNER',
-                style: GoogleFonts.hankenGrotesk(fontWeight: FontWeight.bold, color: VianTheme.primaryGold, fontSize: 13, letterSpacing: 1.2),
+                style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: VianTheme.primaryGold, fontSize: 13, letterSpacing: 1.2),
               ),
               VianButton(
                 text: _activeBuildId != null ? 'Build is Running...' : 'Build Now',
@@ -14981,7 +14981,7 @@ class _BuildCenterTabState extends ConsumerState<BuildCenterTab> with SingleTick
           // Recent history section
           Text(
             'RECENT BUILD PIPELINE RUNS',
-            style: GoogleFonts.hankenGrotesk(fontWeight: FontWeight.bold, color: VianTheme.primaryGold, fontSize: 13, letterSpacing: 1.2),
+            style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: VianTheme.primaryGold, fontSize: 13, letterSpacing: 1.2),
           ),
           const SizedBox(height: 16),
           
@@ -15180,7 +15180,7 @@ class _BuildCenterTabState extends ConsumerState<BuildCenterTab> with SingleTick
               children: [
                 Text(
                   'CODE SIGNING CREDENTIALS',
-                  style: GoogleFonts.hankenGrotesk(fontWeight: FontWeight.bold, color: VianTheme.primaryGold, fontSize: 13),
+                  style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: VianTheme.primaryGold, fontSize: 13),
                 ),
                 const SizedBox(height: 8),
                 const Text(
@@ -15320,7 +15320,7 @@ class _BuildCenterTabState extends ConsumerState<BuildCenterTab> with SingleTick
                   children: [
                     Text(
                       'COMPILATION RUNS & ARTIFACT ARCHIVE',
-                      style: GoogleFonts.hankenGrotesk(fontWeight: FontWeight.bold, color: VianTheme.primaryGold, fontSize: 13),
+                      style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: VianTheme.primaryGold, fontSize: 13),
                     ),
                     IconButton(
                       icon: const Icon(Icons.refresh, color: VianTheme.primaryGold, size: 20),
@@ -15580,7 +15580,7 @@ class _BuildCenterTabState extends ConsumerState<BuildCenterTab> with SingleTick
                 children: [
                   Text(
                     'LIVE COMPILATION PIPELINE RUNNER',
-                    style: GoogleFonts.hankenGrotesk(fontWeight: FontWeight.bold, color: VianTheme.primaryGold, fontSize: 14),
+                    style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: VianTheme.primaryGold, fontSize: 14),
                   ),
                   const SizedBox(height: 4),
                   Text(
@@ -16079,7 +16079,7 @@ class _ConstructionEstimationTabState extends ConsumerState<ConstructionEstimati
         children: [
           Text(
             'CONSTRUCTION ESTIMATION INTELLIGENCE',
-            style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontWeight: FontWeight.bold, fontSize: 16, letterSpacing: 1),
+            style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontWeight: FontWeight.bold, fontSize: 16, letterSpacing: 1),
           ),
           const SizedBox(height: 4),
           const Text('Real-time analysis, cost settings benchmarks, and margin adjustments.', style: TextStyle(color: VianTheme.lightText, fontSize: 12)),
@@ -16136,7 +16136,7 @@ class _ConstructionEstimationTabState extends ConsumerState<ConstructionEstimati
                     children: [
                       Text(
                         'RECENT ESTIMATES',
-                        style: GoogleFonts.hankenGrotesk(fontWeight: FontWeight.bold, color: VianTheme.headerBlack, fontSize: 13),
+                        style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: VianTheme.headerBlack, fontSize: 13),
                       ),
                       const SizedBox(height: 16),
                       if (_estimates.isEmpty)
@@ -16185,7 +16185,7 @@ class _ConstructionEstimationTabState extends ConsumerState<ConstructionEstimati
                     children: [
                       Text(
                         'PACKAGE DISTRIBUTION',
-                        style: GoogleFonts.hankenGrotesk(fontWeight: FontWeight.bold, color: VianTheme.headerBlack, fontSize: 13),
+                        style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: VianTheme.headerBlack, fontSize: 13),
                       ),
                       const SizedBox(height: 24),
                       _distributionRow('Economy Package', _dashboardStats['distribution']?['Economy'] ?? 0, Colors.grey),
@@ -16230,7 +16230,7 @@ class _ConstructionEstimationTabState extends ConsumerState<ConstructionEstimati
                 const SizedBox(height: 8),
                 Text(
                   value,
-                  style: GoogleFonts.hankenGrotesk(fontWeight: FontWeight.bold, color: VianTheme.headerBlack, fontSize: 20),
+                  style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: VianTheme.headerBlack, fontSize: 20),
                 ),
               ],
             ),
@@ -16291,7 +16291,7 @@ class _ConstructionEstimationTabState extends ConsumerState<ConstructionEstimati
             children: [
               Text(
                 'SAVED COST ESTIMATES HISTORY LOG',
-                style: GoogleFonts.hankenGrotesk(fontWeight: FontWeight.bold, color: VianTheme.headerBlack, fontSize: 14),
+                style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: VianTheme.headerBlack, fontSize: 14),
               ),
               VianButton(
                 text: 'New Estimate',
@@ -16361,7 +16361,7 @@ class _ConstructionEstimationTabState extends ConsumerState<ConstructionEstimati
                 children: [
                   Text(
                     'REGIONAL MARKET RATES INTELLIGENCE',
-                    style: GoogleFonts.hankenGrotesk(fontWeight: FontWeight.bold, color: VianTheme.headerBlack, fontSize: 14),
+                    style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: VianTheme.headerBlack, fontSize: 14),
                   ),
                   const SizedBox(height: 4),
                   const Text('Track local raw material prices indexed across VIAN workspace regions.', style: TextStyle(color: VianTheme.lightText, fontSize: 12)),
@@ -16504,7 +16504,7 @@ class _ConstructionEstimationTabState extends ConsumerState<ConstructionEstimati
         return AlertDialog(
           title: Text(
             isEdit ? 'Edit Market Price' : 'Add New Market Rate',
-            style: GoogleFonts.hankenGrotesk(fontWeight: FontWeight.bold),
+            style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
           ),
           content: SingleChildScrollView(
             child: Column(
@@ -16622,7 +16622,7 @@ class _ConstructionEstimationTabState extends ConsumerState<ConstructionEstimati
                   const SizedBox(width: 8),
                   Text(
                     'ESTIMATE WORKSPACE: ${details['estimateNumber']}',
-                    style: GoogleFonts.hankenGrotesk(color: VianTheme.headerBlack, fontWeight: FontWeight.bold, fontSize: 14),
+                    style: GoogleFonts.outfit(color: VianTheme.headerBlack, fontWeight: FontWeight.bold, fontSize: 14),
                   ),
                   const Spacer(),
                   if (details['status'] == 'Approved' || details['status'] == 'approved')
@@ -16760,7 +16760,7 @@ class _ConstructionEstimationTabState extends ConsumerState<ConstructionEstimati
       padding: const EdgeInsets.only(bottom: 12.0),
       child: Text(
         title,
-        style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontWeight: FontWeight.bold, fontSize: 12, letterSpacing: 0.8),
+        style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontWeight: FontWeight.bold, fontSize: 12, letterSpacing: 0.8),
       ),
     );
   }
@@ -16802,7 +16802,7 @@ class _ConstructionEstimationTabState extends ConsumerState<ConstructionEstimati
               const SizedBox(width: 8),
               Text(
                 'BUDGET VS ACTUAL LEDGER DETAILS: ${_selectedEstimate!['projectName']}',
-                style: GoogleFonts.hankenGrotesk(color: VianTheme.headerBlack, fontWeight: FontWeight.bold, fontSize: 14),
+                style: GoogleFonts.outfit(color: VianTheme.headerBlack, fontWeight: FontWeight.bold, fontSize: 14),
               ),
             ],
           ),
@@ -16834,7 +16834,7 @@ class _ConstructionEstimationTabState extends ConsumerState<ConstructionEstimati
               children: [
                 Text(
                   'COST CATEGORIES VARIANCE ANALYSIS',
-                  style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontWeight: FontWeight.bold, fontSize: 13, letterSpacing: 0.8),
+                  style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontWeight: FontWeight.bold, fontSize: 13, letterSpacing: 0.8),
                 ),
                 const SizedBox(height: 20),
                 _buildVarianceProgressRow('Raw Materials Cost', data['estimatedMaterialCost'] ?? 0, data['actualMaterialCost'] ?? 0, data['materialVariance'] ?? 0),
@@ -16860,7 +16860,7 @@ class _ConstructionEstimationTabState extends ConsumerState<ConstructionEstimati
           const SizedBox(height: 8),
           Text(
             value,
-            style: GoogleFonts.hankenGrotesk(fontWeight: FontWeight.bold, color: color, fontSize: 18),
+            style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: color, fontSize: 18),
           ),
         ],
       ),
@@ -17361,7 +17361,7 @@ class _EstimationWizardState extends State<EstimationWizard> {
               const SizedBox(width: 8),
               Text(
                 'LIVE ESTIMATE SUMMARY',
-                style: GoogleFonts.hankenGrotesk(fontWeight: FontWeight.bold, fontSize: 13, color: VianTheme.headerBlack, letterSpacing: 0.5),
+                style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 13, color: VianTheme.headerBlack, letterSpacing: 0.5),
               ),
             ],
           ),
@@ -17562,7 +17562,7 @@ class _EstimationWizardState extends State<EstimationWizard> {
           backgroundColor: VianTheme.cardColor,
           title: Text(
             'CONFIRM AI FLOOR PLAN EXTRACTION',
-            style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontWeight: FontWeight.bold, fontSize: 14),
+            style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontWeight: FontWeight.bold, fontSize: 14),
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -17839,7 +17839,7 @@ class _EstimationWizardState extends State<EstimationWizard> {
               const SizedBox(width: 12),
               Text(
                 'AI COGNITIVE FLOOR PLAN SURVEYOR',
-                style: GoogleFonts.hankenGrotesk(color: VianTheme.headerBlack, fontWeight: FontWeight.bold, fontSize: 12, letterSpacing: 0.8),
+                style: GoogleFonts.outfit(color: VianTheme.headerBlack, fontWeight: FontWeight.bold, fontSize: 12, letterSpacing: 0.8),
               ),
               const Spacer(),
               if (hasDrawing)
@@ -18016,7 +18016,7 @@ class _EstimationWizardState extends State<EstimationWizard> {
               const SizedBox(width: 8),
               Text(
                 'AI QUANTITY SURVEYOR SPECIFICATIONS REPORT',
-                style: GoogleFonts.hankenGrotesk(color: VianTheme.headerBlack, fontWeight: FontWeight.bold, fontSize: 10, letterSpacing: 0.5),
+                style: GoogleFonts.outfit(color: VianTheme.headerBlack, fontWeight: FontWeight.bold, fontSize: 10, letterSpacing: 0.5),
               ),
             ],
           ),
@@ -18138,7 +18138,7 @@ class _EstimationWizardState extends State<EstimationWizard> {
                       children: [
                         Text(
                           'COMPLETED PROJECT: ${similar['projectName'] ?? 'Horizon Villa ECR'}',
-                          style: GoogleFonts.hankenGrotesk(color: VianTheme.headerBlack, fontWeight: FontWeight.bold, fontSize: 10),
+                          style: GoogleFonts.outfit(color: VianTheme.headerBlack, fontWeight: FontWeight.bold, fontSize: 10),
                         ),
                         const SizedBox(height: 2),
                         const Text(
@@ -18352,7 +18352,7 @@ class _EstimationWizardState extends State<EstimationWizard> {
                 const SizedBox(height: 8),
                 Text(
                   rateLabel,
-                  style: GoogleFonts.hankenGrotesk(fontWeight: FontWeight.bold, color: VianTheme.headerBlack, fontSize: 20),
+                  style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: VianTheme.headerBlack, fontSize: 20),
                 ),
                 const SizedBox(height: 4),
                 Text(
@@ -18459,7 +18459,7 @@ class _EstimationWizardState extends State<EstimationWizard> {
           const SizedBox(height: 16),
           Text(
             formatter.format(cost),
-            style: GoogleFonts.hankenGrotesk(fontWeight: FontWeight.bold, color: VianTheme.headerBlack, fontSize: 20),
+            style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: VianTheme.headerBlack, fontSize: 20),
           ),
           const SizedBox(height: 12),
           const Text('Includes standard regional materials, logistics, and labour crew allocations.', style: TextStyle(color: VianTheme.lightText, fontSize: 10, height: 1.4), textAlign: TextAlign.center),
@@ -19471,7 +19471,7 @@ class _EstimationWizardState extends State<EstimationWizard> {
               children: [
                 Text(title, style: const TextStyle(color: VianTheme.lightText, fontSize: 10)),
                 const SizedBox(height: 4),
-                Text(currencyFormat.format(val), style: GoogleFonts.hankenGrotesk(fontWeight: FontWeight.bold, fontSize: 13, color: VianTheme.headerBlack)),
+                Text(currencyFormat.format(val), style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 13, color: VianTheme.headerBlack)),
               ],
             ),
           ),
@@ -19570,7 +19570,7 @@ class _EstimationWizardState extends State<EstimationWizard> {
         backgroundColor: VianTheme.cardColor,
         title: Text(
           'Share via $channel',
-          style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontSize: 14, fontWeight: FontWeight.bold),
+          style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 14, fontWeight: FontWeight.bold),
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -19642,7 +19642,7 @@ class _EstimationWizardState extends State<EstimationWizard> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(flex: 1, child: Text(itemNo, style: GoogleFonts.hankenGrotesk(color: VianTheme.lightText, fontSize: 13))),
+          Expanded(flex: 1, child: Text(itemNo, style: GoogleFonts.outfit(color: VianTheme.lightText, fontSize: 13))),
           Expanded(
             flex: 6,
             child: Column(
@@ -19654,8 +19654,8 @@ class _EstimationWizardState extends State<EstimationWizard> {
               ],
             ),
           ),
-          Expanded(flex: 2, child: Text(qty, style: GoogleFonts.hankenGrotesk(color: VianTheme.whiteText, fontSize: 12, fontWeight: FontWeight.bold), textAlign: TextAlign.right)),
-          Expanded(flex: 3, child: Text(total, style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontSize: 13, fontWeight: FontWeight.bold), textAlign: TextAlign.right)),
+          Expanded(flex: 2, child: Text(qty, style: GoogleFonts.outfit(color: VianTheme.whiteText, fontSize: 12, fontWeight: FontWeight.bold), textAlign: TextAlign.right)),
+          Expanded(flex: 3, child: Text(total, style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 13, fontWeight: FontWeight.bold), textAlign: TextAlign.right)),
         ],
       ),
     );
@@ -19670,7 +19670,7 @@ class _EstimationWizardState extends State<EstimationWizard> {
       ),
       child: Text(
         label.toUpperCase(),
-        style: GoogleFonts.hankenGrotesk(
+        style: GoogleFonts.outfit(
           color: active ? VianTheme.primaryGold : VianTheme.lightText,
           fontSize: 9,
           fontWeight: FontWeight.bold,
@@ -19729,8 +19729,8 @@ class _EstimationWizardState extends State<EstimationWizard> {
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('ATELIER EST.', style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontSize: 18, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
-                                Text('ARCHITECTURAL EXCELLENCE', style: GoogleFonts.hankenGrotesk(color: VianTheme.lightText, fontSize: 8, letterSpacing: 1.5)),
+                                Text('ATELIER EST.', style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 18, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
+                                Text('ARCHITECTURAL EXCELLENCE', style: GoogleFonts.outfit(color: VianTheme.lightText, fontSize: 8, letterSpacing: 1.5)),
                               ],
                             )
                           ],
@@ -19738,7 +19738,7 @@ class _EstimationWizardState extends State<EstimationWizard> {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
-                            Text('QUOTATION NO.', style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
+                            Text('QUOTATION NO.', style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
                             Text('#EST-2024-089', style: GoogleFonts.bodoniModa(color: VianTheme.whiteText, fontSize: 18, fontStyle: FontStyle.italic)),
                           ],
                         )
@@ -19766,7 +19766,7 @@ class _EstimationWizardState extends State<EstimationWizard> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('PREPARED FOR', style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
+                                Text('PREPARED FOR', style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
                                 const SizedBox(height: 8),
                                 Text(_clientNameController.text.isNotEmpty ? _clientNameController.text : 'Sovereign Estates Group', style: GoogleFonts.inter(color: VianTheme.whiteText, fontWeight: FontWeight.bold, fontSize: 14)),
                                 const SizedBox(height: 4),
@@ -19780,7 +19780,7 @@ class _EstimationWizardState extends State<EstimationWizard> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('PROJECT REFERENCE', style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
+                              Text('PROJECT REFERENCE', style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
                               const SizedBox(height: 8),
                               Text(_projectNameController.text.isNotEmpty ? _projectNameController.text : 'The Meridian Penthouse Complex', style: GoogleFonts.inter(color: VianTheme.whiteText, fontWeight: FontWeight.bold, fontSize: 14)),
                               const SizedBox(height: 4),
@@ -19803,7 +19803,7 @@ class _EstimationWizardState extends State<EstimationWizard> {
                       padding: const EdgeInsets.symmetric(vertical: 24.0),
                       child: Column(
                         children: [
-                          Text('TOTAL ESTIMATED INVESTMENT', style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 2.0)),
+                          Text('TOTAL ESTIMATED INVESTMENT', style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 2.0)),
                           const SizedBox(height: 12),
                           Text(
                             currencyFormat.format(netProjectValue),
@@ -19818,10 +19818,10 @@ class _EstimationWizardState extends State<EstimationWizard> {
 
                     Row(
                       children: [
-                        Expanded(flex: 1, child: Text('ITEM', style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold))),
-                        Expanded(flex: 6, child: Text('DESCRIPTION', style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold))),
-                        Expanded(flex: 2, child: Text('QTY', style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold), textAlign: TextAlign.right)),
-                        Expanded(flex: 3, child: Text('TOTAL', style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold), textAlign: TextAlign.right)),
+                        Expanded(flex: 1, child: Text('ITEM', style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold))),
+                        Expanded(flex: 6, child: Text('DESCRIPTION', style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold))),
+                        Expanded(flex: 2, child: Text('QTY', style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold), textAlign: TextAlign.right)),
+                        Expanded(flex: 3, child: Text('TOTAL', style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold), textAlign: TextAlign.right)),
                       ],
                     ),
                     const Divider(color: VianTheme.goldBorder, height: 24),
@@ -19838,14 +19838,14 @@ class _EstimationWizardState extends State<EstimationWizard> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('TERMS & CONDITIONS', style: GoogleFonts.hankenGrotesk(color: VianTheme.whiteText, fontSize: 10, fontWeight: FontWeight.bold)),
+                              Text('TERMS & CONDITIONS', style: GoogleFonts.outfit(color: VianTheme.whiteText, fontSize: 10, fontWeight: FontWeight.bold)),
                               const SizedBox(height: 6),
                               Text(
                                 'This estimation is subject to market fluctuation in raw material costs exceeding 5%. Sourcing prices are valid for 30 days.',
                                 style: GoogleFonts.inter(color: VianTheme.lightText, fontSize: 11, height: 1.4),
                               ),
                               const SizedBox(height: 16),
-                              Text('CONFIDENTIALITY', style: GoogleFonts.hankenGrotesk(color: VianTheme.whiteText, fontSize: 10, fontWeight: FontWeight.bold)),
+                              Text('CONFIDENTIALITY', style: GoogleFonts.outfit(color: VianTheme.whiteText, fontSize: 10, fontWeight: FontWeight.bold)),
                               const SizedBox(height: 6),
                               Text(
                                 'This document contains proprietary design intelligence and pricing strategies. Unauthorized distribution is prohibited.',
@@ -19863,7 +19863,7 @@ class _EstimationWizardState extends State<EstimationWizard> {
                               const SizedBox(height: 32),
                               Container(width: 120, height: 1, color: VianTheme.lightText),
                               const SizedBox(height: 8),
-                              Text('Authorized Signature', style: GoogleFonts.hankenGrotesk(color: VianTheme.whiteText, fontSize: 10, fontWeight: FontWeight.bold)),
+                              Text('Authorized Signature', style: GoogleFonts.outfit(color: VianTheme.whiteText, fontSize: 10, fontWeight: FontWeight.bold)),
                               Text('Lead Architect - Atelier Est.', style: GoogleFonts.inter(color: VianTheme.lightText, fontSize: 10)),
                             ],
                           ),
@@ -19889,7 +19889,7 @@ class _EstimationWizardState extends State<EstimationWizard> {
             children: [
               Row(
                 children: [
-                  Text('EXPORT:', style: GoogleFonts.hankenGrotesk(color: VianTheme.lightText, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
+                  Text('EXPORT:', style: GoogleFonts.outfit(color: VianTheme.lightText, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
                   const SizedBox(width: 16),
                   InkWell(
                     onTap: () => setState(() => _exportPdfSelected = true),
@@ -19912,7 +19912,7 @@ class _EstimationWizardState extends State<EstimationWizard> {
                       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
                     ),
                     icon: const Icon(Icons.share, size: 14),
-                    label: Text('SHARE LINK', style: GoogleFonts.hankenGrotesk(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
+                    label: Text('SHARE LINK', style: GoogleFonts.outfit(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
                     onPressed: () async {
                       final id = await _ensureSavedEstimate();
                       if (id != null) {
@@ -19929,7 +19929,7 @@ class _EstimationWizardState extends State<EstimationWizard> {
                       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
                     ),
                     icon: const Icon(Icons.download, size: 14),
-                    label: Text('DOWNLOAD PROPOSAL', style: GoogleFonts.hankenGrotesk(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
+                    label: Text('DOWNLOAD PROPOSAL', style: GoogleFonts.outfit(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
                     onPressed: () async {
                       final id = await _ensureSavedEstimate();
                       if (id == null) {
@@ -19969,7 +19969,7 @@ class _EstimationWizardState extends State<EstimationWizard> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(title, style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontWeight: FontWeight.bold, fontSize: 14)),
+        Text(title, style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontWeight: FontWeight.bold, fontSize: 14)),
         const SizedBox(height: 4),
         Text(desc, style: const TextStyle(color: VianTheme.lightText, fontSize: 11)),
       ],
@@ -20233,7 +20233,7 @@ class _EstimationSettingsViewState extends State<EstimationSettingsView> {
               const SizedBox(height: 16),
               Text(
                 'ACCESS AUTHORIZATION DENIED',
-                style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontWeight: FontWeight.bold, fontSize: 14),
+                style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontWeight: FontWeight.bold, fontSize: 14),
               ),
               const SizedBox(height: 12),
               const Text(
@@ -20255,7 +20255,7 @@ class _EstimationSettingsViewState extends State<EstimationSettingsView> {
           children: [
             Text(
               'ESTIMATION ENGINE FORMULAS SETTINGS',
-              style: GoogleFonts.hankenGrotesk(fontWeight: FontWeight.bold, color: VianTheme.headerBlack, fontSize: 14),
+              style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: VianTheme.headerBlack, fontSize: 14),
             ),
             const SizedBox(height: 8),
             const Text('Super Admin view to edit base coefficients, regional markups, and default packages.', style: TextStyle(color: VianTheme.lightText, fontSize: 12)),
@@ -20378,7 +20378,7 @@ class _MobileSiteEngineerViewState extends State<MobileSiteEngineerView> {
       appBar: AppBar(
         title: Text(
           _selectedProject != null ? _selectedProject!['projectName'] : 'SITE ENGINEER CORNER',
-          style: GoogleFonts.hankenGrotesk(color: VianTheme.whiteText, fontSize: 14, fontWeight: FontWeight.bold),
+          style: GoogleFonts.outfit(color: VianTheme.whiteText, fontSize: 14, fontWeight: FontWeight.bold),
         ),
         actions: [
           IconButton(
@@ -20405,7 +20405,7 @@ class _MobileSiteEngineerViewState extends State<MobileSiteEngineerView> {
         children: [
           Text(
             'ACTIVE RUNNING PROJECTS',
-            style: GoogleFonts.hankenGrotesk(fontWeight: FontWeight.bold, color: VianTheme.primaryGold, fontSize: 13, letterSpacing: 0.8),
+            style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: VianTheme.primaryGold, fontSize: 13, letterSpacing: 0.8),
           ),
           const SizedBox(height: 12),
           Expanded(
@@ -20483,7 +20483,7 @@ class _MobileSiteEngineerViewState extends State<MobileSiteEngineerView> {
         children: [
           Text(
             'BUDGET VS ACTUAL LEDGER',
-            style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontWeight: FontWeight.bold, fontSize: 12, letterSpacing: 0.8),
+            style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontWeight: FontWeight.bold, fontSize: 12, letterSpacing: 0.8),
           ),
           const SizedBox(height: 12),
           _mobileLedgerRow('Materials', data['estimatedMaterialCost'] ?? 0, data['actualMaterialCost'] ?? 0, currencyFormat),
@@ -20526,7 +20526,7 @@ class _MobileSiteEngineerViewState extends State<MobileSiteEngineerView> {
         children: [
           Text(
             'UPDATE PHASE PROGRESS',
-            style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontWeight: FontWeight.bold, fontSize: 12, letterSpacing: 0.8),
+            style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontWeight: FontWeight.bold, fontSize: 12, letterSpacing: 0.8),
           ),
           const SizedBox(height: 12),
           const Text('Slide to adjust estimated building completion progress.', style: TextStyle(color: VianTheme.lightText, fontSize: 11)),
@@ -20566,7 +20566,7 @@ class _MobileSiteEngineerViewState extends State<MobileSiteEngineerView> {
         children: [
           Text(
             'NEW MATERIAL / BILL LEDGER RECEIPT',
-            style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontWeight: FontWeight.bold, fontSize: 12, letterSpacing: 0.8),
+            style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontWeight: FontWeight.bold, fontSize: 12, letterSpacing: 0.8),
           ),
           const SizedBox(height: 16),
           TextFormField(

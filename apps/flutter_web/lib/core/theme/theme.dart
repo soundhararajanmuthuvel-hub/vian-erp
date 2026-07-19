@@ -2,41 +2,41 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class VianTheme {
-  static const Color primaryGold = Color(0xFF5A2D0C); // Deep Brown Accent
-  static const Color primaryGoldLight = Color(0xFF87512E); // Primary Container Tint
-  static const Color champagneGold = Color(0xFFF8EBE6); // Surface Container
-  static const Color darkBackground = Color(0xFFFFF8F5); // Warm Creamy Sand Background
-  static const Color headerBlack = Color(0xFF201A17); // On Background (Near-black)
-  static const Color cardColor = Color(0xFFFFFFFF); // Pure White Container Card
-  static const Color whiteText = Color(0xFF201A17); // On Surface / Primary Text
-  static const Color lightText = Color(0xFF52443C); // On Surface Variant / Light Text
-  static const Color goldBorder = Color(0xFFD7C3B8); // Outline Variant Border
+  static const Color primaryGold = Color(0xFFE9C178); // Stitch Primary Gold
+  static const Color primaryGoldLight = Color(0xFFC6A15B); // Stitch Primary Container Gold
+  static const Color champagneGold = Color(0xFFF8EBE6); // Warm Sand Highlights
+  static const Color darkBackground = Color(0xFF14141A); // Stitch Dark Background
+  static const Color headerBlack = Color(0xFFE9E1D9); // On Background (Near-white)
+  static const Color cardColor = Color(0xFF1E1B16); // Stitch Surface Container Low
+  static const Color whiteText = Color(0xFFE9E1D9); // Main Light Text
+  static const Color lightText = Color(0xFF9A8F80); // Secondary Light Text
+  static const Color goldBorder = Color(0xFF38342C); // Dark Outline Variant Border
   static const Color success = Color(0xFF22C55E); // Emerald Success Green
   static const Color warning = Color(0xFFF59E0B); // Amber Warning
   static const Color danger = Color(0xFFBA1A1A); // Red Error
   static const Color accentBlue = Color(0xFF2563EB); // Royal Blue
-  static const Color sidebarBg = Color(0xFF0F172A); // Fixed Left Sidebar Base (Near-black Navy)
-
+  static const Color sidebarBg = Color(0xFF110E09); // Fixed Left Sidebar Base
+ 
   static ThemeData get darkTheme {
     return ThemeData(
       useMaterial3: true,
-      brightness: Brightness.light,
+      brightness: Brightness.dark,
       scaffoldBackgroundColor: darkBackground,
       primaryColor: primaryGold,
-      colorScheme: const ColorScheme.light(
+      colorScheme: const ColorScheme.dark(
         primary: primaryGold,
         secondary: primaryGoldLight,
         background: darkBackground,
         surface: cardColor,
-        onPrimary: Colors.white,
+        onPrimary: Color(0xFF412D00),
         onSecondary: headerBlack,
         onBackground: headerBlack,
         onSurface: whiteText,
         error: danger,
       ),
       textTheme: TextTheme(
-        displayLarge: GoogleFonts.hankenGrotesk(fontSize: 40.0, fontWeight: FontWeight.bold, color: headerBlack, letterSpacing: -0.02),
-        titleLarge: GoogleFonts.hankenGrotesk(fontSize: 24.0, fontWeight: FontWeight.w600, color: headerBlack, letterSpacing: -0.01),
+        displayLarge: GoogleFonts.outfit(fontSize: 40.0, fontWeight: FontWeight.bold, color: headerBlack, letterSpacing: -0.02),
+        titleLarge: GoogleFonts.outfit(fontSize: 24.0, fontWeight: FontWeight.w600, color: headerBlack, letterSpacing: -0.01),
         bodyLarge: GoogleFonts.inter(fontSize: 16.0, color: whiteText),
         bodyMedium: GoogleFonts.inter(fontSize: 14.0, color: lightText),
         labelLarge: GoogleFonts.jetBrainsMono(fontSize: 14.0, fontWeight: FontWeight.w600, color: primaryGold, letterSpacing: 0.05),
@@ -46,7 +46,7 @@ class VianTheme {
         backgroundColor: darkBackground,
         elevation: 0,
         iconTheme: const IconThemeData(color: headerBlack),
-        titleTextStyle: GoogleFonts.hankenGrotesk(
+        titleTextStyle: GoogleFonts.outfit(
           color: headerBlack,
           fontSize: 18.0,
           fontWeight: FontWeight.bold,
@@ -68,12 +68,12 @@ class VianTheme {
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: primaryGold,
-          foregroundColor: Colors.white,
+          foregroundColor: const Color(0xFF412D00),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(6), // 6px rounded corners
           ),
-          textStyle: GoogleFonts.hankenGrotesk(
+          textStyle: GoogleFonts.outfit(
             fontWeight: FontWeight.bold,
             fontSize: 15,
           ),
@@ -87,7 +87,7 @@ class VianTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(6), // 6px rounded corners
           ),
-          textStyle: GoogleFonts.hankenGrotesk(
+          textStyle: GoogleFonts.outfit(
             fontWeight: FontWeight.w600,
             fontSize: 15,
           ),
