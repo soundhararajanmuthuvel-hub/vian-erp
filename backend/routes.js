@@ -14,6 +14,24 @@ const { getSequelize } = require('./database/db');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'VIAN_ARCHITECTS_SUPER_SECRET_JWT_KEY_2026';
 
+// Role permissions helper
+function getPermissionRole(role, username) {
+  if (!role) return 'Staff';
+  const r = typeof role === 'string' ? role.toLowerCase() : '';
+  const u = typeof username === 'string' ? username.toLowerCase() : '';
+  
+  if (r === 'managing director' || r === 'super admin' || u === 'anand' || u === 'vijay') {
+    return 'Super Admin';
+  }
+  if (r === 'admin / office manager / accounts' || r === 'admin' || u === 'jaya') {
+    return 'Admin';
+  }
+  if (r === 'team lead' || u === 'gokul' || u === 'mohan' || u === 'vijayan') {
+    return 'Team Lead';
+  }
+  return 'Staff';
+}
+
 // Middleware to verify JWT and attach user
 function authenticateToken(req, res, next) {
   const authHeader = req.headers['authorization'];
@@ -67,23 +85,7 @@ function registerRoutes(app, models) {
     MonthlyAttendanceLock, EmployeeFace, EmployeeFaceAudit
   } = models;
 
-  // Role permissions helper
-  function getPermissionRole(role, username) {
-    if (!role) return 'Staff';
-    const r = typeof role === 'string' ? role.toLowerCase() : '';
-    const u = typeof username === 'string' ? username.toLowerCase() : '';
-    
-    if (r === 'managing director' || r === 'super admin' || u === 'anand' || u === 'vijay') {
-      return 'Super Admin';
-    }
-    if (r === 'admin / office manager / accounts' || r === 'admin' || u === 'jaya') {
-      return 'Admin';
-    }
-    if (r === 'team lead' || u === 'gokul' || u === 'mohan' || u === 'vijayan') {
-      return 'Team Lead';
-    }
-    return 'Staff';
-  }
+
 
   // Audit logger helper
   async function writeAuditLog(req, action, moduleName, oldValue = null, newValue = null, reason = null, gps = null, browser = null) {
