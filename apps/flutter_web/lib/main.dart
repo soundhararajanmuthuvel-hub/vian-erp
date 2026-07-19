@@ -522,7 +522,7 @@ class _LoginPageState extends ConsumerState<LoginPage> with SingleTickerProvider
 
     if (isMobile) {
       return Scaffold(
-        backgroundColor: const Color(0xFF0D0E12),
+        backgroundColor: VianTheme.darkBackground,
         body: Center(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(24.0),
@@ -533,13 +533,13 @@ class _LoginPageState extends ConsumerState<LoginPage> with SingleTickerProvider
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFF121317),
+      backgroundColor: VianTheme.darkBackground,
       body: Row(
         children: [
           Expanded(
             flex: 6,
             child: Container(
-              color: const Color(0xFF0D0E12),
+              color: VianTheme.darkBackground,
               child: Stack(
                 children: [
                   AnimatedBuilder(
@@ -560,8 +560,8 @@ class _LoginPageState extends ConsumerState<LoginPage> with SingleTickerProvider
                         const SizedBox(width: 12),
                         Text(
                           'VIAN COMMAND',
-                          style: GoogleFonts.outfit(
-                            color: Colors.white60,
+                          style: GoogleFonts.hankenGrotesk(
+                            color: VianTheme.lightText,
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
                             letterSpacing: 3,
@@ -596,7 +596,7 @@ class _LoginPageState extends ConsumerState<LoginPage> with SingleTickerProvider
                               const SizedBox(width: 12),
                               Text(
                                 'PRECISION. LEGACY. COMMAND.',
-                                style: GoogleFonts.outfit(
+                                style: GoogleFonts.hankenGrotesk(
                                   color: VianTheme.lightText,
                                   fontSize: 12,
                                   fontWeight: FontWeight.w600,
@@ -619,12 +619,12 @@ class _LoginPageState extends ConsumerState<LoginPage> with SingleTickerProvider
                       children: [
                         Text(
                           'Coordinates: 13.0827° N, 80.2707° E',
-                          style: GoogleFonts.poppins(color: VianTheme.primaryGold.withOpacity(0.4), fontSize: 10, letterSpacing: 1),
+                          style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold.withOpacity(0.4), fontSize: 10, letterSpacing: 1),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           'System Status: Connected',
-                          style: GoogleFonts.poppins(color: Colors.white30, fontSize: 10, letterSpacing: 1),
+                          style: GoogleFonts.hankenGrotesk(color: VianTheme.lightText, fontSize: 10, letterSpacing: 1),
                         ),
                       ],
                     ),
@@ -637,7 +637,7 @@ class _LoginPageState extends ConsumerState<LoginPage> with SingleTickerProvider
             flex: 4,
             child: Container(
               decoration: const BoxDecoration(
-                color: Color(0xFF121317),
+                color: VianTheme.darkBackground,
                 border: Border(left: BorderSide(color: VianTheme.goldBorder, width: 1)),
               ),
               padding: const EdgeInsets.symmetric(horizontal: 48),
@@ -658,7 +658,7 @@ class _LoginPageState extends ConsumerState<LoginPage> with SingleTickerProvider
       width: 440,
       padding: const EdgeInsets.all(40.0),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E1F23),
+        color: VianTheme.cardColor,
         border: Border.all(
           color: VianTheme.goldBorder,
           width: 1.0,
@@ -676,7 +676,7 @@ class _LoginPageState extends ConsumerState<LoginPage> with SingleTickerProvider
                 children: [
                   Text(
                     'EXECUTIVE COMMAND',
-                    style: GoogleFonts.outfit(
+                    style: GoogleFonts.hankenGrotesk(
                       color: VianTheme.primaryGold,
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
@@ -686,7 +686,7 @@ class _LoginPageState extends ConsumerState<LoginPage> with SingleTickerProvider
                   const SizedBox(height: 4),
                   Text(
                     'Secure Access',
-                    style: GoogleFonts.outfit(
+                    style: GoogleFonts.hankenGrotesk(
                       color: Colors.white,
                       fontSize: 22,
                       fontWeight: FontWeight.w600,
@@ -720,7 +720,7 @@ class _LoginPageState extends ConsumerState<LoginPage> with SingleTickerProvider
           ],
           Text(
             'CORPORATE EMAIL',
-            style: GoogleFonts.outfit(
+            style: GoogleFonts.hankenGrotesk(
               color: VianTheme.lightText,
               fontSize: 10,
               fontWeight: FontWeight.bold,
@@ -730,7 +730,7 @@ class _LoginPageState extends ConsumerState<LoginPage> with SingleTickerProvider
           const SizedBox(height: 6),
           TextField(
             controller: _usernameController,
-            style: const TextStyle(color: Colors.white),
+            style: TextStyle(color: VianTheme.whiteText),
             decoration: const InputDecoration(
               hintText: 'Enter corporate username or ID',
               prefixIcon: Icon(Icons.mail_outline, color: VianTheme.primaryGold, size: 18),
@@ -739,7 +739,7 @@ class _LoginPageState extends ConsumerState<LoginPage> with SingleTickerProvider
           const SizedBox(height: 24),
           Text(
             'MASTER CREDENTIAL',
-            style: GoogleFonts.outfit(
+            style: GoogleFonts.hankenGrotesk(
               color: VianTheme.lightText,
               fontSize: 10,
               fontWeight: FontWeight.bold,
@@ -750,14 +750,14 @@ class _LoginPageState extends ConsumerState<LoginPage> with SingleTickerProvider
           TextField(
             controller: _passwordController,
             obscureText: !_showPassword,
-            style: const TextStyle(color: Colors.white),
+            style: TextStyle(color: VianTheme.whiteText),
             decoration: InputDecoration(
               hintText: 'Enter master password',
               prefixIcon: const Icon(Icons.key_outlined, color: VianTheme.primaryGold, size: 18),
               suffixIcon: IconButton(
                 icon: Icon(
                   _showPassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                  color: Colors.white30,
+                  color: VianTheme.lightText,
                   size: 18,
                 ),
                 onPressed: () => setState(() => _showPassword = !_showPassword),
@@ -783,7 +783,7 @@ class _LoginPageState extends ConsumerState<LoginPage> with SingleTickerProvider
                   const SizedBox(width: 8),
                   Text(
                     'Maintain Session',
-                    style: GoogleFonts.outfit(fontSize: 11, color: VianTheme.lightText, letterSpacing: 0.5),
+                    style: GoogleFonts.hankenGrotesk(fontSize: 11, color: VianTheme.lightText, letterSpacing: 0.5),
                   ),
                 ],
               ),
@@ -792,7 +792,7 @@ class _LoginPageState extends ConsumerState<LoginPage> with SingleTickerProvider
                 style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: Size.zero),
                 child: Text(
                   'Recover Access',
-                  style: GoogleFonts.outfit(color: VianTheme.primaryGold.withOpacity(0.8), fontSize: 11),
+                  style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold.withOpacity(0.8), fontSize: 11),
                 ),
               ),
             ],
@@ -813,7 +813,7 @@ class _LoginPageState extends ConsumerState<LoginPage> with SingleTickerProvider
           Center(
             child: Text(
               'SELECT EXECUTIVE ENVIRONMENT',
-              style: GoogleFonts.outfit(
+              style: GoogleFonts.hankenGrotesk(
                 color: VianTheme.lightText,
                 fontSize: 9,
                 fontWeight: FontWeight.bold,
@@ -838,11 +838,11 @@ class _LoginPageState extends ConsumerState<LoginPage> with SingleTickerProvider
             children: [
               Text(
                 'VER 4.2.0-EXEC',
-                style: GoogleFonts.poppins(color: Colors.white24, fontSize: 9),
+                style: GoogleFonts.hankenGrotesk(color: VianTheme.lightText, fontSize: 9),
               ),
               Text(
                 '© 2026 VIAN GLOBAL',
-                style: GoogleFonts.poppins(color: Colors.white24, fontSize: 9),
+                style: GoogleFonts.hankenGrotesk(color: VianTheme.lightText, fontSize: 9),
               ),
             ],
           ),
@@ -862,7 +862,7 @@ class _LoginPageState extends ConsumerState<LoginPage> with SingleTickerProvider
         ),
         child: Text(
           label.toUpperCase(),
-          style: GoogleFonts.outfit(
+          style: GoogleFonts.hankenGrotesk(
             color: VianTheme.primaryGold,
             fontSize: 10,
             fontWeight: FontWeight.w600,
@@ -1682,7 +1682,7 @@ class _CRMTabState extends State<CRMTab> {
         builder: (context) => AlertDialog(
           backgroundColor: VianTheme.headerBlack,
           title: const Text('Access Denied', style: TextStyle(color: Colors.redAccent)),
-          content: const Text('Staff can only recommend conversion but cannot execute it. Please contact an Admin or Super Admin.', style: TextStyle(color: Colors.white)),
+          content: Text('Staff can only recommend conversion but cannot execute it. Please contact an Admin or Super Admin.', style: TextStyle(color: VianTheme.whiteText)),
           actions: [
             TextButton(onPressed: () => Navigator.pop(context), child: const Text('OK')),
           ],
@@ -1721,10 +1721,10 @@ class _CRMTabState extends State<CRMTab> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Are you sure you want to convert "${lead['name']}" into an active client?', style: const TextStyle(color: Colors.white)),
+                  Text('Are you sure you want to convert "${lead['name']}" into an active client?', style: TextStyle(color: VianTheme.whiteText)),
                   const SizedBox(height: 16),
                   CheckboxListTile(
-                    title: const Text('Auto-create Initial Project', style: TextStyle(color: Colors.white, fontSize: 13)),
+                    title: Text('Auto-create Initial Project', style: TextStyle(color: VianTheme.whiteText, fontSize: 13)),
                     value: createProject,
                     activeColor: VianTheme.primaryGold,
                     contentPadding: EdgeInsets.zero,
@@ -1737,14 +1737,14 @@ class _CRMTabState extends State<CRMTab> {
                     DropdownButtonFormField<String>(
                       value: projType,
                       decoration: const InputDecoration(labelText: 'Project Type'),
-                      dropdownColor: const Color(0xFF1E1E26),
+                      dropdownColor: VianTheme.cardColor,
                       items: const [
-                        DropdownMenuItem(value: 'Residential', child: Text('Residential', style: TextStyle(color: Colors.white))),
-                        DropdownMenuItem(value: 'Villa', child: Text('Villa', style: TextStyle(color: Colors.white))),
-                        DropdownMenuItem(value: 'Commercial', child: Text('Commercial', style: TextStyle(color: Colors.white))),
-                        DropdownMenuItem(value: 'Apartment', child: Text('Apartment', style: TextStyle(color: Colors.white))),
-                        DropdownMenuItem(value: 'Interior Design', child: Text('Interior Design', style: TextStyle(color: Colors.white))),
-                        DropdownMenuItem(value: 'Renovation', child: Text('Renovation', style: TextStyle(color: Colors.white))),
+                        DropdownMenuItem(value: 'Residential', child: Text('Residential', style: TextStyle(color: VianTheme.whiteText))),
+                        DropdownMenuItem(value: 'Villa', child: Text('Villa', style: TextStyle(color: VianTheme.whiteText))),
+                        DropdownMenuItem(value: 'Commercial', child: Text('Commercial', style: TextStyle(color: VianTheme.whiteText))),
+                        DropdownMenuItem(value: 'Apartment', child: Text('Apartment', style: TextStyle(color: VianTheme.whiteText))),
+                        DropdownMenuItem(value: 'Interior Design', child: Text('Interior Design', style: TextStyle(color: VianTheme.whiteText))),
+                        DropdownMenuItem(value: 'Renovation', child: Text('Renovation', style: TextStyle(color: VianTheme.whiteText))),
                       ],
                       onChanged: (val) => setDialogState(() => projType = val!),
                     ),
@@ -1799,7 +1799,7 @@ class _CRMTabState extends State<CRMTab> {
             'Name: ${duplicate['name']}\n'
             'Client ID: ${duplicate['clientId'] ?? 'N/A'}\n\n'
             'Would you like to open the existing client profile or merge the lead data into it?',
-            style: const TextStyle(color: Colors.white)),
+            style: TextStyle(color: VianTheme.whiteText)),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
           TextButton(
@@ -1837,13 +1837,13 @@ class _CRMTabState extends State<CRMTab> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Client Name: ${client['name']}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            Text('Client Name: ${client['name']}', style: TextStyle(color: VianTheme.whiteText, fontWeight: FontWeight.bold)),
             const SizedBox(height: 6),
-            Text('Client ID: ${client['clientId']}', style: const TextStyle(color: Colors.white70)),
+            Text('Client ID: ${client['clientId']}', style: const TextStyle(color: VianTheme.lightText)),
             const SizedBox(height: 6),
-            Text('Converted By: ${client['convertedBy']}', style: const TextStyle(color: Colors.white70)),
+            Text('Converted By: ${client['convertedBy']}', style: const TextStyle(color: VianTheme.lightText)),
             const SizedBox(height: 6),
-            Text('Converted On: ${client['convertedOn']}', style: const TextStyle(color: Colors.white70)),
+            Text('Converted On: ${client['convertedOn']}', style: const TextStyle(color: VianTheme.lightText)),
           ],
         ),
         actions: [
@@ -1974,7 +1974,7 @@ class _CRMTabState extends State<CRMTab> {
                           const SizedBox(height: 4),
                           Text(
                             'Client: ${lead['name']}',
-                            style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+                            style: TextStyle(color: VianTheme.whiteText, fontSize: 13, fontWeight: FontWeight.bold),
                           ),
                         ],
                       ),
@@ -2009,21 +2009,21 @@ class _CRMTabState extends State<CRMTab> {
                       ),
                     ],
                   ),
-                  const Divider(color: Color(0xFF262635), height: 24),
-                  const Text('Record Follow-up/Activity Log:', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
+                  Divider(color: VianTheme.goldBorder, height: 24),
+                  Text('Record Follow-up/Activity Log:', style: TextStyle(color: VianTheme.whiteText, fontWeight: FontWeight.bold, fontSize: 12)),
                   const SizedBox(height: 12),
                   Row(
                     children: [
                       Expanded(
                         child: TextField(
                           controller: actionCtrl,
-                          style: const TextStyle(color: Colors.white, fontSize: 13),
+                          style: TextStyle(color: VianTheme.whiteText, fontSize: 13),
                           decoration: const InputDecoration(
                             labelText: 'Action / Milestone',
                             labelStyle: TextStyle(fontSize: 12),
                             isDense: true,
                             contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                            enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Color(0xFF262635))),
+                            enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: VianTheme.goldBorder)),
                             focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: VianTheme.primaryGold)),
                           ),
                         ),
@@ -2037,13 +2037,13 @@ class _CRMTabState extends State<CRMTab> {
                         child: TextField(
                           controller: notesCtrl,
                           maxLines: 2,
-                          style: const TextStyle(color: Colors.white, fontSize: 13),
+                          style: TextStyle(color: VianTheme.whiteText, fontSize: 13),
                           decoration: const InputDecoration(
                             labelText: 'Notes / Update details',
                             labelStyle: TextStyle(fontSize: 12),
                             isDense: true,
                             contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                            enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Color(0xFF262635))),
+                            enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: VianTheme.goldBorder)),
                             focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: VianTheme.primaryGold)),
                           ),
                         ),
@@ -2082,8 +2082,8 @@ class _CRMTabState extends State<CRMTab> {
                       label: const Text('Add Activity Log', style: TextStyle(color: Colors.black, fontSize: 11, fontWeight: FontWeight.bold)),
                     ),
                   ),
-                  const Divider(color: Color(0xFF262635), height: 24),
-                  const Text('Timeline History:', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
+                  Divider(color: VianTheme.goldBorder, height: 24),
+                  Text('Timeline History:', style: TextStyle(color: VianTheme.whiteText, fontWeight: FontWeight.bold, fontSize: 12)),
                   const SizedBox(height: 12),
                   SizedBox(
                     height: 250,
@@ -2114,13 +2114,13 @@ class _CRMTabState extends State<CRMTab> {
                                           Row(
                                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                             children: [
-                                              Text(entry['action'] ?? '', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
+                                              Text(entry['action'] ?? '', style: TextStyle(color: VianTheme.whiteText, fontWeight: FontWeight.bold, fontSize: 12)),
                                               Text(dateFormatted, style: const TextStyle(color: VianTheme.lightText, fontSize: 10)),
                                             ],
                                           ),
                                           if (entry['notes'] != null && entry['notes'].toString().isNotEmpty) ...[
                                             const SizedBox(height: 4),
-                                            Text(entry['notes'], style: const TextStyle(color: Color(0xFF70707C), fontSize: 11)),
+                                            Text(entry['notes'], style: TextStyle(color: VianTheme.lightText, fontSize: 11)),
                                           ],
                                         ],
                                       ),
@@ -2158,7 +2158,7 @@ class _CRMTabState extends State<CRMTab> {
 
             return AlertDialog(
               backgroundColor: VianTheme.headerBlack,
-              title: Text('Public Enquiry Link', style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontWeight: FontWeight.bold)),
+              title: Text('Public Enquiry Link', style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontWeight: FontWeight.bold)),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -2285,7 +2285,7 @@ class _CRMTabState extends State<CRMTab> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text('Close', style: TextStyle(color: Colors.white)),
+                  child: Text('Close', style: TextStyle(color: VianTheme.whiteText)),
                 ),
               ],
             );
@@ -2300,12 +2300,12 @@ class _CRMTabState extends State<CRMTab> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: GoogleFonts.outfit(color: VianTheme.lightText, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+        Text(label, style: GoogleFonts.hankenGrotesk(color: VianTheme.lightText, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
         const SizedBox(width: 16),
         Expanded(
           child: Text(
             value,
-            style: GoogleFonts.inter(color: Colors.white, fontSize: 12.5),
+            style: GoogleFonts.inter(color: VianTheme.whiteText, fontSize: 12.5),
             textAlign: TextAlign.right,
           ),
         ),
@@ -2363,7 +2363,7 @@ class _CRMTabState extends State<CRMTab> {
                       const SizedBox(width: 8),
                       Text(
                         title.toUpperCase(),
-                        style: GoogleFonts.outfit(
+                        style: GoogleFonts.hankenGrotesk(
                           color: Colors.white,
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
@@ -2377,7 +2377,7 @@ class _CRMTabState extends State<CRMTab> {
                     color: VianTheme.primaryGold.withOpacity(0.08),
                     child: Text(
                       leads.length.toString().padLeft(2, '0'),
-                      style: GoogleFonts.poppins(
+                      style: GoogleFonts.hankenGrotesk(
                         color: VianTheme.primaryGold,
                         fontSize: 10,
                         fontWeight: FontWeight.bold,
@@ -2394,7 +2394,7 @@ class _CRMTabState extends State<CRMTab> {
                   ? Center(
                       child: Text(
                         'NO LEADS',
-                        style: GoogleFonts.outfit(color: Colors.white24, fontSize: 10, letterSpacing: 0.5),
+                        style: GoogleFonts.hankenGrotesk(color: VianTheme.lightText, fontSize: 10, letterSpacing: 0.5),
                       ),
                     )
                   : ListView.builder(
@@ -2431,7 +2431,7 @@ class _CRMTabState extends State<CRMTab> {
                                 children: [
                                   Text(
                                     budgetFormatted,
-                                    style: GoogleFonts.poppins(
+                                    style: GoogleFonts.hankenGrotesk(
                                       color: VianTheme.primaryGold,
                                       fontSize: 11.5,
                                       fontWeight: FontWeight.w600,
@@ -2439,7 +2439,7 @@ class _CRMTabState extends State<CRMTab> {
                                   ),
                                   Text(
                                     (lead['status'] ?? 'New').toString().toUpperCase(),
-                                    style: GoogleFonts.outfit(
+                                    style: GoogleFonts.hankenGrotesk(
                                       color: VianTheme.lightText,
                                       fontSize: 8.5,
                                       fontWeight: FontWeight.bold,
@@ -2476,7 +2476,7 @@ class _CRMTabState extends State<CRMTab> {
 
     Widget leftKanbanBoard() {
       return Container(
-        color: const Color(0xFF0D0E12),
+        color: VianTheme.darkBackground,
         padding: const EdgeInsets.all(24.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -2486,7 +2486,7 @@ class _CRMTabState extends State<CRMTab> {
               children: [
                 Text(
                   'PIPELINE: RESIDENTIAL 2026',
-                  style: GoogleFonts.outfit(
+                  style: GoogleFonts.hankenGrotesk(
                     color: VianTheme.lightText,
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
@@ -2495,7 +2495,7 @@ class _CRMTabState extends State<CRMTab> {
                 ),
                 Text(
                   'ACTIVE LEADS: ${_leads.length}',
-                  style: GoogleFonts.poppins(
+                  style: GoogleFonts.hankenGrotesk(
                     color: VianTheme.lightText,
                     fontSize: 11,
                     fontWeight: FontWeight.w500,
@@ -2531,7 +2531,7 @@ class _CRMTabState extends State<CRMTab> {
           child: Center(
             child: Text(
               'SELECT A LEAD TO VIEW DETAILS',
-              style: GoogleFonts.outfit(color: Colors.white24, fontSize: 11, letterSpacing: 1.0),
+              style: GoogleFonts.hankenGrotesk(color: VianTheme.lightText, fontSize: 11, letterSpacing: 1.0),
             ),
           ),
         );
@@ -2564,7 +2564,7 @@ class _CRMTabState extends State<CRMTab> {
                     children: [
                       Text(
                         'SELECTED LEAD',
-                        style: GoogleFonts.outfit(
+                        style: GoogleFonts.hankenGrotesk(
                           color: VianTheme.primaryGold,
                           fontSize: 10,
                           fontWeight: FontWeight.bold,
@@ -2575,11 +2575,11 @@ class _CRMTabState extends State<CRMTab> {
                         children: [
                           if (canAddOrEdit(currentUserRole))
                             IconButton(
-                              icon: const Icon(Icons.edit_outlined, color: Colors.white70, size: 20),
+                              icon: const Icon(Icons.edit_outlined, color: VianTheme.lightText, size: 20),
                               onPressed: () => _showAddLeadDialog(lead: lead),
                             ),
                           IconButton(
-                            icon: const Icon(Icons.share, color: Colors.white70, size: 20),
+                            icon: const Icon(Icons.share, color: VianTheme.lightText, size: 20),
                             onPressed: () => _showPublicLinkDialog(lead),
                           ),
                         ],
@@ -2589,7 +2589,7 @@ class _CRMTabState extends State<CRMTab> {
                   const SizedBox(height: 8),
                   Text(
                     lead['name'] ?? 'Untitled Lead',
-                    style: GoogleFonts.outfit(
+                    style: GoogleFonts.hankenGrotesk(
                       color: Colors.white,
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
@@ -2602,16 +2602,16 @@ class _CRMTabState extends State<CRMTab> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('ESTIMATED VALUE', style: GoogleFonts.outfit(color: VianTheme.lightText, fontSize: 9, letterSpacing: 0.5)),
+                          Text('ESTIMATED VALUE', style: GoogleFonts.hankenGrotesk(color: VianTheme.lightText, fontSize: 9, letterSpacing: 0.5)),
                           const SizedBox(height: 4),
-                          Text(budgetFormatted, style: GoogleFonts.poppins(color: VianTheme.primaryGold, fontSize: 18, fontWeight: FontWeight.bold)),
+                          Text(budgetFormatted, style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontSize: 18, fontWeight: FontWeight.bold)),
                         ],
                       ),
                       const SizedBox(width: 48),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('LEAD OWNER', style: GoogleFonts.outfit(color: VianTheme.lightText, fontSize: 9, letterSpacing: 0.5)),
+                          Text('LEAD OWNER', style: GoogleFonts.hankenGrotesk(color: VianTheme.lightText, fontSize: 9, letterSpacing: 0.5)),
                           const SizedBox(height: 4),
                           Row(
                             children: [
@@ -2627,7 +2627,7 @@ class _CRMTabState extends State<CRMTab> {
                                 ),
                               ),
                               const SizedBox(width: 6),
-                              Text('Julian Vane', style: GoogleFonts.inter(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w500)),
+                              Text('Julian Vane', style: GoogleFonts.inter(color: VianTheme.whiteText, fontSize: 13, fontWeight: FontWeight.w500)),
                             ],
                           )
                         ],
@@ -2651,13 +2651,13 @@ class _CRMTabState extends State<CRMTab> {
                       children: [
                         Container(width: 6, height: 6, color: VianTheme.primaryGold),
                         const SizedBox(width: 8),
-                        Text('PRIMARY CONTACT', style: GoogleFonts.outfit(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
+                        Text('PRIMARY CONTACT', style: GoogleFonts.hankenGrotesk(color: VianTheme.whiteText, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
                       ],
                     ),
                     const SizedBox(height: 16),
                     Container(
                       decoration: BoxDecoration(
-                        color: const Color(0xFF121317),
+                        color: VianTheme.darkBackground,
                         border: Border.all(color: VianTheme.goldBorder.withOpacity(0.5)),
                       ),
                       padding: const EdgeInsets.all(20.0),
@@ -2678,7 +2678,7 @@ class _CRMTabState extends State<CRMTab> {
                       children: [
                         Container(width: 6, height: 6, color: VianTheme.primaryGold),
                         const SizedBox(width: 8),
-                        Text('NOTES TIMELINE', style: GoogleFonts.outfit(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
+                        Text('NOTES TIMELINE', style: GoogleFonts.hankenGrotesk(color: VianTheme.whiteText, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
                       ],
                     ),
                     const SizedBox(height: 20),
@@ -2687,7 +2687,7 @@ class _CRMTabState extends State<CRMTab> {
                         padding: const EdgeInsets.only(left: 8.0),
                         child: Text(
                           'No timeline events logged yet.',
-                          style: GoogleFonts.inter(color: Colors.white24, fontSize: 12),
+                          style: GoogleFonts.inter(color: VianTheme.lightText, fontSize: 12),
                         ),
                       )
                     else
@@ -2720,15 +2720,15 @@ class _CRMTabState extends State<CRMTab> {
                                         Row(
                                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                           children: [
-                                            Text(entry['action'] ?? '', style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
-                                            Text(dateFormatted, style: GoogleFonts.poppins(color: VianTheme.lightText, fontSize: 9)),
+                                            Text(entry['action'] ?? '', style: GoogleFonts.inter(color: VianTheme.whiteText, fontWeight: FontWeight.bold, fontSize: 12)),
+                                            Text(dateFormatted, style: GoogleFonts.hankenGrotesk(color: VianTheme.lightText, fontSize: 9)),
                                           ],
                                         ),
                                         if (entry['notes'] != null && entry['notes'].toString().isNotEmpty) ...[
                                           const SizedBox(height: 4),
                                           Text(
                                             entry['notes'],
-                                            style: GoogleFonts.inter(color: Colors.white38, fontSize: 11),
+                                            style: GoogleFonts.inter(color: VianTheme.lightText, fontSize: 11),
                                           ),
                                         ],
                                       ],
@@ -2779,7 +2779,7 @@ class _CRMTabState extends State<CRMTab> {
                             shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
                           ),
                           onPressed: () => _showLeadTrackingSheet(lead),
-                          child: Text('TRACK PROGRESS', style: GoogleFonts.outfit(fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
+                          child: Text('TRACK PROGRESS', style: GoogleFonts.hankenGrotesk(fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -2799,7 +2799,7 @@ class _CRMTabState extends State<CRMTab> {
                               ),
                             ).then((_) => _fetchLeads());
                           },
-                          child: Text('STAGE 1 FORM', style: GoogleFonts.outfit(fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
+                          child: Text('STAGE 1 FORM', style: GoogleFonts.hankenGrotesk(fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
                         ),
                       ),
                     ],
@@ -2813,7 +2813,7 @@ class _CRMTabState extends State<CRMTab> {
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFF121317),
+      backgroundColor: VianTheme.darkBackground,
       body: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -2949,7 +2949,7 @@ class _ClientsTabState extends State<ClientsTab> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('Customer Ledger & Accounts', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: VianTheme.primaryGold)),
-                  Text('Directory of active construction clients and associated properties', style: TextStyle(color: Color(0xFF70707C))),
+                  Text('Directory of active construction clients and associated properties', style: TextStyle(color: VianTheme.lightText)),
                 ],
               ),
               if (canAddOrEdit(currentUserRole))
@@ -2993,7 +2993,7 @@ class _ClientsTabState extends State<ClientsTab> {
                         child: VianCard(
                           child: ListTile(
                             leading: const CircleAvatar(
-                              backgroundColor: Color(0xFF1E1E26),
+                              backgroundColor: VianTheme.cardColor,
                               child: Icon(Icons.person, color: VianTheme.primaryGold),
                             ),
                             title: Text(client['name'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold, color: VianTheme.whiteText)),
@@ -3004,7 +3004,7 @@ class _ClientsTabState extends State<ClientsTab> {
                                 Text('Email: ${client['email']} | Phone: ${client['phone']}', style: const TextStyle(fontSize: 12)),
                                 Text('GSTIN: ${client['gst'] ?? "N/A"}', style: const TextStyle(fontSize: 12, color: VianTheme.primaryGold)),
                                 const SizedBox(height: 4),
-                                Text(client['propertyDetails'] ?? '', style: const TextStyle(fontSize: 11, color: Color(0xFF70707C))),
+                                Text(client['propertyDetails'] ?? '', style: TextStyle(fontSize: 11, color: VianTheme.lightText)),
                               ],
                             ),
                             isThreeLine: true,
@@ -3025,7 +3025,7 @@ class _ClientsTabState extends State<ClientsTab> {
                                         builder: (context) => AlertDialog(
                                           backgroundColor: VianTheme.headerBlack,
                                           title: const Text('Delete Client', style: TextStyle(color: Colors.redAccent)),
-                                          content: const Text('Are you sure you want to move this client to trash?', style: TextStyle(color: Colors.white)),
+                                          content: Text('Are you sure you want to move this client to trash?', style: TextStyle(color: VianTheme.whiteText)),
                                           actions: [
                                             TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
                                             TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Delete', style: TextStyle(color: Colors.redAccent))),
@@ -3060,7 +3060,7 @@ class _ClientsTabState extends State<ClientsTab> {
                         }
                       : null,
                 ),
-                Text('Page $_currentPage of $_totalPages', style: const TextStyle(color: Colors.white)),
+                Text('Page $_currentPage of $_totalPages', style: TextStyle(color: VianTheme.whiteText)),
                 IconButton(
                   icon: const Icon(Icons.chevron_right),
                   onPressed: _currentPage < _totalPages
@@ -3457,7 +3457,7 @@ class _LeadStage1FormScreenState extends State<LeadStage1FormScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1E1E26),
+        backgroundColor: VianTheme.cardColor,
         title: const Text('Reset Form?', style: TextStyle(color: VianTheme.danger)),
         content: const Text('Are you sure you want to clear all fields? This action cannot be undone.'),
         actions: [
@@ -3542,7 +3542,7 @@ class _LeadStage1FormScreenState extends State<LeadStage1FormScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1E1E26),
+        backgroundColor: VianTheme.cardColor,
         title: const Row(
           children: [
             Icon(Icons.picture_as_pdf, color: VianTheme.primaryGold),
@@ -3554,9 +3554,9 @@ class _LeadStage1FormScreenState extends State<LeadStage1FormScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Exporting Lead Stage 1 Client Enquiry Form...', style: TextStyle(color: Colors.white)),
+            Text('Exporting Lead Stage 1 Client Enquiry Form...', style: TextStyle(color: VianTheme.whiteText)),
             const SizedBox(height: 16),
-            LinearProgressIndicator(color: VianTheme.primaryGold, backgroundColor: Colors.white10),
+            LinearProgressIndicator(color: VianTheme.primaryGold, backgroundColor: VianTheme.goldBorder),
           ],
         ),
       ),
@@ -3626,7 +3626,7 @@ class _LeadStage1FormScreenState extends State<LeadStage1FormScreen> {
             });
           },
           child: Chip(
-            backgroundColor: const Color(0xFF1E1E26),
+            backgroundColor: VianTheme.cardColor,
             side: const BorderSide(color: Color(0x22F5A623)),
             label: Text(tag, style: const TextStyle(color: VianTheme.primaryGold, fontSize: 11)),
             padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
@@ -3653,7 +3653,7 @@ class _LeadStage1FormScreenState extends State<LeadStage1FormScreen> {
                 letterSpacing: 1.0,
               ),
             ),
-            const Divider(color: Color(0xFF23232F), height: 20),
+            Divider(color: VianTheme.goldBorder, height: 20),
             child,
           ],
         ),
@@ -3704,7 +3704,7 @@ class _LeadStage1FormScreenState extends State<LeadStage1FormScreen> {
             const SizedBox(height: 16),
             DropdownButtonFormField<String>(
               value: _selectedSiteFacing,
-              dropdownColor: const Color(0xFF1E1E26),
+              dropdownColor: VianTheme.cardColor,
               decoration: const InputDecoration(labelText: 'Site Facing'),
               items: ['North', 'South', 'East', 'West', 'North East', 'North West', 'South East', 'South West']
                   .map((dir) => DropdownMenuItem(value: dir, child: Text(dir)))
@@ -3724,7 +3724,7 @@ class _LeadStage1FormScreenState extends State<LeadStage1FormScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Select all that apply * (Required)', style: TextStyle(color: Colors.white60, fontSize: 12)),
+            const Text('Select all that apply * (Required)', style: TextStyle(color: VianTheme.lightText, fontSize: 12)),
             const SizedBox(height: 12),
             Wrap(
               spacing: 12,
@@ -3745,7 +3745,7 @@ class _LeadStage1FormScreenState extends State<LeadStage1FormScreen> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                     decoration: BoxDecoration(
-                      color: selected ? const Color(0x22F5A623) : const Color(0xFF1E1E26),
+                      color: selected ? Color(0x22F5A623) : VianTheme.cardColor,
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
                         color: selected ? VianTheme.primaryGold : const Color(0x33F5A623),
@@ -3761,7 +3761,7 @@ class _LeadStage1FormScreenState extends State<LeadStage1FormScreen> {
                           size: 18,
                         ),
                         const SizedBox(width: 8),
-                        Text(type, style: TextStyle(color: selected ? Colors.white : VianTheme.lightText, fontSize: 13)),
+                        Text(type, style: TextStyle(color: selected ? VianTheme.whiteText : VianTheme.lightText, fontSize: 13)),
                       ],
                     ),
                   ),
@@ -3777,7 +3777,7 @@ class _LeadStage1FormScreenState extends State<LeadStage1FormScreen> {
         title: "SECTION 3 - LOCAL BODY",
         child: DropdownButtonFormField<String>(
           value: _selectedLocalBody,
-          dropdownColor: const Color(0xFF1E1E26),
+          dropdownColor: VianTheme.cardColor,
           decoration: const InputDecoration(labelText: 'Local Body Type'),
           items: ['Panchayat', 'Taluk', 'Municipality', 'Corporation']
               .map((type) => DropdownMenuItem(value: type, child: Text(type)))
@@ -3974,7 +3974,7 @@ class _LeadStage1FormScreenState extends State<LeadStage1FormScreen> {
               flex: 2,
               child: DropdownButtonFormField<String>(
                 value: 'Meters',
-                dropdownColor: const Color(0xFF1E1E26),
+                dropdownColor: VianTheme.cardColor,
                 decoration: const InputDecoration(labelText: 'Unit'),
                 items: const [DropdownMenuItem(value: 'Meters', child: Text('Meters'))],
                 onChanged: null,
@@ -4073,7 +4073,7 @@ class _LeadStage1FormScreenState extends State<LeadStage1FormScreen> {
           children: [
             DropdownButtonFormField<String>(
               value: _selectedRoadToPlinth,
-              dropdownColor: const Color(0xFF1E1E26),
+              dropdownColor: VianTheme.cardColor,
               decoration: const InputDecoration(labelText: 'Plinth Height Target'),
               items: ['1.6 ft', '2.0 ft', '2.6 ft', '3.0 ft', '3.6 ft']
                   .map((h) => DropdownMenuItem(value: h, child: Text(h)))
@@ -4104,7 +4104,7 @@ class _LeadStage1FormScreenState extends State<LeadStage1FormScreen> {
           children: [
             DropdownButtonFormField<String>(
               value: _selectedSiteLevel,
-              dropdownColor: const Color(0xFF1E1E26),
+              dropdownColor: VianTheme.cardColor,
               decoration: const InputDecoration(labelText: 'Current Site Level'),
               items: ['6"', '1\'-0"', '1\'-6"', '2\'-0"', '2\'-6"']
                   .map((l) => DropdownMenuItem(value: l, child: Text(l)))
@@ -4339,7 +4339,7 @@ class _LeadStage1FormScreenState extends State<LeadStage1FormScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Describe neighboring structures (North, South, East, West):', style: TextStyle(color: Colors.white70, fontSize: 12)),
+            const Text('Describe neighboring structures (North, South, East, West):', style: TextStyle(color: VianTheme.lightText, fontSize: 12)),
             const SizedBox(height: 12),
             TextFormField(
               controller: _northContextController,
@@ -4396,7 +4396,7 @@ class _LeadStage1FormScreenState extends State<LeadStage1FormScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Sketch layout dimensions and orientation (N arrow, text, arrows, shapes):', style: TextStyle(color: Colors.white70, fontSize: 12)),
+            const Text('Sketch layout dimensions and orientation (N arrow, text, arrows, shapes):', style: TextStyle(color: VianTheme.lightText, fontSize: 12)),
             const SizedBox(height: 10),
             SiteLayoutCanvas(
               elements: _layoutElements,
@@ -4432,7 +4432,7 @@ class _LeadStage1FormScreenState extends State<LeadStage1FormScreen> {
                       : const Icon(Icons.mic, color: Colors.black),
                   label: Text(_dictationActive ? 'Listening...' : 'Voice Dictation Dictate', style: const TextStyle(color: Colors.black)),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: _dictationActive ? Colors.white24 : VianTheme.primaryGold,
+                    backgroundColor: _dictationActive ? VianTheme.lightText : VianTheme.primaryGold,
                   ),
                 ),
               ],
@@ -4447,7 +4447,7 @@ class _LeadStage1FormScreenState extends State<LeadStage1FormScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Freehand client ideas, stylus and touch sketch:', style: TextStyle(color: Colors.white70, fontSize: 12)),
+            const Text('Freehand client ideas, stylus and touch sketch:', style: TextStyle(color: VianTheme.lightText, fontSize: 12)),
             const SizedBox(height: 10),
             ConceptSketchCanvas(
               strokes: _sketchStrokes,
@@ -4466,13 +4466,13 @@ class _LeadStage1FormScreenState extends State<LeadStage1FormScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (_loading) return const Scaffold(backgroundColor: Color(0xFF1E1E2F), body: Center(child: CircularProgressIndicator()));
+    if (_loading) return Scaffold(backgroundColor: VianTheme.darkBackground, body: Center(child: CircularProgressIndicator()));
 
     final size = MediaQuery.of(context).size;
     final isDesktop = size.width > 960;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF1E1E2F),
+      backgroundColor: VianTheme.darkBackground,
       appBar: AppBar(
         backgroundColor: VianTheme.headerBlack,
         title: Row(
@@ -4655,7 +4655,7 @@ class _ProjectsTabState extends ConsumerState<ProjectsTab> {
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (context, setDlgState) => AlertDialog(
-          backgroundColor: const Color(0xFF1E1E26),
+          backgroundColor: VianTheme.cardColor,
           title: const Text('Create Construction Project', style: TextStyle(color: VianTheme.primaryGold)),
           content: SingleChildScrollView(
             child: Column(
@@ -4674,7 +4674,7 @@ class _ProjectsTabState extends ConsumerState<ProjectsTab> {
                 DropdownButtonFormField<String>(
                   value: selectedType,
                   decoration: const InputDecoration(labelText: 'Project Type'),
-                  dropdownColor: const Color(0xFF1E1E26),
+                  dropdownColor: VianTheme.cardColor,
                   items: ['Residential', 'Villa', 'Commercial', 'Apartment', 'Interior Design', 'Renovation'].map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(),
                   onChanged: (val) => setDlgState(() => selectedType = val!),
                 ),
@@ -4682,7 +4682,7 @@ class _ProjectsTabState extends ConsumerState<ProjectsTab> {
                 DropdownButtonFormField<String>(
                   value: selectedPackage,
                   decoration: const InputDecoration(labelText: 'Construction Package'),
-                  dropdownColor: const Color(0xFF1E1E26),
+                  dropdownColor: VianTheme.cardColor,
                   items: ['Standard', 'Premium', 'Luxury'].map((p) => DropdownMenuItem(value: p, child: Text(p))).toList(),
                   onChanged: (val) => setDlgState(() => selectedPackage = val!),
                 ),
@@ -4690,7 +4690,7 @@ class _ProjectsTabState extends ConsumerState<ProjectsTab> {
                 DropdownButtonFormField<String>(
                   value: selectedTemplate,
                   decoration: const InputDecoration(labelText: 'Lifecycle Template'),
-                  dropdownColor: const Color(0xFF1E1E26),
+                  dropdownColor: VianTheme.cardColor,
                   items: ['Residential House', 'Villa', 'Apartment', 'Commercial', 'Interior', 'Renovation'].map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(),
                   onChanged: (val) => setDlgState(() => selectedTemplate = val!),
                 ),
@@ -4751,7 +4751,7 @@ class _ProjectsTabState extends ConsumerState<ProjectsTab> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('Architectural Portfolios', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: VianTheme.primaryGold)),
-                  Text('Design structures, elevations, budgets, and operational progress', style: TextStyle(color: Color(0xFF70707C))),
+                  Text('Design structures, elevations, budgets, and operational progress', style: TextStyle(color: VianTheme.lightText)),
                 ],
               ),
               Row(
@@ -4874,7 +4874,7 @@ class _ProjectsTabState extends ConsumerState<ProjectsTab> {
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      const Text('BUDGET', style: TextStyle(fontSize: 9, color: Color(0xFF8A8578), fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+                                      Text('BUDGET', style: TextStyle(fontSize: 9, color: VianTheme.lightText, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
                                       const SizedBox(height: 2),
                                       Text(budgetFormatted, style: const TextStyle(fontSize: 12, color: VianTheme.primaryGold, fontWeight: FontWeight.bold)),
                                     ],
@@ -4884,7 +4884,7 @@ class _ProjectsTabState extends ConsumerState<ProjectsTab> {
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      const Text('PACKAGE', style: TextStyle(fontSize: 9, color: Color(0xFF8A8578), fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+                                      Text('PACKAGE', style: TextStyle(fontSize: 9, color: VianTheme.lightText, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
                                       const SizedBox(height: 2),
                                       Text(p['constructionPackage'] ?? 'Premium', style: const TextStyle(fontSize: 12, color: VianTheme.headerBlack, fontWeight: FontWeight.w500)),
                                     ],
@@ -4899,7 +4899,7 @@ class _ProjectsTabState extends ConsumerState<ProjectsTab> {
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      const Text('TIMELINE', style: TextStyle(fontSize: 9, color: Color(0xFF8A8578), fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+                                      Text('TIMELINE', style: TextStyle(fontSize: 9, color: VianTheme.lightText, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
                                       const SizedBox(height: 2),
                                       Text('${p['startDate'] ?? '2026-07-01'} to ${p['completionDate'] ?? '2027-07-01'}', style: const TextStyle(fontSize: 11, color: VianTheme.lightText), maxLines: 1, overflow: TextOverflow.ellipsis),
                                     ],
@@ -4909,7 +4909,7 @@ class _ProjectsTabState extends ConsumerState<ProjectsTab> {
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      const Text('SITE LOCATION', style: TextStyle(fontSize: 9, color: Color(0xFF8A8578), fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+                                      Text('SITE LOCATION', style: TextStyle(fontSize: 9, color: VianTheme.lightText, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
                                       const SizedBox(height: 2),
                                       Text(p['siteAddress'] ?? 'Chennai, TN', style: const TextStyle(fontSize: 11, color: VianTheme.lightText), maxLines: 1, overflow: TextOverflow.ellipsis),
                                     ],
@@ -4943,7 +4943,7 @@ class _ProjectsTabState extends ConsumerState<ProjectsTab> {
             margin: const EdgeInsets.symmetric(horizontal: 8),
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: const Color(0xFF1E1E26),
+              color: VianTheme.cardColor,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Column(
@@ -5016,7 +5016,7 @@ class _ProjectsTabState extends ConsumerState<ProjectsTab> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(p['name'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold)),
-                        Text('Start: ${p['startDate']} | End: ${p['completionDate']}', style: const TextStyle(fontSize: 11, color: Color(0xFF70707C))),
+                        Text('Start: ${p['startDate']} | End: ${p['completionDate']}', style: TextStyle(fontSize: 11, color: VianTheme.lightText)),
                       ],
                     ),
                   ),
@@ -5025,7 +5025,7 @@ class _ProjectsTabState extends ConsumerState<ProjectsTab> {
                     child: Container(
                       height: 24,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF1E1E26),
+                        color: VianTheme.cardColor,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Stack(
@@ -5160,7 +5160,7 @@ class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
     return Scaffold(
       backgroundColor: VianTheme.headerBlack,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1E1E26),
+        backgroundColor: VianTheme.cardColor,
         title: Row(
           children: [
             Text(_project['projectId'] ?? '', style: const TextStyle(color: VianTheme.primaryGold, fontSize: 14, fontWeight: FontWeight.bold)),
@@ -5190,7 +5190,7 @@ class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
           Container(
             height: 60,
             padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-            color: const Color(0xFF1E1E26),
+            color: VianTheme.cardColor,
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
               itemCount: tabs.length,
@@ -5204,7 +5204,7 @@ class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
                     decoration: BoxDecoration(
                       color: isSelected ? VianTheme.primaryGold : const Color(0xFF13131A),
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: isSelected ? VianTheme.primaryGold : Colors.white10),
+                      border: Border.all(color: isSelected ? VianTheme.primaryGold : VianTheme.goldBorder),
                     ),
                     child: Text(
                       tabs[index],
@@ -5337,7 +5337,7 @@ class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
                   bp['url']!,
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) => const Center(
-                    child: Icon(Icons.architecture, color: Colors.white24, size: 24),
+                    child: Icon(Icons.architecture, color: VianTheme.lightText, size: 24),
                   ),
                 ),
               ),
@@ -5350,7 +5350,7 @@ class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
                   padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
                   child: Text(
                     bp['name']!,
-                    style: GoogleFonts.outfit(
+                    style: GoogleFonts.hankenGrotesk(
                       color: VianTheme.primaryGold,
                       fontSize: 9,
                       fontWeight: FontWeight.bold,
@@ -5408,7 +5408,7 @@ class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
           children: [
             Text(
               'Project Timeline',
-              style: GoogleFonts.outfit(
+              style: GoogleFonts.hankenGrotesk(
                 color: Colors.white,
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -5419,7 +5419,7 @@ class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
               children: [
                 Container(width: 8, height: 8, color: VianTheme.primaryGold),
                 const SizedBox(width: 6),
-                Text('PROGRESS', style: GoogleFonts.outfit(color: VianTheme.lightText, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+                Text('PROGRESS', style: GoogleFonts.hankenGrotesk(color: VianTheme.lightText, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
                 const SizedBox(width: 16),
                 Container(
                   width: 8,
@@ -5427,7 +5427,7 @@ class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
                   decoration: const BoxDecoration(color: VianTheme.primaryGold, shape: BoxShape.circle),
                 ),
                 const SizedBox(width: 6),
-                Text('MILESTONE', style: GoogleFonts.outfit(color: VianTheme.lightText, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+                Text('MILESTONE', style: GoogleFonts.hankenGrotesk(color: VianTheme.lightText, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
               ],
             )
           ],
@@ -5449,13 +5449,13 @@ class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL'].map((m) {
-                        return Text(m, style: GoogleFonts.poppins(color: Colors.white24, fontSize: 10, fontWeight: FontWeight.bold));
+                        return Text(m, style: GoogleFonts.hankenGrotesk(color: VianTheme.lightText, fontSize: 10, fontWeight: FontWeight.bold));
                       }).toList(),
                     ),
                   ),
                 ],
               ),
-              const Divider(color: Colors.white10, height: 24),
+              const Divider(color: VianTheme.goldBorder, height: 24),
               ...timelineRows,
             ],
           ),
@@ -5468,7 +5468,7 @@ class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
           children: [
             Text(
               'Project Blueprints',
-              style: GoogleFonts.outfit(
+              style: GoogleFonts.hankenGrotesk(
                 color: Colors.white,
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -5477,7 +5477,7 @@ class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
             ),
             Text(
               'VIEW FULL ARCHIVE',
-              style: GoogleFonts.outfit(
+              style: GoogleFonts.hankenGrotesk(
                 color: VianTheme.primaryGold,
                 fontSize: 10,
                 fontWeight: FontWeight.bold,
@@ -5500,17 +5500,17 @@ class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('PROJECT META', style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
+          Text('PROJECT META', style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
           const SizedBox(height: 16),
-          Text('Client Entity', style: GoogleFonts.outfit(color: VianTheme.lightText, fontSize: 9, letterSpacing: 0.5)),
+          Text('Client Entity', style: GoogleFonts.hankenGrotesk(color: VianTheme.lightText, fontSize: 9, letterSpacing: 0.5)),
           const SizedBox(height: 4),
-          Text(_project['client']?['name'] ?? 'Vanguard Estate Group', style: GoogleFonts.inter(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600)),
+          Text(_project['client']?['name'] ?? 'Vanguard Estate Group', style: GoogleFonts.inter(color: VianTheme.whiteText, fontSize: 14, fontWeight: FontWeight.w600)),
           const SizedBox(height: 16),
-          Text('Site Address', style: GoogleFonts.outfit(color: VianTheme.lightText, fontSize: 9, letterSpacing: 0.5)),
+          Text('Site Address', style: GoogleFonts.hankenGrotesk(color: VianTheme.lightText, fontSize: 9, letterSpacing: 0.5)),
           const SizedBox(height: 4),
-          Text(_project['siteAddress'] ?? '42 Knightsbridge Row', style: GoogleFonts.inter(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w500)),
+          Text(_project['siteAddress'] ?? '42 Knightsbridge Row', style: GoogleFonts.inter(color: VianTheme.whiteText, fontSize: 13, fontWeight: FontWeight.w500)),
           const SizedBox(height: 16),
-          Text('Package Tier', style: GoogleFonts.outfit(color: VianTheme.lightText, fontSize: 9, letterSpacing: 0.5)),
+          Text('Package Tier', style: GoogleFonts.hankenGrotesk(color: VianTheme.lightText, fontSize: 9, letterSpacing: 0.5)),
           const SizedBox(height: 8),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -5523,12 +5523,12 @@ class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
               children: [
                 const Icon(Icons.workspace_premium, color: VianTheme.primaryGold, size: 14),
                 const SizedBox(width: 6),
-                Text('PLATINUM ATELIER', style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
+                Text('PLATINUM ATELIER', style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
               ],
             ),
           ),
           const SizedBox(height: 24),
-          Text('Assigned Team', style: GoogleFonts.outfit(color: VianTheme.lightText, fontSize: 9, letterSpacing: 0.5)),
+          Text('Assigned Team', style: GoogleFonts.hankenGrotesk(color: VianTheme.lightText, fontSize: 9, letterSpacing: 0.5)),
           const SizedBox(height: 12),
           Row(
             children: [
@@ -5547,15 +5547,15 @@ class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
               const SizedBox(width: 12),
               CircleAvatar(
                 radius: 14,
-                backgroundColor: Colors.white12,
+                backgroundColor: VianTheme.lightText,
                 child: Center(
-                  child: Text('+4', style: GoogleFonts.poppins(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold)),
+                  child: Text('+4', style: GoogleFonts.hankenGrotesk(color: VianTheme.whiteText, fontSize: 9, fontWeight: FontWeight.bold)),
                 ),
               )
             ],
           ),
           const SizedBox(height: 8),
-          Text('Led by Senior Associate Julia Sterling', style: GoogleFonts.inter(color: Colors.white38, fontSize: 11)),
+          Text('Led by Senior Associate Julia Sterling', style: GoogleFonts.inter(color: VianTheme.lightText, fontSize: 11)),
           const SizedBox(height: 32),
           SizedBox(
             width: double.infinity,
@@ -5567,7 +5567,7 @@ class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
                 shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
               ),
               onPressed: () {},
-              child: Text('VIEW PROJECT SPECS', style: GoogleFonts.outfit(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
+              child: Text('VIEW PROJECT SPECS', style: GoogleFonts.hankenGrotesk(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
             ),
           ),
           if (_isSuperAdmin) ...[
@@ -5577,8 +5577,8 @@ class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
                 Expanded(
                   child: OutlinedButton(
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.white70,
-                      side: const BorderSide(color: Colors.white24),
+                      foregroundColor: VianTheme.lightText,
+                      side: const BorderSide(color: VianTheme.lightText),
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
                     ),
@@ -5660,7 +5660,7 @@ class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
             return Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Column(children: [CircleAvatar(radius: 12, backgroundColor: stage['status'] == 'Approved' ? Colors.green : VianTheme.primaryGold, child: const Icon(Icons.engineering, size: 12, color: Colors.black)), if (index < stages.length - 1) Container(width: 2, height: 90, color: Colors.white24)]),
+                Column(children: [CircleAvatar(radius: 12, backgroundColor: stage['status'] == 'Approved' ? Colors.green : VianTheme.primaryGold, child: const Icon(Icons.engineering, size: 12, color: Colors.black)), if (index < stages.length - 1) Container(width: 2, height: 90, color: VianTheme.lightText)]),
                 const SizedBox(width: 16),
                 Expanded(child: Container(margin: const EdgeInsets.only(bottom: 24), child: VianCard(padding: const EdgeInsets.all(16), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(stage['name'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)), Text(stage['description'] ?? '', style: const TextStyle(color: VianTheme.lightText, fontSize: 12))]))))
               ],
@@ -5705,10 +5705,10 @@ class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
     );
   }
 
-  Widget _buildMaterialsTab() => const Center(child: Text('Material logs displayed here', style: TextStyle(color: Colors.white54)));
-  Widget _buildLabourTab() => const Center(child: Text('Labour logs displayed here', style: TextStyle(color: Colors.white54)));
-  Widget _buildSiteTrackingTab() => const Center(child: Text('Daily site logs displayed here', style: TextStyle(color: Colors.white54)));
-  Widget _buildWorkflowApprovalsTab() => const Center(child: Text('Approval workflow displayed here', style: TextStyle(color: Colors.white54)));
+  Widget _buildMaterialsTab() => const Center(child: Text('Material logs displayed here', style: TextStyle(color: VianTheme.lightText)));
+  Widget _buildLabourTab() => const Center(child: Text('Labour logs displayed here', style: TextStyle(color: VianTheme.lightText)));
+  Widget _buildSiteTrackingTab() => const Center(child: Text('Daily site logs displayed here', style: TextStyle(color: VianTheme.lightText)));
+  Widget _buildWorkflowApprovalsTab() => const Center(child: Text('Approval workflow displayed here', style: TextStyle(color: VianTheme.lightText)));
 
   Future<void> _archiveProject() async {
     final success = await ApiService.archiveProject(_project['id']);
@@ -5724,7 +5724,7 @@ class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
       builder: (context) => AlertDialog(
         backgroundColor: VianTheme.headerBlack,
         title: const Text('Delete Project', style: TextStyle(color: Colors.redAccent)),
-        content: const Text('Are you sure you want to move this project to trash?', style: TextStyle(color: Colors.white)),
+        content: Text('Are you sure you want to move this project to trash?', style: TextStyle(color: VianTheme.whiteText)),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
           TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Delete', style: TextStyle(color: Colors.redAccent))),
@@ -5806,7 +5806,7 @@ class _TasksTabState extends State<TasksTab> {
                   value: selectedPriority,
                   dropdownColor: VianTheme.headerBlack,
                   decoration: const InputDecoration(labelText: 'Priority'),
-                  items: ['Low', 'Medium', 'High', 'Critical'].map((p) => DropdownMenuItem(value: p, child: Text(p, style: const TextStyle(color: Colors.white)))).toList(),
+                  items: ['Low', 'Medium', 'High', 'Critical'].map((p) => DropdownMenuItem(value: p, child: Text(p, style: TextStyle(color: VianTheme.whiteText)))).toList(),
                   onChanged: (val) => setDlgState(() => selectedPriority = val!),
                 ),
                 const SizedBox(height: 12),
@@ -5814,7 +5814,7 @@ class _TasksTabState extends State<TasksTab> {
                   value: selectedStatus,
                   dropdownColor: VianTheme.headerBlack,
                   decoration: const InputDecoration(labelText: 'Status'),
-                  items: ['Pending', 'In Progress', 'Review', 'Completed'].map((s) => DropdownMenuItem(value: s, child: Text(s, style: const TextStyle(color: Colors.white)))).toList(),
+                  items: ['Pending', 'In Progress', 'Review', 'Completed'].map((s) => DropdownMenuItem(value: s, child: Text(s, style: TextStyle(color: VianTheme.whiteText)))).toList(),
                   onChanged: (val) => setDlgState(() => selectedStatus = val!),
                 ),
               ],
@@ -5869,7 +5869,7 @@ class _TasksTabState extends State<TasksTab> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('Operational Tasks Board', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: VianTheme.primaryGold)),
-                  Text('Track structural layouts, site supervisor checklists, and reviews', style: TextStyle(color: Color(0xFF70707C))),
+                  Text('Track structural layouts, site supervisor checklists, and reviews', style: TextStyle(color: VianTheme.lightText)),
                 ],
               ),
               if (canAddOrEdit(currentUserRole))
@@ -5889,7 +5889,7 @@ class _TasksTabState extends State<TasksTab> {
                   child: Container(
                     margin: const EdgeInsets.symmetric(horizontal: 8),
                     padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(color: const Color(0xFF1E1E26), borderRadius: BorderRadius.circular(12)),
+                    decoration: BoxDecoration(color: VianTheme.cardColor, borderRadius: BorderRadius.circular(12)),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -5935,7 +5935,7 @@ class _TasksTabState extends State<TasksTab> {
                                                   builder: (context) => AlertDialog(
                                                     backgroundColor: VianTheme.headerBlack,
                                                     title: const Text('Delete Task', style: TextStyle(color: Colors.redAccent)),
-                                                    content: const Text('Are you sure you want to move this task to trash?', style: TextStyle(color: Colors.white)),
+                                                    content: Text('Are you sure you want to move this task to trash?', style: TextStyle(color: VianTheme.whiteText)),
                                                     actions: [
                                                       TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
                                                       TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Delete', style: TextStyle(color: Colors.redAccent))),
@@ -5961,7 +5961,7 @@ class _TasksTabState extends State<TasksTab> {
                                             decoration: BoxDecoration(color: priColor.withOpacity(0.2), borderRadius: BorderRadius.circular(4)),
                                             child: Text(task['priority'] ?? '', style: TextStyle(color: priColor, fontSize: 10, fontWeight: FontWeight.bold)),
                                           ),
-                                          Text('Due: ${task['dueDate']}', style: const TextStyle(fontSize: 10, color: Color(0xFF70707C))),
+                                          Text('Due: ${task['dueDate']}', style: TextStyle(fontSize: 10, color: VianTheme.lightText)),
                                         ],
                                       )
                                     ],
@@ -6133,7 +6133,7 @@ class _AttendanceTabState extends ConsumerState<AttendanceTab> {
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (context, setStateModal) => AlertDialog(
-          backgroundColor: const Color(0xFF1E1E26),
+          backgroundColor: VianTheme.cardColor,
           title: const Text('Add / Correct Manual Attendance', style: TextStyle(color: VianTheme.primaryGold)),
           content: SingleChildScrollView(
             child: Column(
@@ -6141,7 +6141,7 @@ class _AttendanceTabState extends ConsumerState<AttendanceTab> {
               children: [
                 DropdownButtonFormField<int>(
                   decoration: const InputDecoration(labelText: 'Employee'),
-                  dropdownColor: const Color(0xFF1E1E26),
+                  dropdownColor: VianTheme.cardColor,
                   value: selectedEmpId,
                   items: _employees.map<DropdownMenuItem<int>>((e) {
                     return DropdownMenuItem<int>(
@@ -6169,7 +6169,7 @@ class _AttendanceTabState extends ConsumerState<AttendanceTab> {
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
                   decoration: const InputDecoration(labelText: 'Status'),
-                  dropdownColor: const Color(0xFF1E1E26),
+                  dropdownColor: VianTheme.cardColor,
                   value: selectedStatus,
                   items: ['Present', 'Late', 'Half Day', 'Leave', 'Absent'].map((s) {
                     return DropdownMenuItem<String>(value: s, child: Text(s));
@@ -6244,17 +6244,17 @@ class _AttendanceTabState extends ConsumerState<AttendanceTab> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1E1E26),
+        backgroundColor: VianTheme.cardColor,
         title: const Text('Review Geofence Breach Override', style: TextStyle(color: VianTheme.primaryGold)),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Employee: ${pending['user']?['name'] ?? "Unknown"}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              Text('Employee: ${pending['user']?['name'] ?? "Unknown"}', style: TextStyle(color: VianTheme.whiteText, fontWeight: FontWeight.bold)),
               const SizedBox(height: 4),
-              Text('Date: ${pending['date']} | Time: ${pending['checkInTime'] ?? "N/A"}', style: const TextStyle(color: Colors.white60, fontSize: 12)),
-              Text('Punch Distance: ${pending['checkInGpsDistance'] != null ? double.parse(pending['checkInGpsDistance'].toString()).toStringAsFixed(1) : "N/A"} meters from site', style: const TextStyle(color: Colors.white60, fontSize: 12)),
+              Text('Date: ${pending['date']} | Time: ${pending['checkInTime'] ?? "N/A"}', style: const TextStyle(color: VianTheme.lightText, fontSize: 12)),
+              Text('Punch Distance: ${pending['checkInGpsDistance'] != null ? double.parse(pending['checkInGpsDistance'].toString()).toStringAsFixed(1) : "N/A"} meters from site', style: const TextStyle(color: VianTheme.lightText, fontSize: 12)),
               (() {
                 final latVal = double.tryParse(pending['checkInLatitude']?.toString() ?? '0.0') ?? 0.0;
                 final lngVal = double.tryParse(pending['checkInLongitude']?.toString() ?? '0.0') ?? 0.0;
@@ -6263,26 +6263,26 @@ class _AttendanceTabState extends ConsumerState<AttendanceTab> {
                   padding: const EdgeInsets.only(top: 6.0),
                   child: Text(
                     'Resolved Location:\n${address.toFormattedMultiLine()}',
-                    style: const TextStyle(color: Colors.white70, fontSize: 11, height: 1.4),
+                    style: const TextStyle(color: VianTheme.lightText, fontSize: 11, height: 1.4),
                   ),
                 );
               })(),
-              const Divider(color: Colors.white10, height: 24),
+              const Divider(color: VianTheme.goldBorder, height: 24),
               TextFormField(
                 controller: reasonCtrl,
-                style: const TextStyle(color: Colors.white),
+                style: TextStyle(color: VianTheme.whiteText),
                 decoration: const InputDecoration(
                   labelText: 'Override Reason (e.g. Authorized Off-site client meeting)',
-                  labelStyle: TextStyle(color: Colors.white70),
+                  labelStyle: TextStyle(color: VianTheme.lightText),
                 ),
               ),
               const SizedBox(height: 12),
               TextFormField(
                 controller: remarksCtrl,
-                style: const TextStyle(color: Colors.white),
+                style: TextStyle(color: VianTheme.whiteText),
                 decoration: const InputDecoration(
                   labelText: 'Remarks / Additional notes',
-                  labelStyle: TextStyle(color: Colors.white70),
+                  labelStyle: TextStyle(color: VianTheme.lightText),
                 ),
               ),
             ],
@@ -6291,7 +6291,7 @@ class _AttendanceTabState extends ConsumerState<AttendanceTab> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel', style: TextStyle(color: Colors.white70)),
+            child: const Text('Cancel', style: TextStyle(color: VianTheme.lightText)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: VianTheme.danger, foregroundColor: Colors.white),
@@ -6349,7 +6349,7 @@ class _AttendanceTabState extends ConsumerState<AttendanceTab> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1E1E26),
+        backgroundColor: VianTheme.cardColor,
         title: Text('Edit Geofence - ${project['name']}', style: const TextStyle(color: VianTheme.primaryGold)),
         content: SingleChildScrollView(
           child: Column(
@@ -6357,25 +6357,25 @@ class _AttendanceTabState extends ConsumerState<AttendanceTab> {
             children: [
               TextFormField(
                 controller: latCtrl,
-                style: const TextStyle(color: Colors.white),
+                style: TextStyle(color: VianTheme.whiteText),
                 decoration: const InputDecoration(labelText: 'Site Latitude'),
               ),
               const SizedBox(height: 12),
               TextFormField(
                 controller: lngCtrl,
-                style: const TextStyle(color: Colors.white),
+                style: TextStyle(color: VianTheme.whiteText),
                 decoration: const InputDecoration(labelText: 'Site Longitude'),
               ),
               const SizedBox(height: 12),
               TextFormField(
                 controller: radCtrl,
-                style: const TextStyle(color: Colors.white),
+                style: TextStyle(color: VianTheme.whiteText),
                 decoration: const InputDecoration(labelText: 'Allowed Radius (meters: 50 - 1000)'),
               ),
               const SizedBox(height: 12),
               TextFormField(
                 controller: addrCtrl,
-                style: const TextStyle(color: Colors.white),
+                style: TextStyle(color: VianTheme.whiteText),
                 decoration: const InputDecoration(labelText: 'Configured Address / Landmark'),
               ),
             ],
@@ -6384,7 +6384,7 @@ class _AttendanceTabState extends ConsumerState<AttendanceTab> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel', style: TextStyle(color: Colors.white70)),
+            child: const Text('Cancel', style: TextStyle(color: VianTheme.lightText)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: VianTheme.primaryGold, foregroundColor: Colors.black),
@@ -6468,7 +6468,7 @@ class _AttendanceTabState extends ConsumerState<AttendanceTab> {
     return Container(
       margin: const EdgeInsets.only(bottom: 24),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E1E26),
+        color: VianTheme.cardColor,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.white.withOpacity(0.04)),
       ),
@@ -6497,12 +6497,12 @@ class _AttendanceTabState extends ConsumerState<AttendanceTab> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, size: 16, color: active ? Colors.black : Colors.white70),
+              Icon(icon, size: 16, color: active ? Colors.black : VianTheme.lightText),
               const SizedBox(width: 8),
               Text(
                 label,
-                style: GoogleFonts.outfit(
-                  color: active ? Colors.black : Colors.white70,
+                style: GoogleFonts.hankenGrotesk(
+                  color: active ? Colors.black : VianTheme.lightText,
                   fontSize: 12,
                   fontWeight: active ? FontWeight.bold : FontWeight.normal,
                 ),
@@ -6523,19 +6523,19 @@ class _AttendanceTabState extends ConsumerState<AttendanceTab> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: const [
               Text('EMPLOYEE BIOMETRIC FACE DIRECTORY', style: TextStyle(fontWeight: FontWeight.bold, color: VianTheme.primaryGold)),
-              Text('Super Admin & Admin Face Registration Terminal', style: TextStyle(color: Colors.white54, fontSize: 11)),
+              Text('Super Admin & Admin Face Registration Terminal', style: TextStyle(color: VianTheme.lightText, fontSize: 11)),
             ],
           ),
-          const Divider(color: Colors.white10, height: 24),
+          const Divider(color: VianTheme.goldBorder, height: 24),
           _employees.isEmpty
               ? const Padding(
                   padding: EdgeInsets.all(24.0),
-                  child: Center(child: Text('No employees found', style: TextStyle(color: Colors.white24))),
+                  child: Center(child: Text('No employees found', style: TextStyle(color: VianTheme.lightText))),
                 )
               : Container(
                   width: double.infinity,
                   child: DataTable(
-                    headingRowColor: MaterialStateProperty.all(const Color(0xFF1E1E26)),
+                    headingRowColor: MaterialStateProperty.all(VianTheme.cardColor),
                     dataRowHeight: 64,
                     columns: const [
                       DataColumn(label: Text('Employee ID', style: TextStyle(color: VianTheme.primaryGold))),
@@ -6555,14 +6555,14 @@ class _AttendanceTabState extends ConsumerState<AttendanceTab> {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                               decoration: BoxDecoration(
-                                color: isEnrolled ? const Color(0x1A10B981) : Colors.white10,
+                                color: isEnrolled ? const Color(0x1A10B981) : VianTheme.goldBorder,
                                 borderRadius: BorderRadius.circular(6),
-                                border: Border.all(color: isEnrolled ? Colors.greenAccent.withOpacity(0.3) : Colors.white24),
+                                border: Border.all(color: isEnrolled ? Colors.greenAccent.withOpacity(0.3) : VianTheme.lightText),
                               ),
                               child: Text(
                                 isEnrolled ? 'Registered' : 'Not Configured',
                                 style: TextStyle(
-                                  color: isEnrolled ? Colors.greenAccent : Colors.white70,
+                                  color: isEnrolled ? Colors.greenAccent : VianTheme.lightText,
                                   fontSize: 11,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -6592,7 +6592,7 @@ class _AttendanceTabState extends ConsumerState<AttendanceTab> {
         child: Center(
           child: Padding(
             padding: EdgeInsets.all(32.0),
-            child: Text('No active projects found to configure geofencing.', style: TextStyle(color: Colors.white30)),
+            child: Text('No active projects found to configure geofencing.', style: TextStyle(color: VianTheme.lightText)),
           ),
         ),
       );
@@ -6635,7 +6635,7 @@ class _AttendanceTabState extends ConsumerState<AttendanceTab> {
                         hasCoords 
                             ? '${GpsAddressResolver.resolve(double.parse(proj['latitude'].toString()), double.parse(proj['longitude'].toString())).toShortString()} (${proj['allowedRadius'] ?? 100}m)' 
                             : 'Geofence Not Configured',
-                        style: TextStyle(color: hasCoords ? Colors.white60 : VianTheme.danger, fontSize: 10),
+                        style: TextStyle(color: hasCoords ? VianTheme.lightText : VianTheme.danger, fontSize: 10),
                       ),
                       trailing: IconButton(
                         icon: const Icon(Icons.edit_location_alt, size: 18, color: VianTheme.primaryGold),
@@ -6664,12 +6664,12 @@ class _AttendanceTabState extends ConsumerState<AttendanceTab> {
                         children: [
                           Text(
                             (selectedProj['name'] ?? '').toUpperCase(),
-                            style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: VianTheme.primaryGold),
+                            style: GoogleFonts.hankenGrotesk(fontWeight: FontWeight.bold, color: VianTheme.primaryGold),
                           ),
                           const SizedBox(height: 2),
                           Text(
                             'Site ID: ${selectedProj['projectId'] ?? "N/A"}',
-                            style: const TextStyle(color: Colors.white54, fontSize: 11),
+                            style: const TextStyle(color: VianTheme.lightText, fontSize: 11),
                           ),
                         ],
                       ),
@@ -6682,7 +6682,7 @@ class _AttendanceTabState extends ConsumerState<AttendanceTab> {
                     ),
                   ],
                 ),
-                const Divider(color: Colors.white10, height: 24),
+                const Divider(color: VianTheme.goldBorder, height: 24),
                 ProjectGeofenceMap(
                   projectName: selectedProj['name'] ?? 'Project Site',
                   projectLatitude: selectedProj['latitude'] != null ? double.parse(selectedProj['latitude'].toString()) : 28.4595,
@@ -6694,7 +6694,7 @@ class _AttendanceTabState extends ConsumerState<AttendanceTab> {
                 const SizedBox(height: 16),
                 const Text(
                   'Site Geodetic Telemetry Details:',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.white70),
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: VianTheme.lightText),
                 ),
                 const SizedBox(height: 10),
                 _telemetryRow('Site Resolved Name', hasCoords ? GpsAddressResolver.resolve(double.parse(selectedProj['latitude'].toString()), double.parse(selectedProj['longitude'].toString())).siteName : 'Not Set'),
@@ -6715,7 +6715,7 @@ class _AttendanceTabState extends ConsumerState<AttendanceTab> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(color: Colors.white54, fontSize: 11)),
+          Text(label, style: const TextStyle(color: VianTheme.lightText, fontSize: 11)),
           Text(value, style: const TextStyle(color: VianTheme.whiteText, fontSize: 11, fontWeight: FontWeight.w600)),
         ],
       ),
@@ -6731,15 +6731,15 @@ class _AttendanceTabState extends ConsumerState<AttendanceTab> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: const [
               Text('PENDING GEOFENCE BREACH APPROVALS', style: TextStyle(fontWeight: FontWeight.bold, color: VianTheme.primaryGold)),
-              Text('Roster manual verification overrides panel', style: TextStyle(color: Colors.white54, fontSize: 11)),
+              Text('Roster manual verification overrides panel', style: TextStyle(color: VianTheme.lightText, fontSize: 11)),
             ],
           ),
-          const Divider(color: Colors.white10, height: 24),
+          const Divider(color: VianTheme.goldBorder, height: 24),
           _pendingApprovals.isEmpty
               ? const Padding(
                   padding: EdgeInsets.symmetric(vertical: 32.0),
                   child: Center(
-                    child: Text('No pending geofence override approvals today.', style: TextStyle(color: Colors.white30, fontSize: 13)),
+                    child: Text('No pending geofence override approvals today.', style: TextStyle(color: VianTheme.lightText, fontSize: 13)),
                   ),
                 )
               : ListView.builder(
@@ -6755,7 +6755,7 @@ class _AttendanceTabState extends ConsumerState<AttendanceTab> {
                       margin: const EdgeInsets.only(bottom: 12),
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF1E1E26),
+                        color: VianTheme.cardColor,
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(color: Colors.white.withOpacity(0.04)),
                       ),
@@ -6783,7 +6783,7 @@ class _AttendanceTabState extends ConsumerState<AttendanceTab> {
                                 const SizedBox(height: 6),
                                 Text(
                                   'Date: ${pending['date']} | Time: ${pending['checkInTime'] ?? "N/A"}',
-                                  style: const TextStyle(color: Colors.white54, fontSize: 11),
+                                  style: const TextStyle(color: VianTheme.lightText, fontSize: 11),
                                 ),
                                 (() {
                                   final latVal = double.tryParse(pending['checkInLatitude']?.toString() ?? '0.0') ?? 0.0;
@@ -6794,11 +6794,11 @@ class _AttendanceTabState extends ConsumerState<AttendanceTab> {
                                     children: [
                                       Text(
                                         'Check-In Place: ${address.siteName} (Near ${address.landmark})',
-                                        style: const TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold),
+                                        style: const TextStyle(color: VianTheme.lightText, fontSize: 11, fontWeight: FontWeight.bold),
                                       ),
                                       Text(
                                         'Address: ${address.toAddressOnly()}',
-                                        style: const TextStyle(color: Colors.white54, fontSize: 10),
+                                        style: const TextStyle(color: VianTheme.lightText, fontSize: 10),
                                       ),
                                     ],
                                   );
@@ -6851,7 +6851,7 @@ class _AttendanceTabState extends ConsumerState<AttendanceTab> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: const [
                   Text('ATTENDANCE BUSINESS COMMAND CENTER', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: VianTheme.primaryGold)),
-                  Text('Super Admin Configuration & Security Audit Panel', style: TextStyle(color: Color(0xFF70707C))),
+                  Text('Super Admin Configuration & Security Audit Panel', style: TextStyle(color: VianTheme.lightText)),
                 ],
               ),
               IconButton(icon: const Icon(Icons.refresh, color: VianTheme.primaryGold), onPressed: _loadTabContent),
@@ -6880,7 +6880,7 @@ class _AttendanceTabState extends ConsumerState<AttendanceTab> {
                     children: [
                       Expanded(
                         child: DropdownButtonFormField<String>(
-                          dropdownColor: const Color(0xFF1E1E26),
+                          dropdownColor: VianTheme.cardColor,
                           value: _selectedMonthForLock,
                           items: ['2026-05', '2026-06', '2026-07', '2026-08'].map((m) {
                             return DropdownMenuItem<String>(value: m, child: Text(m));
@@ -6965,7 +6965,7 @@ class _AttendanceTabState extends ConsumerState<AttendanceTab> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: const [
                   Text('ADMIN ATTENDANCE CONTROL', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: VianTheme.primaryGold)),
-                  Text('Manual Entry, Corrections, and Live Operations Roster', style: TextStyle(color: Color(0xFF70707C))),
+                  Text('Manual Entry, Corrections, and Live Operations Roster', style: TextStyle(color: VianTheme.lightText)),
                 ],
               ),
               Row(
@@ -7010,11 +7010,11 @@ class _AttendanceTabState extends ConsumerState<AttendanceTab> {
                   const Icon(Icons.pin_drop, size: 48, color: VianTheme.primaryGold),
                   const SizedBox(height: 16),
                   const Text('GPS Geofenced Attendance', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: VianTheme.primaryGold)),
-                  const Text('Secure biometric & geofence validated punch terminal', style: TextStyle(color: Color(0xFF70707C), fontSize: 12), textAlign: TextAlign.center),
+                  Text('Secure biometric & geofence validated punch terminal', style: TextStyle(color: VianTheme.lightText, fontSize: 12), textAlign: TextAlign.center),
                   const SizedBox(height: 28),
                   Container(
                     padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(color: const Color(0xFF1E1E26), borderRadius: BorderRadius.circular(8)),
+                    decoration: BoxDecoration(color: VianTheme.cardColor, borderRadius: BorderRadius.circular(8)),
                     child: Row(
                       children: [
                         const Icon(Icons.my_location, color: VianTheme.primaryGold, size: 20),
@@ -7023,7 +7023,7 @@ class _AttendanceTabState extends ConsumerState<AttendanceTab> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text('GPS Resolved Location', style: TextStyle(fontSize: 10, color: Color(0xFF70707C))),
+                              Text('GPS Resolved Location', style: TextStyle(fontSize: 10, color: VianTheme.lightText)),
                               const SizedBox(height: 4),
                               (() {
                                 double latVal = 28.4630;
@@ -7076,7 +7076,7 @@ class _AttendanceTabState extends ConsumerState<AttendanceTab> {
                   _reports.isEmpty
                       ? const Padding(
                           padding: EdgeInsets.symmetric(vertical: 24.0),
-                          child: Center(child: Text('No attendance records logged this month.', style: TextStyle(color: Colors.white30))),
+                          child: Center(child: Text('No attendance records logged this month.', style: TextStyle(color: VianTheme.lightText))),
                         )
                       : ListView.builder(
                           shrinkWrap: true,
@@ -7104,7 +7104,7 @@ class _AttendanceTabState extends ConsumerState<AttendanceTab> {
                                         double.parse(r['checkInLatitude'].toString()),
                                         double.parse(r['checkInLongitude'].toString()),
                                       ).toShortString(),
-                                      style: const TextStyle(fontSize: 10, color: Colors.white54),
+                                      style: const TextStyle(fontSize: 10, color: VianTheme.lightText),
                                     ),
                                   ],
                                 ],
@@ -7234,7 +7234,7 @@ class _DrawingsTabState extends State<DrawingsTab> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text('Drawings & Blueprint Versioning', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: VianTheme.primaryGold)),
-          const Text('Manage elevations, interior layouts, structural blueprints, and approvals', style: TextStyle(color: Color(0xFF70707C))),
+          Text('Manage elevations, interior layouts, structural blueprints, and approvals', style: TextStyle(color: VianTheme.lightText)),
           const SizedBox(height: 24),
           Expanded(
             child: ListView.builder(
@@ -7269,7 +7269,7 @@ class _DrawingsTabState extends State<DrawingsTab> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF1E1E26),
+                            color: VianTheme.cardColor,
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
@@ -7449,7 +7449,7 @@ class _DocumentsTabState extends State<DocumentsTab> {
                           ),
                           child: Row(
                             children: [
-                              Icon(Icons.folder, color: isSelected ? VianTheme.primaryGold : const Color(0xFF70707C), size: 18),
+                              Icon(Icons.folder, color: isSelected ? VianTheme.primaryGold : VianTheme.lightText, size: 18),
                               const SizedBox(width: 8),
                               Expanded(child: Text(f, style: TextStyle(fontSize: 13, color: isSelected ? VianTheme.primaryGold : VianTheme.lightText))),
                             ],
@@ -7474,7 +7474,7 @@ class _DocumentsTabState extends State<DocumentsTab> {
                   const SizedBox(height: 16),
                   Expanded(
                     child: filteredFiles.isEmpty
-                        ? const Center(child: Text('No documents in this category', style: TextStyle(color: Color(0xFF70707C))))
+                        ? Center(child: Text('No documents in this category', style: TextStyle(color: VianTheme.lightText)))
                         : ListView.builder(
                             itemCount: filteredFiles.length,
                             itemBuilder: (context, index) {
@@ -7512,7 +7512,7 @@ class _DocumentsTabState extends State<DocumentsTab> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                  Text('$size | Added on $date', style: const TextStyle(fontSize: 11, color: Color(0xFF70707C))),
+                  Text('$size | Added on $date', style: TextStyle(fontSize: 11, color: VianTheme.lightText)),
                 ],
               ),
             ),
@@ -7584,7 +7584,7 @@ class _QuotationsTabState extends State<QuotationsTab> {
           final double grandTotal = subtotal + taxAmt - disc;
 
           return AlertDialog(
-            backgroundColor: const Color(0xFF1E1E26),
+            backgroundColor: VianTheme.cardColor,
             title: const Text('Create Quotation', style: TextStyle(color: VianTheme.primaryGold)),
             content: SizedBox(
               width: 600,
@@ -7598,12 +7598,12 @@ class _QuotationsTabState extends State<QuotationsTab> {
                         labelText: 'Select Project *',
                         errorText: projectError,
                       ),
-                      dropdownColor: const Color(0xFF1E1E26),
+                      dropdownColor: VianTheme.cardColor,
                       value: selectedProjectId,
                       items: _projects.map<DropdownMenuItem<int>>((p) {
                         return DropdownMenuItem<int>(
                           value: p['id'] as int,
-                          child: Text(p['name'] ?? '', style: const TextStyle(color: Colors.white)),
+                          child: Text(p['name'] ?? '', style: TextStyle(color: VianTheme.whiteText)),
                         );
                       }).toList(),
                       onChanged: (val) {
@@ -7639,7 +7639,7 @@ class _QuotationsTabState extends State<QuotationsTab> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('Line Items', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+                        Text('Line Items', style: TextStyle(fontWeight: FontWeight.bold, color: VianTheme.whiteText)),
                         TextButton.icon(
                           onPressed: () {
                             setDlgState(() {
@@ -7716,7 +7716,7 @@ class _QuotationsTabState extends State<QuotationsTab> {
                         );
                       },
                     ),
-                    const Divider(color: Colors.white10, height: 32),
+                    const Divider(color: VianTheme.goldBorder, height: 32),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -7740,7 +7740,7 @@ class _QuotationsTabState extends State<QuotationsTab> {
                         Text('- ${formatter.format(disc)}', style: const TextStyle(fontWeight: FontWeight.bold)),
                       ],
                     ),
-                    const Divider(color: Colors.white10),
+                    const Divider(color: VianTheme.goldBorder),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -7830,7 +7830,7 @@ class _QuotationsTabState extends State<QuotationsTab> {
                 children: [
                   Text(
                     'QUOTATIONS REGISTRY',
-                    style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 24, fontWeight: FontWeight.bold, letterSpacing: 1.0),
+                    style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontSize: 24, fontWeight: FontWeight.bold, letterSpacing: 1.0),
                   ),
                   const SizedBox(height: 4),
                   Text(
@@ -7848,7 +7848,7 @@ class _QuotationsTabState extends State<QuotationsTab> {
                     shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
                   ),
                   icon: const Icon(Icons.add, size: 16),
-                  label: Text('NEW QUOTATION', style: GoogleFonts.outfit(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
+                  label: Text('NEW QUOTATION', style: GoogleFonts.hankenGrotesk(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
                   onPressed: () => _showCreateQuotationDialog(role),
                 ),
             ],
@@ -7860,7 +7860,7 @@ class _QuotationsTabState extends State<QuotationsTab> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.description_outlined, size: 48, color: Colors.white24),
+                        Icon(Icons.description_outlined, size: 48, color: VianTheme.lightText),
                         SizedBox(height: 16),
                         Text('No Quotations Recorded', style: TextStyle(color: VianTheme.lightText, fontSize: 14)),
                       ],
@@ -7879,7 +7879,7 @@ class _QuotationsTabState extends State<QuotationsTab> {
                           child: Row(
                             children: [
                               const CircleAvatar(
-                                backgroundColor: Color(0xFF1E1E26),
+                                backgroundColor: VianTheme.cardColor,
                                 child: Icon(Icons.description, color: VianTheme.primaryGold),
                               ),
                               const SizedBox(width: 16),
@@ -7990,7 +7990,7 @@ class _InvoicesTabState extends State<InvoicesTab> {
           final double grandTotal = subtotal + taxAmt - disc;
 
           return AlertDialog(
-            backgroundColor: const Color(0xFF1E1E26),
+            backgroundColor: VianTheme.cardColor,
             title: const Text('Create Invoice', style: TextStyle(color: VianTheme.primaryGold)),
             content: SizedBox(
               width: 600,
@@ -8004,12 +8004,12 @@ class _InvoicesTabState extends State<InvoicesTab> {
                         labelText: 'Select Project *',
                         errorText: projectError,
                       ),
-                      dropdownColor: const Color(0xFF1E1E26),
+                      dropdownColor: VianTheme.cardColor,
                       value: selectedProjectId,
                       items: _projects.map<DropdownMenuItem<int>>((p) {
                         return DropdownMenuItem<int>(
                           value: p['id'] as int,
-                          child: Text(p['name'] ?? '', style: const TextStyle(color: Colors.white)),
+                          child: Text(p['name'] ?? '', style: TextStyle(color: VianTheme.whiteText)),
                         );
                       }).toList(),
                       onChanged: (val) {
@@ -8050,7 +8050,7 @@ class _InvoicesTabState extends State<InvoicesTab> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('Invoice Items', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+                        Text('Invoice Items', style: TextStyle(fontWeight: FontWeight.bold, color: VianTheme.whiteText)),
                         TextButton.icon(
                           onPressed: () {
                             setDlgState(() {
@@ -8127,7 +8127,7 @@ class _InvoicesTabState extends State<InvoicesTab> {
                         );
                       },
                     ),
-                    const Divider(color: Colors.white10, height: 32),
+                    const Divider(color: VianTheme.goldBorder, height: 32),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -8151,7 +8151,7 @@ class _InvoicesTabState extends State<InvoicesTab> {
                         Text('- ${formatter.format(disc)}', style: const TextStyle(fontWeight: FontWeight.bold)),
                       ],
                     ),
-                    const Divider(color: Colors.white10),
+                    const Divider(color: VianTheme.goldBorder),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -8224,13 +8224,13 @@ class _InvoicesTabState extends State<InvoicesTab> {
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (context, setStateModal) => AlertDialog(
-          backgroundColor: const Color(0xFF1E1E26),
+          backgroundColor: VianTheme.cardColor,
           title: const Text('Update Invoice Status', style: TextStyle(color: VianTheme.primaryGold)),
           content: DropdownButtonFormField<String>(
             value: selectedStatus,
-            dropdownColor: const Color(0xFF1E1E26),
+            dropdownColor: VianTheme.cardColor,
             items: ['Draft', 'Sent', 'Paid', 'Overdue'].map((s) {
-              return DropdownMenuItem(value: s, child: Text(s, style: const TextStyle(color: Colors.white)));
+              return DropdownMenuItem(value: s, child: Text(s, style: TextStyle(color: VianTheme.whiteText)));
             }).toList(),
             onChanged: (v) => setStateModal(() => selectedStatus = v!),
           ),
@@ -8304,7 +8304,7 @@ class _InvoicesTabState extends State<InvoicesTab> {
                 children: [
                   Text(
                     'FINANCIALS HUB',
-                    style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 24, fontWeight: FontWeight.bold, letterSpacing: 1.0),
+                    style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontSize: 24, fontWeight: FontWeight.bold, letterSpacing: 1.0),
                   ),
                   const SizedBox(height: 4),
                   Text(
@@ -8322,7 +8322,7 @@ class _InvoicesTabState extends State<InvoicesTab> {
                     shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
                   ),
                   icon: const Icon(Icons.add, size: 16),
-                  label: Text('NEW INVOICE', style: GoogleFonts.outfit(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
+                  label: Text('NEW INVOICE', style: GoogleFonts.hankenGrotesk(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
                   onPressed: () => _showCreateInvoiceDialog(role),
                 ),
             ],
@@ -8396,7 +8396,7 @@ class _InvoicesTabState extends State<InvoicesTab> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('RECENT TRANSACTIONS', style: GoogleFonts.outfit(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+                          Text('RECENT TRANSACTIONS', style: GoogleFonts.hankenGrotesk(color: VianTheme.whiteText, fontSize: 15, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
                           const SizedBox(height: 4),
                           Text('Detailed breakdown of architectural project billing cycles', style: GoogleFonts.inter(color: VianTheme.lightText, fontSize: 12)),
                         ],
@@ -8406,7 +8406,7 @@ class _InvoicesTabState extends State<InvoicesTab> {
                           OutlinedButton.icon(
                             style: OutlinedButton.styleFrom(
                               foregroundColor: Colors.white,
-                              side: const BorderSide(color: Colors.white10),
+                              side: const BorderSide(color: VianTheme.goldBorder),
                               shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
                             ),
                             icon: const Icon(Icons.filter_list, size: 14),
@@ -8417,7 +8417,7 @@ class _InvoicesTabState extends State<InvoicesTab> {
                           OutlinedButton.icon(
                             style: OutlinedButton.styleFrom(
                               foregroundColor: Colors.white,
-                              side: const BorderSide(color: Colors.white10),
+                              side: const BorderSide(color: VianTheme.goldBorder),
                               shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
                             ),
                             icon: const Icon(Icons.file_download, size: 14),
@@ -8429,22 +8429,22 @@ class _InvoicesTabState extends State<InvoicesTab> {
                     ],
                   ),
                 ),
-                const Divider(color: Colors.white10, height: 1),
+                const Divider(color: VianTheme.goldBorder, height: 1),
                 
                 // Table Header
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
                   child: Row(
                     children: [
-                      Expanded(flex: 2, child: Text('INVOICE ID', style: GoogleFonts.poppins(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold))),
-                      Expanded(flex: 4, child: Text('CLIENT & PROJECT', style: GoogleFonts.poppins(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold))),
-                      Expanded(flex: 2, child: Text('ISSUE DATE', style: GoogleFonts.poppins(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold))),
-                      Expanded(flex: 2, child: Text('STATUS', style: GoogleFonts.poppins(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold))),
-                      Expanded(flex: 3, child: Text('AMOUNT', style: GoogleFonts.poppins(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold), textAlign: TextAlign.right)),
+                      Expanded(flex: 2, child: Text('INVOICE ID', style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold))),
+                      Expanded(flex: 4, child: Text('CLIENT & PROJECT', style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold))),
+                      Expanded(flex: 2, child: Text('ISSUE DATE', style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold))),
+                      Expanded(flex: 2, child: Text('STATUS', style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold))),
+                      Expanded(flex: 3, child: Text('AMOUNT', style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold), textAlign: TextAlign.right)),
                     ],
                   ),
                 ),
-                const Divider(color: Colors.white10, height: 1),
+                const Divider(color: VianTheme.goldBorder, height: 1),
 
                 _invoices.isEmpty
                     ? const Padding(
@@ -8478,7 +8478,7 @@ class _InvoicesTabState extends State<InvoicesTab> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('SHOWING ${_invoices.isEmpty ? 4 : _invoices.length} OF 128 TRANSACTIONS', style: GoogleFonts.outfit(color: VianTheme.lightText, fontSize: 10, fontWeight: FontWeight.bold)),
+                      Text('SHOWING ${_invoices.isEmpty ? 4 : _invoices.length} OF 128 TRANSACTIONS', style: GoogleFonts.hankenGrotesk(color: VianTheme.lightText, fontSize: 10, fontWeight: FontWeight.bold)),
                       Row(
                         children: [
                           _buildPageButton('<', active: false),
@@ -8548,7 +8548,7 @@ class _InvoicesTabState extends State<InvoicesTab> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(title, style: GoogleFonts.outfit(color: VianTheme.lightText, fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
+                Text(title, style: GoogleFonts.hankenGrotesk(color: VianTheme.lightText, fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
                 Icon(icon, color: color.withOpacity(0.4), size: 20),
               ],
             ),
@@ -8585,8 +8585,8 @@ class _InvoicesTabState extends State<InvoicesTab> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('AGING ANALYSIS', style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
-              const Icon(Icons.query_stats, color: Colors.white30, size: 16),
+              Text('AGING ANALYSIS', style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
+              const Icon(Icons.query_stats, color: VianTheme.lightText, size: 16),
             ],
           ),
           const Spacer(),
@@ -8646,27 +8646,27 @@ class _InvoicesTabState extends State<InvoicesTab> {
 
     return Container(
       decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: Colors.white10, width: 0.5)),
+        border: Border(bottom: BorderSide(color: VianTheme.goldBorder, width: 0.5)),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
       child: Row(
         children: [
-          Expanded(flex: 2, child: Text(invId, style: GoogleFonts.poppins(color: VianTheme.lightText, fontSize: 13))),
+          Expanded(flex: 2, child: Text(invId, style: GoogleFonts.hankenGrotesk(color: VianTheme.lightText, fontSize: 13))),
           Expanded(
             flex: 4,
             child: Row(
               children: [
                 CircleAvatar(
                   radius: 14,
-                  backgroundColor: Colors.white10,
-                  child: Text(clientName[0].toUpperCase(), style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold)),
+                  backgroundColor: VianTheme.goldBorder,
+                  child: Text(clientName[0].toUpperCase(), style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold)),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(clientName, style: GoogleFonts.inter(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
+                      Text(clientName, style: GoogleFonts.inter(color: VianTheme.whiteText, fontSize: 13, fontWeight: FontWeight.bold)),
                       Text(project, style: GoogleFonts.inter(color: VianTheme.lightText, fontSize: 11)),
                     ],
                   ),
@@ -8674,7 +8674,7 @@ class _InvoicesTabState extends State<InvoicesTab> {
               ],
             ),
           ),
-          Expanded(flex: 2, child: Text(date, style: GoogleFonts.poppins(color: VianTheme.lightText, fontSize: 12))),
+          Expanded(flex: 2, child: Text(date, style: GoogleFonts.hankenGrotesk(color: VianTheme.lightText, fontSize: 12))),
           Expanded(
             flex: 2,
             child: Row(
@@ -8684,13 +8684,13 @@ class _InvoicesTabState extends State<InvoicesTab> {
                   color: statusColor.withOpacity(0.1),
                   child: Text(
                     status.toUpperCase(),
-                    style: GoogleFonts.outfit(color: statusColor, fontSize: 9, fontWeight: FontWeight.bold),
+                    style: GoogleFonts.hankenGrotesk(color: statusColor, fontSize: 9, fontWeight: FontWeight.bold),
                   ),
                 ),
               ],
             ),
           ),
-          Expanded(flex: 3, child: Text(amount, style: GoogleFonts.poppins(color: VianTheme.primaryGold, fontSize: 13, fontWeight: FontWeight.bold), textAlign: TextAlign.right)),
+          Expanded(flex: 3, child: Text(amount, style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontSize: 13, fontWeight: FontWeight.bold), textAlign: TextAlign.right)),
         ],
       ),
     );
@@ -8702,12 +8702,12 @@ class _InvoicesTabState extends State<InvoicesTab> {
       height: 32,
       decoration: BoxDecoration(
         color: active ? VianTheme.primaryGold.withOpacity(0.1) : Colors.transparent,
-        border: Border.all(color: active ? VianTheme.primaryGold : Colors.white12),
+        border: Border.all(color: active ? VianTheme.primaryGold : VianTheme.lightText),
       ),
       child: Center(
         child: Text(
           label,
-          style: GoogleFonts.poppins(
+          style: GoogleFonts.hankenGrotesk(
             color: active ? VianTheme.primaryGold : VianTheme.lightText,
             fontSize: 11,
             fontWeight: active ? FontWeight.bold : FontWeight.normal,
@@ -8734,7 +8734,7 @@ class _InvoicesTabState extends State<InvoicesTab> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('REVENUE FORECAST', style: GoogleFonts.outfit(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
+                  Text('REVENUE FORECAST', style: GoogleFonts.hankenGrotesk(color: VianTheme.whiteText, fontSize: 14, fontWeight: FontWeight.bold)),
                   Text('Projected cash receipts based on upcoming phases', style: GoogleFonts.inter(color: VianTheme.lightText, fontSize: 11)),
                 ],
               ),
@@ -8744,7 +8744,7 @@ class _InvoicesTabState extends State<InvoicesTab> {
                   const SizedBox(width: 4),
                   Text('CONFIRMED', style: GoogleFonts.inter(color: VianTheme.lightText, fontSize: 9)),
                   const SizedBox(width: 12),
-                  Container(width: 8, height: 8, color: Colors.white24),
+                  Container(width: 8, height: 8, color: VianTheme.lightText),
                   const SizedBox(width: 4),
                   Text('PROJECTED', style: GoogleFonts.inter(color: VianTheme.lightText, fontSize: 9)),
                 ],
@@ -8791,7 +8791,7 @@ class _InvoicesTabState extends State<InvoicesTab> {
                   Expanded(
                     child: Container(
                       height: 150 * projectedPct,
-                      color: Colors.white10,
+                      color: VianTheme.goldBorder,
                     ),
                   ),
                 ],
@@ -8815,7 +8815,7 @@ class _InvoicesTabState extends State<InvoicesTab> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('PAYMENT GATEWAYS', style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
+          Text('PAYMENT GATEWAYS', style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
           const SizedBox(height: 16),
           _buildGatewayRow('Chase Corporate', 'ACTIVE', Icons.account_balance),
           const SizedBox(height: 12),
@@ -8829,7 +8829,7 @@ class _InvoicesTabState extends State<InvoicesTab> {
               shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
             ),
             onPressed: () {},
-            child: Text('MANAGE METHODS', style: GoogleFonts.outfit(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
+            child: Text('MANAGE METHODS', style: GoogleFonts.hankenGrotesk(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
           )
         ],
       ),
@@ -8847,9 +8847,9 @@ class _InvoicesTabState extends State<InvoicesTab> {
         children: [
           Icon(icon, color: VianTheme.primaryGold, size: 16),
           const SizedBox(width: 12),
-          Text(name, style: GoogleFonts.inter(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+          Text(name, style: GoogleFonts.inter(color: VianTheme.whiteText, fontSize: 12, fontWeight: FontWeight.bold)),
           const Spacer(),
-          Text(status, style: GoogleFonts.outfit(color: VianTheme.success, fontSize: 9, fontWeight: FontWeight.bold)),
+          Text(status, style: GoogleFonts.hankenGrotesk(color: VianTheme.success, fontSize: 9, fontWeight: FontWeight.bold)),
         ],
       ),
     );
@@ -8865,7 +8865,7 @@ class _InvoicesTabState extends State<InvoicesTab> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('QUARTERLY REVIEW', style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
+          Text('QUARTERLY REVIEW', style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
           const SizedBox(height: 8),
           Text(
             'Your collection efficiency has improved by 8.4% compared to Q3. Current outstanding invoices average 14 days delay.',
@@ -8876,7 +8876,7 @@ class _InvoicesTabState extends State<InvoicesTab> {
             onTap: () {},
             child: Text(
               'VIEW INSIGHTS REPORT →',
-              style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.0),
+              style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.0),
             ),
           )
         ],
@@ -8938,7 +8938,7 @@ class _ExpensesTabState extends State<ExpensesTab> {
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (context, setDlgState) => AlertDialog(
-          backgroundColor: const Color(0xFF1E1E26),
+          backgroundColor: VianTheme.cardColor,
           title: const Text('New Expense/Disbursement', style: TextStyle(color: VianTheme.primaryGold)),
           content: SizedBox(
             width: 450,
@@ -8951,12 +8951,12 @@ class _ExpensesTabState extends State<ExpensesTab> {
                       labelText: 'Project *',
                       errorText: projectError,
                     ),
-                    dropdownColor: const Color(0xFF1E1E26),
+                    dropdownColor: VianTheme.cardColor,
                     value: selectedProjectId,
                     items: _projects.map<DropdownMenuItem<int>>((p) {
                       return DropdownMenuItem<int>(
                         value: p['id'] as int,
-                        child: Text(p['name'] ?? '', style: const TextStyle(color: Colors.white)),
+                        child: Text(p['name'] ?? '', style: TextStyle(color: VianTheme.whiteText)),
                       );
                     }).toList(),
                     onChanged: (val) {
@@ -8969,12 +8969,12 @@ class _ExpensesTabState extends State<ExpensesTab> {
                   const SizedBox(height: 12),
                   DropdownButtonFormField<String>(
                     decoration: const InputDecoration(labelText: 'Category *'),
-                    dropdownColor: const Color(0xFF1E1E26),
+                    dropdownColor: VianTheme.cardColor,
                     value: selectedCategory,
                     items: ['Site Expenses', 'Material Expenses', 'Labour Expenses', 'Travel Expenses'].map((c) {
                       return DropdownMenuItem<String>(
                         value: c,
-                        child: Text(c, style: const TextStyle(color: Colors.white)),
+                        child: Text(c, style: TextStyle(color: VianTheme.whiteText)),
                       );
                     }).toList(),
                     onChanged: (val) {
@@ -9061,7 +9061,7 @@ class _ExpensesTabState extends State<ExpensesTab> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1E1E26),
+        backgroundColor: VianTheme.cardColor,
         title: const Text('Review Expense Claim', style: TextStyle(color: VianTheme.primaryGold)),
         content: Text('Would you like to approve or reject the expense of ₹${exp['amount']} submitted by ${exp['user']?['name']}?'),
         actions: [
@@ -9113,7 +9113,7 @@ class _ExpensesTabState extends State<ExpensesTab> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text('Expenses & Disbursements Ledger', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: VianTheme.primaryGold)),
-                  const Text('Review site material expenses, labor payments, and travel disbursements', style: TextStyle(color: Color(0xFF70707C))),
+                  Text('Review site material expenses, labor payments, and travel disbursements', style: TextStyle(color: VianTheme.lightText)),
                 ],
               ),
               ElevatedButton.icon(
@@ -9124,7 +9124,7 @@ class _ExpensesTabState extends State<ExpensesTab> {
                   shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
                 ),
                 icon: const Icon(Icons.add, size: 16),
-                label: Text('NEW EXPENSE', style: GoogleFonts.outfit(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
+                label: Text('NEW EXPENSE', style: GoogleFonts.hankenGrotesk(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
                 onPressed: _showCreateExpenseDialog,
               ),
             ],
@@ -9150,7 +9150,7 @@ class _ExpensesTabState extends State<ExpensesTab> {
                             child: Row(
                               children: [
                                 const CircleAvatar(
-                                  backgroundColor: Color(0xFF1E1E26),
+                                  backgroundColor: VianTheme.cardColor,
                                   child: Icon(Icons.receipt, color: VianTheme.primaryGold),
                                 ),
                                 const SizedBox(width: 16),
@@ -9160,7 +9160,7 @@ class _ExpensesTabState extends State<ExpensesTab> {
                                     children: [
                                       Text(formatter.format(safeToDouble(exp['amount'])), style: const TextStyle(fontWeight: FontWeight.bold, color: VianTheme.whiteText, fontSize: 16)),
                                       Text('Category: ${exp['category']} | Project: ${exp['project']?['name'] ?? 'General'}', style: const TextStyle(fontSize: 12)),
-                                      Text('Submitted by: ${exp['user']?['name'] ?? 'Unknown'} on ${exp['date']}', style: const TextStyle(fontSize: 11, color: Color(0xFF70707C))),
+                                      Text('Submitted by: ${exp['user']?['name'] ?? 'Unknown'} on ${exp['date']}', style: TextStyle(fontSize: 11, color: VianTheme.lightText)),
                                     ],
                                   ),
                                 ),
@@ -9197,7 +9197,7 @@ class ReportsTab extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text('Enterprise BI & Reporting', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: VianTheme.primaryGold)),
-          const Text('Compile financial metrics, conversions, and construction schedules', style: TextStyle(color: Color(0xFF70707C))),
+          Text('Compile financial metrics, conversions, and construction schedules', style: TextStyle(color: VianTheme.lightText)),
           const SizedBox(height: 32),
           Expanded(
             child: GridView.count(
@@ -9232,7 +9232,7 @@ class ReportsTab extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-          Expanded(child: Text(desc, style: const TextStyle(fontSize: 12, color: Color(0xFF70707C)))),
+          Expanded(child: Text(desc, style: TextStyle(fontSize: 12, color: VianTheme.lightText))),
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
@@ -9454,7 +9454,7 @@ class _SettingsTabState extends ConsumerState<SettingsTab> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text('Company Configurations', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: VianTheme.primaryGold)),
-          const Text('Configure company profile metadata, permissions, and media configurations', style: TextStyle(color: Color(0xFF70707C))),
+          Text('Configure company profile metadata, permissions, and media configurations', style: TextStyle(color: VianTheme.lightText)),
           const SizedBox(height: 24),
           
           // Office Details Card
@@ -9487,7 +9487,7 @@ class _SettingsTabState extends ConsumerState<SettingsTab> {
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF1E1E26),
+                          color: VianTheme.cardColor,
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(color: const Color(0x33F5A623)),
                         ),
@@ -9540,13 +9540,13 @@ class _SettingsTabState extends ConsumerState<SettingsTab> {
                 
                 // Toggle AI Feature
                 SwitchListTile(
-                  title: const Text('Enable AI Features', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+                  title: Text('Enable AI Features', style: TextStyle(fontWeight: FontWeight.bold, color: VianTheme.whiteText)),
                   subtitle: const Text('Toggle the core construction estimation Gemini AI workflow', style: TextStyle(color: VianTheme.lightText, fontSize: 12)),
                   value: _enableAi,
                   activeColor: VianTheme.primaryGold,
                   onChanged: (v) => setState(() => _enableAi = v),
                 ),
-                const Divider(color: Color(0xFF262635)),
+                Divider(color: VianTheme.goldBorder),
                 
                 if (_enableAi) ...[
                   TextField(
@@ -9564,10 +9564,10 @@ class _SettingsTabState extends ConsumerState<SettingsTab> {
                         child: DropdownButtonFormField<String>(
                           value: _selectedModel,
                           decoration: const InputDecoration(labelText: 'Gemini AI Model'),
-                          dropdownColor: const Color(0xFF1E1E26),
+                          dropdownColor: VianTheme.cardColor,
                           items: const [
-                            DropdownMenuItem(value: 'gemini-1.5-flash', child: Text('gemini-1.5-flash (Fast & Accurate)', style: TextStyle(color: Colors.white))),
-                            DropdownMenuItem(value: 'gemini-1.5-pro', child: Text('gemini-1.5-pro (High intelligence)', style: TextStyle(color: Colors.white))),
+                            DropdownMenuItem(value: 'gemini-1.5-flash', child: Text('gemini-1.5-flash (Fast & Accurate)', style: TextStyle(color: VianTheme.whiteText))),
+                            DropdownMenuItem(value: 'gemini-1.5-pro', child: Text('gemini-1.5-pro (High intelligence)', style: TextStyle(color: VianTheme.whiteText))),
                           ],
                           onChanged: (v) => setState(() => _selectedModel = v!),
                         ),
@@ -9616,25 +9616,25 @@ class _SettingsTabState extends ConsumerState<SettingsTab> {
                   
                   // Detail toggles
                   CheckboxListTile(
-                    title: const Text('Enable PDF Floor Plans Analysis', style: TextStyle(color: Colors.white, fontSize: 13)),
+                    title: Text('Enable PDF Floor Plans Analysis', style: TextStyle(color: VianTheme.whiteText, fontSize: 13)),
                     value: _enablePdf,
                     activeColor: VianTheme.primaryGold,
                     onChanged: (v) => setState(() => _enablePdf = v!),
                   ),
                   CheckboxListTile(
-                    title: const Text('Enable Image Floor Plans Analysis', style: TextStyle(color: Colors.white, fontSize: 13)),
+                    title: Text('Enable Image Floor Plans Analysis', style: TextStyle(color: VianTheme.whiteText, fontSize: 13)),
                     value: _enableImage,
                     activeColor: VianTheme.primaryGold,
                     onChanged: (v) => setState(() => _enableImage = v!),
                   ),
                   CheckboxListTile(
-                    title: const Text('Enable Automatic BOQ Estimator', style: TextStyle(color: Colors.white, fontSize: 13)),
+                    title: Text('Enable Automatic BOQ Estimator', style: TextStyle(color: VianTheme.whiteText, fontSize: 13)),
                     value: _enableBoq,
                     activeColor: VianTheme.primaryGold,
                     onChanged: (v) => setState(() => _enableBoq = v!),
                   ),
                   CheckboxListTile(
-                    title: const Text('Enable Automatic Cost Calculator', style: TextStyle(color: Colors.white, fontSize: 13)),
+                    title: Text('Enable Automatic Cost Calculator', style: TextStyle(color: VianTheme.whiteText, fontSize: 13)),
                     value: _enableCost,
                     activeColor: VianTheme.primaryGold,
                     onChanged: (v) => setState(() => _enableCost = v!),
@@ -9662,7 +9662,7 @@ class _SettingsTabState extends ConsumerState<SettingsTab> {
                     ),
                   ],
                   
-                  const Divider(color: Color(0xFF262635), height: 32),
+                  Divider(color: VianTheme.goldBorder, height: 32),
                   
                   // Usage stats
                   const Text('API Token Usage Tracking', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: VianTheme.primaryGold)),
@@ -9692,12 +9692,12 @@ class _SettingsTabState extends ConsumerState<SettingsTab> {
                   const SizedBox(height: 24),
                   Row(
                     children: [
-                      const Text('Select Module: ', style: TextStyle(color: Colors.white)),
+                      Text('Select Module: ', style: TextStyle(color: VianTheme.whiteText)),
                       const SizedBox(width: 12),
                       DropdownButton<String>(
                         value: _selectedTrashModule,
-                        dropdownColor: const Color(0xFF1E1E26),
-                        style: const TextStyle(color: Colors.white),
+                        dropdownColor: VianTheme.cardColor,
+                        style: TextStyle(color: VianTheme.whiteText),
                         items: const [
                           DropdownMenuItem(value: 'leads', child: Text('CRM Leads')),
                           DropdownMenuItem(value: 'clients', child: Text('Clients')),
@@ -9738,7 +9738,7 @@ class _SettingsTabState extends ConsumerState<SettingsTab> {
                   else if (_trashItems.isEmpty)
                     const Padding(
                       padding: EdgeInsets.symmetric(vertical: 16.0),
-                      child: Text('No items in trash for this module.', style: TextStyle(color: Colors.white54, fontStyle: FontStyle.italic)),
+                      child: Text('No items in trash for this module.', style: TextStyle(color: VianTheme.lightText, fontStyle: FontStyle.italic)),
                     )
                   else
                     ListView.builder(
@@ -9754,8 +9754,8 @@ class _SettingsTabState extends ConsumerState<SettingsTab> {
                           deletedDetails = 'Deleted at: $dateStr by: ${item['deletedBy'] ?? 'Unknown'}';
                         }
                         return ListTile(
-                          title: Text(displayName, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                          subtitle: Text(deletedDetails, style: const TextStyle(color: Colors.white54, fontSize: 11)),
+                          title: Text(displayName, style: TextStyle(color: VianTheme.whiteText, fontWeight: FontWeight.bold)),
+                          subtitle: Text(deletedDetails, style: const TextStyle(color: VianTheme.lightText, fontSize: 11)),
                           trailing: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
@@ -9823,9 +9823,9 @@ class _SettingsTabState extends ConsumerState<SettingsTab> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: const Color(0xFF1E1E26),
+          color: VianTheme.cardColor,
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: const Color(0xFF262635)),
+          border: Border.all(color: VianTheme.goldBorder),
         ),
         child: Row(
           children: [
@@ -9835,7 +9835,7 @@ class _SettingsTabState extends ConsumerState<SettingsTab> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(label, style: const TextStyle(fontSize: 12, color: VianTheme.lightText)),
-                Text(value, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                Text(value, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: VianTheme.whiteText)),
               ],
             ),
           ],
@@ -9886,12 +9886,12 @@ class NotificationsPanel extends StatelessWidget {
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(vertical: 4),
       leading: CircleAvatar(
-        backgroundColor: read ? const Color(0xFF1E1E26) : const Color(0xFF2E2E36),
+        backgroundColor: read ? VianTheme.cardColor : Color(0xFF2E2E36),
         radius: 6,
       ),
       title: Text(title, style: TextStyle(fontWeight: read ? FontWeight.normal : FontWeight.bold, fontSize: 13, color: VianTheme.whiteText)),
-      subtitle: Text(desc, style: const TextStyle(fontSize: 11, color: const Color(0xFF70707C))),
-      trailing: Text(time, style: const TextStyle(fontSize: 10, color: const Color(0xFF70707C))),
+      subtitle: Text(desc, style: TextStyle(fontSize: 11, color: VianTheme.lightText)),
+      trailing: Text(time, style: TextStyle(fontSize: 10, color: VianTheme.lightText)),
     );
   }
 }
@@ -10226,7 +10226,7 @@ class _ContractorTabState extends State<ContractorTab> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text('Contractor Catalog', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+            Text('Contractor Catalog', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: VianTheme.whiteText)),
             VianButton(
               text: 'Add Contractor',
               icon: Icons.person_add,
@@ -10237,7 +10237,7 @@ class _ContractorTabState extends State<ContractorTab> {
         const SizedBox(height: 16),
         Expanded(
           child: _contractors.isEmpty
-              ? const Center(child: Text('No contractors registered yet.', style: TextStyle(color: Color(0xFF70707C))))
+              ? Center(child: Text('No contractors registered yet.', style: TextStyle(color: VianTheme.lightText)))
               : ListView.builder(
                   itemCount: _contractors.length,
                   itemBuilder: (context, index) {
@@ -10247,7 +10247,7 @@ class _ContractorTabState extends State<ContractorTab> {
                       child: VianCard(
                         child: ListTile(
                           leading: const CircleAvatar(
-                            backgroundColor: Color(0xFF1E1E26),
+                            backgroundColor: VianTheme.cardColor,
                             child: Icon(Icons.business, color: VianTheme.primaryGold),
                           ),
                           title: Text(c['name'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold, color: VianTheme.whiteText)),
@@ -10282,7 +10282,7 @@ class _ContractorTabState extends State<ContractorTab> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text('Master Payment Release Stages', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+            Text('Master Payment Release Stages', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: VianTheme.whiteText)),
             if (isAllowed)
               VianButton(
                 text: 'Add Release Stage',
@@ -10307,7 +10307,7 @@ class _ContractorTabState extends State<ContractorTab> {
                 Expanded(
                   child: Text(
                     'Viewing Mode Only: Editing and defining stages is restricted to Admins and Superadmins.',
-                    style: TextStyle(color: Colors.white70, fontSize: 13),
+                    style: TextStyle(color: VianTheme.lightText, fontSize: 13),
                   ),
                 ),
               ],
@@ -10317,7 +10317,7 @@ class _ContractorTabState extends State<ContractorTab> {
         const SizedBox(height: 16),
         Expanded(
           child: _stages.isEmpty
-              ? const Center(child: Text('No stages defined yet.', style: TextStyle(color: Color(0xFF70707C))))
+              ? Center(child: Text('No stages defined yet.', style: TextStyle(color: VianTheme.lightText)))
               : ListView.builder(
                   itemCount: _stages.length,
                   itemBuilder: (context, index) {
@@ -10327,7 +10327,7 @@ class _ContractorTabState extends State<ContractorTab> {
                       child: VianCard(
                         child: ListTile(
                           leading: const CircleAvatar(
-                            backgroundColor: Color(0xFF1E1E26),
+                            backgroundColor: VianTheme.cardColor,
                             child: Icon(Icons.playlist_add_check, color: VianTheme.primaryGold),
                           ),
                           title: Text(s['name'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold, color: VianTheme.whiteText)),
@@ -10364,7 +10364,7 @@ class _ContractorTabState extends State<ContractorTab> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text('Payment Release Ledger', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+            Text('Payment Release Ledger', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: VianTheme.whiteText)),
             VianButton(
               text: 'Release Payment',
               icon: Icons.add_card,
@@ -10375,7 +10375,7 @@ class _ContractorTabState extends State<ContractorTab> {
         const SizedBox(height: 16),
         Expanded(
           child: _releases.isEmpty
-              ? const Center(child: Text('No payment releases recorded yet.', style: TextStyle(color: Color(0xFF70707C))))
+              ? Center(child: Text('No payment releases recorded yet.', style: TextStyle(color: VianTheme.lightText)))
               : ListView.builder(
                   itemCount: _releases.length,
                   itemBuilder: (context, index) {
@@ -10388,7 +10388,7 @@ class _ContractorTabState extends State<ContractorTab> {
                       child: VianCard(
                         child: ListTile(
                           leading: const CircleAvatar(
-                            backgroundColor: Color(0xFF1E1E26),
+                            backgroundColor: VianTheme.cardColor,
                             child: Icon(Icons.payment, color: VianTheme.success),
                           ),
                           title: Text('$contractorName - $projectName', style: const TextStyle(fontWeight: FontWeight.bold, color: VianTheme.whiteText)),
@@ -10442,13 +10442,13 @@ class _ContractorTabState extends State<ContractorTab> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('Contractor Master Dashboard', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: VianTheme.primaryGold)),
-                    Text('Manage constructors, release payment milestones, and configure billing stages', style: TextStyle(color: Color(0xFF70707C))),
+                    Text('Manage constructors, release payment milestones, and configure billing stages', style: TextStyle(color: VianTheme.lightText)),
                   ],
                 ),
                 TabBar(
                   isScrollable: true,
                   labelColor: VianTheme.primaryGold,
-                  unselectedLabelColor: Colors.white54,
+                  unselectedLabelColor: VianTheme.lightText,
                   indicatorColor: VianTheme.primaryGold,
                   tabs: const [
                     Tab(icon: Icon(Icons.people_outline), text: 'Contractors'),
@@ -10550,7 +10550,7 @@ class _LabourAttendanceTabState extends State<LabourAttendanceTab> {
 
     Widget leftMapSection() {
       return Container(
-        color: const Color(0xFF0D0E12),
+        color: VianTheme.darkBackground,
         padding: const EdgeInsets.all(24.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -10560,7 +10560,7 @@ class _LabourAttendanceTabState extends State<LabourAttendanceTab> {
               children: [
                 Text(
                   'GEOFENCE MONITORING',
-                  style: GoogleFonts.outfit(
+                  style: GoogleFonts.hankenGrotesk(
                     color: VianTheme.primaryGold,
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
@@ -10576,7 +10576,7 @@ class _LabourAttendanceTabState extends State<LabourAttendanceTab> {
                       const SizedBox(width: 6),
                       Text(
                         'LIVE RADAR ACTIVE',
-                        style: GoogleFonts.outfit(
+                        style: GoogleFonts.hankenGrotesk(
                           color: VianTheme.success,
                           fontSize: 9,
                           fontWeight: FontWeight.bold,
@@ -10621,7 +10621,7 @@ class _LabourAttendanceTabState extends State<LabourAttendanceTab> {
                 children: [
                   Text(
                     'MAP LEGEND',
-                    style: GoogleFonts.outfit(
+                    style: GoogleFonts.hankenGrotesk(
                       color: Colors.white,
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
@@ -10664,7 +10664,7 @@ class _LabourAttendanceTabState extends State<LabourAttendanceTab> {
                     children: [
                       Text(
                         'DAILY ATTENDANCE',
-                        style: GoogleFonts.outfit(
+                        style: GoogleFonts.hankenGrotesk(
                           color: Colors.white,
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
@@ -10686,7 +10686,7 @@ class _LabourAttendanceTabState extends State<LabourAttendanceTab> {
                       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
                     ),
                     onPressed: _submitAttendance,
-                    child: Text('SUBMIT LOGS', style: GoogleFonts.outfit(fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
+                    child: Text('SUBMIT LOGS', style: GoogleFonts.hankenGrotesk(fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
                   )
                 ],
               ),
@@ -10707,7 +10707,7 @@ class _LabourAttendanceTabState extends State<LabourAttendanceTab> {
 
                   return Container(
                     decoration: BoxDecoration(
-                      color: const Color(0xFF121317),
+                      color: VianTheme.darkBackground,
                       border: Border.all(
                         color: hasAlert ? VianTheme.danger.withOpacity(0.5) : VianTheme.goldBorder.withOpacity(0.3),
                       ),
@@ -10753,17 +10753,17 @@ class _LabourAttendanceTabState extends State<LabourAttendanceTab> {
                               children: [
                                 Text(
                                   hasAlert ? '08:15 AM' : '08:02 AM',
-                                  style: GoogleFonts.poppins(color: VianTheme.primaryGold, fontSize: 12, fontWeight: FontWeight.bold),
+                                  style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontSize: 12, fontWeight: FontWeight.bold),
                                 ),
                                 Text(
                                   'CHECK-IN',
-                                  style: GoogleFonts.outfit(color: VianTheme.lightText, fontSize: 8, fontWeight: FontWeight.bold),
+                                  style: GoogleFonts.hankenGrotesk(color: VianTheme.lightText, fontSize: 8, fontWeight: FontWeight.bold),
                                 ),
                               ],
                             ),
                           ],
                         ),
-                        const Divider(color: Colors.white10, height: 24),
+                        const Divider(color: VianTheme.goldBorder, height: 24),
                         Row(
                           children: [
                             Expanded(
@@ -10783,11 +10783,11 @@ class _LabourAttendanceTabState extends State<LabourAttendanceTab> {
                               width: 80,
                               height: 36,
                               child: TextField(
-                                style: GoogleFonts.poppins(color: Colors.white, fontSize: 12),
+                                style: GoogleFonts.hankenGrotesk(color: VianTheme.whiteText, fontSize: 12),
                                 keyboardType: TextInputType.number,
                                 decoration: InputDecoration(
                                   labelText: 'OT HOURS',
-                                  labelStyle: GoogleFonts.outfit(fontSize: 8, color: VianTheme.primaryGold, fontWeight: FontWeight.bold),
+                                  labelStyle: GoogleFonts.hankenGrotesk(fontSize: 8, color: VianTheme.primaryGold, fontWeight: FontWeight.bold),
                                   contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                                   border: const OutlineInputBorder(borderRadius: BorderRadius.zero, borderSide: BorderSide(color: VianTheme.goldBorder)),
                                   enabledBorder: const OutlineInputBorder(borderRadius: BorderRadius.zero, borderSide: BorderSide(color: VianTheme.goldBorder)),
@@ -10825,7 +10825,7 @@ class _LabourAttendanceTabState extends State<LabourAttendanceTab> {
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFF121317),
+      backgroundColor: VianTheme.darkBackground,
       body: Row(
         children: [
           // Map on the left
@@ -10855,7 +10855,7 @@ class _LabourAttendanceTabState extends State<LabourAttendanceTab> {
         ),
         Text(
           value,
-          style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+          style: GoogleFonts.inter(color: VianTheme.whiteText, fontWeight: FontWeight.bold, fontSize: 12),
         ),
       ],
     );
@@ -10869,12 +10869,12 @@ class _LabourAttendanceTabState extends State<LabourAttendanceTab> {
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         decoration: BoxDecoration(
           color: active ? VianTheme.primaryGold.withOpacity(0.08) : Colors.transparent,
-          border: Border.all(color: active ? VianTheme.primaryGold : Colors.white12),
+          border: Border.all(color: active ? VianTheme.primaryGold : VianTheme.lightText),
           borderRadius: BorderRadius.zero,
         ),
         child: Text(
           status.toUpperCase(),
-          style: GoogleFonts.outfit(
+          style: GoogleFonts.hankenGrotesk(
             color: active ? VianTheme.primaryGold : VianTheme.lightText,
             fontSize: 9,
             fontWeight: FontWeight.bold,
@@ -10889,7 +10889,7 @@ class _LabourAttendanceTabState extends State<LabourAttendanceTab> {
     return Expanded(
       child: Container(
         decoration: BoxDecoration(
-          color: const Color(0xFF121317),
+          color: VianTheme.darkBackground,
           border: Border.all(color: VianTheme.goldBorder.withOpacity(0.2)),
         ),
         padding: const EdgeInsets.all(16.0),
@@ -10898,12 +10898,12 @@ class _LabourAttendanceTabState extends State<LabourAttendanceTab> {
           children: [
             Text(
               title,
-              style: GoogleFonts.outfit(color: VianTheme.lightText, fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 0.5),
+              style: GoogleFonts.hankenGrotesk(color: VianTheme.lightText, fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 0.5),
             ),
             const SizedBox(height: 4),
             Text(
               value,
-              style: GoogleFonts.poppins(color: VianTheme.primaryGold, fontSize: 22, fontWeight: FontWeight.bold),
+              style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontSize: 22, fontWeight: FontWeight.bold),
             ),
           ],
         ),
@@ -11003,7 +11003,7 @@ class _DailyReportsTabState extends State<DailyReportsTab> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('Daily Completion Log', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: VianTheme.primaryGold)),
-                  Text('Submission history for daily workspace progress updates', style: TextStyle(color: Color(0xFF70707C))),
+                  Text('Submission history for daily workspace progress updates', style: TextStyle(color: VianTheme.lightText)),
                 ],
               ),
               VianButton(
@@ -11029,7 +11029,7 @@ class _DailyReportsTabState extends State<DailyReportsTab> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(r['workCategory'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold, color: VianTheme.primaryGold, fontSize: 15)),
-                            Text(r['date'] ?? '', style: const TextStyle(color: Color(0xFF70707C), fontSize: 11)),
+                            Text(r['date'] ?? '', style: TextStyle(color: VianTheme.lightText, fontSize: 11)),
                           ],
                         ),
                         const SizedBox(height: 4),
@@ -11037,7 +11037,7 @@ class _DailyReportsTabState extends State<DailyReportsTab> {
                         const SizedBox(height: 4),
                         Text(r['workDescription'] ?? '', style: const TextStyle(color: VianTheme.lightText, fontSize: 12)),
                         const SizedBox(height: 8),
-                        Text('Submitted by: ${r['user']?['name']}', style: const TextStyle(color: Color(0xFF70707C), fontSize: 10)),
+                        Text('Submitted by: ${r['user']?['name']}', style: TextStyle(color: VianTheme.lightText, fontSize: 10)),
                       ],
                     ),
                   ),
@@ -11109,7 +11109,7 @@ class _ManagerProgressTabState extends State<ManagerProgressTab> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(_isRecording ? 'Listening for voice...' : 'Speech-to-Text ready', style: TextStyle(fontSize: 11, color: _isRecording ? VianTheme.danger : Color(0xFF70707C))),
+                    Text(_isRecording ? 'Listening for voice...' : 'Speech-to-Text ready', style: TextStyle(fontSize: 11, color: _isRecording ? VianTheme.danger : VianTheme.lightText)),
                     IconButton(
                       icon: Icon(_isRecording ? Icons.mic : Icons.mic_none, color: _isRecording ? VianTheme.danger : VianTheme.primaryGold),
                       onPressed: () {
@@ -11174,7 +11174,7 @@ class _ManagerProgressTabState extends State<ManagerProgressTab> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('End of Day (EOD) Logs', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: VianTheme.primaryGold)),
-                  Text('Daily structural milestones, issues faced, and plans compiled by site managers', style: TextStyle(color: Color(0xFF70707C))),
+                  Text('Daily structural milestones, issues faced, and plans compiled by site managers', style: TextStyle(color: VianTheme.lightText)),
                 ],
               ),
               VianButton(
@@ -11200,7 +11200,7 @@ class _ManagerProgressTabState extends State<ManagerProgressTab> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(r['project']?['name'] ?? 'The Bajaj Villa', style: const TextStyle(fontWeight: FontWeight.bold, color: VianTheme.primaryGold, fontSize: 16)),
-                            Text(r['date'] ?? '', style: const TextStyle(color: Color(0xFF70707C), fontSize: 11)),
+                            Text(r['date'] ?? '', style: TextStyle(color: VianTheme.lightText, fontSize: 11)),
                           ],
                         ),
                         const SizedBox(height: 8),
@@ -11216,7 +11216,7 @@ class _ManagerProgressTabState extends State<ManagerProgressTab> {
                           Text('Issues: ${r['issuesFaced']}', style: const TextStyle(color: VianTheme.danger, fontSize: 12)),
                         ],
                         const SizedBox(height: 8),
-                        Text('Log registered by: ${r['manager']?['name'] ?? "Rahul Sen"}', style: const TextStyle(color: Color(0xFF70707C), fontSize: 10)),
+                        Text('Log registered by: ${r['manager']?['name'] ?? "Rahul Sen"}', style: TextStyle(color: VianTheme.lightText, fontSize: 10)),
                       ],
                     ),
                   ),
@@ -11303,7 +11303,7 @@ class _PayrollTabState extends State<PayrollTab> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text('Payroll Integrated Wage Sheet', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: VianTheme.primaryGold)),
-                  const Text('Wages auto-calculated from manager attendance grids (Base wage + 1.5x Overtime multiplier)', style: TextStyle(color: Color(0xFF70707C))),
+                  Text('Wages auto-calculated from manager attendance grids (Base wage + 1.5x Overtime multiplier)', style: TextStyle(color: VianTheme.lightText)),
                 ],
               ),
               VianButton(
@@ -11319,17 +11319,17 @@ class _PayrollTabState extends State<PayrollTab> {
           if (_projects.isNotEmpty) ...[
             Row(
               children: [
-                const Text('Select Project: ', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                Text('Select Project: ', style: TextStyle(color: VianTheme.whiteText, fontWeight: FontWeight.bold)),
                 const SizedBox(width: 12),
                 SizedBox(
                   width: 300,
                   child: DropdownButtonFormField<int>(
-                    dropdownColor: const Color(0xFF1E1E26),
+                    dropdownColor: VianTheme.cardColor,
                     value: _selectedProjectId,
                     items: _projects.map<DropdownMenuItem<int>>((p) {
                       return DropdownMenuItem<int>(
                         value: p['id'] as int,
-                        child: Text(p['name'] ?? '', style: const TextStyle(color: Colors.white)),
+                        child: Text(p['name'] ?? '', style: TextStyle(color: VianTheme.whiteText)),
                       );
                     }).toList(),
                     onChanged: (val) {
@@ -11366,7 +11366,7 @@ class _PayrollTabState extends State<PayrollTab> {
                                       children: [
                                         Text(w['name'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                                         Text('ID: ${w['workerId']} | Skill: ${w['skillType']} | Contractor: ${w['contractor'] ?? "Self"}'),
-                                        Text('Days: ${w['presentDays']} Present, ${w['halfDays']} Half | OT: ${w['overtimeHours']} Hrs', style: const TextStyle(fontSize: 11, color: Color(0xFF70707C))),
+                                        Text('Days: ${w['presentDays']} Present, ${w['halfDays']} Half | OT: ${w['overtimeHours']} Hrs', style: TextStyle(fontSize: 11, color: VianTheme.lightText)),
                                       ],
                                     ),
                                   ),
@@ -11477,7 +11477,7 @@ class _AnnouncementsTabState extends State<AnnouncementsTab> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('Company Directives Board', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: VianTheme.primaryGold)),
-                  Text('General announcements, safety requirements, and operational circulars', style: TextStyle(color: Color(0xFF70707C))),
+                  Text('General announcements, safety requirements, and operational circulars', style: TextStyle(color: VianTheme.lightText)),
                 ],
               ),
               if (canAddOrEdit(currentUserRole))
@@ -11510,7 +11510,7 @@ class _AnnouncementsTabState extends State<AnnouncementsTab> {
                                   item['createdAt'] != null
                                       ? DateFormat('dd MMM yyyy').format(DateTime.parse(item['createdAt']))
                                       : '',
-                                  style: const TextStyle(color: Color(0xFF70707C), fontSize: 11),
+                                  style: TextStyle(color: VianTheme.lightText, fontSize: 11),
                                 ),
                                 if (canAddOrEdit(currentUserRole)) ...[
                                   const SizedBox(width: 8),
@@ -11533,7 +11533,7 @@ class _AnnouncementsTabState extends State<AnnouncementsTab> {
                                         builder: (context) => AlertDialog(
                                           backgroundColor: VianTheme.headerBlack,
                                           title: const Text('Delete Announcement', style: TextStyle(color: Colors.redAccent)),
-                                          content: const Text('Are you sure you want to move this announcement to trash?', style: TextStyle(color: Colors.white)),
+                                          content: Text('Are you sure you want to move this announcement to trash?', style: TextStyle(color: VianTheme.whiteText)),
                                           actions: [
                                             TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
                                             TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Delete', style: TextStyle(color: Colors.redAccent))),
@@ -11787,7 +11787,7 @@ class _ClientOnboardingTabState extends State<ClientOnboardingTab> {
         children: [
           Text(
             'Client Onboarding Wizard',
-            style: GoogleFonts.poppins(fontSize: 22, fontWeight: FontWeight.bold, color: VianTheme.primaryGold),
+            style: GoogleFonts.hankenGrotesk(fontSize: 22, fontWeight: FontWeight.bold, color: VianTheme.primaryGold),
           ),
           const SizedBox(height: 8),
           const Text(
@@ -11994,7 +11994,7 @@ class _ClientOnboardingTabState extends State<ClientOnboardingTab> {
         _documentsList.isEmpty
             ? const Padding(
                 padding: EdgeInsets.symmetric(vertical: 20.0),
-                child: Text('No documents uploaded yet.', style: TextStyle(color: Color(0xFF70707C), fontSize: 13)),
+                child: Text('No documents uploaded yet.', style: TextStyle(color: VianTheme.lightText, fontSize: 13)),
               )
             : ListView.builder(
                 shrinkWrap: true,
@@ -12006,7 +12006,7 @@ class _ClientOnboardingTabState extends State<ClientOnboardingTab> {
                     margin: const EdgeInsets.only(bottom: 8),
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF1E1E26),
+                      color: VianTheme.cardColor,
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(color: const Color(0x11F5A623)),
                     ),
@@ -12021,7 +12021,7 @@ class _ClientOnboardingTabState extends State<ClientOnboardingTab> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(doc['title'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                                Text('Folder: ${doc['folder']} | Size: ${(doc['fileSize'] / 1024).toStringAsFixed(1)} MB', style: const TextStyle(color: Color(0xFF70707C), fontSize: 11)),
+                                Text('Folder: ${doc['folder']} | Size: ${(doc['fileSize'] / 1024).toStringAsFixed(1)} MB', style: TextStyle(color: VianTheme.lightText, fontSize: 11)),
                               ],
                             ),
                           ],
@@ -12090,7 +12090,7 @@ class _ClientOnboardingTabState extends State<ClientOnboardingTab> {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E1E26),
+        color: VianTheme.cardColor,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: const Color(0x11F5A623)),
       ),
@@ -12569,7 +12569,7 @@ class _ImportExportTabState extends ConsumerState<ImportExportTab> with SingleTi
       builder: (context) => StatefulBuilder(
         builder: (context, setDlgState) => AlertDialog(
           backgroundColor: VianTheme.headerBlack,
-          title: Text('DATABASE BACKUP & RESTORE CONSOLE', style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 16, fontWeight: FontWeight.bold)),
+          title: Text('DATABASE BACKUP & RESTORE CONSOLE', style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontSize: 16, fontWeight: FontWeight.bold)),
           content: SizedBox(
             width: 500,
             height: 400,
@@ -12608,7 +12608,7 @@ class _ImportExportTabState extends ConsumerState<ImportExportTab> with SingleTi
                                     itemBuilder: (context, idx) {
                                       final b = _backupHistory[idx];
                                       return ListTile(
-                                        title: Text(b['fileName'] ?? '', style: const TextStyle(fontSize: 12, color: Colors.white)),
+                                        title: Text(b['fileName'] ?? '', style: TextStyle(fontSize: 12, color: VianTheme.whiteText)),
                                         subtitle: Text(b['createdAt'] ?? '', style: const TextStyle(fontSize: 10)),
                                       );
                                     },
@@ -12645,7 +12645,7 @@ class _ImportExportTabState extends ConsumerState<ImportExportTab> with SingleTi
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Close', style: TextStyle(color: Colors.white70)),
+              child: const Text('Close', style: TextStyle(color: VianTheme.lightText)),
             )
           ],
         ),
@@ -12658,7 +12658,7 @@ class _ImportExportTabState extends ConsumerState<ImportExportTab> with SingleTi
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: VianTheme.headerBlack,
-        title: Text('PASTE CSV DATA MANUALLY', style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 14, fontWeight: FontWeight.bold)),
+        title: Text('PASTE CSV DATA MANUALLY', style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontSize: 14, fontWeight: FontWeight.bold)),
         content: SizedBox(
           width: 600,
           child: Column(
@@ -12702,7 +12702,7 @@ class _ImportExportTabState extends ConsumerState<ImportExportTab> with SingleTi
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel', style: TextStyle(color: Colors.white70)),
+            child: const Text('Cancel', style: TextStyle(color: VianTheme.lightText)),
           ),
           VianButton(
             text: 'Parse Data',
@@ -12747,12 +12747,12 @@ class _ImportExportTabState extends ConsumerState<ImportExportTab> with SingleTi
                 children: [
                   Text(
                     'SYSTEM ENVIRONMENT',
-                    style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 2.0),
+                    style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 2.0),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     'Build Center',
-                    style: GoogleFonts.outfit(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold),
+                    style: GoogleFonts.hankenGrotesk(color: VianTheme.whiteText, fontSize: 32, fontWeight: FontWeight.bold),
                   ),
                 ],
               ),
@@ -12768,7 +12768,7 @@ class _ImportExportTabState extends ConsumerState<ImportExportTab> with SingleTi
                     icon: const Icon(Icons.settings_backup_restore, size: 14),
                     label: Text(
                       'BACKUP CONSOLE',
-                      style: GoogleFonts.outfit(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.0),
+                      style: GoogleFonts.hankenGrotesk(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.0),
                     ),
                     onPressed: _showBackupConsole,
                   ),
@@ -12815,7 +12815,7 @@ class _ImportExportTabState extends ConsumerState<ImportExportTab> with SingleTi
               ],
             ),
             const SizedBox(height: 32),
-            Text('Data Injection', style: GoogleFonts.outfit(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+            Text('Data Injection', style: GoogleFonts.hankenGrotesk(color: VianTheme.whiteText, fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 12),
             Text(
               'System-wide resource synchronization and structural data ingestion via CSV/JSON.',
@@ -12837,7 +12837,7 @@ class _ImportExportTabState extends ConsumerState<ImportExportTab> with SingleTi
                     const SizedBox(height: 8),
                     Text(
                       'Drop CSV Manifest',
-                      style: GoogleFonts.outfit(color: VianTheme.lightText, fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 1.0),
+                      style: GoogleFonts.hankenGrotesk(color: VianTheme.lightText, fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 1.0),
                     ),
                   ],
                 ),
@@ -12850,7 +12850,7 @@ class _ImportExportTabState extends ConsumerState<ImportExportTab> with SingleTi
                 onPressed: _showPasteCsvDialog,
                 child: Text(
                   'PASTE RAW CSV DATA',
-                  style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 1.0),
+                  style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 1.0),
                 ),
               ),
             )
@@ -12877,7 +12877,7 @@ class _ImportExportTabState extends ConsumerState<ImportExportTab> with SingleTi
               ],
             ),
             const SizedBox(height: 32),
-            Text('Export Protocol', style: GoogleFonts.outfit(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+            Text('Export Protocol', style: GoogleFonts.hankenGrotesk(color: VianTheme.whiteText, fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 20),
             Expanded(
               child: ListView(
@@ -12898,7 +12898,7 @@ class _ImportExportTabState extends ConsumerState<ImportExportTab> with SingleTi
                 shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
               ),
               onPressed: _initiateExportAction,
-              child: Text('INITIATE EXPORT', style: GoogleFonts.outfit(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
+              child: Text('INITIATE EXPORT', style: GoogleFonts.hankenGrotesk(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
             ),
           ],
         ),
@@ -12916,7 +12916,7 @@ class _ImportExportTabState extends ConsumerState<ImportExportTab> with SingleTi
             onChanged: onChanged,
             activeColor: VianTheme.primaryGold,
             checkColor: Colors.black,
-            side: const BorderSide(color: Colors.white30),
+            side: const BorderSide(color: VianTheme.lightText),
           ),
           const SizedBox(width: 8),
           Expanded(
@@ -12944,7 +12944,7 @@ class _ImportExportTabState extends ConsumerState<ImportExportTab> with SingleTi
               ],
             ),
             const SizedBox(height: 32),
-            Text('Build & Deploy', style: GoogleFonts.outfit(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+            Text('Build & Deploy', style: GoogleFonts.hankenGrotesk(color: VianTheme.whiteText, fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
             Container(
               padding: const EdgeInsets.all(16),
@@ -12955,7 +12955,7 @@ class _ImportExportTabState extends ConsumerState<ImportExportTab> with SingleTi
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('STATUS: $_buildStatusText', style: GoogleFonts.outfit(color: VianTheme.lightText, fontSize: 8, letterSpacing: 1.0)),
+                      Text('STATUS: $_buildStatusText', style: GoogleFonts.hankenGrotesk(color: VianTheme.lightText, fontSize: 8, letterSpacing: 1.0)),
                       Text(_buildVersion, style: GoogleFonts.jetBrainsMono(color: VianTheme.primaryGold, fontSize: 9)),
                     ],
                   ),
@@ -12963,7 +12963,7 @@ class _ImportExportTabState extends ConsumerState<ImportExportTab> with SingleTi
                   LinearProgressIndicator(
                     value: _buildProgress,
                     minHeight: 2,
-                    backgroundColor: Colors.white10,
+                    backgroundColor: VianTheme.goldBorder,
                     valueColor: const AlwaysStoppedAnimation<Color>(VianTheme.primaryGold),
                   ),
                 ],
@@ -12978,7 +12978,7 @@ class _ImportExportTabState extends ConsumerState<ImportExportTab> with SingleTi
                 shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
               ),
               onPressed: _isBuilding ? null : _executeBuildSimulated,
-              child: Text('EXECUTE BUILD', style: GoogleFonts.outfit(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
+              child: Text('EXECUTE BUILD', style: GoogleFonts.hankenGrotesk(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
             ),
           ],
         ),
@@ -12990,7 +12990,7 @@ class _ImportExportTabState extends ConsumerState<ImportExportTab> with SingleTi
     return Container(
       height: 380,
       decoration: BoxDecoration(
-        color: const Color(0xFF0D0E12),
+        color: VianTheme.darkBackground,
         border: Border.all(color: Colors.white.withOpacity(0.04)),
       ),
       child: Column(
@@ -13078,7 +13078,7 @@ class _ImportExportTabState extends ConsumerState<ImportExportTab> with SingleTi
                         Expanded(
                           child: Text(
                             _terminalLogs[idx],
-                            style: GoogleFonts.jetBrainsMono(color: Colors.white70, fontSize: 11),
+                            style: GoogleFonts.jetBrainsMono(color: VianTheme.lightText, fontSize: 11),
                           ),
                         )
                       ],
@@ -13091,18 +13091,18 @@ class _ImportExportTabState extends ConsumerState<ImportExportTab> with SingleTi
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             decoration: const BoxDecoration(
-              border: Border(top: BorderSide(color: Colors.white10)),
+              border: Border(top: BorderSide(color: VianTheme.goldBorder)),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Row(
                   children: [
-                    Text('REGION: EU-WEST-1', style: GoogleFonts.outfit(color: VianTheme.lightText, fontSize: 8, letterSpacing: 1.0)),
+                    Text('REGION: EU-WEST-1', style: GoogleFonts.hankenGrotesk(color: VianTheme.lightText, fontSize: 8, letterSpacing: 1.0)),
                     const SizedBox(width: 20),
-                    Text('LAT: 48.8566° N', style: GoogleFonts.outfit(color: VianTheme.lightText, fontSize: 8, letterSpacing: 1.0)),
+                    Text('LAT: 48.8566° N', style: GoogleFonts.hankenGrotesk(color: VianTheme.lightText, fontSize: 8, letterSpacing: 1.0)),
                     const SizedBox(width: 20),
-                    Text('LONG: 2.3522° E', style: GoogleFonts.outfit(color: VianTheme.lightText, fontSize: 8, letterSpacing: 1.0)),
+                    Text('LONG: 2.3522° E', style: GoogleFonts.hankenGrotesk(color: VianTheme.lightText, fontSize: 8, letterSpacing: 1.0)),
                   ],
                 ),
                 Row(
@@ -13117,7 +13117,7 @@ class _ImportExportTabState extends ConsumerState<ImportExportTab> with SingleTi
                       ),
                     ),
                     const SizedBox(width: 8),
-                    Text('LINKED TO CENTRAL GRID', style: GoogleFonts.outfit(color: VianTheme.lightText, fontSize: 8, letterSpacing: 1.0)),
+                    Text('LINKED TO CENTRAL GRID', style: GoogleFonts.hankenGrotesk(color: VianTheme.lightText, fontSize: 8, letterSpacing: 1.0)),
                   ],
                 )
               ],
@@ -13154,7 +13154,7 @@ class _ImportExportTabState extends ConsumerState<ImportExportTab> with SingleTi
             children: [
               Text(
                 'STEP 2: PREVIEW PARSED DATA ROWS',
-                style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: VianTheme.primaryGold, fontSize: 13),
+                style: GoogleFonts.hankenGrotesk(fontWeight: FontWeight.bold, color: VianTheme.primaryGold, fontSize: 13),
               ),
               if (_workbookSheets.length > 1)
                 DropdownButton<int>(
@@ -13188,7 +13188,7 @@ class _ImportExportTabState extends ConsumerState<ImportExportTab> with SingleTi
               scrollDirection: Axis.horizontal,
               child: SingleChildScrollView(
                 child: DataTable(
-                  headingRowColor: MaterialStateProperty.all(const Color(0xFF1E1E26)),
+                  headingRowColor: MaterialStateProperty.all(VianTheme.cardColor),
                   columns: _spreadsheetHeaders.map((h) => DataColumn(label: Text(h, style: const TextStyle(fontWeight: FontWeight.bold, color: VianTheme.primaryGold, fontSize: 11)))).toList(),
                   rows: _parsedRows.take(8).map((row) {
                     return DataRow(
@@ -13228,7 +13228,7 @@ class _ImportExportTabState extends ConsumerState<ImportExportTab> with SingleTi
         children: [
           Text(
             'STEP 3: COLUMN FIELD MAPPING',
-            style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: VianTheme.primaryGold, fontSize: 13),
+            style: GoogleFonts.hankenGrotesk(fontWeight: FontWeight.bold, color: VianTheme.primaryGold, fontSize: 13),
           ),
           const SizedBox(height: 8),
           Text(
@@ -13293,13 +13293,13 @@ class _ImportExportTabState extends ConsumerState<ImportExportTab> with SingleTi
         children: [
           Text(
             'STEP 4: IMPORT DATA AUDIT & RESOLUTION',
-            style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: VianTheme.primaryGold, fontSize: 13),
+            style: GoogleFonts.hankenGrotesk(fontWeight: FontWeight.bold, color: VianTheme.primaryGold, fontSize: 13),
           ),
           const SizedBox(height: 16),
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFF1E1E26),
+              color: VianTheme.cardColor,
               border: Border.all(color: isValid ? VianTheme.success : VianTheme.warning),
             ),
             child: Row(
@@ -13317,7 +13317,7 @@ class _ImportExportTabState extends ConsumerState<ImportExportTab> with SingleTi
                       const SizedBox(height: 4),
                       Text(
                         'Missing values: ${_validationSummary['missingFields']} | Duplicate matches: ${(_validationSummary['duplicateClients'] ?? 0) + (_validationSummary['duplicateProjects'] ?? 0)} | Invalid emails: ${_validationSummary['invalidEmails']}',
-                        style: const TextStyle(color: Color(0xFF70707C), fontSize: 11),
+                        style: TextStyle(color: VianTheme.lightText, fontSize: 11),
                       ),
                     ],
                   ),
@@ -13354,7 +13354,7 @@ class _ImportExportTabState extends ConsumerState<ImportExportTab> with SingleTi
                   margin: const EdgeInsets.only(bottom: 8),
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF1E1E26),
+                    color: VianTheme.cardColor,
                     border: Border.all(color: errs.isNotEmpty ? VianTheme.danger : warns.isNotEmpty ? VianTheme.warning : const Color(0x22F5A623)),
                   ),
                   child: Column(
@@ -13465,7 +13465,7 @@ class _ImportExportTabState extends ConsumerState<ImportExportTab> with SingleTi
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E1E26),
+        color: VianTheme.cardColor,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
@@ -13986,7 +13986,7 @@ class _BusinessTargetsTabState extends ConsumerState<BusinessTargetsTab> with Si
                     items: _annualTargets.map<DropdownMenuItem<int>>((t) {
                       return DropdownMenuItem<int>(
                         value: t['id'],
-                        child: Text(t['financialYear'] ?? '', style: const TextStyle(color: Colors.white, fontSize: 13)),
+                        child: Text(t['financialYear'] ?? '', style: TextStyle(color: VianTheme.whiteText, fontSize: 13)),
                       );
                     }).toList(),
                     onChanged: (v) => _changeAnnualTarget(v),
@@ -14085,7 +14085,7 @@ class _BusinessTargetsTabState extends ConsumerState<BusinessTargetsTab> with Si
                       final m = _monthlyTargets[idx];
                       return Container(
                         padding: const EdgeInsets.symmetric(vertical: 8),
-                        decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: Color(0xFF1E1E26)))),
+                        decoration: BoxDecoration(border: Border(bottom: BorderSide(color: VianTheme.cardColor))),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -14157,10 +14157,10 @@ class _BusinessTargetsTabState extends ConsumerState<BusinessTargetsTab> with Si
                   margin: const EdgeInsets.only(bottom: 12),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
-                    side: const BorderSide(color: Color(0xFF262635)),
+                    side: BorderSide(color: VianTheme.goldBorder),
                   ),
                   child: ListTile(
-                    leading: const CircleAvatar(backgroundColor: Color(0xFF1E1E26), child: Icon(Icons.groups, color: VianTheme.primaryGold)),
+                    leading: CircleAvatar(backgroundColor: VianTheme.cardColor, child: Icon(Icons.groups, color: VianTheme.primaryGold)),
                     title: Text(tt['teamName'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold)),
                     subtitle: Text('Goal: $displayVal (${tt['targetMetric']})', style: const TextStyle(color: VianTheme.primaryGold, fontSize: 13)),
                     trailing: IconButton(
@@ -14223,7 +14223,7 @@ class _BusinessTargetsTabState extends ConsumerState<BusinessTargetsTab> with Si
                   margin: const EdgeInsets.only(bottom: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
-                    side: const BorderSide(color: Color(0xFF262635)),
+                    side: BorderSide(color: VianTheme.goldBorder),
                   ),
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
@@ -14404,7 +14404,7 @@ class _BusinessTargetsTabState extends ConsumerState<BusinessTargetsTab> with Si
             ],
           ),
           const SizedBox(height: 10),
-          Text(value, style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+          Text(value, style: GoogleFonts.hankenGrotesk(fontSize: 16, fontWeight: FontWeight.bold, color: VianTheme.whiteText)),
         ],
       ),
     );
@@ -14416,7 +14416,7 @@ class _BusinessTargetsTabState extends ConsumerState<BusinessTargetsTab> with Si
       children: [
         Text(title, style: const TextStyle(color: VianTheme.lightText, fontSize: 10)),
         const SizedBox(height: 4),
-        Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.white)),
+        Text(value, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: VianTheme.whiteText)),
       ],
     );
   }
@@ -14427,7 +14427,7 @@ class _BusinessTargetsTabState extends ConsumerState<BusinessTargetsTab> with Si
       children: [
         Text(label, style: const TextStyle(color: VianTheme.lightText, fontSize: 10, fontWeight: FontWeight.bold)),
         const SizedBox(height: 6),
-        Text(value, style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.bold, color: VianTheme.primaryGold)),
+        Text(value, style: GoogleFonts.hankenGrotesk(fontSize: 15, fontWeight: FontWeight.bold, color: VianTheme.primaryGold)),
       ],
     );
   }
@@ -14748,7 +14748,7 @@ class _BuildCenterTabState extends ConsumerState<BuildCenterTab> with SingleTick
               children: [
                 Text(
                   'Building $_selectedPlatformForBuild - $_activeBuildStatus ($_activeBuildProgress%)',
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.white),
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: VianTheme.whiteText),
                 ),
                 const SizedBox(height: 4),
                 ClipRRect(
@@ -14756,7 +14756,7 @@ class _BuildCenterTabState extends ConsumerState<BuildCenterTab> with SingleTick
                   child: LinearProgressIndicator(
                     value: _activeBuildProgress / 100.0,
                     minHeight: 4,
-                    backgroundColor: const Color(0xFF1E1E26),
+                    backgroundColor: VianTheme.cardColor,
                     valueColor: AlwaysStoppedAnimation<Color>(statusColor),
                   ),
                 ),
@@ -14804,7 +14804,7 @@ class _BuildCenterTabState extends ConsumerState<BuildCenterTab> with SingleTick
           // Platform selection section
           Text(
             'SELECT COMPILATION TARGET PLATFORM',
-            style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: VianTheme.primaryGold, fontSize: 13, letterSpacing: 1.2),
+            style: GoogleFonts.hankenGrotesk(fontWeight: FontWeight.bold, color: VianTheme.primaryGold, fontSize: 13, letterSpacing: 1.2),
           ),
           const SizedBox(height: 16),
           LayoutBuilder(
@@ -14848,7 +14848,7 @@ class _BuildCenterTabState extends ConsumerState<BuildCenterTab> with SingleTick
                             Container(
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
-                                color: isSelected ? const Color(0x33F5A623) : const Color(0xFF1E1E26),
+                                color: isSelected ? Color(0x33F5A623) : VianTheme.cardColor,
                                 borderRadius: BorderRadius.circular(8),
                                 border: Border.all(
                                   color: isSelected ? VianTheme.primaryGold : const Color(0x22F5A623),
@@ -14876,7 +14876,7 @@ class _BuildCenterTabState extends ConsumerState<BuildCenterTab> with SingleTick
                                   const SizedBox(height: 2),
                                   Text(
                                     platformName.contains('AAB') || platformName.contains('Release') || platformName.contains('ZIP') || platformName.contains('Web') || platformName.contains('exe') ? 'Release mode' : 'Debug mode',
-                                    style: const TextStyle(color: Color(0xFF70707C), fontSize: 9),
+                                    style: TextStyle(color: VianTheme.lightText, fontSize: 9),
                                   ),
                                 ],
                               ),
@@ -14905,7 +14905,7 @@ class _BuildCenterTabState extends ConsumerState<BuildCenterTab> with SingleTick
             children: [
               Text(
                 'CI/CD COMPILATION RUNNER',
-                style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: VianTheme.primaryGold, fontSize: 13, letterSpacing: 1.2),
+                style: GoogleFonts.hankenGrotesk(fontWeight: FontWeight.bold, color: VianTheme.primaryGold, fontSize: 13, letterSpacing: 1.2),
               ),
               VianButton(
                 text: _activeBuildId != null ? 'Build is Running...' : 'Build Now',
@@ -14981,7 +14981,7 @@ class _BuildCenterTabState extends ConsumerState<BuildCenterTab> with SingleTick
           // Recent history section
           Text(
             'RECENT BUILD PIPELINE RUNS',
-            style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: VianTheme.primaryGold, fontSize: 13, letterSpacing: 1.2),
+            style: GoogleFonts.hankenGrotesk(fontWeight: FontWeight.bold, color: VianTheme.primaryGold, fontSize: 13, letterSpacing: 1.2),
           ),
           const SizedBox(height: 16),
           
@@ -15019,7 +15019,7 @@ class _BuildCenterTabState extends ConsumerState<BuildCenterTab> with SingleTick
                   decoration: BoxDecoration(
                     color: VianTheme.cardColor,
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: const Color(0xFF262635)),
+                    border: Border.all(color: VianTheme.goldBorder),
                   ),
                   child: Row(
                     children: [
@@ -15041,7 +15041,7 @@ class _BuildCenterTabState extends ConsumerState<BuildCenterTab> with SingleTick
                           children: [
                             Text(
                               '${buildItem['platform'] ?? "Build"} - v${buildItem['versionName'] ?? "1.0.0"} (${buildItem['buildNumber'] ?? 1})',
-                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.white),
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: VianTheme.whiteText),
                             ),
                             const SizedBox(height: 4),
                             Text(
@@ -15108,7 +15108,7 @@ class _BuildCenterTabState extends ConsumerState<BuildCenterTab> with SingleTick
                 const SizedBox(height: 6),
                 Text(
                   value,
-                  style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.white),
+                  style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 13, color: VianTheme.whiteText),
                   overflow: TextOverflow.ellipsis,
                 ),
               ],
@@ -15145,7 +15145,7 @@ class _BuildCenterTabState extends ConsumerState<BuildCenterTab> with SingleTick
                     Expanded(
                       child: Text(
                         fileName,
-                        style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 11, color: Colors.white),
+                        style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 11, color: VianTheme.whiteText),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
@@ -15180,7 +15180,7 @@ class _BuildCenterTabState extends ConsumerState<BuildCenterTab> with SingleTick
               children: [
                 Text(
                   'CODE SIGNING CREDENTIALS',
-                  style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: VianTheme.primaryGold, fontSize: 13),
+                  style: GoogleFonts.hankenGrotesk(fontWeight: FontWeight.bold, color: VianTheme.primaryGold, fontSize: 13),
                 ),
                 const SizedBox(height: 8),
                 const Text(
@@ -15196,7 +15196,7 @@ class _BuildCenterTabState extends ConsumerState<BuildCenterTab> with SingleTick
                       value: _selectedPlatformForSigning,
                       dropdownColor: VianTheme.headerBlack,
                       items: ['Android', 'iOS', 'Windows'].map((p) {
-                        return DropdownMenuItem(value: p, child: Text(p, style: const TextStyle(color: Colors.white)));
+                        return DropdownMenuItem(value: p, child: Text(p, style: TextStyle(color: VianTheme.whiteText)));
                       }).toList(),
                       onChanged: (v) {
                         if (v != null) {
@@ -15320,7 +15320,7 @@ class _BuildCenterTabState extends ConsumerState<BuildCenterTab> with SingleTick
                   children: [
                     Text(
                       'COMPILATION RUNS & ARTIFACT ARCHIVE',
-                      style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: VianTheme.primaryGold, fontSize: 13),
+                      style: GoogleFonts.hankenGrotesk(fontWeight: FontWeight.bold, color: VianTheme.primaryGold, fontSize: 13),
                     ),
                     IconButton(
                       icon: const Icon(Icons.refresh, color: VianTheme.primaryGold, size: 20),
@@ -15410,7 +15410,7 @@ class _BuildCenterTabState extends ConsumerState<BuildCenterTab> with SingleTick
                   children: [
                     Text('v${item['versionName'] ?? '1.0.0'} (${item['buildNumber'] ?? 1})', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
                     if (timeStr.isNotEmpty)
-                      Text(timeStr, style: const TextStyle(fontSize: 10, color: Color(0xFF70707C))),
+                      Text(timeStr, style: TextStyle(fontSize: 10, color: VianTheme.lightText)),
                   ],
                 ),
               ),
@@ -15438,7 +15438,7 @@ class _BuildCenterTabState extends ConsumerState<BuildCenterTab> with SingleTick
                       Text('${sizeInMb.toStringAsFixed(2)} MB', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold))
                     else
                       const Text('--', style: TextStyle(fontSize: 12)),
-                    Text('${durationSec}s duration', style: const TextStyle(fontSize: 10, color: Color(0xFF70707C))),
+                    Text('${durationSec}s duration', style: TextStyle(fontSize: 10, color: VianTheme.lightText)),
                   ],
                 ),
               ),
@@ -15447,7 +15447,7 @@ class _BuildCenterTabState extends ConsumerState<BuildCenterTab> with SingleTick
                   width: 140,
                   child: Text(
                     item['sha256Checksum'] ?? 'Calculating...',
-                    style: const TextStyle(fontSize: 10, fontFamily: 'monospace', color: Color(0xFF70707C)),
+                    style: TextStyle(fontSize: 10, fontFamily: 'monospace', color: VianTheme.lightText),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
@@ -15524,7 +15524,7 @@ class _BuildCenterTabState extends ConsumerState<BuildCenterTab> with SingleTick
               decoration: BoxDecoration(
                 color: const Color(0xFF070709),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: const Color(0xFF1E1E26)),
+                border: Border.all(color: VianTheme.cardColor),
               ),
               child: SingleChildScrollView(
                 child: Text(
@@ -15580,7 +15580,7 @@ class _BuildCenterTabState extends ConsumerState<BuildCenterTab> with SingleTick
                 children: [
                   Text(
                     'LIVE COMPILATION PIPELINE RUNNER',
-                    style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: VianTheme.primaryGold, fontSize: 14),
+                    style: GoogleFonts.hankenGrotesk(fontWeight: FontWeight.bold, color: VianTheme.primaryGold, fontSize: 14),
                   ),
                   const SizedBox(height: 4),
                   Text(
@@ -15634,7 +15634,7 @@ class _BuildCenterTabState extends ConsumerState<BuildCenterTab> with SingleTick
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Container(
-                  color: const Color(0xFF1E1E26),
+                  color: VianTheme.cardColor,
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   child: Row(
                     children: [
@@ -15642,7 +15642,7 @@ class _BuildCenterTabState extends ConsumerState<BuildCenterTab> with SingleTick
                       const SizedBox(width: 8),
                       const Text(
                         'LIVE BUILD LOG CONSOLE',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: Colors.white, letterSpacing: 0.8),
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: VianTheme.whiteText, letterSpacing: 0.8),
                       ),
                       const Spacer(),
                       if (_activeBuildStatus != 'Completed' && _activeBuildStatus != 'Failed')
@@ -15686,7 +15686,7 @@ class _BuildCenterTabState extends ConsumerState<BuildCenterTab> with SingleTick
       decoration: BoxDecoration(
         color: VianTheme.headerBlack,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFF262635)),
+        border: Border.all(color: VianTheme.goldBorder),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -15697,7 +15697,7 @@ class _BuildCenterTabState extends ConsumerState<BuildCenterTab> with SingleTick
               ? VianTheme.success
               : isActive
                   ? statusColor
-                  : const Color(0xFF70707C);
+                  : VianTheme.lightText;
 
           return Expanded(
             child: Row(
@@ -15731,7 +15731,7 @@ class _BuildCenterTabState extends ConsumerState<BuildCenterTab> with SingleTick
                       Text(
                         steps[index].replaceAll(' ', '\r\n'),
                         style: TextStyle(
-                          color: isActive ? VianTheme.whiteText : const Color(0xFF70707C),
+                          color: isActive ? VianTheme.whiteText : VianTheme.lightText,
                           fontSize: 9,
                           fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
                         ),
@@ -15744,7 +15744,7 @@ class _BuildCenterTabState extends ConsumerState<BuildCenterTab> with SingleTick
                   Container(
                     width: 30,
                     height: 1.5,
-                    color: index < activeStep ? VianTheme.success : const Color(0xFF262635),
+                    color: index < activeStep ? VianTheme.success : VianTheme.goldBorder,
                   ),
               ],
             ),
@@ -15760,7 +15760,7 @@ class _BuildCenterTabState extends ConsumerState<BuildCenterTab> with SingleTick
       decoration: BoxDecoration(
         color: VianTheme.headerBlack,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFF262635)),
+        border: Border.all(color: VianTheme.goldBorder),
       ),
       child: Column(
         children: List.generate(steps.length, (index) {
@@ -15770,7 +15770,7 @@ class _BuildCenterTabState extends ConsumerState<BuildCenterTab> with SingleTick
               ? VianTheme.success
               : isActive
                   ? statusColor
-                  : const Color(0xFF70707C);
+                  : VianTheme.lightText;
 
           return Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -15802,7 +15802,7 @@ class _BuildCenterTabState extends ConsumerState<BuildCenterTab> with SingleTick
                     Container(
                       width: 1.5,
                       height: 24,
-                      color: index < activeStep ? VianTheme.success : const Color(0xFF262635),
+                      color: index < activeStep ? VianTheme.success : VianTheme.goldBorder,
                     ),
                 ],
               ),
@@ -15815,7 +15815,7 @@ class _BuildCenterTabState extends ConsumerState<BuildCenterTab> with SingleTick
                     Text(
                       steps[index],
                       style: TextStyle(
-                        color: isActive ? VianTheme.whiteText : const Color(0xFF70707C),
+                        color: isActive ? VianTheme.whiteText : VianTheme.lightText,
                         fontSize: 11,
                         fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
                       ),
@@ -16079,7 +16079,7 @@ class _ConstructionEstimationTabState extends ConsumerState<ConstructionEstimati
         children: [
           Text(
             'CONSTRUCTION ESTIMATION INTELLIGENCE',
-            style: GoogleFonts.poppins(color: VianTheme.primaryGold, fontWeight: FontWeight.bold, fontSize: 16, letterSpacing: 1),
+            style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontWeight: FontWeight.bold, fontSize: 16, letterSpacing: 1),
           ),
           const SizedBox(height: 4),
           const Text('Real-time analysis, cost settings benchmarks, and margin adjustments.', style: TextStyle(color: VianTheme.lightText, fontSize: 12)),
@@ -16091,7 +16091,7 @@ class _ConstructionEstimationTabState extends ConsumerState<ConstructionEstimati
                   'Total Estimates',
                   '${_dashboardStats['totalEstimates'] ?? 0}',
                   Icons.calculate_outlined,
-                  const Color(0xFF1E1E26),
+                  VianTheme.cardColor,
                 ),
               ),
               const SizedBox(width: 16),
@@ -16136,7 +16136,7 @@ class _ConstructionEstimationTabState extends ConsumerState<ConstructionEstimati
                     children: [
                       Text(
                         'RECENT ESTIMATES',
-                        style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: VianTheme.headerBlack, fontSize: 13),
+                        style: GoogleFonts.hankenGrotesk(fontWeight: FontWeight.bold, color: VianTheme.headerBlack, fontSize: 13),
                       ),
                       const SizedBox(height: 16),
                       if (_estimates.isEmpty)
@@ -16185,7 +16185,7 @@ class _ConstructionEstimationTabState extends ConsumerState<ConstructionEstimati
                     children: [
                       Text(
                         'PACKAGE DISTRIBUTION',
-                        style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: VianTheme.headerBlack, fontSize: 13),
+                        style: GoogleFonts.hankenGrotesk(fontWeight: FontWeight.bold, color: VianTheme.headerBlack, fontSize: 13),
                       ),
                       const SizedBox(height: 24),
                       _distributionRow('Economy Package', _dashboardStats['distribution']?['Economy'] ?? 0, Colors.grey),
@@ -16230,7 +16230,7 @@ class _ConstructionEstimationTabState extends ConsumerState<ConstructionEstimati
                 const SizedBox(height: 8),
                 Text(
                   value,
-                  style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: VianTheme.headerBlack, fontSize: 20),
+                  style: GoogleFonts.hankenGrotesk(fontWeight: FontWeight.bold, color: VianTheme.headerBlack, fontSize: 20),
                 ),
               ],
             ),
@@ -16241,7 +16241,7 @@ class _ConstructionEstimationTabState extends ConsumerState<ConstructionEstimati
               color: baseColor.withOpacity(0.12),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(icon, color: baseColor == const Color(0xFF1E1E26) ? VianTheme.primaryGold : baseColor, size: 24),
+            child: Icon(icon, color: baseColor == VianTheme.cardColor ? VianTheme.primaryGold : baseColor, size: 24),
           ),
         ],
       ),
@@ -16291,7 +16291,7 @@ class _ConstructionEstimationTabState extends ConsumerState<ConstructionEstimati
             children: [
               Text(
                 'SAVED COST ESTIMATES HISTORY LOG',
-                style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: VianTheme.headerBlack, fontSize: 14),
+                style: GoogleFonts.hankenGrotesk(fontWeight: FontWeight.bold, color: VianTheme.headerBlack, fontSize: 14),
               ),
               VianButton(
                 text: 'New Estimate',
@@ -16361,7 +16361,7 @@ class _ConstructionEstimationTabState extends ConsumerState<ConstructionEstimati
                 children: [
                   Text(
                     'REGIONAL MARKET RATES INTELLIGENCE',
-                    style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: VianTheme.headerBlack, fontSize: 14),
+                    style: GoogleFonts.hankenGrotesk(fontWeight: FontWeight.bold, color: VianTheme.headerBlack, fontSize: 14),
                   ),
                   const SizedBox(height: 4),
                   const Text('Track local raw material prices indexed across VIAN workspace regions.', style: TextStyle(color: VianTheme.lightText, fontSize: 12)),
@@ -16454,7 +16454,7 @@ class _ConstructionEstimationTabState extends ConsumerState<ConstructionEstimati
                                       ElevatedButton(
                                         style: ElevatedButton.styleFrom(backgroundColor: VianTheme.danger),
                                         onPressed: () => Navigator.pop(context, true),
-                                        child: const Text('Delete', style: TextStyle(color: Colors.white)),
+                                        child: Text('Delete', style: TextStyle(color: VianTheme.whiteText)),
                                       ),
                                     ],
                                   ),
@@ -16504,7 +16504,7 @@ class _ConstructionEstimationTabState extends ConsumerState<ConstructionEstimati
         return AlertDialog(
           title: Text(
             isEdit ? 'Edit Market Price' : 'Add New Market Rate',
-            style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+            style: GoogleFonts.hankenGrotesk(fontWeight: FontWeight.bold),
           ),
           content: SingleChildScrollView(
             child: Column(
@@ -16622,7 +16622,7 @@ class _ConstructionEstimationTabState extends ConsumerState<ConstructionEstimati
                   const SizedBox(width: 8),
                   Text(
                     'ESTIMATE WORKSPACE: ${details['estimateNumber']}',
-                    style: GoogleFonts.poppins(color: VianTheme.headerBlack, fontWeight: FontWeight.bold, fontSize: 14),
+                    style: GoogleFonts.hankenGrotesk(color: VianTheme.headerBlack, fontWeight: FontWeight.bold, fontSize: 14),
                   ),
                   const Spacer(),
                   if (details['status'] == 'Approved' || details['status'] == 'approved')
@@ -16760,7 +16760,7 @@ class _ConstructionEstimationTabState extends ConsumerState<ConstructionEstimati
       padding: const EdgeInsets.only(bottom: 12.0),
       child: Text(
         title,
-        style: GoogleFonts.poppins(color: VianTheme.primaryGold, fontWeight: FontWeight.bold, fontSize: 12, letterSpacing: 0.8),
+        style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontWeight: FontWeight.bold, fontSize: 12, letterSpacing: 0.8),
       ),
     );
   }
@@ -16802,7 +16802,7 @@ class _ConstructionEstimationTabState extends ConsumerState<ConstructionEstimati
               const SizedBox(width: 8),
               Text(
                 'BUDGET VS ACTUAL LEDGER DETAILS: ${_selectedEstimate!['projectName']}',
-                style: GoogleFonts.poppins(color: VianTheme.headerBlack, fontWeight: FontWeight.bold, fontSize: 14),
+                style: GoogleFonts.hankenGrotesk(color: VianTheme.headerBlack, fontWeight: FontWeight.bold, fontSize: 14),
               ),
             ],
           ),
@@ -16834,7 +16834,7 @@ class _ConstructionEstimationTabState extends ConsumerState<ConstructionEstimati
               children: [
                 Text(
                   'COST CATEGORIES VARIANCE ANALYSIS',
-                  style: GoogleFonts.poppins(color: VianTheme.primaryGold, fontWeight: FontWeight.bold, fontSize: 13, letterSpacing: 0.8),
+                  style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontWeight: FontWeight.bold, fontSize: 13, letterSpacing: 0.8),
                 ),
                 const SizedBox(height: 20),
                 _buildVarianceProgressRow('Raw Materials Cost', data['estimatedMaterialCost'] ?? 0, data['actualMaterialCost'] ?? 0, data['materialVariance'] ?? 0),
@@ -16860,7 +16860,7 @@ class _ConstructionEstimationTabState extends ConsumerState<ConstructionEstimati
           const SizedBox(height: 8),
           Text(
             value,
-            style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: color, fontSize: 18),
+            style: GoogleFonts.hankenGrotesk(fontWeight: FontWeight.bold, color: color, fontSize: 18),
           ),
         ],
       ),
@@ -17361,7 +17361,7 @@ class _EstimationWizardState extends State<EstimationWizard> {
               const SizedBox(width: 8),
               Text(
                 'LIVE ESTIMATE SUMMARY',
-                style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 13, color: VianTheme.headerBlack, letterSpacing: 0.5),
+                style: GoogleFonts.hankenGrotesk(fontWeight: FontWeight.bold, fontSize: 13, color: VianTheme.headerBlack, letterSpacing: 0.5),
               ),
             ],
           ),
@@ -17562,7 +17562,7 @@ class _EstimationWizardState extends State<EstimationWizard> {
           backgroundColor: VianTheme.cardColor,
           title: Text(
             'CONFIRM AI FLOOR PLAN EXTRACTION',
-            style: GoogleFonts.poppins(color: VianTheme.primaryGold, fontWeight: FontWeight.bold, fontSize: 14),
+            style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontWeight: FontWeight.bold, fontSize: 14),
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -17839,7 +17839,7 @@ class _EstimationWizardState extends State<EstimationWizard> {
               const SizedBox(width: 12),
               Text(
                 'AI COGNITIVE FLOOR PLAN SURVEYOR',
-                style: GoogleFonts.poppins(color: VianTheme.headerBlack, fontWeight: FontWeight.bold, fontSize: 12, letterSpacing: 0.8),
+                style: GoogleFonts.hankenGrotesk(color: VianTheme.headerBlack, fontWeight: FontWeight.bold, fontSize: 12, letterSpacing: 0.8),
               ),
               const Spacer(),
               if (hasDrawing)
@@ -18016,7 +18016,7 @@ class _EstimationWizardState extends State<EstimationWizard> {
               const SizedBox(width: 8),
               Text(
                 'AI QUANTITY SURVEYOR SPECIFICATIONS REPORT',
-                style: GoogleFonts.poppins(color: VianTheme.headerBlack, fontWeight: FontWeight.bold, fontSize: 10, letterSpacing: 0.5),
+                style: GoogleFonts.hankenGrotesk(color: VianTheme.headerBlack, fontWeight: FontWeight.bold, fontSize: 10, letterSpacing: 0.5),
               ),
             ],
           ),
@@ -18138,7 +18138,7 @@ class _EstimationWizardState extends State<EstimationWizard> {
                       children: [
                         Text(
                           'COMPLETED PROJECT: ${similar['projectName'] ?? 'Horizon Villa ECR'}',
-                          style: GoogleFonts.poppins(color: VianTheme.headerBlack, fontWeight: FontWeight.bold, fontSize: 10),
+                          style: GoogleFonts.hankenGrotesk(color: VianTheme.headerBlack, fontWeight: FontWeight.bold, fontSize: 10),
                         ),
                         const SizedBox(height: 2),
                         const Text(
@@ -18352,7 +18352,7 @@ class _EstimationWizardState extends State<EstimationWizard> {
                 const SizedBox(height: 8),
                 Text(
                   rateLabel,
-                  style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: VianTheme.headerBlack, fontSize: 20),
+                  style: GoogleFonts.hankenGrotesk(fontWeight: FontWeight.bold, color: VianTheme.headerBlack, fontSize: 20),
                 ),
                 const SizedBox(height: 4),
                 Text(
@@ -18459,7 +18459,7 @@ class _EstimationWizardState extends State<EstimationWizard> {
           const SizedBox(height: 16),
           Text(
             formatter.format(cost),
-            style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: VianTheme.headerBlack, fontSize: 20),
+            style: GoogleFonts.hankenGrotesk(fontWeight: FontWeight.bold, color: VianTheme.headerBlack, fontSize: 20),
           ),
           const SizedBox(height: 12),
           const Text('Includes standard regional materials, logistics, and labour crew allocations.', style: TextStyle(color: VianTheme.lightText, fontSize: 10, height: 1.4), textAlign: TextAlign.center),
@@ -18864,7 +18864,7 @@ class _EstimationWizardState extends State<EstimationWizard> {
                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('BOQ exported to PDF successfully.')));
               },
               icon: const Icon(Icons.picture_as_pdf, size: 16, color: Colors.white),
-              label: const Text('Export PDF', style: TextStyle(color: Colors.white, fontSize: 12)),
+              label: Text('Export PDF', style: TextStyle(color: VianTheme.whiteText, fontSize: 12)),
             ),
           ],
         ),
@@ -19288,7 +19288,7 @@ class _EstimationWizardState extends State<EstimationWizard> {
                                   child: Center(
                                     child: Text(
                                       '$duration d',
-                                      style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
+                                      style: TextStyle(color: VianTheme.whiteText, fontSize: 9, fontWeight: FontWeight.bold),
                                     ),
                                   ),
                                 );
@@ -19420,10 +19420,10 @@ class _EstimationWizardState extends State<EstimationWizard> {
             borderRadius: BorderRadius.circular(8),
             child: Row(
               children: [
-                Expanded(flex: 60, child: Container(color: VianTheme.accentBlue, child: const Center(child: Text('Cost (60%)', style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold))))),
-                Expanded(flex: 12, child: Container(color: VianTheme.success, child: const Center(child: Text('Profit (12%)', style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold))))),
+                Expanded(flex: 60, child: Container(color: VianTheme.accentBlue, child: Center(child: Text('Cost (60%)', style: TextStyle(color: VianTheme.whiteText, fontSize: 9, fontWeight: FontWeight.bold))))),
+                Expanded(flex: 12, child: Container(color: VianTheme.success, child: Center(child: Text('Profit (12%)', style: TextStyle(color: VianTheme.whiteText, fontSize: 9, fontWeight: FontWeight.bold))))),
                 Expanded(flex: 18, child: Container(color: VianTheme.primaryGold, child: const Center(child: Text('GST (18%)', style: TextStyle(color: Colors.black, fontSize: 9, fontWeight: FontWeight.bold))))),
-                Expanded(flex: 10, child: Container(color: const Color(0xFF64748B), child: const Center(child: Text('Buffer (10%)', style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold))))),
+                Expanded(flex: 10, child: Container(color: Color(0xFF64748B), child: Center(child: Text('Buffer (10%)', style: TextStyle(color: VianTheme.whiteText, fontSize: 9, fontWeight: FontWeight.bold))))),
               ],
             ),
           ),
@@ -19471,7 +19471,7 @@ class _EstimationWizardState extends State<EstimationWizard> {
               children: [
                 Text(title, style: const TextStyle(color: VianTheme.lightText, fontSize: 10)),
                 const SizedBox(height: 4),
-                Text(currencyFormat.format(val), style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 13, color: VianTheme.headerBlack)),
+                Text(currencyFormat.format(val), style: GoogleFonts.hankenGrotesk(fontWeight: FontWeight.bold, fontSize: 13, color: VianTheme.headerBlack)),
               ],
             ),
           ),
@@ -19567,10 +19567,10 @@ class _EstimationWizardState extends State<EstimationWizard> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1E1E26),
+        backgroundColor: VianTheme.cardColor,
         title: Text(
           'Share via $channel',
-          style: GoogleFonts.poppins(color: VianTheme.primaryGold, fontSize: 14, fontWeight: FontWeight.bold),
+          style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontSize: 14, fontWeight: FontWeight.bold),
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -19583,9 +19583,9 @@ class _EstimationWizardState extends State<EstimationWizard> {
             const SizedBox(height: 8),
             TextFormField(
               controller: controller,
-              style: const TextStyle(color: Colors.white, fontSize: 13),
+              style: TextStyle(color: VianTheme.whiteText, fontSize: 13),
               decoration: const InputDecoration(
-                enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFF262635))),
+                enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: VianTheme.goldBorder)),
               ),
             ),
           ],
@@ -19642,20 +19642,20 @@ class _EstimationWizardState extends State<EstimationWizard> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(flex: 1, child: Text(itemNo, style: GoogleFonts.poppins(color: VianTheme.lightText, fontSize: 13))),
+          Expanded(flex: 1, child: Text(itemNo, style: GoogleFonts.hankenGrotesk(color: VianTheme.lightText, fontSize: 13))),
           Expanded(
             flex: 6,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                Text(title, style: GoogleFonts.inter(color: VianTheme.whiteText, fontWeight: FontWeight.bold, fontSize: 13)),
                 const SizedBox(height: 4),
                 Text(desc, style: GoogleFonts.inter(color: VianTheme.lightText, fontSize: 11)),
               ],
             ),
           ),
-          Expanded(flex: 2, child: Text(qty, style: GoogleFonts.poppins(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold), textAlign: TextAlign.right)),
-          Expanded(flex: 3, child: Text(total, style: GoogleFonts.poppins(color: VianTheme.primaryGold, fontSize: 13, fontWeight: FontWeight.bold), textAlign: TextAlign.right)),
+          Expanded(flex: 2, child: Text(qty, style: GoogleFonts.hankenGrotesk(color: VianTheme.whiteText, fontSize: 12, fontWeight: FontWeight.bold), textAlign: TextAlign.right)),
+          Expanded(flex: 3, child: Text(total, style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontSize: 13, fontWeight: FontWeight.bold), textAlign: TextAlign.right)),
         ],
       ),
     );
@@ -19666,11 +19666,11 @@ class _EstimationWizardState extends State<EstimationWizard> {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
         color: active ? VianTheme.primaryGold.withOpacity(0.08) : Colors.transparent,
-        border: Border.all(color: active ? VianTheme.primaryGold : Colors.white12),
+        border: Border.all(color: active ? VianTheme.primaryGold : VianTheme.lightText),
       ),
       child: Text(
         label.toUpperCase(),
-        style: GoogleFonts.outfit(
+        style: GoogleFonts.hankenGrotesk(
           color: active ? VianTheme.primaryGold : VianTheme.lightText,
           fontSize: 9,
           fontWeight: FontWeight.bold,
@@ -19697,7 +19697,7 @@ class _EstimationWizardState extends State<EstimationWizard> {
             width: 800,
             constraints: const BoxConstraints(minHeight: 1100),
             decoration: BoxDecoration(
-              color: const Color(0xFF1E1F23),
+              color: VianTheme.cardColor,
               border: Border.all(color: Colors.white.withOpacity(0.04)),
               boxShadow: const [
                 BoxShadow(color: Colors.black54, blurRadius: 40, offset: Offset(0, 16)),
@@ -19729,8 +19729,8 @@ class _EstimationWizardState extends State<EstimationWizard> {
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('ATELIER EST.', style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 18, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
-                                Text('ARCHITECTURAL EXCELLENCE', style: GoogleFonts.outfit(color: VianTheme.lightText, fontSize: 8, letterSpacing: 1.5)),
+                                Text('ATELIER EST.', style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontSize: 18, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
+                                Text('ARCHITECTURAL EXCELLENCE', style: GoogleFonts.hankenGrotesk(color: VianTheme.lightText, fontSize: 8, letterSpacing: 1.5)),
                               ],
                             )
                           ],
@@ -19738,8 +19738,8 @@ class _EstimationWizardState extends State<EstimationWizard> {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
-                            Text('QUOTATION NO.', style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
-                            Text('#EST-2024-089', style: GoogleFonts.bodoniModa(color: Colors.white, fontSize: 18, fontStyle: FontStyle.italic)),
+                            Text('QUOTATION NO.', style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
+                            Text('#EST-2024-089', style: GoogleFonts.bodoniModa(color: VianTheme.whiteText, fontSize: 18, fontStyle: FontStyle.italic)),
                           ],
                         )
                       ],
@@ -19748,7 +19748,7 @@ class _EstimationWizardState extends State<EstimationWizard> {
                     Container(
                       height: 1,
                       decoration: const BoxDecoration(
-                        gradient: LinearGradient(colors: [Colors.transparent, Colors.white10, Colors.transparent]),
+                        gradient: LinearGradient(colors: [Colors.transparent, VianTheme.goldBorder, Colors.transparent]),
                       ),
                     ),
                     const SizedBox(height: 32),
@@ -19766,9 +19766,9 @@ class _EstimationWizardState extends State<EstimationWizard> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('PREPARED FOR', style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
+                                Text('PREPARED FOR', style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
                                 const SizedBox(height: 8),
-                                Text(_clientNameController.text.isNotEmpty ? _clientNameController.text : 'Sovereign Estates Group', style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
+                                Text(_clientNameController.text.isNotEmpty ? _clientNameController.text : 'Sovereign Estates Group', style: GoogleFonts.inter(color: VianTheme.whiteText, fontWeight: FontWeight.bold, fontSize: 14)),
                                 const SizedBox(height: 4),
                                 Text(_clientContactController.text, style: GoogleFonts.inter(color: VianTheme.lightText, fontSize: 12)),
                               ],
@@ -19780,9 +19780,9 @@ class _EstimationWizardState extends State<EstimationWizard> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('PROJECT REFERENCE', style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
+                              Text('PROJECT REFERENCE', style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
                               const SizedBox(height: 8),
-                              Text(_projectNameController.text.isNotEmpty ? _projectNameController.text : 'The Meridian Penthouse Complex', style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
+                              Text(_projectNameController.text.isNotEmpty ? _projectNameController.text : 'The Meridian Penthouse Complex', style: GoogleFonts.inter(color: VianTheme.whiteText, fontWeight: FontWeight.bold, fontSize: 14)),
                               const SizedBox(height: 4),
                               Text('${_addressController.text}, ${_cityController.text}', style: GoogleFonts.inter(color: VianTheme.lightText, fontSize: 12)),
                             ],
@@ -19803,7 +19803,7 @@ class _EstimationWizardState extends State<EstimationWizard> {
                       padding: const EdgeInsets.symmetric(vertical: 24.0),
                       child: Column(
                         children: [
-                          Text('TOTAL ESTIMATED INVESTMENT', style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 2.0)),
+                          Text('TOTAL ESTIMATED INVESTMENT', style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 2.0)),
                           const SizedBox(height: 12),
                           Text(
                             currencyFormat.format(netProjectValue),
@@ -19818,13 +19818,13 @@ class _EstimationWizardState extends State<EstimationWizard> {
 
                     Row(
                       children: [
-                        Expanded(flex: 1, child: Text('ITEM', style: GoogleFonts.poppins(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold))),
-                        Expanded(flex: 6, child: Text('DESCRIPTION', style: GoogleFonts.poppins(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold))),
-                        Expanded(flex: 2, child: Text('QTY', style: GoogleFonts.poppins(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold), textAlign: TextAlign.right)),
-                        Expanded(flex: 3, child: Text('TOTAL', style: GoogleFonts.poppins(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold), textAlign: TextAlign.right)),
+                        Expanded(flex: 1, child: Text('ITEM', style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold))),
+                        Expanded(flex: 6, child: Text('DESCRIPTION', style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold))),
+                        Expanded(flex: 2, child: Text('QTY', style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold), textAlign: TextAlign.right)),
+                        Expanded(flex: 3, child: Text('TOTAL', style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold), textAlign: TextAlign.right)),
                       ],
                     ),
-                    const Divider(color: Colors.white10, height: 24),
+                    const Divider(color: VianTheme.goldBorder, height: 24),
 
                     ..._buildProposalRows(currencyFormat),
 
@@ -19838,14 +19838,14 @@ class _EstimationWizardState extends State<EstimationWizard> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('TERMS & CONDITIONS', style: GoogleFonts.outfit(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                              Text('TERMS & CONDITIONS', style: GoogleFonts.hankenGrotesk(color: VianTheme.whiteText, fontSize: 10, fontWeight: FontWeight.bold)),
                               const SizedBox(height: 6),
                               Text(
                                 'This estimation is subject to market fluctuation in raw material costs exceeding 5%. Sourcing prices are valid for 30 days.',
                                 style: GoogleFonts.inter(color: VianTheme.lightText, fontSize: 11, height: 1.4),
                               ),
                               const SizedBox(height: 16),
-                              Text('CONFIDENTIALITY', style: GoogleFonts.outfit(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                              Text('CONFIDENTIALITY', style: GoogleFonts.hankenGrotesk(color: VianTheme.whiteText, fontSize: 10, fontWeight: FontWeight.bold)),
                               const SizedBox(height: 6),
                               Text(
                                 'This document contains proprietary design intelligence and pricing strategies. Unauthorized distribution is prohibited.',
@@ -19861,9 +19861,9 @@ class _EstimationWizardState extends State<EstimationWizard> {
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
                               const SizedBox(height: 32),
-                              Container(width: 120, height: 1, color: Colors.white24),
+                              Container(width: 120, height: 1, color: VianTheme.lightText),
                               const SizedBox(height: 8),
-                              Text('Authorized Signature', style: GoogleFonts.outfit(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                              Text('Authorized Signature', style: GoogleFonts.hankenGrotesk(color: VianTheme.whiteText, fontSize: 10, fontWeight: FontWeight.bold)),
                               Text('Lead Architect - Atelier Est.', style: GoogleFonts.inter(color: VianTheme.lightText, fontSize: 10)),
                             ],
                           ),
@@ -19889,7 +19889,7 @@ class _EstimationWizardState extends State<EstimationWizard> {
             children: [
               Row(
                 children: [
-                  Text('EXPORT:', style: GoogleFonts.outfit(color: VianTheme.lightText, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
+                  Text('EXPORT:', style: GoogleFonts.hankenGrotesk(color: VianTheme.lightText, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
                   const SizedBox(width: 16),
                   InkWell(
                     onTap: () => setState(() => _exportPdfSelected = true),
@@ -19907,12 +19907,12 @@ class _EstimationWizardState extends State<EstimationWizard> {
                   OutlinedButton.icon(
                     style: OutlinedButton.styleFrom(
                       foregroundColor: Colors.white,
-                      side: const BorderSide(color: Colors.white24),
+                      side: const BorderSide(color: VianTheme.lightText),
                       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
                     ),
                     icon: const Icon(Icons.share, size: 14),
-                    label: Text('SHARE LINK', style: GoogleFonts.outfit(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
+                    label: Text('SHARE LINK', style: GoogleFonts.hankenGrotesk(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
                     onPressed: () async {
                       final id = await _ensureSavedEstimate();
                       if (id != null) {
@@ -19929,7 +19929,7 @@ class _EstimationWizardState extends State<EstimationWizard> {
                       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
                     ),
                     icon: const Icon(Icons.download, size: 14),
-                    label: Text('DOWNLOAD PROPOSAL', style: GoogleFonts.outfit(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
+                    label: Text('DOWNLOAD PROPOSAL', style: GoogleFonts.hankenGrotesk(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
                     onPressed: () async {
                       final id = await _ensureSavedEstimate();
                       if (id == null) {
@@ -19969,7 +19969,7 @@ class _EstimationWizardState extends State<EstimationWizard> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(title, style: GoogleFonts.poppins(color: VianTheme.primaryGold, fontWeight: FontWeight.bold, fontSize: 14)),
+        Text(title, style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontWeight: FontWeight.bold, fontSize: 14)),
         const SizedBox(height: 4),
         Text(desc, style: const TextStyle(color: VianTheme.lightText, fontSize: 11)),
       ],
@@ -20073,7 +20073,7 @@ class _EstimationWizardState extends State<EstimationWizard> {
                     backgroundColor: VianTheme.danger,
                     content: Text(
                       'Validation Alert: Phase allocations must sum to 100% (currently ${totalAlloc.toStringAsFixed(1)}%). Please adjust allocations.',
-                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                      style: TextStyle(color: VianTheme.whiteText, fontWeight: FontWeight.bold),
                     ),
                   ),
                 );
@@ -20233,7 +20233,7 @@ class _EstimationSettingsViewState extends State<EstimationSettingsView> {
               const SizedBox(height: 16),
               Text(
                 'ACCESS AUTHORIZATION DENIED',
-                style: GoogleFonts.poppins(color: VianTheme.primaryGold, fontWeight: FontWeight.bold, fontSize: 14),
+                style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontWeight: FontWeight.bold, fontSize: 14),
               ),
               const SizedBox(height: 12),
               const Text(
@@ -20255,7 +20255,7 @@ class _EstimationSettingsViewState extends State<EstimationSettingsView> {
           children: [
             Text(
               'ESTIMATION ENGINE FORMULAS SETTINGS',
-              style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: VianTheme.headerBlack, fontSize: 14),
+              style: GoogleFonts.hankenGrotesk(fontWeight: FontWeight.bold, color: VianTheme.headerBlack, fontSize: 14),
             ),
             const SizedBox(height: 8),
             const Text('Super Admin view to edit base coefficients, regional markups, and default packages.', style: TextStyle(color: VianTheme.lightText, fontSize: 12)),
@@ -20378,7 +20378,7 @@ class _MobileSiteEngineerViewState extends State<MobileSiteEngineerView> {
       appBar: AppBar(
         title: Text(
           _selectedProject != null ? _selectedProject!['projectName'] : 'SITE ENGINEER CORNER',
-          style: GoogleFonts.poppins(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
+          style: GoogleFonts.hankenGrotesk(color: VianTheme.whiteText, fontSize: 14, fontWeight: FontWeight.bold),
         ),
         actions: [
           IconButton(
@@ -20405,7 +20405,7 @@ class _MobileSiteEngineerViewState extends State<MobileSiteEngineerView> {
         children: [
           Text(
             'ACTIVE RUNNING PROJECTS',
-            style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: VianTheme.primaryGold, fontSize: 13, letterSpacing: 0.8),
+            style: GoogleFonts.hankenGrotesk(fontWeight: FontWeight.bold, color: VianTheme.primaryGold, fontSize: 13, letterSpacing: 0.8),
           ),
           const SizedBox(height: 12),
           Expanded(
@@ -20416,11 +20416,11 @@ class _MobileSiteEngineerViewState extends State<MobileSiteEngineerView> {
                     itemBuilder: (context, index) {
                       final item = approvedList[index];
                       return Card(
-                        color: const Color(0xFF1E1E26),
+                        color: VianTheme.cardColor,
                         margin: const EdgeInsets.only(bottom: 12),
                         child: ListTile(
                           contentPadding: const EdgeInsets.all(12),
-                          title: Text(item['projectName'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+                          title: Text(item['projectName'] ?? '', style: TextStyle(fontWeight: FontWeight.bold, color: VianTheme.whiteText)),
                           subtitle: Text('Client: ${item['clientName']} | Area: ${item['builtUpArea']} ${item['unit']}', style: const TextStyle(color: VianTheme.lightText, fontSize: 12)),
                           trailing: const Icon(Icons.chevron_right, color: VianTheme.primaryGold),
                           onTap: () {
@@ -20483,13 +20483,13 @@ class _MobileSiteEngineerViewState extends State<MobileSiteEngineerView> {
         children: [
           Text(
             'BUDGET VS ACTUAL LEDGER',
-            style: GoogleFonts.poppins(color: VianTheme.primaryGold, fontWeight: FontWeight.bold, fontSize: 12, letterSpacing: 0.8),
+            style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontWeight: FontWeight.bold, fontSize: 12, letterSpacing: 0.8),
           ),
           const SizedBox(height: 12),
           _mobileLedgerRow('Materials', data['estimatedMaterialCost'] ?? 0, data['actualMaterialCost'] ?? 0, currencyFormat),
-          const Divider(color: Color(0xFF262635)),
+          Divider(color: VianTheme.goldBorder),
           _mobileLedgerRow('Labour', data['estimatedLabourCost'] ?? 0, data['actualLabourCost'] ?? 0, currencyFormat),
-          const Divider(color: Color(0xFF262635)),
+          Divider(color: VianTheme.goldBorder),
           _mobileLedgerRow('Expenses', data['estimatedExpenses'] ?? 0, data['actualExpenses'] ?? 0, currencyFormat),
           const Divider(color: VianTheme.primaryGold, thickness: 1.5),
           _mobileLedgerRow('Total Cost', data['totalEstimatedCost'] ?? 0, data['totalActualCost'] ?? 0, currencyFormat, isTotal: true),
@@ -20506,11 +20506,11 @@ class _MobileSiteEngineerViewState extends State<MobileSiteEngineerView> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: TextStyle(fontWeight: isTotal ? FontWeight.bold : FontWeight.normal, color: isTotal ? VianTheme.primaryGold : Colors.white, fontSize: 12)),
+        Text(label, style: TextStyle(fontWeight: isTotal ? FontWeight.bold : FontWeight.normal, color: isTotal ? VianTheme.primaryGold : VianTheme.whiteText, fontSize: 12)),
         Column(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            Text('Spent: ${formatter.format(actVal)}', style: TextStyle(fontWeight: isTotal ? FontWeight.bold : FontWeight.normal, color: Colors.white, fontSize: 12)),
+            Text('Spent: ${formatter.format(actVal)}', style: TextStyle(fontWeight: isTotal ? FontWeight.bold : FontWeight.normal, color: VianTheme.whiteText, fontSize: 12)),
             Text('Budget: ${formatter.format(estVal)}', style: const TextStyle(color: VianTheme.lightText, fontSize: 10)),
           ],
         )
@@ -20526,7 +20526,7 @@ class _MobileSiteEngineerViewState extends State<MobileSiteEngineerView> {
         children: [
           Text(
             'UPDATE PHASE PROGRESS',
-            style: GoogleFonts.poppins(color: VianTheme.primaryGold, fontWeight: FontWeight.bold, fontSize: 12, letterSpacing: 0.8),
+            style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontWeight: FontWeight.bold, fontSize: 12, letterSpacing: 0.8),
           ),
           const SizedBox(height: 12),
           const Text('Slide to adjust estimated building completion progress.', style: TextStyle(color: VianTheme.lightText, fontSize: 11)),
@@ -20542,7 +20542,7 @@ class _MobileSiteEngineerViewState extends State<MobileSiteEngineerView> {
               // Log state updates locally / trigger endpoint
             },
           ),
-          const Center(child: Text('RCC Structure Completion: 45%', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold))),
+          Center(child: Text('RCC Structure Completion: 45%', style: TextStyle(color: VianTheme.whiteText, fontSize: 12, fontWeight: FontWeight.bold))),
         ],
       ),
     );
@@ -20566,7 +20566,7 @@ class _MobileSiteEngineerViewState extends State<MobileSiteEngineerView> {
         children: [
           Text(
             'NEW MATERIAL / BILL LEDGER RECEIPT',
-            style: GoogleFonts.poppins(color: VianTheme.primaryGold, fontWeight: FontWeight.bold, fontSize: 12, letterSpacing: 0.8),
+            style: GoogleFonts.hankenGrotesk(color: VianTheme.primaryGold, fontWeight: FontWeight.bold, fontSize: 12, letterSpacing: 0.8),
           ),
           const SizedBox(height: 16),
           TextFormField(
@@ -20740,7 +20740,7 @@ class _ConferenceCallsTabState extends State<ConferenceCallsTab> {
                   children: [
                     const Text('Conference Calls Tracker', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: VianTheme.primaryGold)),
                     const SizedBox(height: 4),
-                    Text('Monitor Morning/Evening operational briefings and log staff attendance', style: TextStyle(color: Colors.white.withOpacity(0.5))),
+                    Text('Monitor Morning/Evening operational briefings and log staff attendance', style: TextStyle(color: VianTheme.whiteText.withOpacity(0.5))),
                   ],
                 ),
                 ElevatedButton.icon(
@@ -20774,7 +20774,7 @@ class _ConferenceCallsTabState extends State<ConferenceCallsTab> {
       child: Container(
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          color: const Color(0xFF1E1E26),
+          color: VianTheme.cardColor,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: Colors.white.withOpacity(0.04)),
         ),
@@ -20788,7 +20788,7 @@ class _ConferenceCallsTabState extends State<ConferenceCallsTab> {
                 Expanded(
                   child: DropdownButtonFormField<String>(
                     value: _selectedType,
-                    dropdownColor: const Color(0xFF1E1E26),
+                    dropdownColor: VianTheme.cardColor,
                     decoration: const InputDecoration(labelText: 'Briefing Session Type'),
                     items: ['Morning Call', 'Evening Call'].map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(),
                     onChanged: (val) => setState(() => _selectedType = val!),
@@ -20814,7 +20814,7 @@ class _ConferenceCallsTabState extends State<ConferenceCallsTab> {
                     max: 60,
                     divisions: 10,
                     activeColor: VianTheme.primaryGold,
-                    inactiveColor: Colors.white10,
+                    inactiveColor: VianTheme.goldBorder,
                     label: '${_durationMinutes.toInt()} mins',
                     onChanged: (val) => setState(() => _durationMinutes = val),
                   ),
@@ -20861,7 +20861,7 @@ class _ConferenceCallsTabState extends State<ConferenceCallsTab> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(emp['name'] ?? 'Unknown', style: const TextStyle(fontWeight: FontWeight.bold)),
-                            Text('${emp['employeeId'] ?? ''} • ${emp['role'] ?? ''}', style: TextStyle(fontSize: 12, color: Colors.white.withOpacity(0.4))),
+                            Text('${emp['employeeId'] ?? ''} • ${emp['role'] ?? ''}', style: TextStyle(fontSize: 12, color: VianTheme.whiteText.withOpacity(0.4))),
                           ],
                         ),
                       ),
@@ -20910,7 +20910,7 @@ class _ConferenceCallsTabState extends State<ConferenceCallsTab> {
         decoration: BoxDecoration(
           color: selected ? color.withOpacity(0.15) : Colors.transparent,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: selected ? color : Colors.white10),
+          border: Border.all(color: selected ? color : VianTheme.goldBorder),
         ),
         child: Text(
           status,
@@ -20934,7 +20934,7 @@ class _ConferenceCallsTabState extends State<ConferenceCallsTab> {
             const SizedBox(height: 16),
             const Text('No Briefing Sessions Logged', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
-            Text('Log your first morning or evening call to begin compliance scores tracking.', style: TextStyle(color: Colors.white.withOpacity(0.4))),
+            Text('Log your first morning or evening call to begin compliance scores tracking.', style: TextStyle(color: VianTheme.whiteText.withOpacity(0.4))),
           ],
         ),
       );
@@ -20961,7 +20961,7 @@ class _ConferenceCallsTabState extends State<ConferenceCallsTab> {
           margin: const EdgeInsets.only(bottom: 16),
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: const Color(0xFF1E1E26),
+            color: VianTheme.cardColor,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(color: Colors.white.withOpacity(0.04)),
           ),
@@ -20995,7 +20995,7 @@ class _ConferenceCallsTabState extends State<ConferenceCallsTab> {
                   ),
                   Text(
                     call['date'] ?? '',
-                    style: TextStyle(color: Colors.white.withOpacity(0.4), fontSize: 13),
+                    style: TextStyle(color: VianTheme.whiteText.withOpacity(0.4), fontSize: 13),
                   ),
                 ],
               ),
@@ -21003,7 +21003,7 @@ class _ConferenceCallsTabState extends State<ConferenceCallsTab> {
               if (call['notes'] != null && call['notes'].isNotEmpty) ...[
                 Text(
                   call['notes'],
-                  style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 13.5),
+                  style: TextStyle(color: VianTheme.whiteText.withOpacity(0.8), fontSize: 13.5),
                 ),
                 const SizedBox(height: 16),
               ],
@@ -21017,7 +21017,7 @@ class _ConferenceCallsTabState extends State<ConferenceCallsTab> {
                   const Spacer(),
                   Text(
                     'Logged By: ${logger['name'] ?? 'System'}',
-                    style: TextStyle(fontSize: 11, color: Colors.white.withOpacity(0.3)),
+                    style: TextStyle(fontSize: 11, color: VianTheme.whiteText.withOpacity(0.3)),
                   ),
                 ],
               )
@@ -21100,7 +21100,7 @@ class _IncentivesTabState extends ConsumerState<IncentivesTab> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1E1E26),
+        backgroundColor: VianTheme.cardColor,
         title: Text('${record['user']?['name'] ?? 'Staff'} Scorecard', style: const TextStyle(color: VianTheme.primaryGold)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -21114,7 +21114,7 @@ class _IncentivesTabState extends ConsumerState<IncentivesTab> {
             _scoreBar('Tasks Accomplishment', safeToDouble(record['tasksScore']), 25),
             _scoreBar('Photo slots Compliance', safeToDouble(record['photosScore']), 20),
             _scoreBar('Daily Logs Compliance', safeToDouble(record['reportsScore']), 10),
-            const Divider(color: Colors.white10),
+            const Divider(color: VianTheme.goldBorder),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -21156,7 +21156,7 @@ class _IncentivesTabState extends ConsumerState<IncentivesTab> {
         const SizedBox(height: 4),
         LinearProgressIndicator(
           value: ratio,
-          backgroundColor: Colors.white10,
+          backgroundColor: VianTheme.goldBorder,
           color: _getScoreColor(ratio * 100),
           minHeight: 6,
         ),
@@ -21209,7 +21209,7 @@ class _IncentivesTabState extends ConsumerState<IncentivesTab> {
                   children: [
                     const Text('Staff Incentives Engine', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: VianTheme.primaryGold)),
                     const SizedBox(height: 4),
-                    Text('Auto-compute monthly employee operational score, bonuses, and review override penalties.', style: TextStyle(color: Colors.white.withOpacity(0.5))),
+                    Text('Auto-compute monthly employee operational score, bonuses, and review override penalties.', style: TextStyle(color: VianTheme.whiteText.withOpacity(0.5))),
                   ],
                 ),
                 Row(
@@ -21218,7 +21218,7 @@ class _IncentivesTabState extends ConsumerState<IncentivesTab> {
                       width: 140,
                       child: DropdownButtonFormField<String>(
                         value: _selectedMonth,
-                        dropdownColor: const Color(0xFF1E1E26),
+                        dropdownColor: VianTheme.cardColor,
                         decoration: const InputDecoration(labelText: 'Month', contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8)),
                         items: ['2026-07', '2026-06', '2026-05'].map((m) => DropdownMenuItem(value: m, child: Text(m))).toList(),
                         onChanged: (val) {
@@ -21268,7 +21268,7 @@ class _IncentivesTabState extends ConsumerState<IncentivesTab> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E1E26),
+        color: VianTheme.cardColor,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Colors.white.withOpacity(0.04)),
       ),
@@ -21278,7 +21278,7 @@ class _IncentivesTabState extends ConsumerState<IncentivesTab> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title, style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 13)),
+              Text(title, style: TextStyle(color: VianTheme.whiteText.withOpacity(0.5), fontSize: 13)),
               const SizedBox(height: 8),
               Text(value, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
             ],
@@ -21292,7 +21292,7 @@ class _IncentivesTabState extends ConsumerState<IncentivesTab> {
   Widget _buildIncentivesTable(bool isMD, bool isSuperAdmin) {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF1E1E26),
+        color: VianTheme.cardColor,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Colors.white.withOpacity(0.04)),
       ),
@@ -21342,7 +21342,7 @@ class _IncentivesTabState extends ConsumerState<IncentivesTab> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(emp['name'] ?? 'Unknown', style: const TextStyle(fontWeight: FontWeight.bold)),
-                        Text('${emp['employeeId'] ?? ''} • ${emp['role'] ?? ''}', style: TextStyle(fontSize: 11, color: Colors.white.withOpacity(0.4))),
+                        Text('${emp['employeeId'] ?? ''} • ${emp['role'] ?? ''}', style: TextStyle(fontSize: 11, color: VianTheme.whiteText.withOpacity(0.4))),
                       ],
                     )),
                     _dataCell(Text(
@@ -21402,7 +21402,7 @@ class _IncentivesTabState extends ConsumerState<IncentivesTab> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1E1E26),
+        backgroundColor: VianTheme.cardColor,
         title: Text('Review Timeline – ${record['user']?['name']}', style: const TextStyle(color: VianTheme.primaryGold)),
         content: Container(
           width: 450,
@@ -21428,16 +21428,16 @@ class _IncentivesTabState extends ConsumerState<IncentivesTab> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text('${log['action']}', style: const TextStyle(fontWeight: FontWeight.bold, color: VianTheme.primaryGold, fontSize: 13)),
-                                Text('$dt $time', style: TextStyle(color: Colors.white.withOpacity(0.4), fontSize: 11)),
+                                Text('$dt $time', style: TextStyle(color: VianTheme.whiteText.withOpacity(0.4), fontSize: 11)),
                               ],
                             ),
                             const SizedBox(height: 6),
                             Text('Modified By: ${log['user']} (${log['role']})', style: const TextStyle(fontSize: 12)),
                             Text('Amount: ₹${log['originalAmount']} ➔ ₹${log['newAmount']}', style: const TextStyle(fontSize: 12)),
                             if (log['remarks'] != null && log['remarks'].toString().isNotEmpty)
-                              Text('Remarks: ${log['remarks']}', style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 11)),
+                              Text('Remarks: ${log['remarks']}', style: TextStyle(color: VianTheme.whiteText.withOpacity(0.7), fontSize: 11)),
                             if (log['reason'] != null && log['reason'].toString().isNotEmpty)
-                              Text('Audit Reason: ${log['reason']}', style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 11)),
+                              Text('Audit Reason: ${log['reason']}', style: TextStyle(color: VianTheme.whiteText.withOpacity(0.7), fontSize: 11)),
                           ],
                         ),
                       ),
@@ -21474,14 +21474,14 @@ class _IncentivesTabState extends ConsumerState<IncentivesTab> {
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (context, setStateModal) => AlertDialog(
-          backgroundColor: const Color(0xFF1E1E26),
+          backgroundColor: VianTheme.cardColor,
           title: Text('Review Incentive Payout – ${record['user']?['name']}', style: const TextStyle(color: VianTheme.primaryGold)),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Base Suggested Incentive: ₹${suggested.toStringAsFixed(2)}', style: const TextStyle(color: Colors.white70)),
+                Text('Base Suggested Incentive: ₹${suggested.toStringAsFixed(2)}', style: const TextStyle(color: VianTheme.lightText)),
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: amountCtrl,
@@ -21491,7 +21491,7 @@ class _IncentivesTabState extends ConsumerState<IncentivesTab> {
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
                   value: currentStatus,
-                  dropdownColor: const Color(0xFF1E1E26),
+                  dropdownColor: VianTheme.cardColor,
                   decoration: const InputDecoration(labelText: 'Review Status'),
                   items: allowedStatuses.map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
                   onChanged: (val) {

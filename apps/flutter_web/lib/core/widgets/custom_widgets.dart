@@ -36,8 +36,8 @@ class _VianCardState extends State<VianCard> {
         height: widget.height,
         padding: widget.padding ?? const EdgeInsets.all(16.0),
         decoration: BoxDecoration(
-          color: _isHovered ? const Color(0xFF25262B) : VianTheme.cardColor,
-          borderRadius: BorderRadius.zero,
+          color: _isHovered ? VianTheme.champagneGold : VianTheme.cardColor,
+          borderRadius: BorderRadius.circular(10),
           border: Border.all(
             color: _isHovered ? VianTheme.primaryGold.withOpacity(0.5) : VianTheme.goldBorder,
             width: 1.0,
@@ -169,16 +169,16 @@ class VianButton extends StatelessWidget {
             foregroundColor: color ?? VianTheme.primaryGold,
             side: BorderSide(color: color ?? VianTheme.primaryGold, width: 1.0),
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-            shape: const RoundedRectangleBorder(
-              borderRadius: BorderRadius.zero,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(6),
             ),
           )
         : ElevatedButton.styleFrom(
             backgroundColor: color ?? VianTheme.primaryGold,
-            foregroundColor: textColor ?? VianTheme.darkBackground,
+            foregroundColor: textColor ?? Colors.white,
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-            shape: const RoundedRectangleBorder(
-              borderRadius: BorderRadius.zero,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(6),
             ),
           );
 

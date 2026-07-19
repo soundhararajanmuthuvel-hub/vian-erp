@@ -138,6 +138,13 @@ async function runMigrations(sequelizeInstance) {
     await addColumnIfMissing('contractors', 'deleted_by', 'INT NULL');
     await addColumnIfMissing('manager_attendance', 'deleted_at', 'TIMESTAMP NULL');
     await addColumnIfMissing('manager_attendance', 'deleted_by', 'INT NULL');
+    await addColumnIfMissing('manager_attendance', 'worker_id', 'INT NULL');
+    await addColumnIfMissing('manager_attendance', 'manager_id', 'INT NULL');
+    await addColumnIfMissing('import_activity_logs', 'user_id', 'INT NULL');
+    await addColumnIfMissing('monthly_targets', 'annual_target_id', 'INT NULL');
+    await addColumnIfMissing('employee_targets', 'employee_id', 'INT NULL');
+    await addColumnIfMissing('employee_targets', 'assigned_by', 'INT NULL');
+    await addColumnIfMissing('project_payments', 'project_id', 'INT NULL');
     
     // Expanded attendance columns
     await addColumnIfMissing('attendance', 'check_in_latitude', 'DECIMAL(9,6) NULL');
@@ -255,6 +262,13 @@ async function runMigrations(sequelizeInstance) {
     await addColumnIfMissingSqlite('contractors', 'deleted_by', 'INTEGER');
     await addColumnIfMissingSqlite('manager_attendance', 'deleted_at', 'TEXT');
     await addColumnIfMissingSqlite('manager_attendance', 'deleted_by', 'INTEGER');
+    await addColumnIfMissingSqlite('manager_attendance', 'worker_id', 'INTEGER');
+    await addColumnIfMissingSqlite('manager_attendance', 'manager_id', 'INTEGER');
+    await addColumnIfMissingSqlite('import_activity_logs', 'user_id', 'INTEGER');
+    await addColumnIfMissingSqlite('monthly_targets', 'annual_target_id', 'INTEGER');
+    await addColumnIfMissingSqlite('employee_targets', 'employee_id', 'INTEGER');
+    await addColumnIfMissingSqlite('employee_targets', 'assigned_by', 'INTEGER');
+    await addColumnIfMissingSqlite('project_payments', 'project_id', 'INTEGER');
 
     // Expanded attendance columns SQLite
     await addColumnIfMissingSqlite('attendance', 'check_in_latitude', 'REAL');
