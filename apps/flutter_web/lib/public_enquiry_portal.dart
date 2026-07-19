@@ -1568,7 +1568,7 @@ class _EnquiryInboxTabState extends State<EnquiryInboxTab> {
                                 radius: 24,
                                 backgroundColor: VianTheme.primaryGold.withOpacity(0.1),
                                 child: Text(
-                                  _selectedSubmission!['clientName']?[0]?.toUpperCase() ?? 'C',
+                                  ((_selectedSubmission!['clientName']?.toString() ?? '').isNotEmpty) ? _selectedSubmission!['clientName'].toString().substring(0, 1).toUpperCase() : 'C',
                                   style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 18, fontWeight: FontWeight.bold),
                                 ),
                               ),

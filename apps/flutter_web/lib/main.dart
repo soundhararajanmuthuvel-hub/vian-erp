@@ -1380,7 +1380,7 @@ class _MainNavigationShellState extends ConsumerState<MainNavigationShell> {
             backgroundColor: VianTheme.sidebarBg,
             radius: 18,
             child: Text(
-              user['name']?[0] ?? 'V',
+              ((user?['name']?.toString() ?? '').isNotEmpty) ? user!['name'].toString().substring(0, 1).toUpperCase() : 'V',
               style: const TextStyle(color: VianTheme.primaryGold, fontWeight: FontWeight.bold),
             ),
           ),

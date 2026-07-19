@@ -1006,7 +1006,7 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
                           contentPadding: EdgeInsets.zero,
                           leading: CircleAvatar(
                             backgroundColor: VianTheme.darkBackground,
-                            child: Text(u['name']?[0] ?? 'U', style: const TextStyle(color: VianTheme.primaryGold)),
+                            child: Text((u['name']?.toString() ?? '').isNotEmpty ? u['name'].toString().substring(0, 1).toUpperCase() : 'U', style: const TextStyle(color: VianTheme.primaryGold)),
                           ),
                           title: Text(u['name'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold)),
                           subtitle: Column(
@@ -1072,7 +1072,7 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
                         CircleAvatar(
                           backgroundColor: VianTheme.darkBackground,
                           radius: 20,
-                          child: Text(u['name']?[0] ?? 'U', style: const TextStyle(color: VianTheme.primaryGold)),
+                          child: Text((u['name']?.toString() ?? '').isNotEmpty ? u['name'].toString().substring(0, 1).toUpperCase() : 'U', style: const TextStyle(color: VianTheme.primaryGold)),
                         ),
                         const SizedBox(width: 16),
                         Expanded(
@@ -1190,7 +1190,7 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
                                 children: [
                                   CircleAvatar(
                                     backgroundColor: VianTheme.darkBackground,
-                                    child: Text(u['name']?[0] ?? 'U', style: const TextStyle(color: VianTheme.primaryGold)),
+                                    child: Text((u['name']?.toString() ?? '').isNotEmpty ? u['name'].toString().substring(0, 1).toUpperCase() : 'U', style: const TextStyle(color: VianTheme.primaryGold)),
                                   ),
                                   const SizedBox(width: 16),
                                   Expanded(
