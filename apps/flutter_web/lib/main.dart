@@ -11,7 +11,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:io' as io;
-import 'dart:ui' show ImageFilter;
+import 'dart:ui' show ImageFilter, PlatformDispatcher;
 
 import 'core/theme/theme.dart';
 import 'core/services/api_service.dart';
@@ -29,20 +29,74 @@ import 'splash_screen.dart';
 import 'core/models/estimation.dart';
 import 'core/services/estimation_provider.dart';
 import 'user_management.dart';
+import 'core/widgets/error_recovery.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
 import 'js_stub.dart'
     if (dart.library.js) 'dart:js' as js;
 
 // Riverpod Provider for logged-in user state
 final userProvider = StateProvider<Map<String, dynamic>?>((ref) => ApiService.currentUser);
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await ApiService.init();
-  runApp(
-    const ProviderScope(
-      child: VianERPApp(),
-    ),
-  );
+void main() {
+  runZonedGuarded(() async {
+    WidgetsFlutterBinding.ensureInitialized();
+
+    // 1. Setup Global Exception Boundary Hooks
+    FlutterError.onError = (FlutterErrorDetails details) {
+      FlutterError.presentError(details);
+      debugPrint("Framework Error Intercepted: ${details.exception}");
+    };
+
+    PlatformDispatcher.instance.onError = (Object error, StackTrace stack) {
+      debugPrint("Uncaught Async Error Intercepted: $error");
+      return true;
+    };
+
+    ErrorWidget.builder = (FlutterErrorDetails details) {
+      return VianErrorRecoveryWidget(
+        error: details.exception.toString(),
+        stackTrace: details.stack,
+      );
+    };
+
+    // 2. Pre-flight Startup Check Validation
+    final validation = await VianStartupValidator.validate();
+    if (!validation.isSuccess) {
+      runApp(
+        VianStartupDiagnosticApp(
+          result: validation,
+          onForceOffline: () {
+            runApp(
+              const ProviderScope(
+                child: VianERPApp(),
+              ),
+            );
+          },
+        ),
+      );
+      return;
+    }
+
+    await ApiService.init();
+
+    runApp(
+      const ProviderScope(
+        child: VianERPApp(),
+      ),
+    );
+  }, (Object error, StackTrace stack) {
+    debugPrint("Zoned Execution Fault: $error");
+    runApp(
+      VianStartupDiagnosticApp(
+        result: StartupValidationResult(
+          isSuccess: false,
+          errorMessage: "Zoned Execution Fault: $error",
+          stackTrace: stack,
+        ),
+      ),
+    );
+  });
 }
 
 // Router Configuration
