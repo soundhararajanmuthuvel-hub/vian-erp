@@ -9,7 +9,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart';
+import 'core/services/demo_credentials.dart';
+import 'core/services/demo_auth_service.dart';
 import 'dart:io' as io;
 import 'dart:ui' show ImageFilter, PlatformDispatcher;
 
@@ -886,6 +888,7 @@ class _LoginPageState extends ConsumerState<LoginPage> with SingleTickerProvider
               _envButton('client', 'Client'),
             ],
           ),
+          _buildDemoLoginPanel(context),
           const SizedBox(height: 36),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -925,6 +928,240 @@ class _LoginPageState extends ConsumerState<LoginPage> with SingleTickerProvider
         ),
       ),
     );
+  }
+
+  Widget _buildDemoLoginPanel(BuildContext context) {
+    if (!DemoAccountService.shouldShow) {
+      return const SizedBox.shrink();
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 32),
+        Row(
+          children: [
+            Expanded(child: Divider(color: VianTheme.goldBorder, thickness: 1)),
+            const SizedBox(width: 12),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: VianTheme.primaryGold.withOpacity(0.1),
+                border: Border.all(color: VianTheme.primaryGold.withOpacity(0.3), width: 1),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.build_outlined, color: VianTheme.primaryGold, size: 10),
+                  const SizedBox(width: 4),
+                  Text(
+                    'DEVELOPMENT BUILD',
+                    style: GoogleFonts.outfit(
+                      color: VianTheme.primaryGold,
+                      fontSize: 8,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.5,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(child: Divider(color: VianTheme.goldBorder, thickness: 1)),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Center(
+          child: Column(
+            children: [
+              Text(
+                'Developer Quick Login',
+                style: GoogleFonts.outfit(
+                  color: VianTheme.whiteText,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Disabled automatically in Production',
+                style: GoogleFonts.outfit(
+                  color: VianTheme.lightText,
+                  fontSize: 11,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 20),
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            childAspectRatio: 1.45,
+          ),
+          itemCount: DemoAccountService.accounts.length,
+          itemBuilder: (context, index) {
+            final account = DemoAccountService.accounts[index];
+            return _buildDemoRoleCard(context, account);
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDemoRoleCard(BuildContext context, DemoAccount account) {
+    return Container(
+      decoration: BoxDecoration(
+        color: VianTheme.cardColor,
+        border: Border.all(color: VianTheme.goldBorder, width: 1),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      padding: const EdgeInsets.all(10.0),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            children: [
+              Text(
+                account.iconEmoji,
+                style: const TextStyle(fontSize: 18),
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      account.displayName,
+                      style: GoogleFonts.outfit(
+                        color: VianTheme.whiteText,
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    Text(
+                      account.description,
+                      style: GoogleFonts.inter(
+                        color: VianTheme.lightText,
+                        fontSize: 8.5,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          SizedBox(
+            width: double.infinity,
+            height: 28,
+            child: OutlinedButton(
+              onPressed: _isLoading ? null : () => _confirmDemoLogin(context, account),
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: VianTheme.primaryGold, width: 0.8),
+                padding: EdgeInsets.zero,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+              child: Text(
+                'Login',
+                style: GoogleFonts.outfit(
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                  color: VianTheme.primaryGold,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _confirmDemoLogin(BuildContext context, DemoAccount account) async {
+    final proceed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          backgroundColor: VianTheme.cardColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+            side: const BorderSide(color: VianTheme.primaryGold, width: 1.5),
+          ),
+          title: Text(
+            'Confirm Quick Login',
+            style: GoogleFonts.outfit(
+              color: VianTheme.primaryGold,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          content: Text(
+            'Do you want to log in as ${account.iconEmoji} ${account.displayName}?',
+            style: GoogleFonts.inter(color: VianTheme.whiteText),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(false),
+              child: Text(
+                'Cancel',
+                style: GoogleFonts.outfit(color: VianTheme.lightText),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(ctx).pop(true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: VianTheme.primaryGold,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              ),
+              child: Text(
+                'Continue',
+                style: GoogleFonts.outfit(
+                  color: const Color(0xFF412D00),
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (proceed == true) {
+      _executeDemoLogin(account.role);
+    }
+  }
+
+  Future<void> _executeDemoLogin(DemoRole role) async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    final res = await DemoAuthService.login(role);
+
+    if (res['success'] == true) {
+      ref.read(userProvider.notifier).state = res['user'];
+      context.go('/dashboard');
+    } else {
+      setState(() {
+        _errorMessage = res['message'] ?? 'Demo login failed';
+      });
+    }
+
+    setState(() {
+      _isLoading = false;
+    });
   }
 }
 

@@ -1,4 +1,5 @@
                   import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'api_constants.dart';
@@ -41,16 +42,21 @@ class ApiService {
         _currentUser = data['user'];
 
         final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('jwt_token', _token!);
+        await prefs.setString('jwt_token', _token ?? '');
         await prefs.setString('current_user', json.encode(_currentUser));
 
         return {'success': true, 'user': _currentUser};
       } else {
-        final err = json.decode(response.body);
-        return {'success': false, 'message': err['message'] ?? 'Login failed'};
+        try {
+          final err = json.decode(response.body);
+          return {'success': false, 'message': err['message'] ?? 'Login failed'};
+        } catch (_) {
+          return {'success': false, 'message': 'Login failed with status ${response.statusCode}'};
+        }
       }
     } catch (e) {
-      throw Exception('Login failed: Server unreachable or offline. Details: $e');
+      debugPrint("Server login connection failed: $e. Falling back to local offline simulation mode.");
+      return _mockLogin(username, password);
     }
   }
 
@@ -118,7 +124,7 @@ class ApiService {
       };
 
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('jwt_token', _token!);
+      await prefs.setString('jwt_token', _token ?? '');
       await prefs.setString('current_user', json.encode(_currentUser));
 
       return {'success': true, 'user': _currentUser, 'isMock': true};
@@ -2758,9 +2764,9 @@ class ApiService {
         'totalCost': totalCost.round(),
         'ratePerUnit': ratePerSqFt.round(),
         'comparison': {
-          'Economy': (areaSqFt * rates['Economy']! * adj).round(),
-          'Standard': (areaSqFt * rates['Standard']! * adj).round(),
-          'Premium': (areaSqFt * rates['Premium']! * adj).round()
+          'Economy': (areaSqFt * (rates['Economy'] ?? 1800.0) * adj).round(),
+          'Standard': (areaSqFt * (rates['Standard'] ?? 2400.0) * adj).round(),
+          'Premium': (areaSqFt * (rates['Premium'] ?? 3200.0) * adj).round()
         },
         'materials': [
           {'materialName': 'Cement', 'unit': 'Bags', 'quantity': (areaSqFt * 0.4).roundToDouble(), 'rate': 420.0, 'cost': (areaSqFt * 0.4 * 420.0).roundToDouble()},
