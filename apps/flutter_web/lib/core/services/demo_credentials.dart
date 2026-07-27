@@ -23,10 +23,14 @@ class DemoAccount {
 
 class DemoAccountService {
   static const bool enableDemoLogin = bool.fromEnvironment('ENABLE_DEMO_LOGIN', defaultValue: false);
+  static const String environment = String.fromEnvironment('ENVIRONMENT', defaultValue: 'development');
 
-  static bool get shouldShow =>
-      !kReleaseMode &&
-      (kDebugMode || enableDemoLogin);
+  static bool get shouldShow {
+    if (environment == 'production' || environment == 'prod') {
+      return false;
+    }
+    return kDebugMode || enableDemoLogin;
+  }
 
   static const List<DemoAccount> accounts = [
     DemoAccount(

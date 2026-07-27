@@ -865,6 +865,7 @@ class _LoginPageState extends ConsumerState<LoginPage> with SingleTickerProvider
               ),
             ),
           ),
+          _buildDemoLoginPanel(context, isMobileMode),
           const SizedBox(height: 40),
           Center(
             child: Text(
@@ -888,7 +889,6 @@ class _LoginPageState extends ConsumerState<LoginPage> with SingleTickerProvider
               _envButton('client', 'Client'),
             ],
           ),
-          _buildDemoLoginPanel(context),
           const SizedBox(height: 36),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -930,7 +930,7 @@ class _LoginPageState extends ConsumerState<LoginPage> with SingleTickerProvider
     );
   }
 
-  Widget _buildDemoLoginPanel(BuildContext context) {
+  Widget _buildDemoLoginPanel(BuildContext context, bool isMobileMode) {
     if (!DemoAccountService.shouldShow) {
       return const SizedBox.shrink();
     }
@@ -986,7 +986,7 @@ class _LoginPageState extends ConsumerState<LoginPage> with SingleTickerProvider
               ),
               const SizedBox(height: 4),
               Text(
-                'Disabled automatically in Production',
+                'Available only in Debug / Demo builds',
                 style: GoogleFonts.outfit(
                   color: VianTheme.lightText,
                   fontSize: 11,
@@ -996,90 +996,138 @@ class _LoginPageState extends ConsumerState<LoginPage> with SingleTickerProvider
           ),
         ),
         const SizedBox(height: 20),
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
-            childAspectRatio: 1.45,
-          ),
-          itemCount: DemoAccountService.accounts.length,
-          itemBuilder: (context, index) {
-            final account = DemoAccountService.accounts[index];
-            return _buildDemoRoleCard(context, account);
-          },
-        ),
+        isMobileMode
+            ? Column(
+                children: DemoAccountService.accounts.map((account) => _buildDemoMobileCard(context, account)).toList(),
+              )
+            : Column(
+                children: DemoAccountService.accounts.map((account) => _buildDemoDesktopRow(context, account)).toList(),
+              ),
       ],
     );
   }
 
-  Widget _buildDemoRoleCard(BuildContext context, DemoAccount account) {
+  Widget _buildDemoDesktopRow(BuildContext context, DemoAccount account) {
     return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
         color: VianTheme.cardColor,
         border: Border.all(color: VianTheme.goldBorder, width: 1),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(6),
       ),
-      padding: const EdgeInsets.all(10.0),
-      child: Column(
+      child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Row(
             children: [
               Text(
                 account.iconEmoji,
-                style: const TextStyle(fontSize: 18),
+                style: const TextStyle(fontSize: 20),
               ),
-              const SizedBox(width: 6),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      account.displayName,
-                      style: GoogleFonts.outfit(
-                        color: VianTheme.whiteText,
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+              const SizedBox(width: 12),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    account.displayName,
+                    style: GoogleFonts.outfit(
+                      color: VianTheme.whiteText,
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.bold,
                     ),
-                    Text(
-                      account.description,
-                      style: GoogleFonts.inter(
-                        color: VianTheme.lightText,
-                        fontSize: 8.5,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                  ),
+                  Text(
+                    account.description,
+                    style: GoogleFonts.inter(
+                      color: VianTheme.lightText,
+                      fontSize: 9.5,
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ],
           ),
-          const SizedBox(height: 4),
           SizedBox(
-            width: double.infinity,
-            height: 28,
+            height: 30,
+            width: 72,
             child: OutlinedButton(
               onPressed: _isLoading ? null : () => _confirmDemoLogin(context, account),
               style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: VianTheme.primaryGold, width: 0.8),
+                side: const BorderSide(color: VianTheme.primaryGold, width: 1),
                 padding: EdgeInsets.zero,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(4),
                 ),
               ),
               child: Text(
-                'Login',
+                'LOGIN',
+                style: GoogleFonts.outfit(
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.bold,
+                  color: VianTheme.primaryGold,
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDemoMobileCard(BuildContext context, DemoAccount account) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: VianTheme.cardColor,
+        border: Border.all(color: VianTheme.goldBorder, width: 1),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        children: [
+          Text(
+            account.iconEmoji,
+            style: const TextStyle(fontSize: 24),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            account.displayName,
+            style: GoogleFonts.outfit(
+              color: VianTheme.whiteText,
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            account.description,
+            style: GoogleFonts.inter(
+              color: VianTheme.lightText,
+              fontSize: 10,
+            ),
+          ),
+          const SizedBox(height: 10),
+          SizedBox(
+            width: double.infinity,
+            height: 32,
+            child: OutlinedButton(
+              onPressed: _isLoading ? null : () => _confirmDemoLogin(context, account),
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: VianTheme.primaryGold, width: 1),
+                padding: EdgeInsets.zero,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+              child: Text(
+                'LOGIN',
                 style: GoogleFonts.outfit(
                   fontSize: 11,
                   fontWeight: FontWeight.bold,
                   color: VianTheme.primaryGold,
+                  letterSpacing: 0.5,
                 ),
               ),
             ),

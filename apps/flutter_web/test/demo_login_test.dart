@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:vian_erp/core/services/demo_credentials.dart';
-import 'package:vian_erp/core/services/demo_auth_service.dart';
 
 void main() {
   group('DemoAccountService Tests', () {
