@@ -26,7 +26,8 @@ class ProjectGeofenceMap extends StatefulWidget {
   State<ProjectGeofenceMap> createState() => _ProjectGeofenceMapState();
 }
 
-class _ProjectGeofenceMapState extends State<ProjectGeofenceMap> with SingleTickerProviderStateMixin {
+class _ProjectGeofenceMapState extends State<ProjectGeofenceMap>
+    with SingleTickerProviderStateMixin {
   late AnimationController _pulseCtrl;
 
   @override
@@ -48,12 +49,17 @@ class _ProjectGeofenceMapState extends State<ProjectGeofenceMap> with SingleTick
     const R = 6371000; // Earth radius in meters
     final phi1 = widget.projectLatitude * math.pi / 180;
     final phi2 = widget.employeeLatitude * math.pi / 180;
-    final deltaPhi = (widget.employeeLatitude - widget.projectLatitude) * math.pi / 180;
-    final deltaLambda = (widget.employeeLongitude - widget.projectLongitude) * math.pi / 180;
+    final deltaPhi =
+        (widget.employeeLatitude - widget.projectLatitude) * math.pi / 180;
+    final deltaLambda =
+        (widget.employeeLongitude - widget.projectLongitude) * math.pi / 180;
 
-    final a = math.sin(deltaPhi / 2) * math.sin(deltaPhi / 2) +
-        math.cos(phi1) * math.cos(phi2) *
-            math.sin(deltaLambda / 2) * math.sin(deltaLambda / 2);
+    final a =
+        math.sin(deltaPhi / 2) * math.sin(deltaPhi / 2) +
+        math.cos(phi1) *
+            math.cos(phi2) *
+            math.sin(deltaLambda / 2) *
+            math.sin(deltaLambda / 2);
     final c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a));
 
     return R * c;
@@ -93,7 +99,7 @@ class _ProjectGeofenceMapState extends State<ProjectGeofenceMap> with SingleTick
               },
             ),
           ),
-          
+
           // Map Telemetry Dashboard Overlay (Glassmorphism)
           Positioned(
             bottom: 12,
@@ -128,18 +134,28 @@ class _ProjectGeofenceMapState extends State<ProjectGeofenceMap> with SingleTick
                         const SizedBox(height: 2),
                         Text(
                           'Geofence Radius: ${widget.allowedRadius.toInt()}m | Near: ${GpsAddressResolver.resolve(widget.projectLatitude, widget.projectLongitude).landmark}',
-                          style: const TextStyle(color: Colors.white60, fontSize: 9),
+                          style: const TextStyle(
+                            color: Colors.white60,
+                            fontSize: 9,
+                          ),
                         ),
                       ],
                     ),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
                     decoration: BoxDecoration(
-                      color: isInside ? const Color(0x1A10B981) : const Color(0x1AEF4444),
+                      color: isInside
+                          ? const Color(0x1A10B981)
+                          : const Color(0x1AEF4444),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
-                        color: isInside ? Colors.greenAccent.withOpacity(0.3) : VianTheme.danger.withOpacity(0.3),
+                        color: isInside
+                            ? Colors.greenAccent.withOpacity(0.3)
+                            : VianTheme.danger.withOpacity(0.3),
                       ),
                     ),
                     child: Row(
@@ -147,16 +163,20 @@ class _ProjectGeofenceMapState extends State<ProjectGeofenceMap> with SingleTick
                       children: [
                         Icon(
                           isInside ? Icons.gps_fixed : Icons.gps_off,
-                          color: isInside ? Colors.greenAccent : VianTheme.danger,
+                          color: isInside
+                              ? Colors.greenAccent
+                              : VianTheme.danger,
                           size: 14,
                         ),
                         const SizedBox(width: 6),
                         Text(
-                          isInside 
-                              ? '${distance.toStringAsFixed(1)}m (Inside)' 
+                          isInside
+                              ? '${distance.toStringAsFixed(1)}m (Inside)'
                               : '${distance.toStringAsFixed(1)}m (Outside)',
                           style: GoogleFonts.poppins(
-                            color: isInside ? Colors.greenAccent : VianTheme.danger,
+                            color: isInside
+                                ? Colors.greenAccent
+                                : VianTheme.danger,
                             fontSize: 11,
                             fontWeight: FontWeight.bold,
                           ),
@@ -168,7 +188,7 @@ class _ProjectGeofenceMapState extends State<ProjectGeofenceMap> with SingleTick
               ),
             ),
           ),
-          
+
           // GPS Compass Rose Indicator
           Positioned(
             top: 12,
@@ -257,14 +277,18 @@ class GeofenceMapPainter extends CustomPainter {
       ..color = VianTheme.primaryGold.withOpacity(0.15 * (1.0 - pulseProgress))
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.0;
-    canvas.drawCircle(center, radius * 2.0 * pulseProgress * pixelsPerMeter, radarPaint);
+    canvas.drawCircle(
+      center,
+      radius * 2.0 * pulseProgress * pixelsPerMeter,
+      radarPaint,
+    );
 
     // Draw project center point (Hub)
     final hubPaint = Paint()
       ..color = VianTheme.primaryGold
       ..style = PaintingStyle.fill;
     canvas.drawCircle(center, 6, hubPaint);
-    
+
     final hubOuterPaint = Paint()
       ..color = VianTheme.primaryGold.withOpacity(0.3)
       ..style = PaintingStyle.fill;
@@ -273,7 +297,8 @@ class GeofenceMapPainter extends CustomPainter {
     // Calculate relative employee coordinates
     // We assume 1 degree latitude = 111,000 meters, 1 degree longitude = 111,000 * cos(lat) meters
     final dLatM = (empLat - projectLat) * 111000.0;
-    final dLngM = (empLng - projectLng) * 111000.0 * math.cos(projectLat * math.pi / 180);
+    final dLngM =
+        (empLng - projectLng) * 111000.0 * math.cos(projectLat * math.pi / 180);
 
     // Coordinate translation: longitude maps to x-axis, latitude maps to y-axis (negative since screen y grows downwards)
     final empOffset = Offset(
@@ -298,10 +323,12 @@ class GeofenceMapPainter extends CustomPainter {
 
     // Connection Path line between site center and employee location
     final pathPaint = Paint()
-      ..color = distance <= radius ? Colors.greenAccent.withOpacity(0.5) : VianTheme.danger.withOpacity(0.5)
+      ..color = distance <= radius
+          ? Colors.greenAccent.withOpacity(0.5)
+          : VianTheme.danger.withOpacity(0.5)
       ..strokeWidth = 1.5
       ..style = PaintingStyle.stroke;
-    
+
     // Draw dashed connection line
     _drawDashedLine(canvas, center, constrainedEmpOffset, pathPaint);
 
@@ -312,7 +339,8 @@ class GeofenceMapPainter extends CustomPainter {
     canvas.drawCircle(constrainedEmpOffset, 7, empPaint);
 
     final empRingPaint = Paint()
-      ..color = (distance <= radius ? Colors.greenAccent : VianTheme.danger).withOpacity(0.2)
+      ..color = (distance <= radius ? Colors.greenAccent : VianTheme.danger)
+          .withOpacity(0.2)
       ..style = PaintingStyle.fill;
     canvas.drawCircle(constrainedEmpOffset, 14, empRingPaint);
   }
@@ -320,17 +348,17 @@ class GeofenceMapPainter extends CustomPainter {
   void _drawDashedLine(Canvas canvas, Offset p1, Offset p2, Paint paint) {
     const dashWidth = 4.0;
     const dashSpace = 4.0;
-    
+
     final dx = p2.dx - p1.dx;
     final dy = p2.dy - p1.dy;
     final distance = math.sqrt(dx * dx + dy * dy);
-    
+
     final int count = (distance / (dashWidth + dashSpace)).floor();
-    
+
     for (int i = 0; i < count; i++) {
       final double t1 = i / count;
       final double t2 = (i + 0.5) / count;
-      
+
       canvas.drawLine(
         Offset(p1.dx + dx * t1, p1.dy + dy * t1),
         Offset(p1.dx + dx * t2, p1.dy + dy * t2),

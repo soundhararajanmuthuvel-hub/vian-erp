@@ -29,18 +29,17 @@ class EstimationState {
       marketPrices: marketPrices ?? this.marketPrices,
       settings: settings ?? this.settings,
       dashboardStats: dashboardStats ?? this.dashboardStats,
-      selectedBudgetVsActual: selectedBudgetVsActual ?? this.selectedBudgetVsActual,
+      selectedBudgetVsActual:
+          selectedBudgetVsActual ?? this.selectedBudgetVsActual,
     );
   }
 }
 
 class EstimationNotifier extends StateNotifier<EstimationState> {
   EstimationNotifier()
-      : super(EstimationState(
-          estimates: [],
-          marketPrices: [],
-          dashboardStats: {},
-        ));
+    : super(
+        EstimationState(estimates: [], marketPrices: [], dashboardStats: {}),
+      );
 
   Future<void> loadAllData() async {
     try {
@@ -122,6 +121,7 @@ class EstimationNotifier extends StateNotifier<EstimationState> {
   }
 }
 
-final estimationProvider = StateNotifierProvider<EstimationNotifier, EstimationState>((ref) {
-  return EstimationNotifier();
-});
+final estimationProvider =
+    StateNotifierProvider<EstimationNotifier, EstimationState>((ref) {
+      return EstimationNotifier();
+    });

@@ -32,7 +32,8 @@ class VianStartupValidator {
       } catch (e, stack) {
         return StartupValidationResult(
           isSuccess: false,
-          errorMessage: "Local Storage Fault: SharedPreferences failed to initialize ($e)",
+          errorMessage:
+              "Local Storage Fault: SharedPreferences failed to initialize ($e)",
           stackTrace: stack,
         );
       }
@@ -43,7 +44,8 @@ class VianStartupValidator {
       if (uri == null || !uri.hasAbsolutePath) {
         return StartupValidationResult(
           isSuccess: false,
-          errorMessage: "Invalid API Configuration: Base URL '$urlStr' is not a valid absolute URL.",
+          errorMessage:
+              "Invalid API Configuration: Base URL '$urlStr' is not a valid absolute URL.",
         );
       }
 
@@ -51,16 +53,17 @@ class VianStartupValidator {
       try {
         // Send a fast timeout-guarded request to the server base path.
         // If the server is offline or network is down, this throws a SocketException.
-        await http.get(Uri.parse(urlStr), headers: {
-          'Accept': 'application/json',
-        }).timeout(const Duration(seconds: 4));
+        await http
+            .get(Uri.parse(urlStr), headers: {'Accept': 'application/json'})
+            .timeout(const Duration(seconds: 4));
       } catch (e, stack) {
         // Note: Any non-200 responses (like 401 Unauthorized) are fine because they indicate the server is active and reachable.
         // If it throws an exception (unreachable/offline), we capture it.
         return StartupValidationResult(
           isSuccess: false,
           isOffline: true,
-          errorMessage: "Atelier Server Unreachable: Failed to contact the backend service at '$urlStr' ($e).",
+          errorMessage:
+              "Atelier Server Unreachable: Failed to contact the backend service at '$urlStr' ($e).",
           stackTrace: stack,
         );
       }
@@ -154,7 +157,11 @@ class VianErrorRecoveryScreen extends StatelessWidget {
                 // Top header details
                 Row(
                   children: [
-                    const Icon(Icons.warning_amber_rounded, color: VianTheme.primaryGold, size: 36),
+                    const Icon(
+                      Icons.warning_amber_rounded,
+                      color: VianTheme.primaryGold,
+                      size: 36,
+                    ),
                     const SizedBox(width: 16),
                     Expanded(
                       child: Column(
@@ -185,10 +192,14 @@ class VianErrorRecoveryScreen extends StatelessWidget {
                 const SizedBox(height: 24),
                 const Text(
                   'An unexpected runtime exception has occurred. The system has automatically isolated the error state to prevent UI corruption and preserve database transaction integrity.',
-                  style: TextStyle(color: VianTheme.lightText, fontSize: 13, height: 1.5),
+                  style: TextStyle(
+                    color: VianTheme.lightText,
+                    fontSize: 13,
+                    height: 1.5,
+                  ),
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Error display container
                 Container(
                   width: double.infinity,
@@ -249,35 +260,71 @@ class VianErrorRecoveryScreen extends StatelessWidget {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: VianTheme.primaryGold,
                         foregroundColor: const Color(0xFF412D00),
-                        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                        shape: const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.zero,
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 14,
+                        ),
                       ),
                       icon: const Icon(Icons.refresh_rounded, size: 18),
-                      label: Text('RELOAD APP', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 12, letterSpacing: 0.5)),
+                      label: Text(
+                        'RELOAD APP',
+                        style: GoogleFonts.outfit(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
                       onPressed: _reloadApplication,
                     ),
                     OutlinedButton.icon(
                       style: OutlinedButton.styleFrom(
                         foregroundColor: VianTheme.primaryGold,
                         side: const BorderSide(color: VianTheme.primaryGold),
-                        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                        shape: const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.zero,
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 14,
+                        ),
                       ),
                       icon: const Icon(Icons.copy_rounded, size: 18),
-                      label: Text('COPY LOGS', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 12, letterSpacing: 0.5)),
+                      label: Text(
+                        'COPY LOGS',
+                        style: GoogleFonts.outfit(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
                       onPressed: () => _copyDiagnostics(context),
                     ),
                     TextButton.icon(
                       style: TextButton.styleFrom(
                         foregroundColor: VianTheme.lightText,
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 14,
+                        ),
                       ),
                       icon: const Icon(Icons.bug_report_outlined, size: 18),
-                      label: Text('REPORT ISSUE', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 12, letterSpacing: 0.5)),
+                      label: Text(
+                        'REPORT ISSUE',
+                        style: GoogleFonts.outfit(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
                       onPressed: () {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
-                            content: Text('Diagnostics payload transmitted to VIAN Operations Center.'),
+                            content: Text(
+                              'Diagnostics payload transmitted to VIAN Operations Center.',
+                            ),
                             backgroundColor: VianTheme.primaryGoldLight,
                           ),
                         );
@@ -310,7 +357,10 @@ class VianStartupDiagnosticApp extends StatelessWidget {
       title: 'VIAN Startup Diagnostics',
       debugShowCheckedModeBanner: false,
       theme: VianTheme.darkTheme,
-      home: VianStartupDiagnosticScreen(result: result, onForceOffline: onForceOffline),
+      home: VianStartupDiagnosticScreen(
+        result: result,
+        onForceOffline: onForceOffline,
+      ),
     );
   }
 }
@@ -372,7 +422,9 @@ class VianStartupDiagnosticScreen extends StatelessWidget {
                 Row(
                   children: [
                     Icon(
-                      isOffline ? Icons.wifi_off_rounded : Icons.error_outline_rounded,
+                      isOffline
+                          ? Icons.wifi_off_rounded
+                          : Icons.error_outline_rounded,
                       color: VianTheme.primaryGold,
                       size: 36,
                     ),
@@ -382,7 +434,9 @@ class VianStartupDiagnosticScreen extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            isOffline ? 'OFFLINE PROTOCOL' : 'INITIALIZATION FAULT',
+                            isOffline
+                                ? 'OFFLINE PROTOCOL'
+                                : 'INITIALIZATION FAULT',
                             style: GoogleFonts.outfit(
                               fontSize: 10,
                               fontWeight: FontWeight.bold,
@@ -391,7 +445,9 @@ class VianStartupDiagnosticScreen extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            isOffline ? 'Server Unreachable' : 'Critical Config Fault',
+                            isOffline
+                                ? 'Server Unreachable'
+                                : 'Critical Config Fault',
                             style: GoogleFonts.outfit(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
@@ -408,7 +464,11 @@ class VianStartupDiagnosticScreen extends StatelessWidget {
                   isOffline
                       ? 'The system could not establish a connection to the Atelier Command server. You can still access local files and drawings cached offline, or try to reconnect.'
                       : 'A critical system configuration error prevented startup initialization check. Details are shown below.',
-                  style: const TextStyle(color: VianTheme.lightText, fontSize: 13, height: 1.5),
+                  style: const TextStyle(
+                    color: VianTheme.lightText,
+                    fontSize: 13,
+                    height: 1.5,
+                  ),
                 ),
                 const SizedBox(height: 16),
 
@@ -439,11 +499,23 @@ class VianStartupDiagnosticScreen extends StatelessWidget {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: VianTheme.primaryGold,
                         foregroundColor: const Color(0xFF412D00),
-                        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                        shape: const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.zero,
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 14,
+                        ),
                       ),
                       icon: const Icon(Icons.refresh_rounded, size: 18),
-                      label: Text('RECONNECT / RETRY', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 12, letterSpacing: 0.5)),
+                      label: Text(
+                        'RECONNECT / RETRY',
+                        style: GoogleFonts.outfit(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
                       onPressed: _reloadApplication,
                     ),
                     if (isOffline && onForceOffline != null)
@@ -451,22 +523,46 @@ class VianStartupDiagnosticScreen extends StatelessWidget {
                         style: OutlinedButton.styleFrom(
                           foregroundColor: VianTheme.primaryGold,
                           side: const BorderSide(color: VianTheme.primaryGold),
-                          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                          shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.zero,
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 14,
+                          ),
                         ),
                         icon: const Icon(Icons.offline_pin_outlined, size: 18),
-                        label: Text('FORCE OFFLINE MODE', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 12, letterSpacing: 0.5)),
+                        label: Text(
+                          'FORCE OFFLINE MODE',
+                          style: GoogleFonts.outfit(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
                         onPressed: onForceOffline,
                       ),
                     OutlinedButton.icon(
                       style: OutlinedButton.styleFrom(
                         foregroundColor: VianTheme.lightText,
                         side: const BorderSide(color: VianTheme.goldBorder),
-                        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                        shape: const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.zero,
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 14,
+                        ),
                       ),
                       icon: const Icon(Icons.copy_rounded, size: 18),
-                      label: Text('COPY SYSTEM LOG', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 12, letterSpacing: 0.5)),
+                      label: Text(
+                        'COPY SYSTEM LOG',
+                        style: GoogleFonts.outfit(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
                       onPressed: () => _copyDiagnostics(context),
                     ),
                   ],

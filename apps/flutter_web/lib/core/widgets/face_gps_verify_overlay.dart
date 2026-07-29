@@ -11,8 +11,7 @@ import '../services/api_service.dart';
 import '../services/gps_resolver.dart';
 import 'custom_widgets.dart';
 import 'project_geofence_map.dart';
-import '../../js_stub.dart'
-    if (dart.library.js) 'dart:js' as js;
+import '../../js_stub.dart' if (dart.library.js) 'dart:js' as js;
 
 class FaceGpsVerifyOverlay extends StatefulWidget {
   final String action; // 'check-in' or 'check-out'
@@ -30,7 +29,8 @@ class FaceGpsVerifyOverlay extends StatefulWidget {
   State<FaceGpsVerifyOverlay> createState() => _FaceGpsVerifyOverlayState();
 }
 
-class _FaceGpsVerifyOverlayState extends State<FaceGpsVerifyOverlay> with SingleTickerProviderStateMixin {
+class _FaceGpsVerifyOverlayState extends State<FaceGpsVerifyOverlay>
+    with SingleTickerProviderStateMixin {
   late AnimationController _animCtrl;
   String _statusText = 'Ready to Scan';
   double _progress = 0.0;
@@ -39,7 +39,7 @@ class _FaceGpsVerifyOverlayState extends State<FaceGpsVerifyOverlay> with Single
   bool _isError = false;
   String _errorMessage = '';
   String _verifiedTime = '';
-  
+
   // Projects list
   List<dynamic> _projects = [];
   dynamic _selectedProject;
@@ -49,7 +49,7 @@ class _FaceGpsVerifyOverlayState extends State<FaceGpsVerifyOverlay> with Single
   // 'center' = Site Center (inside radius)
   // 'outside' = Outside Geofence (~1000m)
   String _gpsMode = 'center';
-  
+
   double lat = 28.4595;
   double lng = 77.0266;
   double accuracy = 10.0;
@@ -83,7 +83,11 @@ class _FaceGpsVerifyOverlayState extends State<FaceGpsVerifyOverlay> with Single
       final list = await ApiService.getProjects();
       if (mounted) {
         setState(() {
-          _projects = list.where((p) => p['status'] != 'Completed' && p['status'] != 'Cancelled').toList();
+          _projects = list
+              .where(
+                (p) => p['status'] != 'Completed' && p['status'] != 'Cancelled',
+              )
+              .toList();
           if (_projects.isNotEmpty) {
             _selectedProject = _projects.first;
             _updateSimulatedCoordinates();
@@ -100,14 +104,14 @@ class _FaceGpsVerifyOverlayState extends State<FaceGpsVerifyOverlay> with Single
 
   void _updateSimulatedCoordinates() {
     if (_selectedProject == null) return;
-    
-    final double projLat = _selectedProject['latitude'] != null 
-        ? double.parse(_selectedProject['latitude'].toString()) 
+
+    final double projLat = _selectedProject['latitude'] != null
+        ? double.parse(_selectedProject['latitude'].toString())
         : 28.4595;
-    final double projLng = _selectedProject['longitude'] != null 
-        ? double.parse(_selectedProject['longitude'].toString()) 
+    final double projLng = _selectedProject['longitude'] != null
+        ? double.parse(_selectedProject['longitude'].toString())
         : 77.0266;
-    
+
     if (_gpsMode == 'center') {
       // Coords directly inside radius
       lat = projLat;
@@ -121,16 +125,24 @@ class _FaceGpsVerifyOverlayState extends State<FaceGpsVerifyOverlay> with Single
     }
   }
 
-  double _calculateDistance(double lat1, double lon1, double lat2, double lon2) {
+  double _calculateDistance(
+    double lat1,
+    double lon1,
+    double lat2,
+    double lon2,
+  ) {
     const R = 6371000; // metres
     final phi1 = lat1 * math.pi / 180;
     final phi2 = lat2 * math.pi / 180;
     final deltaPhi = (lat2 - lat1) * math.pi / 180;
     final deltaLambda = (lon2 - lon1) * math.pi / 180;
 
-    final a = math.sin(deltaPhi / 2) * math.sin(deltaPhi / 2) +
-        math.cos(phi1) * math.cos(phi2) *
-            math.sin(deltaLambda / 2) * math.sin(deltaLambda / 2);
+    final a =
+        math.sin(deltaPhi / 2) * math.sin(deltaPhi / 2) +
+        math.cos(phi1) *
+            math.cos(phi2) *
+            math.sin(deltaLambda / 2) *
+            math.sin(deltaLambda / 2);
     final c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a));
 
     return R * c;
@@ -156,7 +168,9 @@ class _FaceGpsVerifyOverlayState extends State<FaceGpsVerifyOverlay> with Single
 
     // Step 1: Check face status database enrollment
     // We assume check is simulated for demo user Vijay/Anand, but verify others
-    final user = await ApiService.getFaceStatus(1); // Simulated user face enrollment verify
+    final user = await ApiService.getFaceStatus(
+      1,
+    ); // Simulated user face enrollment verify
     await Future.delayed(const Duration(milliseconds: 1000));
     if (!mounted) return;
 
@@ -190,16 +204,19 @@ class _FaceGpsVerifyOverlayState extends State<FaceGpsVerifyOverlay> with Single
     if (!mounted) return;
 
     // Calculations before API call
-    final double projLat = _selectedProject != null && _selectedProject['latitude'] != null 
-        ? double.parse(_selectedProject['latitude'].toString()) 
+    final double projLat =
+        _selectedProject != null && _selectedProject['latitude'] != null
+        ? double.parse(_selectedProject['latitude'].toString())
         : 28.4595;
-    final double projLng = _selectedProject != null && _selectedProject['longitude'] != null 
-        ? double.parse(_selectedProject['longitude'].toString()) 
+    final double projLng =
+        _selectedProject != null && _selectedProject['longitude'] != null
+        ? double.parse(_selectedProject['longitude'].toString())
         : 77.0266;
-    
+
     _calculatedDistance = _calculateDistance(lat, lng, projLat, projLng);
-    final double radius = _selectedProject != null && _selectedProject['allowedRadius'] != null 
-        ? double.parse(_selectedProject['allowedRadius'].toString()) 
+    final double radius =
+        _selectedProject != null && _selectedProject['allowedRadius'] != null
+        ? double.parse(_selectedProject['allowedRadius'].toString())
         : 100.0;
     _insideRadius = _calculatedDistance <= radius;
 
@@ -221,7 +238,7 @@ class _FaceGpsVerifyOverlayState extends State<FaceGpsVerifyOverlay> with Single
     final os = _getOSVersion();
     final device = _getDeviceName();
     final network = _getNetworkType();
-    
+
     bool ok = false;
     if (widget.action == 'check-in') {
       ok = await ApiService.checkIn(
@@ -229,7 +246,8 @@ class _FaceGpsVerifyOverlayState extends State<FaceGpsVerifyOverlay> with Single
         longitude: lng,
         accuracy: accuracy,
         address: address,
-        faceImageUrl: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80',
+        faceImageUrl:
+            'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80',
         faceScore: faceScore,
         device: device,
         browser: browser,
@@ -243,7 +261,8 @@ class _FaceGpsVerifyOverlayState extends State<FaceGpsVerifyOverlay> with Single
         longitude: lng,
         accuracy: accuracy,
         address: address,
-        faceImageUrl: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80',
+        faceImageUrl:
+            'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80',
         faceScore: faceScore,
         device: device,
         browser: browser,
@@ -264,7 +283,8 @@ class _FaceGpsVerifyOverlayState extends State<FaceGpsVerifyOverlay> with Single
       setState(() {
         _isScanning = false;
         _isError = true;
-        _errorMessage = 'Punch failed. Database reports month attendance lock or validation mismatch.';
+        _errorMessage =
+            'Punch failed. Database reports month attendance lock or validation mismatch.';
       });
     }
   }
@@ -330,7 +350,7 @@ class _FaceGpsVerifyOverlayState extends State<FaceGpsVerifyOverlay> with Single
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    
+
     return Scaffold(
       backgroundColor: Colors.black.withOpacity(0.85),
       body: Center(
@@ -340,22 +360,33 @@ class _FaceGpsVerifyOverlayState extends State<FaceGpsVerifyOverlay> with Single
           decoration: BoxDecoration(
             color: const Color(0xFF12121A).withOpacity(0.9),
             borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: VianTheme.primaryGold.withOpacity(0.3), width: 1.5),
+            border: Border.all(
+              color: VianTheme.primaryGold.withOpacity(0.3),
+              width: 1.5,
+            ),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withOpacity(0.5),
                 blurRadius: 30,
                 spreadRadius: 10,
-              )
+              ),
             ],
           ),
-          child: _loadingProjects 
-              ? const Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(VianTheme.primaryGold)))
+          child: _loadingProjects
+              ? const Center(
+                  child: CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      VianTheme.primaryGold,
+                    ),
+                  ),
+                )
               : Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      widget.action == 'check-in' ? 'PUNCH IN AUTHORIZATION' : 'PUNCH OUT AUTHORIZATION',
+                      widget.action == 'check-in'
+                          ? 'PUNCH IN AUTHORIZATION'
+                          : 'PUNCH OUT AUTHORIZATION',
                       style: GoogleFonts.outfit(
                         color: VianTheme.primaryGold,
                         fontSize: 18,
@@ -368,17 +399,44 @@ class _FaceGpsVerifyOverlayState extends State<FaceGpsVerifyOverlay> with Single
                       const CircleAvatar(
                         radius: 40,
                         backgroundColor: Color(0x2210B981),
-                        child: Icon(Icons.check_circle_outline, color: Colors.greenAccent, size: 50),
+                        child: Icon(
+                          Icons.check_circle_outline,
+                          color: Colors.greenAccent,
+                          size: 50,
+                        ),
                       ),
                       const SizedBox(height: 16),
                       Text(
                         '✓ Punch ${widget.action == 'check-in' ? "In" : "Out"} Successful',
-                        style: GoogleFonts.poppins(color: Colors.greenAccent, fontSize: 16, fontWeight: FontWeight.bold),
+                        style: GoogleFonts.poppins(
+                          color: Colors.greenAccent,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       const SizedBox(height: 12),
-                      Text('Time: $_verifiedTime', style: const TextStyle(color: Colors.white70, fontSize: 13)),
-                      Text('GPS Verified: $address', style: const TextStyle(color: Colors.white70, fontSize: 13), textAlign: TextAlign.center),
-                      Text('Face Verified: Score ${faceScore}%', style: const TextStyle(color: Colors.white70, fontSize: 13)),
+                      Text(
+                        'Time: $_verifiedTime',
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 13,
+                        ),
+                      ),
+                      Text(
+                        'GPS Verified: $address',
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 13,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      Text(
+                        'Face Verified: Score ${faceScore}%',
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 13,
+                        ),
+                      ),
                       const SizedBox(height: 32),
                       SizedBox(
                         width: double.infinity,
@@ -391,17 +449,28 @@ class _FaceGpsVerifyOverlayState extends State<FaceGpsVerifyOverlay> with Single
                       const CircleAvatar(
                         radius: 40,
                         backgroundColor: Color(0x22EF4444),
-                        child: Icon(Icons.error_outline, color: VianTheme.danger, size: 50),
+                        child: Icon(
+                          Icons.error_outline,
+                          color: VianTheme.danger,
+                          size: 50,
+                        ),
                       ),
                       const SizedBox(height: 16),
                       Text(
                         'Verification Failed',
-                        style: GoogleFonts.poppins(color: VianTheme.danger, fontSize: 16, fontWeight: FontWeight.bold),
+                        style: GoogleFonts.poppins(
+                          color: VianTheme.danger,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       const SizedBox(height: 12),
                       Text(
                         _errorMessage,
-                        style: const TextStyle(color: Colors.white70, fontSize: 13),
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 13,
+                        ),
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 32),
@@ -412,8 +481,12 @@ class _FaceGpsVerifyOverlayState extends State<FaceGpsVerifyOverlay> with Single
                               style: OutlinedButton.styleFrom(
                                 foregroundColor: Colors.white70,
                                 side: const BorderSide(color: Colors.white24),
-                                padding: const EdgeInsets.symmetric(vertical: 16),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 16,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
                               ),
                               onPressed: widget.onCancel,
                               child: const Text('Cancel'),
@@ -437,12 +510,26 @@ class _FaceGpsVerifyOverlayState extends State<FaceGpsVerifyOverlay> with Single
                     ] else if (_showMapReview) ...[
                       // Interactive Circular Geofence map preview before punching
                       ProjectGeofenceMap(
-                        projectName: _selectedProject?['name'] ?? 'Project Site',
-                        projectLatitude: _selectedProject?['latitude'] != null ? double.parse(_selectedProject['latitude'].toString()) : 28.4595,
-                        projectLongitude: _selectedProject?['longitude'] != null ? double.parse(_selectedProject['longitude'].toString()) : 77.0266,
+                        projectName:
+                            _selectedProject?['name'] ?? 'Project Site',
+                        projectLatitude: _selectedProject?['latitude'] != null
+                            ? double.parse(
+                                _selectedProject['latitude'].toString(),
+                              )
+                            : 28.4595,
+                        projectLongitude: _selectedProject?['longitude'] != null
+                            ? double.parse(
+                                _selectedProject['longitude'].toString(),
+                              )
+                            : 77.0266,
                         employeeLatitude: lat,
                         employeeLongitude: lng,
-                        allowedRadius: _selectedProject?['allowedRadius'] != null ? double.parse(_selectedProject['allowedRadius'].toString()) : 100,
+                        allowedRadius:
+                            _selectedProject?['allowedRadius'] != null
+                            ? double.parse(
+                                _selectedProject['allowedRadius'].toString(),
+                              )
+                            : 100,
                       ),
                       const SizedBox(height: 16),
                       // Resolved Human-Readable Address Card
@@ -455,7 +542,9 @@ class _FaceGpsVerifyOverlayState extends State<FaceGpsVerifyOverlay> with Single
                           decoration: BoxDecoration(
                             color: Colors.white.withOpacity(0.05),
                             borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: Colors.white.withOpacity(0.1)),
+                            border: Border.all(
+                              color: Colors.white.withOpacity(0.1),
+                            ),
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -464,12 +553,16 @@ class _FaceGpsVerifyOverlayState extends State<FaceGpsVerifyOverlay> with Single
                                 children: [
                                   Icon(
                                     Icons.pin_drop,
-                                    color: _insideRadius ? Colors.greenAccent : VianTheme.primaryGold,
+                                    color: _insideRadius
+                                        ? Colors.greenAccent
+                                        : VianTheme.primaryGold,
                                     size: 20,
                                   ),
                                   const SizedBox(width: 8),
                                   Text(
-                                    widget.action == 'check-in' ? 'CHECK-IN LOCATION' : 'CHECK-OUT LOCATION',
+                                    widget.action == 'check-in'
+                                        ? 'CHECK-IN LOCATION'
+                                        : 'CHECK-OUT LOCATION',
                                     style: GoogleFonts.poppins(
                                       color: VianTheme.primaryGold,
                                       fontSize: 10,
@@ -482,17 +575,28 @@ class _FaceGpsVerifyOverlayState extends State<FaceGpsVerifyOverlay> with Single
                               const Divider(color: Colors.white10, height: 16),
                               Text(
                                 address.siteName,
-                                style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 13),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                  fontSize: 13,
+                                ),
                               ),
                               const SizedBox(height: 4),
                               Text(
                                 address.toAddressOnly(),
-                                style: const TextStyle(color: Colors.white70, fontSize: 11),
+                                style: const TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 11,
+                                ),
                               ),
                               const SizedBox(height: 4),
                               Text(
                                 'Near ${address.landmark}',
-                                style: const TextStyle(color: Colors.white54, fontSize: 10, fontStyle: FontStyle.italic),
+                                style: const TextStyle(
+                                  color: Colors.white54,
+                                  fontSize: 10,
+                                  fontStyle: FontStyle.italic,
+                                ),
                               ),
                             ],
                           ),
@@ -500,20 +604,33 @@ class _FaceGpsVerifyOverlayState extends State<FaceGpsVerifyOverlay> with Single
                       })(),
                       if (!_insideRadius) ...[
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 10,
+                          ),
                           decoration: BoxDecoration(
                             color: Colors.redAccent.withOpacity(0.12),
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.redAccent.withOpacity(0.3)),
+                            border: Border.all(
+                              color: Colors.redAccent.withOpacity(0.3),
+                            ),
                           ),
                           child: Row(
                             children: const [
-                              Icon(Icons.warning_amber_outlined, color: Colors.redAccent, size: 20),
+                              Icon(
+                                Icons.warning_amber_outlined,
+                                color: Colors.redAccent,
+                                size: 20,
+                              ),
                               SizedBox(width: 10),
                               Expanded(
                                 child: Text(
                                   '⚠️ Outside geofence boundary. Punch requires manual override approval from administrators.',
-                                  style: TextStyle(color: Colors.redAccent, fontSize: 11, fontWeight: FontWeight.w500),
+                                  style: TextStyle(
+                                    color: Colors.redAccent,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                 ),
                               ),
                             ],
@@ -521,20 +638,33 @@ class _FaceGpsVerifyOverlayState extends State<FaceGpsVerifyOverlay> with Single
                         ),
                       ] else ...[
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 10,
+                          ),
                           decoration: BoxDecoration(
                             color: Colors.greenAccent.withOpacity(0.12),
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.greenAccent.withOpacity(0.3)),
+                            border: Border.all(
+                              color: Colors.greenAccent.withOpacity(0.3),
+                            ),
                           ),
                           child: Row(
                             children: const [
-                              Icon(Icons.check_circle_outline, color: Colors.greenAccent, size: 20),
+                              Icon(
+                                Icons.check_circle_outline,
+                                color: Colors.greenAccent,
+                                size: 20,
+                              ),
                               SizedBox(width: 10),
                               Expanded(
                                 child: Text(
                                   '✓ Inside project geofence. Biometric coordinates match checks passed.',
-                                  style: TextStyle(color: Colors.greenAccent, fontSize: 11, fontWeight: FontWeight.w500),
+                                  style: TextStyle(
+                                    color: Colors.greenAccent,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                 ),
                               ),
                             ],
@@ -549,8 +679,12 @@ class _FaceGpsVerifyOverlayState extends State<FaceGpsVerifyOverlay> with Single
                               style: OutlinedButton.styleFrom(
                                 foregroundColor: Colors.white70,
                                 side: const BorderSide(color: Colors.white24),
-                                padding: const EdgeInsets.symmetric(vertical: 16),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 16,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
                               ),
                               onPressed: widget.onCancel,
                               child: const Text('Cancel'),
@@ -559,7 +693,9 @@ class _FaceGpsVerifyOverlayState extends State<FaceGpsVerifyOverlay> with Single
                           const SizedBox(width: 12),
                           Expanded(
                             child: VianButton(
-                              text: _insideRadius ? 'Confirm Punch' : 'Submit for Approval',
+                              text: _insideRadius
+                                  ? 'Confirm Punch'
+                                  : 'Submit for Approval',
                               onPressed: _submitPunchAction,
                             ),
                           ),
@@ -583,7 +719,8 @@ class _FaceGpsVerifyOverlayState extends State<FaceGpsVerifyOverlay> with Single
                                     decoration: BoxDecoration(
                                       shape: BoxShape.circle,
                                       border: Border.all(
-                                        color: VianTheme.primaryGold.withOpacity(0.4),
+                                        color: VianTheme.primaryGold
+                                            .withOpacity(0.4),
                                         width: 2,
                                       ),
                                     ),
@@ -598,7 +735,9 @@ class _FaceGpsVerifyOverlayState extends State<FaceGpsVerifyOverlay> with Single
                             ),
                             const CircleAvatar(
                               radius: 54,
-                              backgroundImage: NetworkImage('https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80'),
+                              backgroundImage: NetworkImage(
+                                'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80',
+                              ),
                             ),
                             AnimatedBuilder(
                               animation: _animCtrl,
@@ -614,7 +753,9 @@ class _FaceGpsVerifyOverlayState extends State<FaceGpsVerifyOverlay> with Single
                                       color: Colors.greenAccent,
                                       boxShadow: [
                                         BoxShadow(
-                                          color: Colors.greenAccent.withOpacity(0.8),
+                                          color: Colors.greenAccent.withOpacity(
+                                            0.8,
+                                          ),
                                           blurRadius: 8,
                                           spreadRadius: 1,
                                         ),
@@ -630,7 +771,11 @@ class _FaceGpsVerifyOverlayState extends State<FaceGpsVerifyOverlay> with Single
                       const SizedBox(height: 24),
                       Text(
                         _statusText,
-                        style: GoogleFonts.poppins(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w500),
+                        style: GoogleFonts.poppins(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                       const SizedBox(height: 16),
                       SizedBox(
@@ -640,7 +785,9 @@ class _FaceGpsVerifyOverlayState extends State<FaceGpsVerifyOverlay> with Single
                           child: LinearProgressIndicator(
                             value: _progress,
                             backgroundColor: Colors.white.withOpacity(0.05),
-                            valueColor: const AlwaysStoppedAnimation<Color>(VianTheme.primaryGold),
+                            valueColor: const AlwaysStoppedAnimation<Color>(
+                              VianTheme.primaryGold,
+                            ),
                             minHeight: 4,
                           ),
                         ),
@@ -650,18 +797,43 @@ class _FaceGpsVerifyOverlayState extends State<FaceGpsVerifyOverlay> with Single
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('Select Assigned Project Location', style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold)),
+                          const Text(
+                            'Select Assigned Project Location',
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                           const SizedBox(height: 8),
                           DropdownButtonFormField<dynamic>(
                             dropdownColor: const Color(0xFF1E1E26),
-                            style: const TextStyle(color: Colors.white, fontSize: 13),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 13,
+                            ),
                             decoration: InputDecoration(
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.white12)),
-                              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.white12)),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 12,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: const BorderSide(
+                                  color: Colors.white12,
+                                ),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: const BorderSide(
+                                  color: Colors.white12,
+                                ),
+                              ),
                             ),
                             value: _selectedProject,
-                            items: _projects.map<DropdownMenuItem<dynamic>>((p) {
+                            items: _projects.map<DropdownMenuItem<dynamic>>((
+                              p,
+                            ) {
                               return DropdownMenuItem<dynamic>(
                                 value: p,
                                 child: Text('${p['name']} (${p['projectId']})'),
@@ -674,7 +846,15 @@ class _FaceGpsVerifyOverlayState extends State<FaceGpsVerifyOverlay> with Single
                             },
                           ),
                           const SizedBox(height: 20),
-                          const Text('Developer GPS Simulation Settings', style: TextStyle(color: VianTheme.primaryGold, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+                          const Text(
+                            'Developer GPS Simulation Settings',
+                            style: TextStyle(
+                              color: VianTheme.primaryGold,
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
                           const SizedBox(height: 8),
                           Row(
                             children: [
@@ -683,9 +863,15 @@ class _FaceGpsVerifyOverlayState extends State<FaceGpsVerifyOverlay> with Single
                                   label: const Text('Site Center (Inside)'),
                                   selected: _gpsMode == 'center',
                                   selectedColor: VianTheme.primaryGold,
-                                  labelStyle: TextStyle(color: _gpsMode == 'center' ? Colors.black : Colors.white70, fontSize: 11),
+                                  labelStyle: TextStyle(
+                                    color: _gpsMode == 'center'
+                                        ? Colors.black
+                                        : Colors.white70,
+                                    fontSize: 11,
+                                  ),
                                   onSelected: (selected) {
-                                    if (selected) setState(() => _gpsMode = 'center');
+                                    if (selected)
+                                      setState(() => _gpsMode = 'center');
                                   },
                                 ),
                               ),
@@ -695,9 +881,15 @@ class _FaceGpsVerifyOverlayState extends State<FaceGpsVerifyOverlay> with Single
                                   label: const Text('Breach (Outside)'),
                                   selected: _gpsMode == 'outside',
                                   selectedColor: VianTheme.primaryGold,
-                                  labelStyle: TextStyle(color: _gpsMode == 'outside' ? Colors.black : Colors.white70, fontSize: 11),
+                                  labelStyle: TextStyle(
+                                    color: _gpsMode == 'outside'
+                                        ? Colors.black
+                                        : Colors.white70,
+                                    fontSize: 11,
+                                  ),
                                   onSelected: (selected) {
-                                    if (selected) setState(() => _gpsMode = 'outside');
+                                    if (selected)
+                                      setState(() => _gpsMode = 'outside');
                                   },
                                 ),
                               ),
@@ -710,9 +902,15 @@ class _FaceGpsVerifyOverlayState extends State<FaceGpsVerifyOverlay> with Single
                                 child: OutlinedButton(
                                   style: OutlinedButton.styleFrom(
                                     foregroundColor: Colors.white70,
-                                    side: const BorderSide(color: Colors.white24),
-                                    padding: const EdgeInsets.symmetric(vertical: 16),
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                    side: const BorderSide(
+                                      color: Colors.white24,
+                                    ),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 16,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
                                   ),
                                   onPressed: widget.onCancel,
                                   child: const Text('Cancel'),

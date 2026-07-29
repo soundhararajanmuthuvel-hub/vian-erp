@@ -1,4 +1,4 @@
-                  import 'dart:convert';
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -28,13 +28,18 @@ class ApiService {
   static Map<String, String> get _headers => ApiConstants.getHeaders(_token);
 
   // Login
-  static Future<Map<String, dynamic>> login(String username, String password) async {
+  static Future<Map<String, dynamic>> login(
+    String username,
+    String password,
+  ) async {
     try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/auth/login'),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode({'username': username, 'password': password}),
-      ).timeout(const Duration(seconds: 4));
+      final response = await http
+          .post(
+            Uri.parse('$baseUrl/auth/login'),
+            headers: {'Content-Type': 'application/json'},
+            body: json.encode({'username': username, 'password': password}),
+          )
+          .timeout(const Duration(seconds: 4));
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -49,13 +54,21 @@ class ApiService {
       } else {
         try {
           final err = json.decode(response.body);
-          return {'success': false, 'message': err['message'] ?? 'Login failed'};
+          return {
+            'success': false,
+            'message': err['message'] ?? 'Login failed',
+          };
         } catch (_) {
-          return {'success': false, 'message': 'Login failed with status ${response.statusCode}'};
+          return {
+            'success': false,
+            'message': 'Login failed with status ${response.statusCode}',
+          };
         }
       }
     } catch (e) {
-      debugPrint("Server login connection failed: $e. Falling back to local offline simulation mode.");
+      debugPrint(
+        "Server login connection failed: $e. Falling back to local offline simulation mode.",
+      );
       return _mockLogin(username, password);
     }
   }
@@ -70,66 +83,275 @@ class ApiService {
   }
 
   // Mock Login Fallback
-  static Future<Map<String, dynamic>> _mockLogin(String username, String password) async {
+  static Future<Map<String, dynamic>> _mockLogin(
+    String username,
+    String password,
+  ) async {
     // Check standard username credentials
     final validUsers = {
       // Managing Directors
-      'anand': {'name': 'Ar. Anand Sathiesivam', 'role': 'Managing Director', 'dept': 'Executive', 'desig': 'Managing Director'},
-      'vijay': {'name': 'Ar. Vijay Vinthan', 'role': 'Managing Director', 'dept': 'Executive', 'desig': 'Managing Director'},
-      
+      'anand': {
+        'name': 'Ar. Anand Sathiesivam',
+        'role': 'Managing Director',
+        'dept': 'Executive',
+        'desig': 'Managing Director',
+      },
+      'vijay': {
+        'name': 'Ar. Vijay Vinthan',
+        'role': 'Managing Director',
+        'dept': 'Executive',
+        'desig': 'Managing Director',
+      },
+
       // Core Team
-      'arun': {'name': 'Er. Arun Mohan', 'role': 'Structural Engineer', 'dept': 'Core Team', 'desig': 'Structural Engineer'},
-      'jahan': {'name': 'Er. Jahan Prabhu', 'role': 'Engineering Precision Head', 'dept': 'Core Team', 'desig': 'Engineering Precision Head'},
-      'mithulya': {'name': 'Ar. Mithulya', 'role': 'Senior Design Engineer', 'dept': 'Core Team', 'desig': 'Senior Design Engineer'},
-      'sasmitha': {'name': 'Ar. Sasmitha', 'role': 'Planning Engineer', 'dept': 'Core Team', 'desig': 'Planning Engineer'},
-      
+      'arun': {
+        'name': 'Er. Arun Mohan',
+        'role': 'Structural Engineer',
+        'dept': 'Core Team',
+        'desig': 'Structural Engineer',
+      },
+      'jahan': {
+        'name': 'Er. Jahan Prabhu',
+        'role': 'Engineering Precision Head',
+        'dept': 'Core Team',
+        'desig': 'Engineering Precision Head',
+      },
+      'mithulya': {
+        'name': 'Ar. Mithulya',
+        'role': 'Senior Design Engineer',
+        'dept': 'Core Team',
+        'desig': 'Senior Design Engineer',
+      },
+      'sasmitha': {
+        'name': 'Ar. Sasmitha',
+        'role': 'Planning Engineer',
+        'dept': 'Core Team',
+        'desig': 'Planning Engineer',
+      },
+
       // Designing Team
-      'gokul_k': {'name': 'Ar. Gokul Krishnan', 'role': 'Design Engineer', 'dept': 'Designing Team', 'desig': 'Design Engineer'},
-      'sivaraman': {'name': 'Sr. Sivaraman', 'role': '3D Visualization Specialist', 'dept': 'Designing Team', 'desig': '3D Visualization Specialist'},
-      'sabith': {'name': 'Ar. Sabith', 'role': 'Creative Planning Engineer', 'dept': 'Designing Team', 'desig': 'Creative Planning Engineer'},
-      'edwin': {'name': 'Ar. Edwin', 'role': 'Creative Design Engineer', 'dept': 'Designing Team', 'desig': 'Creative Design Engineer'},
-      'nivetha': {'name': 'Ar. Nivetha', 'role': 'Interior Planning Engineer', 'dept': 'Designing Team', 'desig': 'Interior Planning Engineer'},
-      'gokul_e': {'name': 'Er. Gokul', 'role': 'Technical Design Engineer', 'dept': 'Designing Team', 'desig': 'Technical Design Engineer'},
-      'abinaya': {'name': 'Ar. Abinaya Bala', 'role': 'Architectural Designer', 'dept': 'Designing Team', 'desig': 'Architectural Designer'},
-      
+      'gokul_k': {
+        'name': 'Ar. Gokul Krishnan',
+        'role': 'Design Engineer',
+        'dept': 'Designing Team',
+        'desig': 'Design Engineer',
+      },
+      'sivaraman': {
+        'name': 'Sr. Sivaraman',
+        'role': '3D Visualization Specialist',
+        'dept': 'Designing Team',
+        'desig': '3D Visualization Specialist',
+      },
+      'sabith': {
+        'name': 'Ar. Sabith',
+        'role': 'Creative Planning Engineer',
+        'dept': 'Designing Team',
+        'desig': 'Creative Planning Engineer',
+      },
+      'edwin': {
+        'name': 'Ar. Edwin',
+        'role': 'Creative Design Engineer',
+        'dept': 'Designing Team',
+        'desig': 'Creative Design Engineer',
+      },
+      'nivetha': {
+        'name': 'Ar. Nivetha',
+        'role': 'Interior Planning Engineer',
+        'dept': 'Designing Team',
+        'desig': 'Interior Planning Engineer',
+      },
+      'gokul_e': {
+        'name': 'Er. Gokul',
+        'role': 'Technical Design Engineer',
+        'dept': 'Designing Team',
+        'desig': 'Technical Design Engineer',
+      },
+      'abinaya': {
+        'name': 'Ar. Abinaya Bala',
+        'role': 'Architectural Designer',
+        'dept': 'Designing Team',
+        'desig': 'Architectural Designer',
+      },
+
       // Site Team
-      'anthony': {'name': 'Er. Anthony Richard', 'role': 'Site Engineer', 'dept': 'Site Team', 'desig': 'Site Engineer'},
-      'praveen': {'name': 'Er. Praveen Kumar', 'role': 'Site Coordinator', 'dept': 'Site Team', 'desig': 'Site Coordinator'},
-      'mohan': {'name': 'Er. Mohan', 'role': 'Site Construction Engineer', 'dept': 'Site Team', 'desig': 'Site Construction Engineer'},
-      'murugan': {'name': 'Sr. Murugan', 'role': 'Labour Manager', 'dept': 'Site Team', 'desig': 'Labour Manager'},
-      'manoj': {'name': 'Sr. Manoj', 'role': 'Site Supervisor', 'dept': 'Site Team', 'desig': 'Site Supervisor'},
-      'dharmaraj': {'name': 'Mr. Dharmaraj', 'role': 'Site Coordinator', 'dept': 'Site Team', 'desig': 'Site Coordinator'},
-      'kishore': {'name': 'Ar. Kishore Kumar', 'role': 'Junior Architect', 'dept': 'Site Team', 'desig': 'Junior Architect'},
-      'surya': {'name': 'Ar. Surya Prakash', 'role': 'Junior Architect', 'dept': 'Site Team', 'desig': 'Junior Architect'},
-      'harshini': {'name': 'Ar. Harshini', 'role': 'Junior Architect', 'dept': 'Site Team', 'desig': 'Junior Architect'},
-      
+      'anthony': {
+        'name': 'Er. Anthony Richard',
+        'role': 'Site Engineer',
+        'dept': 'Site Team',
+        'desig': 'Site Engineer',
+      },
+      'praveen': {
+        'name': 'Er. Praveen Kumar',
+        'role': 'Site Coordinator',
+        'dept': 'Site Team',
+        'desig': 'Site Coordinator',
+      },
+      'mohan': {
+        'name': 'Er. Mohan',
+        'role': 'Site Construction Engineer',
+        'dept': 'Site Team',
+        'desig': 'Site Construction Engineer',
+      },
+      'murugan': {
+        'name': 'Sr. Murugan',
+        'role': 'Labour Manager',
+        'dept': 'Site Team',
+        'desig': 'Labour Manager',
+      },
+      'manoj': {
+        'name': 'Sr. Manoj',
+        'role': 'Site Supervisor',
+        'dept': 'Site Team',
+        'desig': 'Site Supervisor',
+      },
+      'dharmaraj': {
+        'name': 'Mr. Dharmaraj',
+        'role': 'Site Coordinator',
+        'dept': 'Site Team',
+        'desig': 'Site Coordinator',
+      },
+      'kishore': {
+        'name': 'Ar. Kishore Kumar',
+        'role': 'Junior Architect',
+        'dept': 'Site Team',
+        'desig': 'Junior Architect',
+      },
+      'surya': {
+        'name': 'Ar. Surya Prakash',
+        'role': 'Junior Architect',
+        'dept': 'Site Team',
+        'desig': 'Junior Architect',
+      },
+      'harshini': {
+        'name': 'Ar. Harshini',
+        'role': 'Junior Architect',
+        'dept': 'Site Team',
+        'desig': 'Junior Architect',
+      },
+
       // Demo Role Accounts
-      'superadmin@demo.vianerp.test': {'name': 'Demo Super Admin', 'role': 'Super Admin', 'dept': 'Administration', 'desig': 'Super Administrator'},
-      'demo_superadmin': {'name': 'Demo Super Admin', 'role': 'Super Admin', 'dept': 'Administration', 'desig': 'Super Administrator'},
-      'md@demo.vianerp.test': {'name': 'Demo Managing Director', 'role': 'Managing Director', 'dept': 'Executive', 'desig': 'Managing Director'},
-      'demo_md': {'name': 'Demo Managing Director', 'role': 'Managing Director', 'dept': 'Executive', 'desig': 'Managing Director'},
-      'admin@demo.vianerp.test': {'name': 'Demo Admin', 'role': 'Admin / Office Manager / Accounts', 'dept': 'Administration', 'desig': 'Office Manager'},
-      'demo_admin': {'name': 'Demo Admin', 'role': 'Admin / Office Manager / Accounts', 'dept': 'Administration', 'desig': 'Office Manager'},
-      'pm@demo.vianerp.test': {'name': 'Demo Project Manager', 'role': 'Project Manager', 'dept': 'Project Management', 'desig': 'Senior Project Manager'},
-      'demo_pm': {'name': 'Demo Project Manager', 'role': 'Project Manager', 'dept': 'Project Management', 'desig': 'Senior Project Manager'},
-      'architect@demo.vianerp.test': {'name': 'Demo Architect', 'role': 'Architect', 'dept': 'Design', 'desig': 'Lead Architect'},
-      'demo_architect': {'name': 'Demo Architect', 'role': 'Architect', 'dept': 'Design', 'desig': 'Lead Architect'},
-      'siteengineer@demo.vianerp.test': {'name': 'Demo Site Engineer', 'role': 'Site Engineer', 'dept': 'Site Team', 'desig': 'Site Engineer'},
-      'demo_siteengineer': {'name': 'Demo Site Engineer', 'role': 'Site Engineer', 'dept': 'Site Team', 'desig': 'Site Engineer'},
-      'accountant@demo.vianerp.test': {'name': 'Demo Accountant', 'role': 'Accountant', 'dept': 'Finance', 'desig': 'Accounts Manager'},
-      'demo_accountant': {'name': 'Demo Accountant', 'role': 'Accountant', 'dept': 'Finance', 'desig': 'Accounts Manager'},
-      'client@demo.vianerp.test': {'name': 'Demo Client', 'role': 'Client', 'dept': 'External', 'desig': 'Property Owner'},
-      'demo_client': {'name': 'Demo Client', 'role': 'Client', 'dept': 'External', 'desig': 'Property Owner'},
+      'superadmin@demo.vianerp.test': {
+        'name': 'Demo Super Admin',
+        'role': 'Super Admin',
+        'dept': 'Administration',
+        'desig': 'Super Administrator',
+      },
+      'demo_superadmin': {
+        'name': 'Demo Super Admin',
+        'role': 'Super Admin',
+        'dept': 'Administration',
+        'desig': 'Super Administrator',
+      },
+      'md@demo.vianerp.test': {
+        'name': 'Demo Managing Director',
+        'role': 'Managing Director',
+        'dept': 'Executive',
+        'desig': 'Managing Director',
+      },
+      'demo_md': {
+        'name': 'Demo Managing Director',
+        'role': 'Managing Director',
+        'dept': 'Executive',
+        'desig': 'Managing Director',
+      },
+      'admin@demo.vianerp.test': {
+        'name': 'Demo Admin',
+        'role': 'Admin / Office Manager / Accounts',
+        'dept': 'Administration',
+        'desig': 'Office Manager',
+      },
+      'demo_admin': {
+        'name': 'Demo Admin',
+        'role': 'Admin / Office Manager / Accounts',
+        'dept': 'Administration',
+        'desig': 'Office Manager',
+      },
+      'pm@demo.vianerp.test': {
+        'name': 'Demo Project Manager',
+        'role': 'Project Manager',
+        'dept': 'Project Management',
+        'desig': 'Senior Project Manager',
+      },
+      'demo_pm': {
+        'name': 'Demo Project Manager',
+        'role': 'Project Manager',
+        'dept': 'Project Management',
+        'desig': 'Senior Project Manager',
+      },
+      'architect@demo.vianerp.test': {
+        'name': 'Demo Architect',
+        'role': 'Architect',
+        'dept': 'Design',
+        'desig': 'Lead Architect',
+      },
+      'demo_architect': {
+        'name': 'Demo Architect',
+        'role': 'Architect',
+        'dept': 'Design',
+        'desig': 'Lead Architect',
+      },
+      'siteengineer@demo.vianerp.test': {
+        'name': 'Demo Site Engineer',
+        'role': 'Site Engineer',
+        'dept': 'Site Team',
+        'desig': 'Site Engineer',
+      },
+      'demo_siteengineer': {
+        'name': 'Demo Site Engineer',
+        'role': 'Site Engineer',
+        'dept': 'Site Team',
+        'desig': 'Site Engineer',
+      },
+      'accountant@demo.vianerp.test': {
+        'name': 'Demo Accountant',
+        'role': 'Accountant',
+        'dept': 'Finance',
+        'desig': 'Accounts Manager',
+      },
+      'demo_accountant': {
+        'name': 'Demo Accountant',
+        'role': 'Accountant',
+        'dept': 'Finance',
+        'desig': 'Accounts Manager',
+      },
+      'client@demo.vianerp.test': {
+        'name': 'Demo Client',
+        'role': 'Client',
+        'dept': 'External',
+        'desig': 'Property Owner',
+      },
+      'demo_client': {
+        'name': 'Demo Client',
+        'role': 'Client',
+        'dept': 'External',
+        'desig': 'Property Owner',
+      },
 
       // Accountant, Client & Receptionist
-      'accountant': {'name': 'Sneha Jain', 'role': 'Accountant', 'dept': 'Finance', 'desig': 'Finance Head'},
-      'client': {'name': 'Amit Bajaj', 'role': 'Client', 'dept': 'External', 'desig': 'Property Owner'},
-      'receptionist': {'name': 'Priya Sharma', 'role': 'Receptionist', 'dept': 'Front Office', 'desig': 'CRM Executive'}
+      'accountant': {
+        'name': 'Sneha Jain',
+        'role': 'Accountant',
+        'dept': 'Finance',
+        'desig': 'Finance Head',
+      },
+      'client': {
+        'name': 'Amit Bajaj',
+        'role': 'Client',
+        'dept': 'External',
+        'desig': 'Property Owner',
+      },
+      'receptionist': {
+        'name': 'Priya Sharma',
+        'role': 'Receptionist',
+        'dept': 'Front Office',
+        'desig': 'CRM Executive',
+      },
     };
 
     if (validUsers.containsKey(username) && password.isNotEmpty) {
       final u = validUsers[username]!;
-      _token = 'MOCK_JWT_TOKEN_${u['role']!.toUpperCase().replaceAll(' ', '_')}';
+      _token =
+          'MOCK_JWT_TOKEN_${u['role']!.toUpperCase().replaceAll(' ', '_')}';
       _currentUser = {
         'id': 99,
         'employeeId': 'VIAN-MOCK-99',
@@ -138,7 +360,7 @@ class ApiService {
         'email': '$username@vianarchitects.com',
         'role': u['role'],
         'department': u['dept'],
-        'designation': u['desig']
+        'designation': u['desig'],
       };
 
       final prefs = await SharedPreferences.getInstance();
@@ -147,13 +369,19 @@ class ApiService {
 
       return {'success': true, 'user': _currentUser, 'isMock': true};
     }
-    return {'success': false, 'message': 'Invalid credentials (local simulation mode)'};
+    return {
+      'success': false,
+      'message': 'Invalid credentials (local simulation mode)',
+    };
   }
 
   // Get dashboard statistics
   static Future<Map<String, dynamic>> getDashboard() async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/dashboard'), headers: _headers);
+      final response = await http.get(
+        Uri.parse('$baseUrl/dashboard'),
+        headers: _headers,
+      );
       if (response.statusCode == 200) {
         return json.decode(response.body);
       }
@@ -166,7 +394,10 @@ class ApiService {
   // Fetch leads (CRM)
   static Future<List<dynamic>> getLeads() async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/crm/leads'), headers: _headers);
+      final response = await http.get(
+        Uri.parse('$baseUrl/crm/leads'),
+        headers: _headers,
+      );
       if (response.statusCode == 200) {
         return json.decode(response.body)['leads'];
       }
@@ -232,15 +463,16 @@ class ApiService {
   }
 
   // Add lead timeline entry
-  static Future<bool> addLeadTimeline(int leadId, String action, String notes) async {
+  static Future<bool> addLeadTimeline(
+    int leadId,
+    String action,
+    String notes,
+  ) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/crm/leads/$leadId/timeline'),
         headers: _headers,
-        body: json.encode({
-          'action': action,
-          'notes': notes,
-        }),
+        body: json.encode({'action': action, 'notes': notes}),
       );
       return response.statusCode == 201;
     } catch (_) {
@@ -282,7 +514,10 @@ class ApiService {
   // Get Lead Stage 1 Client Enquiry Form
   static Future<Map<String, dynamic>?> getLeadStage1(int leadId) async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/crm/leads/$leadId/stage1'), headers: _headers);
+      final response = await http.get(
+        Uri.parse('$baseUrl/crm/leads/$leadId/stage1'),
+        headers: _headers,
+      );
       if (response.statusCode == 200) {
         return json.decode(response.body);
       }
@@ -293,7 +528,10 @@ class ApiService {
   }
 
   // Save/Update Lead Stage 1 Client Enquiry Form
-  static Future<bool> saveLeadStage1(int leadId, Map<String, dynamic> data) async {
+  static Future<bool> saveLeadStage1(
+    int leadId,
+    Map<String, dynamic> data,
+  ) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/crm/leads/$leadId/stage1'),
@@ -324,7 +562,10 @@ class ApiService {
   // Fetch clients
   static Future<List<dynamic>> getClients() async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/clients'), headers: _headers);
+      final response = await http.get(
+        Uri.parse('$baseUrl/clients'),
+        headers: _headers,
+      );
       if (response.statusCode == 200) {
         return json.decode(response.body)['clients'];
       }
@@ -338,7 +579,7 @@ class ApiService {
           'email': 'amit.bajaj@example.com',
           'address': 'Villa 108, Palm Meadows, Bangalore',
           'gst': '29BBBBB2222B1Z2',
-          'propertyDetails': 'Luxury 4BHK Villa Construction and Interior Work'
+          'propertyDetails': 'Luxury 4BHK Villa Construction and Interior Work',
         },
         {
           'id': 2,
@@ -347,14 +588,18 @@ class ApiService {
           'email': 'meera@sengroup.co',
           'address': 'Flat 1204, Oberoi Sky Heights, Mumbai',
           'gst': '27CCCCC3333C1Z3',
-          'propertyDetails': 'Modern Minimalist Apartment Interior Design'
-        }
+          'propertyDetails': 'Modern Minimalist Apartment Interior Design',
+        },
       ];
     }
   }
 
   // Fetch clients paged
-  static Future<Map<String, dynamic>> getClientsPaged({String search = '', int page = 1, int limit = 10}) async {
+  static Future<Map<String, dynamic>> getClientsPaged({
+    String search = '',
+    int page = 1,
+    int limit = 10,
+  }) async {
     try {
       final response = await http.get(
         Uri.parse('$baseUrl/clients?search=$search&page=$page&limit=$limit'),
@@ -413,7 +658,10 @@ class ApiService {
   // Fetch projects
   static Future<List<dynamic>> getProjects() async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/projects'), headers: _headers);
+      final response = await http.get(
+        Uri.parse('$baseUrl/projects'),
+        headers: _headers,
+      );
       if (response.statusCode == 200) {
         return json.decode(response.body)['projects'];
       }
@@ -432,7 +680,7 @@ class ApiService {
           'progressPercentage': 45,
           'client': {'name': 'Amit Bajaj'},
           'architect': {'name': 'Ananya Roy'},
-          'siteEngineer': {'name': 'Rahul Sen'}
+          'siteEngineer': {'name': 'Rahul Sen'},
         },
         {
           'id': 2,
@@ -446,7 +694,7 @@ class ApiService {
           'progressPercentage': 70,
           'client': {'name': 'Meera Sen'},
           'architect': {'name': 'Kabir Mehta'},
-          'siteEngineer': {'name': 'Rahul Sen'}
+          'siteEngineer': {'name': 'Rahul Sen'},
         },
         {
           'id': 3,
@@ -460,8 +708,8 @@ class ApiService {
           'progressPercentage': 10,
           'client': {'name': 'Sanjay Singhania'},
           'architect': {'name': 'Ananya Roy'},
-          'siteEngineer': {'name': 'Vikram Singh'}
-        }
+          'siteEngineer': {'name': 'Vikram Singh'},
+        },
       ];
     }
   }
@@ -479,9 +727,13 @@ class ApiService {
       return true;
     }
   }
+
   static Future<List<dynamic>> getTasks() async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/tasks'), headers: _headers);
+      final response = await http.get(
+        Uri.parse('$baseUrl/tasks'),
+        headers: _headers,
+      );
       if (response.statusCode == 200) {
         return json.decode(response.body)['tasks'];
       }
@@ -491,33 +743,36 @@ class ApiService {
         {
           'id': 1,
           'title': 'Finalize Mood Boards',
-          'description': 'Submit mood boards and fabric swatches for master bedroom approval.',
+          'description':
+              'Submit mood boards and fabric swatches for master bedroom approval.',
           'priority': 'High',
           'dueDate': '2026-06-28',
           'status': 'In Progress',
           'project': {'name': 'Oberoi Apartment 1204'},
-          'assignee': {'name': 'Kabir Mehta'}
+          'assignee': {'name': 'Kabir Mehta'},
         },
         {
           'id': 2,
           'title': 'Plumbing Layout Verification',
-          'description': 'Verify plumbing line installation on the ground floor.',
+          'description':
+              'Verify plumbing line installation on the ground floor.',
           'priority': 'Medium',
           'dueDate': '2026-06-25',
           'status': 'Pending',
           'project': {'name': 'The Bajaj Villa'},
-          'assignee': {'name': 'Rahul Sen'}
+          'assignee': {'name': 'Rahul Sen'},
         },
         {
           'id': 3,
           'title': '3D Render Correction',
-          'description': 'Incorporate dining table changes into final 3D render output.',
+          'description':
+              'Incorporate dining table changes into final 3D render output.',
           'priority': 'Low',
           'dueDate': '2026-06-30',
           'status': 'Completed',
           'project': {'name': 'Galleria Showroom'},
-          'assignee': {'name': 'Ananya Roy'}
-        }
+          'assignee': {'name': 'Ananya Roy'},
+        },
       ];
     }
   }
@@ -640,7 +895,13 @@ class ApiService {
   }
 
   // Update project geofencing configuration (Admin/Super Admin only)
-  static Future<bool> updateProjectGeofence(int projectId, double lat, double lng, int radius, String address) async {
+  static Future<bool> updateProjectGeofence(
+    int projectId,
+    double lat,
+    double lng,
+    int radius,
+    String address,
+  ) async {
     try {
       final response = await http.put(
         Uri.parse('$baseUrl/projects/$projectId/geofence'),
@@ -764,7 +1025,10 @@ class ApiService {
     }
   }
 
-  static Future<List<dynamic>> getAttendanceReports({String? month, int? employeeId}) async {
+  static Future<List<dynamic>> getAttendanceReports({
+    String? month,
+    int? employeeId,
+  }) async {
     try {
       String query = '';
       if (month != null) query += 'month=$month&';
@@ -800,7 +1064,10 @@ class ApiService {
   // Fetch drawings
   static Future<List<dynamic>> getDrawings(int projectId) async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/projects/$projectId/drawings'), headers: _headers);
+      final response = await http.get(
+        Uri.parse('$baseUrl/projects/$projectId/drawings'),
+        headers: _headers,
+      );
       if (response.statusCode == 200) {
         return json.decode(response.body)['drawings'];
       }
@@ -812,19 +1079,21 @@ class ApiService {
           'title': 'Ground Floor Plan - Rev 2',
           'version': '2.1',
           'type': 'Floor Plans',
-          'fileUrl': 'https://images.unsplash.com/photo-1503387762-592ded58c454?auto=format&fit=crop&w=800&q=80',
+          'fileUrl':
+              'https://images.unsplash.com/photo-1503387762-592ded58c454?auto=format&fit=crop&w=800&q=80',
           'status': 'Approved',
-          'approver': {'name': 'Ananya Roy'}
+          'approver': {'name': 'Ananya Roy'},
         },
         {
           'id': 2,
           'title': 'Master Bedroom Wardrobe Elevation',
           'version': '1.0',
           'type': 'Interior Drawings',
-          'fileUrl': 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=800&q=80',
+          'fileUrl':
+              'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=800&q=80',
           'status': 'Pending',
-          'approver': null
-        }
+          'approver': null,
+        },
       ];
     }
   }
@@ -832,7 +1101,10 @@ class ApiService {
   // Fetch invoices
   static Future<List<dynamic>> getInvoices() async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/invoices'), headers: _headers);
+      final response = await http.get(
+        Uri.parse('$baseUrl/invoices'),
+        headers: _headers,
+      );
       if (response.statusCode == 200) {
         return json.decode(response.body)['invoices'];
       }
@@ -850,7 +1122,7 @@ class ApiService {
           'total': 1770000.0,
           'paidAmount': 1770000.0,
           'status': 'Paid',
-          'project': {'name': 'The Bajaj Villa'}
+          'project': {'name': 'The Bajaj Villa'},
         },
         {
           'id': 2,
@@ -863,7 +1135,7 @@ class ApiService {
           'total': 2310000.0,
           'paidAmount': 1000000.0,
           'status': 'Sent',
-          'project': {'name': 'The Bajaj Villa'}
+          'project': {'name': 'The Bajaj Villa'},
         },
         {
           'id': 3,
@@ -876,8 +1148,8 @@ class ApiService {
           'total': 1180000.0,
           'paidAmount': 0.0,
           'status': 'Overdue',
-          'project': {'name': 'Oberoi Apartment 1204'}
-        }
+          'project': {'name': 'Oberoi Apartment 1204'},
+        },
       ];
     }
   }
@@ -885,7 +1157,10 @@ class ApiService {
   // Fetch quotations
   static Future<List<dynamic>> getQuotations() async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/quotations'), headers: _headers);
+      final response = await http.get(
+        Uri.parse('$baseUrl/quotations'),
+        headers: _headers,
+      );
       if (response.statusCode == 200) {
         return json.decode(response.body)['quotations'];
       }
@@ -901,7 +1176,7 @@ class ApiService {
           'subtotal': 22000000.0,
           'total': 25860000.0,
           'status': 'Approved',
-          'project': {'name': 'The Bajaj Villa'}
+          'project': {'name': 'The Bajaj Villa'},
         },
         {
           'id': 2,
@@ -912,8 +1187,8 @@ class ApiService {
           'subtotal': 11000000.0,
           'total': 12980000.0,
           'status': 'Sent',
-          'project': {'name': 'Galleria Showroom'}
-        }
+          'project': {'name': 'Galleria Showroom'},
+        },
       ];
     }
   }
@@ -963,7 +1238,10 @@ class ApiService {
   // Fetch expenses
   static Future<List<dynamic>> getExpenses() async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/expenses'), headers: _headers);
+      final response = await http.get(
+        Uri.parse('$baseUrl/expenses'),
+        headers: _headers,
+      );
       if (response.statusCode == 200) {
         return json.decode(response.body)['expenses'];
       }
@@ -978,7 +1256,7 @@ class ApiService {
           'date': '2026-06-20',
           'status': 'Approved',
           'project': {'name': 'The Bajaj Villa'},
-          'user': {'name': 'Ananya Roy'}
+          'user': {'name': 'Ananya Roy'},
         },
         {
           'id': 2,
@@ -988,8 +1266,8 @@ class ApiService {
           'date': '2026-06-22',
           'status': 'Pending',
           'project': {'name': 'Oberoi Apartment 1204'},
-          'user': {'name': 'Kabir Mehta'}
-        }
+          'user': {'name': 'Kabir Mehta'},
+        },
       ];
     }
   }
@@ -1025,7 +1303,10 @@ class ApiService {
   // Fetch notifications
   static Future<List<dynamic>> getNotifications() async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/notifications'), headers: _headers);
+      final response = await http.get(
+        Uri.parse('$baseUrl/notifications'),
+        headers: _headers,
+      );
       if (response.statusCode == 200) {
         return json.decode(response.body)['notifications'];
       }
@@ -1035,17 +1316,19 @@ class ApiService {
         {
           'id': 1,
           'title': 'New Task Assigned',
-          'message': 'You have been assigned the task "Plumbing Layout Verification"',
+          'message':
+              'You have been assigned the task "Plumbing Layout Verification"',
           'readStatus': false,
-          'type': 'Task'
+          'type': 'Task',
         },
         {
           'id': 2,
           'title': 'Quotation Approved',
-          'message': 'Quotation VIAN-QT-2026-001 has been approved by Amit Bajaj',
+          'message':
+              'Quotation VIAN-QT-2026-001 has been approved by Amit Bajaj',
           'readStatus': true,
-          'type': 'Billing'
-        }
+          'type': 'Billing',
+        },
       ];
     }
   }
@@ -1053,7 +1336,10 @@ class ApiService {
   // Fetch settings
   static Future<Map<String, dynamic>> getSettings() async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/settings'), headers: _headers);
+      final response = await http.get(
+        Uri.parse('$baseUrl/settings'),
+        headers: _headers,
+      );
       if (response.statusCode == 200) {
         return json.decode(response.body)['settings'];
       }
@@ -1061,10 +1347,11 @@ class ApiService {
     } catch (_) {
       return {
         'companyName': 'VIAN Architects & Designers',
-        'address': 'Plot 42, Galleria Commercial Complex, Phase V, Sector 43, Gurugram, India',
+        'address':
+            'Plot 42, Galleria Commercial Complex, Phase V, Sector 43, Gurugram, India',
         'gst': '07AAAAA1111A1Z1',
         'email': 'office@vianarchitects.com',
-        'phone': '+91 124 4567890'
+        'phone': '+91 124 4567890',
       };
     }
   }
@@ -1072,17 +1359,52 @@ class ApiService {
   // Fetch Labour Workers
   static Future<List<dynamic>> getWorkers() async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/labour/workers'), headers: _headers);
+      final response = await http.get(
+        Uri.parse('$baseUrl/labour/workers'),
+        headers: _headers,
+      );
       if (response.statusCode == 200) {
         return json.decode(response.body)['workers'];
       }
       throw Exception();
     } catch (_) {
       return [
-        {'id': 1, 'workerId': 'WRK-001', 'name': 'Ramesh Kumar', 'skillType': 'Mason', 'dailyWage': 600.0, 'contractor': 'Verma Contractors', 'project': {'name': 'The Bajaj Villa'}},
-        {'id': 2, 'workerId': 'WRK-002', 'name': 'Sohan Lal', 'skillType': 'Carpenter', 'dailyWage': 750.0, 'contractor': 'Verma Contractors', 'project': {'name': 'The Bajaj Villa'}},
-        {'id': 3, 'workerId': 'WRK-003', 'name': 'Madan Mohan', 'skillType': 'Painter', 'dailyWage': 550.0, 'contractor': 'Singh Painters', 'project': {'name': 'The Bajaj Villa'}},
-        {'id': 4, 'workerId': 'WRK-004', 'name': 'Hari Prasad', 'skillType': 'Electrician', 'dailyWage': 700.0, 'contractor': 'Self', 'project': {'name': 'Oberoi Apartment 1204'}},
+        {
+          'id': 1,
+          'workerId': 'WRK-001',
+          'name': 'Ramesh Kumar',
+          'skillType': 'Mason',
+          'dailyWage': 600.0,
+          'contractor': 'Verma Contractors',
+          'project': {'name': 'The Bajaj Villa'},
+        },
+        {
+          'id': 2,
+          'workerId': 'WRK-002',
+          'name': 'Sohan Lal',
+          'skillType': 'Carpenter',
+          'dailyWage': 750.0,
+          'contractor': 'Verma Contractors',
+          'project': {'name': 'The Bajaj Villa'},
+        },
+        {
+          'id': 3,
+          'workerId': 'WRK-003',
+          'name': 'Madan Mohan',
+          'skillType': 'Painter',
+          'dailyWage': 550.0,
+          'contractor': 'Singh Painters',
+          'project': {'name': 'The Bajaj Villa'},
+        },
+        {
+          'id': 4,
+          'workerId': 'WRK-004',
+          'name': 'Hari Prasad',
+          'skillType': 'Electrician',
+          'dailyWage': 700.0,
+          'contractor': 'Self',
+          'project': {'name': 'Oberoi Apartment 1204'},
+        },
       ];
     }
   }
@@ -1104,16 +1426,43 @@ class ApiService {
   // Fetch Contractors
   static Future<List<dynamic>> getContractors() async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/contractors'), headers: _headers);
+      final response = await http.get(
+        Uri.parse('$baseUrl/contractors'),
+        headers: _headers,
+      );
       if (response.statusCode == 200) {
         return json.decode(response.body)['contractors'];
       }
       throw Exception();
     } catch (_) {
       return [
-        {'id': 1, 'contractorId': 'CON-001', 'name': 'Verma Contractors', 'phone': '9876543210', 'email': 'verma@example.com', 'address': 'Gurugram, Sector 43', 'serviceType': 'Civil & Foundation'},
-        {'id': 2, 'contractorId': 'CON-002', 'name': 'Singh Painters', 'phone': '9876543211', 'email': 'singh@example.com', 'address': 'Delhi, Vasant Kunj', 'serviceType': 'Painting & Polishing'},
-        {'id': 3, 'contractorId': 'CON-003', 'name': 'Sharma Electricals', 'phone': '9876543212', 'email': 'sharma@example.com', 'address': 'Noida, Sector 62', 'serviceType': 'Electrical & Wiring'}
+        {
+          'id': 1,
+          'contractorId': 'CON-001',
+          'name': 'Verma Contractors',
+          'phone': '9876543210',
+          'email': 'verma@example.com',
+          'address': 'Gurugram, Sector 43',
+          'serviceType': 'Civil & Foundation',
+        },
+        {
+          'id': 2,
+          'contractorId': 'CON-002',
+          'name': 'Singh Painters',
+          'phone': '9876543211',
+          'email': 'singh@example.com',
+          'address': 'Delhi, Vasant Kunj',
+          'serviceType': 'Painting & Polishing',
+        },
+        {
+          'id': 3,
+          'contractorId': 'CON-003',
+          'name': 'Sharma Electricals',
+          'phone': '9876543212',
+          'email': 'sharma@example.com',
+          'address': 'Noida, Sector 62',
+          'serviceType': 'Electrical & Wiring',
+        },
       ];
     }
   }
@@ -1133,7 +1482,10 @@ class ApiService {
   }
 
   // Update Contractor
-  static Future<bool> updateContractor(int id, Map<String, dynamic> data) async {
+  static Future<bool> updateContractor(
+    int id,
+    Map<String, dynamic> data,
+  ) async {
     try {
       final response = await http.put(
         Uri.parse('$baseUrl/contractors/$id'),
@@ -1162,19 +1514,46 @@ class ApiService {
   // Fetch Contractor Stages
   static Future<List<dynamic>> getContractorStages() async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/contractor-stages'), headers: _headers);
+      final response = await http.get(
+        Uri.parse('$baseUrl/contractor-stages'),
+        headers: _headers,
+      );
       if (response.statusCode == 200) {
         return json.decode(response.body)['stages'];
       }
       throw Exception();
     } catch (_) {
       return [
-        {'id': 1, 'name': 'BASEMENT', 'description': 'Foundation and Basement column works'},
-        {'id': 2, 'name': 'SOIL FILLING', 'description': 'Excavation and Soil backfilling works'},
-        {'id': 3, 'name': 'RCC SLAB', 'description': 'Reinforced concrete slab casting works'},
-        {'id': 4, 'name': 'PLASTERING', 'description': 'Internal and external wall plastering'},
-        {'id': 5, 'name': 'TILING', 'description': 'Flooring and wall tiling works'},
-        {'id': 6, 'name': 'PAINTING', 'description': 'Wall painting and polishing'}
+        {
+          'id': 1,
+          'name': 'BASEMENT',
+          'description': 'Foundation and Basement column works',
+        },
+        {
+          'id': 2,
+          'name': 'SOIL FILLING',
+          'description': 'Excavation and Soil backfilling works',
+        },
+        {
+          'id': 3,
+          'name': 'RCC SLAB',
+          'description': 'Reinforced concrete slab casting works',
+        },
+        {
+          'id': 4,
+          'name': 'PLASTERING',
+          'description': 'Internal and external wall plastering',
+        },
+        {
+          'id': 5,
+          'name': 'TILING',
+          'description': 'Flooring and wall tiling works',
+        },
+        {
+          'id': 6,
+          'name': 'PAINTING',
+          'description': 'Wall painting and polishing',
+        },
       ];
     }
   }
@@ -1194,7 +1573,10 @@ class ApiService {
   }
 
   // Update Contractor Stage
-  static Future<bool> updateContractorStage(int id, Map<String, dynamic> data) async {
+  static Future<bool> updateContractorStage(
+    int id,
+    Map<String, dynamic> data,
+  ) async {
     try {
       final response = await http.put(
         Uri.parse('$baseUrl/contractor-stages/$id'),
@@ -1223,7 +1605,10 @@ class ApiService {
   // Fetch Contractor Releases
   static Future<List<dynamic>> getContractorReleases() async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/contractor-releases'), headers: _headers);
+      final response = await http.get(
+        Uri.parse('$baseUrl/contractor-releases'),
+        headers: _headers,
+      );
       if (response.statusCode == 200) {
         return json.decode(response.body)['releases'];
       }
@@ -1238,10 +1623,18 @@ class ApiService {
           'referenceNumber': 'TXN-99887766',
           'status': 'Released',
           'notes': 'Basement column casting completed. Quality team approved.',
-          'contractor': {'id': 1, 'contractorId': 'CON-001', 'name': 'Verma Contractors'},
-          'project': {'id': 1, 'projectId': 'PRJ-001', 'name': 'The Bajaj Villa'},
-          'stage': {'id': 1, 'name': 'BASEMENT'}
-        }
+          'contractor': {
+            'id': 1,
+            'contractorId': 'CON-001',
+            'name': 'Verma Contractors',
+          },
+          'project': {
+            'id': 1,
+            'projectId': 'PRJ-001',
+            'name': 'The Bajaj Villa',
+          },
+          'stage': {'id': 1, 'name': 'BASEMENT'},
+        },
       ];
     }
   }
@@ -1261,7 +1654,10 @@ class ApiService {
   }
 
   // Update Contractor Release
-  static Future<bool> updateContractorRelease(int id, Map<String, dynamic> data) async {
+  static Future<bool> updateContractorRelease(
+    int id,
+    Map<String, dynamic> data,
+  ) async {
     try {
       final response = await http.put(
         Uri.parse('$baseUrl/contractor-releases/$id'),
@@ -1288,27 +1684,47 @@ class ApiService {
   }
 
   // Submit Manager Attendance
-  static Future<Map<String, dynamic>> submitManagerAttendance(List<Map<String, dynamic>> workers, String gps, String date) async {
+  static Future<Map<String, dynamic>> submitManagerAttendance(
+    List<Map<String, dynamic>> workers,
+    String gps,
+    String date,
+  ) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/attendance/manager/submit'),
         headers: _headers,
-        body: json.encode({'workers': workers, 'gpsLocation': gps, 'date': date}),
+        body: json.encode({
+          'workers': workers,
+          'gpsLocation': gps,
+          'date': date,
+        }),
       );
       final body = json.decode(response.body);
       if (response.statusCode == 201) {
-        return {'success': true, 'message': body['message'] ?? 'Attendance submitted successfully'};
+        return {
+          'success': true,
+          'message': body['message'] ?? 'Attendance submitted successfully',
+        };
       }
-      return {'success': false, 'message': body['message'] ?? 'Failed to record attendance'};
+      return {
+        'success': false,
+        'message': body['message'] ?? 'Failed to record attendance',
+      };
     } catch (_) {
-      return {'success': true, 'message': 'Offline Mode: Attendance recorded locally'};
+      return {
+        'success': true,
+        'message': 'Offline Mode: Attendance recorded locally',
+      };
     }
   }
 
   // Fetch Daily Work Completion Reports
   static Future<List<dynamic>> getDailyReports() async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/reports/daily'), headers: _headers);
+      final response = await http.get(
+        Uri.parse('$baseUrl/reports/daily'),
+        headers: _headers,
+      );
       if (response.statusCode == 200) {
         return json.decode(response.body)['reports'];
       }
@@ -1319,11 +1735,12 @@ class ApiService {
           'id': 1,
           'date': '2026-06-23',
           'workCategory': 'Brick Work',
-          'workDescription': 'Completed brick laying for boundary wall section B.',
+          'workDescription':
+              'Completed brick laying for boundary wall section B.',
           'quantityCompleted': '1200 Sq Ft Completed',
           'notes': 'All items completed, verified alignment.',
           'user': {'name': 'Rahul Sen'},
-          'project': {'name': 'The Bajaj Villa'}
+          'project': {'name': 'The Bajaj Villa'},
         },
         {
           'id': 2,
@@ -1333,8 +1750,8 @@ class ApiService {
           'quantityCompleted': '2 Rooms Completed',
           'notes': 'Awaiting drying. Second coat tomorrow.',
           'user': {'name': 'Kabir Mehta'},
-          'project': {'name': 'Oberoi Apartment 1204'}
-        }
+          'project': {'name': 'Oberoi Apartment 1204'},
+        },
       ];
     }
   }
@@ -1357,7 +1774,10 @@ class ApiService {
   // Fetch Manager Progress Reports
   static Future<List<dynamic>> getManagerProgressReports() async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/reports/manager-progress'), headers: _headers);
+      final response = await http.get(
+        Uri.parse('$baseUrl/reports/manager-progress'),
+        headers: _headers,
+      );
       if (response.statusCode == 200) {
         return json.decode(response.body)['reports'];
       }
@@ -1368,20 +1788,24 @@ class ApiService {
           'id': 1,
           'date': '2026-06-23',
           'workersPresent': 12,
-          'workCompleted': 'Slab casting of second floor completed. Shuttering checked.',
+          'workCompleted':
+              'Slab casting of second floor completed. Shuttering checked.',
           'materialsUsed': 'Cement: 150 Bags, Steel: 1.2 Tons, Sand: 2 Trucks',
           'issuesFaced': 'Minor water supply leak in afternoon, resolved.',
           'delays': 'No delays',
-          'tomorrowPlan': 'Curing of slab, start masonry for internal partitions.',
+          'tomorrowPlan':
+              'Curing of slab, start masonry for internal partitions.',
           'manager': {'name': 'Rahul Sen'},
-          'project': {'name': 'The Bajaj Villa'}
-        }
+          'project': {'name': 'The Bajaj Villa'},
+        },
       ];
     }
   }
 
   // Submit Manager Progress Report
-  static Future<bool> submitManagerProgressReport(Map<String, dynamic> data) async {
+  static Future<bool> submitManagerProgressReport(
+    Map<String, dynamic> data,
+  ) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/reports/manager-progress'),
@@ -1397,7 +1821,9 @@ class ApiService {
   // Fetch Payroll wage sheet
   static Future<List<dynamic>> getWageSheet(int? projectId) async {
     try {
-      final url = projectId != null ? '$baseUrl/payroll/wage-sheet?projectId=$projectId' : '$baseUrl/payroll/wage-sheet';
+      final url = projectId != null
+          ? '$baseUrl/payroll/wage-sheet?projectId=$projectId'
+          : '$baseUrl/payroll/wage-sheet';
       final response = await http.get(Uri.parse(url), headers: _headers);
       if (response.statusCode == 200) {
         return json.decode(response.body)['wageSheet'];
@@ -1417,7 +1843,7 @@ class ApiService {
           'overtimeHours': 12.0,
           'basePay': 13800.0,
           'overtimePay': 1350.0,
-          'totalWage': 15150.0
+          'totalWage': 15150.0,
         },
         {
           'workerId': 'WRK-002',
@@ -1431,7 +1857,7 @@ class ApiService {
           'overtimeHours': 8.0,
           'basePay': 18000.0,
           'overtimePay': 1125.0,
-          'totalWage': 19125.0
+          'totalWage': 19125.0,
         },
         {
           'workerId': 'WRK-003',
@@ -1444,8 +1870,8 @@ class ApiService {
           'overtimeHours': 0.0,
           'basePay': 12100.0,
           'overtimePay': 0.0,
-          'totalWage': 12100.0
-        }
+          'totalWage': 12100.0,
+        },
       ];
     }
   }
@@ -1453,7 +1879,10 @@ class ApiService {
   // Fetch Executive Stats
   static Future<Map<String, dynamic>> getExecutiveStats() async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/dashboard/executive'), headers: _headers);
+      final response = await http.get(
+        Uri.parse('$baseUrl/dashboard/executive'),
+        headers: _headers,
+      );
       if (response.statusCode == 200) {
         return json.decode(response.body);
       }
@@ -1466,10 +1895,34 @@ class ApiService {
         'laborCost': 420000.0,
         'materialCost': 1850000.0,
         'realtimeAttendance': [
-          {'worker': {'name': 'Ramesh Kumar', 'workerId': 'WRK-001', 'skillType': 'Mason'}, 'status': 'Present', 'entryTime': '09:05 AM'},
-          {'worker': {'name': 'Sohan Lal', 'workerId': 'WRK-002', 'skillType': 'Carpenter'}, 'status': 'Present', 'entryTime': '09:10 AM'},
-          {'worker': {'name': 'Madan Mohan', 'workerId': 'WRK-003', 'skillType': 'Painter'}, 'status': 'Half Day', 'entryTime': '09:15 AM'},
-        ]
+          {
+            'worker': {
+              'name': 'Ramesh Kumar',
+              'workerId': 'WRK-001',
+              'skillType': 'Mason',
+            },
+            'status': 'Present',
+            'entryTime': '09:05 AM',
+          },
+          {
+            'worker': {
+              'name': 'Sohan Lal',
+              'workerId': 'WRK-002',
+              'skillType': 'Carpenter',
+            },
+            'status': 'Present',
+            'entryTime': '09:10 AM',
+          },
+          {
+            'worker': {
+              'name': 'Madan Mohan',
+              'workerId': 'WRK-003',
+              'skillType': 'Painter',
+            },
+            'status': 'Half Day',
+            'entryTime': '09:15 AM',
+          },
+        ],
       };
     }
   }
@@ -1477,7 +1930,10 @@ class ApiService {
   // Fetch announcements
   static Future<List<dynamic>> getAnnouncements() async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/announcements'), headers: _headers);
+      final response = await http.get(
+        Uri.parse('$baseUrl/announcements'),
+        headers: _headers,
+      );
       if (response.statusCode == 200) {
         return json.decode(response.body)['announcements'];
       }
@@ -1487,21 +1943,25 @@ class ApiService {
         {
           'id': 1,
           'title': 'Safety Guidelines Compliance',
-          'message': 'All site engineers must ensure that workers wear safety helmets and harnesses on scaffolding sections at all times.',
-          'createdAt': '2026-06-22T10:00:00Z'
+          'message':
+              'All site engineers must ensure that workers wear safety helmets and harnesses on scaffolding sections at all times.',
+          'createdAt': '2026-06-22T10:00:00Z',
         },
         {
           'id': 2,
           'title': 'GST Invoice Submission Deadline',
-          'message': 'Please submit all client billing material receipts for sector audits by the 25th of this month.',
-          'createdAt': '2026-06-20T14:30:00Z'
-        }
+          'message':
+              'Please submit all client billing material receipts for sector audits by the 25th of this month.',
+          'createdAt': '2026-06-20T14:30:00Z',
+        },
       ];
     }
   }
 
   // Onboard client
-  static Future<Map<String, dynamic>> onboardClient(Map<String, dynamic> data) async {
+  static Future<Map<String, dynamic>> onboardClient(
+    Map<String, dynamic> data,
+  ) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/clients/onboard'),
@@ -1511,20 +1971,28 @@ class ApiService {
       if (response.statusCode == 201) {
         return json.decode(response.body);
       }
-      return {'success': false, 'message': json.decode(response.body)['message'] ?? 'Onboarding failed'};
+      return {
+        'success': false,
+        'message': json.decode(response.body)['message'] ?? 'Onboarding failed',
+      };
     } catch (_) {
       return {
         'success': true,
-        'message': '[OFFLINE MOCK] Client and Project onboarded successfully with standard workspace structure.',
+        'message':
+            '[OFFLINE MOCK] Client and Project onboarded successfully with standard workspace structure.',
         'clientId': 99,
         'projectId': 99,
-        'projectCode': 'VIAN-PROJ-2026-MOCK'
+        'projectCode': 'VIAN-PROJ-2026-MOCK',
       };
     }
   }
 
   // Validate spreadsheet import
-  static Future<Map<String, dynamic>> validateImport(List<dynamic> rows, Map<String, String> mapping, String module) async {
+  static Future<Map<String, dynamic>> validateImport(
+    List<dynamic> rows,
+    Map<String, String> mapping,
+    String module,
+  ) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/import/validate'),
@@ -1550,7 +2018,7 @@ class ApiService {
           },
           'errors': {},
           'warnings': {},
-          'isValid': true
+          'isValid': true,
         });
       }
       return {
@@ -1561,19 +2029,29 @@ class ApiService {
           'duplicateProjects': 0,
           'missingFields': 0,
           'invalidEmails': 0,
-          'isValidSuite': true
-        }
+          'isValidSuite': true,
+        },
       };
     }
   }
 
   // Execute spreadsheet import
-  static Future<Map<String, dynamic>> executeImport(List<dynamic> rows, Map<String, String> mapping, String strategy, String module) async {
+  static Future<Map<String, dynamic>> executeImport(
+    List<dynamic> rows,
+    Map<String, String> mapping,
+    String strategy,
+    String module,
+  ) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/import/execute'),
         headers: _headers,
-        body: json.encode({'rows': rows, 'mapping': mapping, 'strategy': strategy, 'module': module}),
+        body: json.encode({
+          'rows': rows,
+          'mapping': mapping,
+          'strategy': strategy,
+          'module': module,
+        }),
       );
       if (response.statusCode == 200) {
         return json.decode(response.body);
@@ -1586,8 +2064,8 @@ class ApiService {
           'imported': rows.length,
           'updated': 0,
           'failed': 0,
-          'skipped': 0
-        }
+          'skipped': 0,
+        },
       };
     }
   }
@@ -1595,7 +2073,10 @@ class ApiService {
   // Fetch import/export activity logs
   static Future<List<dynamic>> getImportLogs() async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/import-logs'), headers: _headers);
+      final response = await http.get(
+        Uri.parse('$baseUrl/import-logs'),
+        headers: _headers,
+      );
       if (response.statusCode == 200) {
         return json.decode(response.body)['logs'];
       }
@@ -1613,7 +2094,7 @@ class ApiService {
           'ipAddress': '192.168.1.100',
           'device': 'Windows 11 Chrome',
           'createdAt': '2026-06-25T08:00:00Z',
-          'user': {'name': 'Ar. Anand Sathiesivam'}
+          'user': {'name': 'Ar. Anand Sathiesivam'},
         },
         {
           'id': 2,
@@ -1626,16 +2107,22 @@ class ApiService {
           'ipAddress': '192.168.1.100',
           'device': 'Windows 11 Chrome',
           'createdAt': '2026-06-24T18:30:00Z',
-          'user': {'name': 'Ar. Anand Sathiesivam'}
-        }
+          'user': {'name': 'Ar. Anand Sathiesivam'},
+        },
       ];
     }
   }
 
   // Export module data
-  static Future<Map<String, dynamic>> exportModule(String module, String format) async {
+  static Future<Map<String, dynamic>> exportModule(
+    String module,
+    String format,
+  ) async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/export/$module?format=$format'), headers: _headers);
+      final response = await http.get(
+        Uri.parse('$baseUrl/export/$module?format=$format'),
+        headers: _headers,
+      );
       if (response.statusCode == 200) {
         if (format == 'csv') {
           return {'success': true, 'csvData': response.body};
@@ -1647,8 +2134,10 @@ class ApiService {
     } catch (_) {
       return {
         'success': true,
-        'message': '[OFFLINE MOCK] Exported $module successfully in $format format.',
-        'csvData': 'ID,Name,Phone,Email\n1,Amit Bajaj,9876543210,amit@bajaj.com\n2,Kiran Oberoi,9911223344,kiran@oberoi.com'
+        'message':
+            '[OFFLINE MOCK] Exported $module successfully in $format format.',
+        'csvData':
+            'ID,Name,Phone,Email\n1,Amit Bajaj,9876543210,amit@bajaj.com\n2,Kiran Oberoi,9911223344,kiran@oberoi.com',
       };
     }
   }
@@ -1656,7 +2145,10 @@ class ApiService {
   // Backup database
   static Future<String?> backupDatabase() async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/backup/export'), headers: _headers);
+      final response = await http.get(
+        Uri.parse('$baseUrl/backup/export'),
+        headers: _headers,
+      );
       if (response.statusCode == 200) {
         return response.body;
       }
@@ -1679,22 +2171,36 @@ class ApiService {
       }
       return {'success': false, 'message': 'Restore failed'};
     } catch (_) {
-      return {'success': true, 'message': '[OFFLINE MOCK] Database successfully restored from backup.'};
+      return {
+        'success': true,
+        'message': '[OFFLINE MOCK] Database successfully restored from backup.',
+      };
     }
   }
 
   // List backups
   static Future<List<dynamic>> getBackupsList() async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/backup/list'), headers: _headers);
+      final response = await http.get(
+        Uri.parse('$baseUrl/backup/list'),
+        headers: _headers,
+      );
       if (response.statusCode == 200) {
         return json.decode(response.body)['backups'];
       }
       throw Exception();
     } catch (_) {
       return [
-        { 'name': 'vian_db_daily_backup_2026-06-24.sql', 'size': '256 KB', 'date': '2026-06-24 23:59' },
-        { 'name': 'vian_db_daily_backup_2026-06-23.sql', 'size': '254 KB', 'date': '2026-06-23 23:59' }
+        {
+          'name': 'vian_db_daily_backup_2026-06-24.sql',
+          'size': '256 KB',
+          'date': '2026-06-24 23:59',
+        },
+        {
+          'name': 'vian_db_daily_backup_2026-06-23.sql',
+          'size': '254 KB',
+          'date': '2026-06-23 23:59',
+        },
       ];
     }
   }
@@ -1702,7 +2208,10 @@ class ApiService {
   // Get all employee accounts (excluding Client role)
   static Future<List<dynamic>> getEmployees() async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/employees'), headers: _headers);
+      final response = await http.get(
+        Uri.parse('$baseUrl/employees'),
+        headers: _headers,
+      );
       if (response.statusCode == 200) {
         return json.decode(response.body)['employees'];
       }
@@ -1713,7 +2222,10 @@ class ApiService {
   }
 
   // GPS Tracking
-  static Future<Map<String, dynamic>> trackGps(double latitude, double longitude) async {
+  static Future<Map<String, dynamic>> trackGps(
+    double latitude,
+    double longitude,
+  ) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/gps/track'),
@@ -1731,7 +2243,7 @@ class ApiService {
       return {
         'success': true,
         'isOutside': isOutside,
-        'warning': isOutside ? {'id': 99, 'duration': 15} : null
+        'warning': isOutside ? {'id': 99, 'duration': 15} : null,
       };
     }
   }
@@ -1739,7 +2251,10 @@ class ApiService {
   // Fines Management
   static Future<Map<String, dynamic>> getFines() async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/fines'), headers: _headers);
+      final response = await http.get(
+        Uri.parse('$baseUrl/fines'),
+        headers: _headers,
+      );
       if (response.statusCode == 200) {
         return json.decode(response.body);
       }
@@ -1747,22 +2262,57 @@ class ApiService {
     } catch (_) {
       return {
         'fines': [
-          {'id': 1, 'amount': 500.00, 'reason': 'Geofence Breach: Left Site A for 35 mins', 'acknowledged': false, 'employee': {'name': 'Er. Mohan', 'role': 'Employee'}, 'createdAt': DateTime.now().subtract(const Duration(days: 1)).toString()},
-          {'id': 2, 'amount': 1000.00, 'reason': 'Safety Violation: No safety harness worn', 'acknowledged': true, 'employee': {'name': 'Sr. Manoj', 'role': 'Employee'}, 'createdAt': DateTime.now().subtract(const Duration(days: 4)).toString()}
+          {
+            'id': 1,
+            'amount': 500.00,
+            'reason': 'Geofence Breach: Left Site A for 35 mins',
+            'acknowledged': false,
+            'employee': {'name': 'Er. Mohan', 'role': 'Employee'},
+            'createdAt': DateTime.now()
+                .subtract(const Duration(days: 1))
+                .toString(),
+          },
+          {
+            'id': 2,
+            'amount': 1000.00,
+            'reason': 'Safety Violation: No safety harness worn',
+            'acknowledged': true,
+            'employee': {'name': 'Sr. Manoj', 'role': 'Employee'},
+            'createdAt': DateTime.now()
+                .subtract(const Duration(days: 4))
+                .toString(),
+          },
         ],
         'warnings': [
-          {'id': 1, 'user': {'name': 'Er. Mohan'}, 'project': {'name': 'The Bajaj Villa'}, 'currentLocation': '28.4635, 77.0298', 'durationOutside': 25, 'createdAt': DateTime.now().toString()}
-        ]
+          {
+            'id': 1,
+            'user': {'name': 'Er. Mohan'},
+            'project': {'name': 'The Bajaj Villa'},
+            'currentLocation': '28.4635, 77.0298',
+            'durationOutside': 25,
+            'createdAt': DateTime.now().toString(),
+          },
+        ],
       };
     }
   }
 
-  static Future<Map<String, dynamic>> applyFine(int? warningId, int employeeId, double amount, String reason) async {
+  static Future<Map<String, dynamic>> applyFine(
+    int? warningId,
+    int employeeId,
+    double amount,
+    String reason,
+  ) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/fines/apply'),
         headers: _headers,
-        body: json.encode({'warningId': warningId, 'employeeId': employeeId, 'amount': amount, 'reason': reason}),
+        body: json.encode({
+          'warningId': warningId,
+          'employeeId': employeeId,
+          'amount': amount,
+          'reason': reason,
+        }),
       );
       if (response.statusCode == 200) {
         return json.decode(response.body);
@@ -1775,7 +2325,10 @@ class ApiService {
 
   static Future<Map<String, dynamic>> acknowledgeFine(int fineId) async {
     try {
-      final response = await http.post(Uri.parse('$baseUrl/fines/$fineId/acknowledge'), headers: _headers);
+      final response = await http.post(
+        Uri.parse('$baseUrl/fines/$fineId/acknowledge'),
+        headers: _headers,
+      );
       if (response.statusCode == 200) {
         return json.decode(response.body);
       }
@@ -1785,7 +2338,10 @@ class ApiService {
     }
   }
 
-  static Future<Map<String, dynamic>> updateWarningStatus(int warningId, String status) async {
+  static Future<Map<String, dynamic>> updateWarningStatus(
+    int warningId,
+    String status,
+  ) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/fines/warning/$warningId/status'),
@@ -1802,7 +2358,9 @@ class ApiService {
   }
 
   // Hourly Site Progress
-  static Future<Map<String, dynamic>> submitHourlyProgress(Map<String, dynamic> data) async {
+  static Future<Map<String, dynamic>> submitHourlyProgress(
+    Map<String, dynamic> data,
+  ) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/projects/progress-hourly'),
@@ -1820,7 +2378,10 @@ class ApiService {
 
   static Future<List<dynamic>> getHourlyProgress(int projectId) async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/projects/progress-hourly/$projectId'), headers: _headers);
+      final response = await http.get(
+        Uri.parse('$baseUrl/projects/progress-hourly/$projectId'),
+        headers: _headers,
+      );
       if (response.statusCode == 200) {
         return json.decode(response.body)['progress'];
       }
@@ -1829,7 +2390,8 @@ class ApiService {
       return [
         {
           'id': 1,
-          'workProgress': 'Excavation completed for rear garden, wall plastering check.',
+          'workProgress':
+              'Excavation completed for rear garden, wall plastering check.',
           'remarks': 'Plastering in progress',
           'completionPercentage': 55,
           'workersPresent': 8,
@@ -1837,9 +2399,11 @@ class ApiService {
           'delayReason': '',
           'weather': 'Sunny',
           'photoUrls': '[]',
-          'createdAt': DateTime.now().subtract(const Duration(hours: 1)).toString(),
-          'user': {'name': 'Er. Mohan'}
-        }
+          'createdAt': DateTime.now()
+              .subtract(const Duration(hours: 1))
+              .toString(),
+          'user': {'name': 'Er. Mohan'},
+        },
       ];
     }
   }
@@ -1847,7 +2411,10 @@ class ApiService {
   // Announcement Actions
   static Future<Map<String, dynamic>> acknowledgeAnnouncement(int id) async {
     try {
-      final response = await http.post(Uri.parse('$baseUrl/announcements/$id/acknowledge'), headers: _headers);
+      final response = await http.post(
+        Uri.parse('$baseUrl/announcements/$id/acknowledge'),
+        headers: _headers,
+      );
       if (response.statusCode == 200) {
         return json.decode(response.body);
       }
@@ -1857,7 +2424,10 @@ class ApiService {
     }
   }
 
-  static Future<Map<String, dynamic>> addAnnouncementComment(int id, String comment) async {
+  static Future<Map<String, dynamic>> addAnnouncementComment(
+    int id,
+    String comment,
+  ) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/announcements/$id/comment'),
@@ -1875,22 +2445,36 @@ class ApiService {
 
   static Future<List<dynamic>> getAnnouncementActions(int id) async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/announcements/$id/actions'), headers: _headers);
+      final response = await http.get(
+        Uri.parse('$baseUrl/announcements/$id/actions'),
+        headers: _headers,
+      );
       if (response.statusCode == 200) {
         return json.decode(response.body)['actions'];
       }
       throw Exception();
     } catch (_) {
       return [
-        {'id': 1, 'acknowledged': true, 'comment': 'Noted, safety harness checks verified.', 'user': {'name': 'Er. Mohan', 'role': 'Employee'}}
+        {
+          'id': 1,
+          'acknowledged': true,
+          'comment': 'Noted, safety harness checks verified.',
+          'user': {'name': 'Er. Mohan', 'role': 'Employee'},
+        },
       ];
     }
   }
 
   // User CRUD
-  static Future<Map<String, dynamic>> createEmployee(Map<String, dynamic> data) async {
+  static Future<Map<String, dynamic>> createEmployee(
+    Map<String, dynamic> data,
+  ) async {
     try {
-      final response = await http.post(Uri.parse('$baseUrl/employees'), headers: _headers, body: json.encode(data));
+      final response = await http.post(
+        Uri.parse('$baseUrl/employees'),
+        headers: _headers,
+        body: json.encode(data),
+      );
       if (response.statusCode == 201) {
         return {'success': true, 'user': json.decode(response.body)};
       }
@@ -1900,9 +2484,16 @@ class ApiService {
     }
   }
 
-  static Future<Map<String, dynamic>> updateEmployee(int id, Map<String, dynamic> data) async {
+  static Future<Map<String, dynamic>> updateEmployee(
+    int id,
+    Map<String, dynamic> data,
+  ) async {
     try {
-      final response = await http.put(Uri.parse('$baseUrl/employees/$id'), headers: _headers, body: json.encode(data));
+      final response = await http.put(
+        Uri.parse('$baseUrl/employees/$id'),
+        headers: _headers,
+        body: json.encode(data),
+      );
       if (response.statusCode == 200) {
         return {'success': true, 'user': json.decode(response.body)};
       }
@@ -1914,7 +2505,10 @@ class ApiService {
 
   static Future<Map<String, dynamic>> deleteEmployee(int id) async {
     try {
-      final response = await http.delete(Uri.parse('$baseUrl/employees/$id'), headers: _headers);
+      final response = await http.delete(
+        Uri.parse('$baseUrl/employees/$id'),
+        headers: _headers,
+      );
       if (response.statusCode == 200) {
         return {'success': true};
       }
@@ -1927,7 +2521,10 @@ class ApiService {
   // Document Folders Access Control
   static Future<List<dynamic>> getDocuments(int projectId) async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/projects/$projectId/documents'), headers: _headers);
+      final response = await http.get(
+        Uri.parse('$baseUrl/projects/$projectId/documents'),
+        headers: _headers,
+      );
       if (response.statusCode == 200) {
         return json.decode(response.body)['documents'] ?? [];
       }
@@ -1957,12 +2554,14 @@ class ApiService {
           'fileSize': '3.1 MB',
           'folder': 'Property Documents',
           'createdAt': '2026-04-02T12:00:00Z',
-        }
+        },
       ];
     }
   }
 
-  static Future<Map<String, dynamic>> uploadDocument(Map<String, dynamic> data) async {
+  static Future<Map<String, dynamic>> uploadDocument(
+    Map<String, dynamic> data,
+  ) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/documents'),
@@ -1973,13 +2572,18 @@ class ApiService {
         return {'success': true, 'document': json.decode(response.body)};
       }
       final errBody = json.decode(response.body);
-      return {'success': false, 'message': errBody['message'] ?? 'Error uploading document'};
+      return {
+        'success': false,
+        'message': errBody['message'] ?? 'Error uploading document',
+      };
     } catch (e) {
       return {'success': true};
     }
   }
 
-  static Future<Map<String, dynamic>> addAnnouncement(Map<String, dynamic> data) async {
+  static Future<Map<String, dynamic>> addAnnouncement(
+    Map<String, dynamic> data,
+  ) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/announcements'),
@@ -1995,7 +2599,10 @@ class ApiService {
     }
   }
 
-  static Future<bool> updateAnnouncement(int id, Map<String, dynamic> data) async {
+  static Future<bool> updateAnnouncement(
+    int id,
+    Map<String, dynamic> data,
+  ) async {
     try {
       final response = await http.put(
         Uri.parse('$baseUrl/announcements/$id'),
@@ -2022,7 +2629,10 @@ class ApiService {
 
   static Future<List<dynamic>> getAttendance() async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/attendance'), headers: _headers);
+      final response = await http.get(
+        Uri.parse('$baseUrl/attendance'),
+        headers: _headers,
+      );
       if (response.statusCode == 200) {
         return json.decode(response.body)['attendance'] ?? [];
       }
@@ -2035,12 +2645,15 @@ class ApiService {
           'date': DateTime.now().toIso8601String().split('T')[0],
           'gpsCheckIn': '28.4595, 77.0266',
           'checkInTime': '09:15 AM',
-        }
+        },
       ];
     }
   }
 
-  static Future<Map<String, dynamic>> approveDrawing(int id, String status) async {
+  static Future<Map<String, dynamic>> approveDrawing(
+    int id,
+    String status,
+  ) async {
     try {
       final response = await http.put(
         Uri.parse('$baseUrl/drawings/$id/approve'),
@@ -2056,9 +2669,14 @@ class ApiService {
     }
   }
 
-  static Future<Map<String, dynamic>> getWorkersAttendance(int projectId) async {
+  static Future<Map<String, dynamic>> getWorkersAttendance(
+    int projectId,
+  ) async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/attendance/workers/$projectId'), headers: _headers);
+      final response = await http.get(
+        Uri.parse('$baseUrl/attendance/workers/$projectId'),
+        headers: _headers,
+      );
       if (response.statusCode == 200) {
         return json.decode(response.body);
       }
@@ -2066,21 +2684,45 @@ class ApiService {
     } catch (_) {
       return {
         'workers': [
-          {'id': 1, 'name': 'Ramesh Kumar', 'workerId': 'WRK-001', 'skillType': 'Mason', 'dailyWage': 800.0},
-          {'id': 2, 'name': 'Sohan Lal', 'workerId': 'WRK-002', 'skillType': 'Carpenter', 'dailyWage': 900.0},
+          {
+            'id': 1,
+            'name': 'Ramesh Kumar',
+            'workerId': 'WRK-001',
+            'skillType': 'Mason',
+            'dailyWage': 800.0,
+          },
+          {
+            'id': 2,
+            'name': 'Sohan Lal',
+            'workerId': 'WRK-002',
+            'skillType': 'Carpenter',
+            'dailyWage': 900.0,
+          },
         ],
         'attendance': [
-          {'workerId': 1, 'status': 'Present', 'overtimeHours': 0.0, 'remarks': ''}
-        ]
+          {
+            'workerId': 1,
+            'status': 'Present',
+            'overtimeHours': 0.0,
+            'remarks': '',
+          },
+        ],
       };
     }
   }
 
-  static Future<Map<String, dynamic>> submitLabourAttendance(List<Map<String, dynamic>> workers, String gps, String date) async {
+  static Future<Map<String, dynamic>> submitLabourAttendance(
+    List<Map<String, dynamic>> workers,
+    String gps,
+    String date,
+  ) async {
     return submitManagerAttendance(workers, gps, date);
   }
 
-  static Future<Map<String, dynamic>> updateTaskStatus(int id, String status) async {
+  static Future<Map<String, dynamic>> updateTaskStatus(
+    int id,
+    String status,
+  ) async {
     try {
       final response = await http.put(
         Uri.parse('$baseUrl/tasks/$id'),
@@ -2135,17 +2777,29 @@ class ApiService {
   }
 
   // Upload and parse spreadsheet file (Excel/ZIP)
-  static Future<Map<String, dynamic>> uploadImportFile(List<int> bytes, String fileName) async {
+  static Future<Map<String, dynamic>> uploadImportFile(
+    List<int> bytes,
+    String fileName,
+  ) async {
     try {
-      final request = http.MultipartRequest('POST', Uri.parse('$baseUrl/import/upload'));
+      final request = http.MultipartRequest(
+        'POST',
+        Uri.parse('$baseUrl/import/upload'),
+      );
       request.headers.addAll(_headers);
-      request.files.add(http.MultipartFile.fromBytes('file', bytes, filename: fileName));
+      request.files.add(
+        http.MultipartFile.fromBytes('file', bytes, filename: fileName),
+      );
       final response = await request.send();
       final resBody = await response.stream.bytesToString();
       if (response.statusCode == 200) {
         return json.decode(resBody);
       }
-      return {'success': false, 'message': 'Upload failed: ${json.decode(resBody)['message'] ?? 'Unknown error'}'};
+      return {
+        'success': false,
+        'message':
+            'Upload failed: ${json.decode(resBody)['message'] ?? 'Unknown error'}',
+      };
     } catch (e) {
       return {'success': false, 'message': 'Upload failed: $e'};
     }
@@ -2155,7 +2809,10 @@ class ApiService {
 
   static Future<List<dynamic>> getAnnualTargets() async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/targets/annual'), headers: _headers);
+      final response = await http.get(
+        Uri.parse('$baseUrl/targets/annual'),
+        headers: _headers,
+      );
       if (response.statusCode == 200) {
         return json.decode(response.body);
       }
@@ -2175,13 +2832,15 @@ class ApiService {
           'newClientTarget': 15,
           'repeatClientTarget': 5,
           'isApproved': true,
-          'monthlyTargets': []
-        }
+          'monthlyTargets': [],
+        },
       ];
     }
   }
 
-  static Future<Map<String, dynamic>> createAnnualTarget(Map<String, dynamic> data) async {
+  static Future<Map<String, dynamic>> createAnnualTarget(
+    Map<String, dynamic> data,
+  ) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/targets/annual'),
@@ -2191,7 +2850,11 @@ class ApiService {
       if (response.statusCode == 201) {
         return {'success': true, 'target': json.decode(response.body)};
       }
-      return {'success': false, 'message': json.decode(response.body)['message'] ?? 'Failed to create target'};
+      return {
+        'success': false,
+        'message':
+            json.decode(response.body)['message'] ?? 'Failed to create target',
+      };
     } catch (e) {
       return {'success': true, 'target': data};
     }
@@ -2199,7 +2862,10 @@ class ApiService {
 
   static Future<Map<String, dynamic>> approveAnnualTarget(int id) async {
     try {
-      final response = await http.put(Uri.parse('$baseUrl/targets/annual/$id/approve'), headers: _headers);
+      final response = await http.put(
+        Uri.parse('$baseUrl/targets/annual/$id/approve'),
+        headers: _headers,
+      );
       if (response.statusCode == 200) {
         return json.decode(response.body);
       }
@@ -2211,32 +2877,54 @@ class ApiService {
 
   static Future<List<dynamic>> getMonthlyTargets(int annualTargetId) async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/targets/monthly/$annualTargetId'), headers: _headers);
+      final response = await http.get(
+        Uri.parse('$baseUrl/targets/monthly/$annualTargetId'),
+        headers: _headers,
+      );
       if (response.statusCode == 200) {
         return json.decode(response.body);
       }
       throw Exception();
     } catch (_) {
-      final months = ['April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December', 'January', 'February', 'March'];
-      return List.generate(12, (index) => {
-        'id': index + 1,
-        'annualTargetId': annualTargetId,
-        'monthName': months[index],
-        'monthNumber': index >= 9 ? index - 8 : index + 4,
-        'projectTarget': 10,
-        'revenueTarget': 1000000.0,
-        'profitTarget': 300000.0,
-        'residentialProjectsTarget': 4,
-        'commercialProjectsTarget': 3,
-        'interiorProjectsTarget': 2,
-        'renovationProjectsTarget': 1,
-        'newClientTarget': 1,
-        'repeatClientTarget': 0,
-      });
+      final months = [
+        'April',
+        'May',
+        'June',
+        'July',
+        'August',
+        'September',
+        'October',
+        'November',
+        'December',
+        'January',
+        'February',
+        'March',
+      ];
+      return List.generate(
+        12,
+        (index) => {
+          'id': index + 1,
+          'annualTargetId': annualTargetId,
+          'monthName': months[index],
+          'monthNumber': index >= 9 ? index - 8 : index + 4,
+          'projectTarget': 10,
+          'revenueTarget': 1000000.0,
+          'profitTarget': 300000.0,
+          'residentialProjectsTarget': 4,
+          'commercialProjectsTarget': 3,
+          'interiorProjectsTarget': 2,
+          'renovationProjectsTarget': 1,
+          'newClientTarget': 1,
+          'repeatClientTarget': 0,
+        },
+      );
     }
   }
 
-  static Future<Map<String, dynamic>> updateMonthlyTarget(int id, Map<String, dynamic> data) async {
+  static Future<Map<String, dynamic>> updateMonthlyTarget(
+    int id,
+    Map<String, dynamic> data,
+  ) async {
     try {
       final response = await http.put(
         Uri.parse('$baseUrl/targets/monthly/$id'),
@@ -2254,22 +2942,55 @@ class ApiService {
 
   static Future<List<dynamic>> getTeamTargets(String fy) async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/targets/team?financialYear=$fy'), headers: _headers);
+      final response = await http.get(
+        Uri.parse('$baseUrl/targets/team?financialYear=$fy'),
+        headers: _headers,
+      );
       if (response.statusCode == 200) {
         return json.decode(response.body);
       }
       throw Exception();
     } catch (_) {
       return [
-        {'id': 1, 'financialYear': fy, 'teamName': 'Design Team', 'targetMetric': 'Project Design Completion', 'targetValue': 50.0, 'unit': 'number'},
-        {'id': 2, 'financialYear': fy, 'teamName': 'Design Team', 'targetMetric': 'Drawing Completion', 'targetValue': 200.0, 'unit': 'number'},
-        {'id': 3, 'financialYear': fy, 'teamName': 'Site Team', 'targetMetric': 'Site Completion', 'targetValue': 35.0, 'unit': 'number'},
-        {'id': 4, 'financialYear': fy, 'teamName': 'Accounts Team', 'targetMetric': 'Invoice Collection (INR)', 'targetValue': 15000000.0, 'unit': 'amount'}
+        {
+          'id': 1,
+          'financialYear': fy,
+          'teamName': 'Design Team',
+          'targetMetric': 'Project Design Completion',
+          'targetValue': 50.0,
+          'unit': 'number',
+        },
+        {
+          'id': 2,
+          'financialYear': fy,
+          'teamName': 'Design Team',
+          'targetMetric': 'Drawing Completion',
+          'targetValue': 200.0,
+          'unit': 'number',
+        },
+        {
+          'id': 3,
+          'financialYear': fy,
+          'teamName': 'Site Team',
+          'targetMetric': 'Site Completion',
+          'targetValue': 35.0,
+          'unit': 'number',
+        },
+        {
+          'id': 4,
+          'financialYear': fy,
+          'teamName': 'Accounts Team',
+          'targetMetric': 'Invoice Collection (INR)',
+          'targetValue': 15000000.0,
+          'unit': 'amount',
+        },
       ];
     }
   }
 
-  static Future<Map<String, dynamic>> createTeamTarget(Map<String, dynamic> data) async {
+  static Future<Map<String, dynamic>> createTeamTarget(
+    Map<String, dynamic> data,
+  ) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/targets/team'),
@@ -2285,7 +3006,10 @@ class ApiService {
     }
   }
 
-  static Future<Map<String, dynamic>> updateTeamTarget(int id, Map<String, dynamic> data) async {
+  static Future<Map<String, dynamic>> updateTeamTarget(
+    int id,
+    Map<String, dynamic> data,
+  ) async {
     try {
       final response = await http.put(
         Uri.parse('$baseUrl/targets/team/$id'),
@@ -2303,13 +3027,18 @@ class ApiService {
 
   static Future<void> deleteTeamTarget(int id) async {
     try {
-      await http.delete(Uri.parse('$baseUrl/targets/team/$id'), headers: _headers);
+      await http.delete(
+        Uri.parse('$baseUrl/targets/team/$id'),
+        headers: _headers,
+      );
     } catch (_) {}
   }
 
   static Future<List<dynamic>> getEmployeeTargets({int? employeeId}) async {
     try {
-      final url = employeeId != null ? '$baseUrl/targets/employee?employeeId=$employeeId' : '$baseUrl/targets/employee';
+      final url = employeeId != null
+          ? '$baseUrl/targets/employee?employeeId=$employeeId'
+          : '$baseUrl/targets/employee';
       final response = await http.get(Uri.parse(url), headers: _headers);
       if (response.statusCode == 200) {
         return json.decode(response.body);
@@ -2320,7 +3049,12 @@ class ApiService {
         {
           'id': 1,
           'employeeId': 1,
-          'employee': {'id': 1, 'name': 'Ar. Gokul Krishnan', 'role': 'Design Engineer', 'department': 'Designing Team'},
+          'employee': {
+            'id': 1,
+            'name': 'Ar. Gokul Krishnan',
+            'role': 'Design Engineer',
+            'department': 'Designing Team',
+          },
           'assigner': {'id': 99, 'name': 'Ar. Anand Sathiesivam'},
           'targetDescription': 'Complete 8 Drawings this Month',
           'targetMetric': 'drawings',
@@ -2329,12 +3063,17 @@ class ApiService {
           'period': 'Monthly',
           'startDate': '2026-06-01',
           'endDate': '2026-06-30',
-          'status': 'In Progress'
+          'status': 'In Progress',
         },
         {
           'id': 2,
           'employeeId': 2,
-          'employee': {'id': 2, 'name': 'Er. Anthony Richard', 'role': 'Site Engineer', 'department': 'Site Team'},
+          'employee': {
+            'id': 2,
+            'name': 'Er. Anthony Richard',
+            'role': 'Site Engineer',
+            'department': 'Site Team',
+          },
           'assigner': {'id': 99, 'name': 'Ar. Anand Sathiesivam'},
           'targetDescription': 'Complete 5 Site Inspections this Week',
           'targetMetric': 'inspections',
@@ -2343,13 +3082,15 @@ class ApiService {
           'period': 'Weekly',
           'startDate': '2026-06-22',
           'endDate': '2026-06-28',
-          'status': 'In Progress'
-        }
+          'status': 'In Progress',
+        },
       ];
     }
   }
 
-  static Future<Map<String, dynamic>> assignEmployeeTarget(Map<String, dynamic> data) async {
+  static Future<Map<String, dynamic>> assignEmployeeTarget(
+    Map<String, dynamic> data,
+  ) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/targets/employee'),
@@ -2365,7 +3106,10 @@ class ApiService {
     }
   }
 
-  static Future<Map<String, dynamic>> updateEmployeeTarget(int id, Map<String, dynamic> data) async {
+  static Future<Map<String, dynamic>> updateEmployeeTarget(
+    int id,
+    Map<String, dynamic> data,
+  ) async {
     try {
       final response = await http.put(
         Uri.parse('$baseUrl/targets/employee/$id'),
@@ -2383,13 +3127,19 @@ class ApiService {
 
   static Future<void> deleteEmployeeTarget(int id) async {
     try {
-      await http.delete(Uri.parse('$baseUrl/targets/employee/$id'), headers: _headers);
+      await http.delete(
+        Uri.parse('$baseUrl/targets/employee/$id'),
+        headers: _headers,
+      );
     } catch (_) {}
   }
 
   static Future<Map<String, dynamic>> getExecutiveAnalytics() async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/targets/analytics'), headers: _headers);
+      final response = await http.get(
+        Uri.parse('$baseUrl/targets/analytics'),
+        headers: _headers,
+      );
       if (response.statusCode == 200) {
         return json.decode(response.body);
       }
@@ -2406,7 +3156,7 @@ class ApiService {
           'interiorProjectsTarget': 30,
           'renovationProjectsTarget': 10,
           'newClientTarget': 15,
-          'repeatClientTarget': 5
+          'repeatClientTarget': 5,
         },
         'currentPerformance': {
           'actualTurnover': 8450000.0,
@@ -2425,14 +3175,27 @@ class ApiService {
           'renovationCount': 1,
           'newClients': 9,
           'repeatClients': 3,
-          'avgCompletionTime': 42
+          'avgCompletionTime': 42,
         },
-        'monthlyRevenue': [750000.0, 1100000.0, 1250000.0, 950000.0, 1300000.0, 1400000.0, 800000.0, 900000.0, 0.0, 0.0, 0.0, 0.0],
+        'monthlyRevenue': [
+          750000.0,
+          1100000.0,
+          1250000.0,
+          950000.0,
+          1300000.0,
+          1400000.0,
+          800000.0,
+          900000.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+        ],
         'quarterlyRevenue': [3100000.0, 3650000.0, 1700000.0, 0.0],
         'forecasts': {
           'projectedYearEndRevenue': 13520000.0,
           'projectedYearEndProjects': 108,
-          'projectedYearEndProfit': 4320000.0
+          'projectedYearEndProfit': 4320000.0,
         },
         'scorecard': {
           'financial': 70,
@@ -2440,36 +3203,35 @@ class ApiService {
           'operations': 82,
           'clients': 72,
           'employees': 88,
-          'overallHealth': 76
+          'overallHealth': 76,
         },
         'departments': {
           'design': {
             'assigned': 45,
             'completed': 38,
             'pending': 7,
-            'completionRate': 84
+            'completionRate': 84,
           },
-          'site': {
-            'progress': 88,
-            'attendanceRate': 92,
-            'productivity': 86
-          },
+          'site': {'progress': 88, 'attendanceRate': 92, 'productivity': 86},
           'accounts': {
             'collectionEfficiency': 72,
-            'outstandingAmount': 3240000.0
-          }
+            'outstandingAmount': 3240000.0,
+          },
         },
         'topPerformingTeam': 'Design Team',
         'topPerformingEmployee': 'Ar. Gokul Krishnan',
         'pendingApprovalsCount': 3,
-        'financialHealthScore': 78
+        'financialHealthScore': 78,
       };
     }
   }
 
   static Future<List<dynamic>> getTargetAlerts() async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/targets/alerts'), headers: _headers);
+      final response = await http.get(
+        Uri.parse('$baseUrl/targets/alerts'),
+        headers: _headers,
+      );
       if (response.statusCode == 200) {
         return json.decode(response.body);
       }
@@ -2480,16 +3242,18 @@ class ApiService {
           'type': 'Accounts',
           'severity': 'High',
           'title': 'Collection delayed',
-          'message': 'Outstanding payments (₹32,40,000) are high relative to current collections. Action needed on invoice reminders.',
-          'color': 'Red'
+          'message':
+              'Outstanding payments (₹32,40,000) are high relative to current collections. Action needed on invoice reminders.',
+          'color': 'Red',
         },
         {
           'type': 'Projects',
           'severity': 'Medium',
           'title': 'Projects delayed',
-          'message': 'There are currently 2 projects marked as Delayed on site.',
-          'color': 'Yellow'
-        }
+          'message':
+              'There are currently 2 projects marked as Delayed on site.',
+          'color': 'Yellow',
+        },
       ];
     }
   }
@@ -2497,7 +3261,10 @@ class ApiService {
   // Fetch build history
   static Future<List<dynamic>> getBuildHistory() async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/builds'), headers: _headers);
+      final response = await http.get(
+        Uri.parse('$baseUrl/builds'),
+        headers: _headers,
+      );
       if (response.statusCode == 200) {
         return json.decode(response.body);
       }
@@ -2513,11 +3280,12 @@ class ApiService {
           'duration': 145,
           'fileName': 'vian_erp_v1.0.0_b1.apk',
           'fileSize': 19293812,
-          'sha256Checksum': '8f6c31a7c39050d2f099238383818e698889de397394c8e7ff2823023023e12a',
+          'sha256Checksum':
+              '8f6c31a7c39050d2f099238383818e698889de397394c8e7ff2823023023e12a',
           'releaseNotes': 'Initial release of VIAN Architects ERP app.',
           'createdAt': '2026-06-25T10:00:00.000Z',
-          'builder': {'name': 'Ar. Anand Sathiesivam'}
-        }
+          'builder': {'name': 'Ar. Anand Sathiesivam'},
+        },
       ];
     }
   }
@@ -2525,7 +3293,10 @@ class ApiService {
   // Fetch parsed build metadata directly from files (no DB storage)
   static Future<Map<String, dynamic>> getBuildMetadata() async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/builds/metadata'), headers: _headers);
+      final response = await http.get(
+        Uri.parse('$baseUrl/builds/metadata'),
+        headers: _headers,
+      );
       if (response.statusCode == 200) {
         return json.decode(response.body);
       }
@@ -2546,7 +3317,10 @@ class ApiService {
   // Fetch signing configs
   static Future<Map<String, dynamic>> getSigningConfig(String platform) async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/builds/signing?platform=$platform'), headers: _headers);
+      final response = await http.get(
+        Uri.parse('$baseUrl/builds/signing?platform=$platform'),
+        headers: _headers,
+      );
       if (response.statusCode == 200) {
         return json.decode(response.body);
       }
@@ -2559,13 +3333,15 @@ class ApiService {
         'keystorePassword': '••••••••',
         'keyPassword': '••••••••',
         'certificateFile': null,
-        'provisioningProfile': null
+        'provisioningProfile': null,
       };
     }
   }
 
   // Update signing configs
-  static Future<Map<String, dynamic>> updateSigningConfig(Map<String, dynamic> data) async {
+  static Future<Map<String, dynamic>> updateSigningConfig(
+    Map<String, dynamic> data,
+  ) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/builds/signing'),
@@ -2582,7 +3358,9 @@ class ApiService {
   }
 
   // Trigger build
-  static Future<Map<String, dynamic>> triggerBuild(Map<String, dynamic> data) async {
+  static Future<Map<String, dynamic>> triggerBuild(
+    Map<String, dynamic> data,
+  ) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/builds/trigger'),
@@ -2603,8 +3381,8 @@ class ApiService {
           'buildNumber': data['buildNumber'],
           'platform': data['platform'],
           'status': 'Pending',
-          'releaseNotes': data['releaseNotes']
-        }
+          'releaseNotes': data['releaseNotes'],
+        },
       };
     }
   }
@@ -2612,7 +3390,10 @@ class ApiService {
   // Get build status & logs
   static Future<Map<String, dynamic>> getBuildStatus(int id) async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/builds/$id/status'), headers: _headers);
+      final response = await http.get(
+        Uri.parse('$baseUrl/builds/$id/status'),
+        headers: _headers,
+      );
       if (response.statusCode == 200) {
         return json.decode(response.body);
       }
@@ -2632,8 +3413,8 @@ class ApiService {
           'fileName': 'vian_erp_web_v1.0.0_b1.zip',
           'fileSize': 8493812,
           'sha256Checksum': 'MockSHA256ChecksumHashValueExample',
-          'artifactPath': '/uploads/artifacts/vian_erp_web_v1.0.0_b1.zip'
-        }
+          'artifactPath': '/uploads/artifacts/vian_erp_web_v1.0.0_b1.zip',
+        },
       };
     }
   }
@@ -2641,7 +3422,10 @@ class ApiService {
   // Get full logs
   static Future<String> getBuildLogs(int id) async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/builds/$id/logs'), headers: _headers);
+      final response = await http.get(
+        Uri.parse('$baseUrl/builds/$id/logs'),
+        headers: _headers,
+      );
       if (response.statusCode == 200) {
         return response.body;
       }
@@ -2654,7 +3438,10 @@ class ApiService {
   // Get all estimates
   static Future<List<dynamic>> getEstimates() async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/estimations'), headers: _headers);
+      final response = await http.get(
+        Uri.parse('$baseUrl/estimations'),
+        headers: _headers,
+      );
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         return data is List ? data : (data['estimates'] ?? []);
@@ -2681,7 +3468,7 @@ class ApiService {
           'totalCost': 9800000.0,
           'status': 'Approved',
           'createdAt': '2026-06-25T10:00:00.000Z',
-          'creator': {'name': 'Ar. Anand Sathiesivam'}
+          'creator': {'name': 'Ar. Anand Sathiesivam'},
         },
         {
           'id': 2,
@@ -2701,8 +3488,8 @@ class ApiService {
           'totalCost': 30000000.0,
           'status': 'Pending',
           'createdAt': '2026-06-25T11:30:00.000Z',
-          'creator': {'name': 'Ar. Sasmitha'}
-        }
+          'creator': {'name': 'Ar. Sasmitha'},
+        },
       ];
     }
   }
@@ -2710,7 +3497,10 @@ class ApiService {
   // Get estimation dashboard stats
   static Future<Map<String, dynamic>> getEstimationDashboard() async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/estimations/dashboard'), headers: _headers);
+      final response = await http.get(
+        Uri.parse('$baseUrl/estimations/dashboard'),
+        headers: _headers,
+      );
       if (response.statusCode == 200) {
         return json.decode(response.body);
       }
@@ -2721,11 +3511,7 @@ class ApiService {
         'pendingEstimates': 1,
         'approvedEstimates': 1,
         'averageCostPerSqft': 2650.0,
-        'distribution': {
-          'Economy': 0,
-          'Standard': 1,
-          'Premium': 1
-        },
+        'distribution': {'Economy': 0, 'Standard': 1, 'Premium': 1},
         'recentEstimates': [
           {
             'id': 2,
@@ -2733,7 +3519,7 @@ class ApiService {
             'projectName': 'Commercial Hub Coimbatore',
             'clientName': 'Rajesh Malhotra',
             'status': 'Pending',
-            'totalCost': 30000000.0
+            'totalCost': 30000000.0,
           },
           {
             'id': 1,
@@ -2741,15 +3527,17 @@ class ApiService {
             'projectName': 'Villa Horizon Chennai',
             'clientName': 'Amit Bajaj',
             'status': 'Approved',
-            'totalCost': 9800000.0
-          }
-        ]
+            'totalCost': 9800000.0,
+          },
+        ],
       };
     }
   }
 
   // Calculate simulation details side-by-side
-  static Future<Map<String, dynamic>> calculateEstimate(Map<String, dynamic> data) async {
+  static Future<Map<String, dynamic>> calculateEstimate(
+    Map<String, dynamic> data,
+  ) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/estimations/calculate'),
@@ -2762,7 +3550,8 @@ class ApiService {
       throw Exception();
     } catch (_) {
       // Mock calculation engine response based on input
-      final double area = double.tryParse(data['builtUpArea'].toString()) ?? 1000.0;
+      final double area =
+          double.tryParse(data['builtUpArea'].toString()) ?? 1000.0;
       final String unit = data['unit'] ?? 'Square Feet';
       final double areaSqFt = unit == 'Square Meter' ? area * 10.7639 : area;
       final String pkg = data['selectedPackage'] ?? 'Standard';
@@ -2770,11 +3559,11 @@ class ApiService {
 
       final rates = {'Economy': 2200.0, 'Standard': 2500.0, 'Premium': 2800.0};
       final selectedRate = rates[pkg] ?? 2500.0;
-      
+
       // Simulating adjustments
       double adj = 1.0;
       if (dist == 'Chennai') adj = 1.1;
-      
+
       final double ratePerSqFt = selectedRate * adj;
       final double totalCost = areaSqFt * ratePerSqFt;
 
@@ -2784,41 +3573,202 @@ class ApiService {
         'comparison': {
           'Economy': (areaSqFt * (rates['Economy'] ?? 1800.0) * adj).round(),
           'Standard': (areaSqFt * (rates['Standard'] ?? 2400.0) * adj).round(),
-          'Premium': (areaSqFt * (rates['Premium'] ?? 3200.0) * adj).round()
+          'Premium': (areaSqFt * (rates['Premium'] ?? 3200.0) * adj).round(),
         },
         'materials': [
-          {'materialName': 'Cement', 'unit': 'Bags', 'quantity': (areaSqFt * 0.4).roundToDouble(), 'rate': 420.0, 'cost': (areaSqFt * 0.4 * 420.0).roundToDouble()},
-          {'materialName': 'Steel', 'unit': 'Kgs', 'quantity': (areaSqFt * 4.0).roundToDouble(), 'rate': 68.0, 'cost': (areaSqFt * 4.0 * 68.0).roundToDouble()},
-          {'materialName': 'Sand', 'unit': 'Cft', 'quantity': (areaSqFt * 1.5).roundToDouble(), 'rate': 85.0, 'cost': (areaSqFt * 1.5 * 85.0).roundToDouble()},
-          {'materialName': 'Aggregate', 'unit': 'Cft', 'quantity': (areaSqFt * 1.8).roundToDouble(), 'rate': 72.0, 'cost': (areaSqFt * 1.8 * 72.0).roundToDouble()},
-          {'materialName': 'Concrete', 'unit': 'Cu.m', 'quantity': (areaSqFt * 0.05).roundToDouble(), 'rate': 4500.0, 'cost': (areaSqFt * 0.05 * 4500.0).roundToDouble()},
-          {'materialName': 'Tiles', 'unit': 'Sq.ft', 'quantity': (areaSqFt * 1.2).roundToDouble(), 'rate': 90.0, 'cost': (areaSqFt * 1.2 * 90.0).roundToDouble()},
-          {'materialName': 'Paint', 'unit': 'Litres', 'quantity': (areaSqFt * 0.15).roundToDouble(), 'rate': 280.0, 'cost': (areaSqFt * 0.15 * 280.0).roundToDouble()}
+          {
+            'materialName': 'Cement',
+            'unit': 'Bags',
+            'quantity': (areaSqFt * 0.4).roundToDouble(),
+            'rate': 420.0,
+            'cost': (areaSqFt * 0.4 * 420.0).roundToDouble(),
+          },
+          {
+            'materialName': 'Steel',
+            'unit': 'Kgs',
+            'quantity': (areaSqFt * 4.0).roundToDouble(),
+            'rate': 68.0,
+            'cost': (areaSqFt * 4.0 * 68.0).roundToDouble(),
+          },
+          {
+            'materialName': 'Sand',
+            'unit': 'Cft',
+            'quantity': (areaSqFt * 1.5).roundToDouble(),
+            'rate': 85.0,
+            'cost': (areaSqFt * 1.5 * 85.0).roundToDouble(),
+          },
+          {
+            'materialName': 'Aggregate',
+            'unit': 'Cft',
+            'quantity': (areaSqFt * 1.8).roundToDouble(),
+            'rate': 72.0,
+            'cost': (areaSqFt * 1.8 * 72.0).roundToDouble(),
+          },
+          {
+            'materialName': 'Concrete',
+            'unit': 'Cu.m',
+            'quantity': (areaSqFt * 0.05).roundToDouble(),
+            'rate': 4500.0,
+            'cost': (areaSqFt * 0.05 * 4500.0).roundToDouble(),
+          },
+          {
+            'materialName': 'Tiles',
+            'unit': 'Sq.ft',
+            'quantity': (areaSqFt * 1.2).roundToDouble(),
+            'rate': 90.0,
+            'cost': (areaSqFt * 1.2 * 90.0).roundToDouble(),
+          },
+          {
+            'materialName': 'Paint',
+            'unit': 'Litres',
+            'quantity': (areaSqFt * 0.15).roundToDouble(),
+            'rate': 280.0,
+            'cost': (areaSqFt * 0.15 * 280.0).roundToDouble(),
+          },
         ],
         'labour': [
-          {'labourType': 'Mason', 'requiredWorkers': (areaSqFt / 1000).ceil() + 1, 'estimatedDays': 60, 'estimatedCost': ((areaSqFt / 1000).ceil() + 1) * 60 * 950},
-          {'labourType': 'Helper', 'requiredWorkers': (areaSqFt / 500).ceil() + 1, 'estimatedDays': 60, 'estimatedCost': ((areaSqFt / 500).ceil() + 1) * 60 * 650},
-          {'labourType': 'Carpenter', 'requiredWorkers': 2, 'estimatedDays': 25, 'estimatedCost': 2 * 25 * 900},
-          {'labourType': 'Bar Bender', 'requiredWorkers': 3, 'estimatedDays': 15, 'estimatedCost': 3 * 15 * 900}
+          {
+            'labourType': 'Mason',
+            'requiredWorkers': (areaSqFt / 1000).ceil() + 1,
+            'estimatedDays': 60,
+            'estimatedCost': ((areaSqFt / 1000).ceil() + 1) * 60 * 950,
+          },
+          {
+            'labourType': 'Helper',
+            'requiredWorkers': (areaSqFt / 500).ceil() + 1,
+            'estimatedDays': 60,
+            'estimatedCost': ((areaSqFt / 500).ceil() + 1) * 60 * 650,
+          },
+          {
+            'labourType': 'Carpenter',
+            'requiredWorkers': 2,
+            'estimatedDays': 25,
+            'estimatedCost': 2 * 25 * 900,
+          },
+          {
+            'labourType': 'Bar Bender',
+            'requiredWorkers': 3,
+            'estimatedDays': 15,
+            'estimatedCost': 3 * 15 * 900,
+          },
         ],
         'phases': [
-          {'phaseName': 'Foundation', 'estimatedCost': (totalCost * 0.1).round(), 'estimatedDuration': 25, 'completionPercentage': 0, 'budgetAllocation': (totalCost * 0.1).round()},
-          {'phaseName': 'RCC Structure', 'estimatedCost': (totalCost * 0.25).round(), 'estimatedDuration': 45, 'completionPercentage': 0, 'budgetAllocation': (totalCost * 0.25).round()},
-          {'phaseName': 'Brick Work', 'estimatedCost': (totalCost * 0.12).round(), 'estimatedDuration': 20, 'completionPercentage': 0, 'budgetAllocation': (totalCost * 0.12).round()},
-          {'phaseName': 'Roofing', 'estimatedCost': (totalCost * 0.08).round(), 'estimatedDuration': 15, 'completionPercentage': 0, 'budgetAllocation': (totalCost * 0.08).round()},
-          {'phaseName': 'Plastering', 'estimatedCost': (totalCost * 0.08).round(), 'estimatedDuration': 20, 'completionPercentage': 0, 'budgetAllocation': (totalCost * 0.08).round()},
-          {'phaseName': 'Flooring', 'estimatedCost': (totalCost * 0.07).round(), 'estimatedDuration': 15, 'completionPercentage': 0, 'budgetAllocation': (totalCost * 0.07).round()},
-          {'phaseName': 'Electrical', 'estimatedCost': (totalCost * 0.06).round(), 'estimatedDuration': 10, 'completionPercentage': 0, 'budgetAllocation': (totalCost * 0.06).round()},
-          {'phaseName': 'Plumbing', 'estimatedCost': (totalCost * 0.05).round(), 'estimatedDuration': 10, 'completionPercentage': 0, 'budgetAllocation': (totalCost * 0.05).round()},
-          {'phaseName': 'Doors & Windows', 'estimatedCost': (totalCost * 0.06).round(), 'estimatedDuration': 12, 'completionPercentage': 0, 'budgetAllocation': (totalCost * 0.06).round()},
-          {'phaseName': 'Painting', 'estimatedCost': (totalCost * 0.05).round(), 'estimatedDuration': 14, 'completionPercentage': 0, 'budgetAllocation': (totalCost * 0.05).round()},
-          {'phaseName': 'Interior Works', 'estimatedCost': (totalCost * 0.05).round(), 'estimatedDuration': 15, 'completionPercentage': 0, 'budgetAllocation': (totalCost * 0.05).round()},
-          {'phaseName': 'Final Finishing', 'estimatedCost': (totalCost * 0.03).round(), 'estimatedDuration': 8, 'completionPercentage': 0, 'budgetAllocation': (totalCost * 0.03).round()}
+          {
+            'phaseName': 'Foundation',
+            'estimatedCost': (totalCost * 0.1).round(),
+            'estimatedDuration': 25,
+            'completionPercentage': 0,
+            'budgetAllocation': (totalCost * 0.1).round(),
+          },
+          {
+            'phaseName': 'RCC Structure',
+            'estimatedCost': (totalCost * 0.25).round(),
+            'estimatedDuration': 45,
+            'completionPercentage': 0,
+            'budgetAllocation': (totalCost * 0.25).round(),
+          },
+          {
+            'phaseName': 'Brick Work',
+            'estimatedCost': (totalCost * 0.12).round(),
+            'estimatedDuration': 20,
+            'completionPercentage': 0,
+            'budgetAllocation': (totalCost * 0.12).round(),
+          },
+          {
+            'phaseName': 'Roofing',
+            'estimatedCost': (totalCost * 0.08).round(),
+            'estimatedDuration': 15,
+            'completionPercentage': 0,
+            'budgetAllocation': (totalCost * 0.08).round(),
+          },
+          {
+            'phaseName': 'Plastering',
+            'estimatedCost': (totalCost * 0.08).round(),
+            'estimatedDuration': 20,
+            'completionPercentage': 0,
+            'budgetAllocation': (totalCost * 0.08).round(),
+          },
+          {
+            'phaseName': 'Flooring',
+            'estimatedCost': (totalCost * 0.07).round(),
+            'estimatedDuration': 15,
+            'completionPercentage': 0,
+            'budgetAllocation': (totalCost * 0.07).round(),
+          },
+          {
+            'phaseName': 'Electrical',
+            'estimatedCost': (totalCost * 0.06).round(),
+            'estimatedDuration': 10,
+            'completionPercentage': 0,
+            'budgetAllocation': (totalCost * 0.06).round(),
+          },
+          {
+            'phaseName': 'Plumbing',
+            'estimatedCost': (totalCost * 0.05).round(),
+            'estimatedDuration': 10,
+            'completionPercentage': 0,
+            'budgetAllocation': (totalCost * 0.05).round(),
+          },
+          {
+            'phaseName': 'Doors & Windows',
+            'estimatedCost': (totalCost * 0.06).round(),
+            'estimatedDuration': 12,
+            'completionPercentage': 0,
+            'budgetAllocation': (totalCost * 0.06).round(),
+          },
+          {
+            'phaseName': 'Painting',
+            'estimatedCost': (totalCost * 0.05).round(),
+            'estimatedDuration': 14,
+            'completionPercentage': 0,
+            'budgetAllocation': (totalCost * 0.05).round(),
+          },
+          {
+            'phaseName': 'Interior Works',
+            'estimatedCost': (totalCost * 0.05).round(),
+            'estimatedDuration': 15,
+            'completionPercentage': 0,
+            'budgetAllocation': (totalCost * 0.05).round(),
+          },
+          {
+            'phaseName': 'Final Finishing',
+            'estimatedCost': (totalCost * 0.03).round(),
+            'estimatedDuration': 8,
+            'completionPercentage': 0,
+            'budgetAllocation': (totalCost * 0.03).round(),
+          },
         ],
         'boq': [
-          {'materialName': 'Cement', 'unit': 'Bags', 'quantity': (areaSqFt * 0.4).roundToDouble(), 'rate': 420.0, 'amount': (areaSqFt * 0.4 * 420.0).roundToDouble(), 'gstRate': 18.0, 'gstAmount': (areaSqFt * 0.4 * 420.0 * 0.18).roundToDouble(), 'totalAmount': (areaSqFt * 0.4 * 420.0 * 1.18).roundToDouble()},
-          {'materialName': 'Steel', 'unit': 'Kgs', 'quantity': (areaSqFt * 4.0).roundToDouble(), 'rate': 68.0, 'amount': (areaSqFt * 4.0 * 68.0).roundToDouble(), 'gstRate': 18.0, 'gstAmount': (areaSqFt * 4.0 * 68.0 * 0.18).roundToDouble(), 'totalAmount': (areaSqFt * 4.0 * 68.0 * 1.18).roundToDouble()},
-          {'materialName': 'Sand', 'unit': 'Cft', 'quantity': (areaSqFt * 1.5).roundToDouble(), 'rate': 85.0, 'amount': (areaSqFt * 1.5 * 85.0).roundToDouble(), 'gstRate': 18.0, 'gstAmount': (areaSqFt * 1.5 * 85.0 * 0.18).roundToDouble(), 'totalAmount': (areaSqFt * 1.5 * 85.0 * 1.18).roundToDouble()}
+          {
+            'materialName': 'Cement',
+            'unit': 'Bags',
+            'quantity': (areaSqFt * 0.4).roundToDouble(),
+            'rate': 420.0,
+            'amount': (areaSqFt * 0.4 * 420.0).roundToDouble(),
+            'gstRate': 18.0,
+            'gstAmount': (areaSqFt * 0.4 * 420.0 * 0.18).roundToDouble(),
+            'totalAmount': (areaSqFt * 0.4 * 420.0 * 1.18).roundToDouble(),
+          },
+          {
+            'materialName': 'Steel',
+            'unit': 'Kgs',
+            'quantity': (areaSqFt * 4.0).roundToDouble(),
+            'rate': 68.0,
+            'amount': (areaSqFt * 4.0 * 68.0).roundToDouble(),
+            'gstRate': 18.0,
+            'gstAmount': (areaSqFt * 4.0 * 68.0 * 0.18).roundToDouble(),
+            'totalAmount': (areaSqFt * 4.0 * 68.0 * 1.18).roundToDouble(),
+          },
+          {
+            'materialName': 'Sand',
+            'unit': 'Cft',
+            'quantity': (areaSqFt * 1.5).roundToDouble(),
+            'rate': 85.0,
+            'amount': (areaSqFt * 1.5 * 85.0).roundToDouble(),
+            'gstRate': 18.0,
+            'gstAmount': (areaSqFt * 1.5 * 85.0 * 0.18).roundToDouble(),
+            'totalAmount': (areaSqFt * 1.5 * 85.0 * 1.18).roundToDouble(),
+          },
         ],
         'durationDays': 180,
         'profitAnalysis': {
@@ -2828,14 +3778,16 @@ class ApiService {
           'gstPercentage': 18.0,
           'gstAmount': ((totalCost * 1.12) * 0.18).round(),
           'netProjectValue': ((totalCost * 1.12) * 1.18).round(),
-          'companyOverhead': 50000.0
-        }
+          'companyOverhead': 50000.0,
+        },
       };
     }
   }
 
   // Save new estimate
-  static Future<Map<String, dynamic>> saveEstimate(Map<String, dynamic> data) async {
+  static Future<Map<String, dynamic>> saveEstimate(
+    Map<String, dynamic> data,
+  ) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/estimations'),
@@ -2854,8 +3806,8 @@ class ApiService {
           'clientName': data['clientName'],
           'status': 'Pending',
           'totalCost': data['totalCost'],
-          'createdAt': DateTime.now().toIso8601String()
-        }
+          'createdAt': DateTime.now().toIso8601String(),
+        },
       };
     }
   }
@@ -2863,7 +3815,10 @@ class ApiService {
   // Get estimate details
   static Future<Map<String, dynamic>> getEstimate(int id) async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/estimations/$id'), headers: _headers);
+      final response = await http.get(
+        Uri.parse('$baseUrl/estimations/$id'),
+        headers: _headers,
+      );
       if (response.statusCode == 200) {
         return json.decode(response.body);
       }
@@ -2873,14 +3828,18 @@ class ApiService {
       return {
         'id': id,
         'estimateNumber': id == 1 ? 'EST-2026-0001' : 'EST-2026-0002',
-        'projectName': id == 1 ? 'Villa Horizon Chennai' : 'Commercial Hub Coimbatore',
+        'projectName': id == 1
+            ? 'Villa Horizon Chennai'
+            : 'Commercial Hub Coimbatore',
         'clientName': id == 1 ? 'Amit Bajaj' : 'Rajesh Malhotra',
         'projectType': id == 1 ? 'Villa' : 'Commercial Building',
         'constructionType': id == 1 ? 'Premium Luxury' : 'Standard',
         'state': 'Tamil Nadu',
         'district': id == 1 ? 'Chennai' : 'Coimbatore',
         'city': id == 1 ? 'Chennai' : 'Coimbatore',
-        'siteAddress': id == 1 ? 'ECR Road, Chennai' : 'Avinashi Road, Coimbatore',
+        'siteAddress': id == 1
+            ? 'ECR Road, Chennai'
+            : 'Avinashi Road, Coimbatore',
         'builtUpArea': id == 1 ? 3500.0 : 12000.0,
         'unit': 'Square Feet',
         'selectedPackage': id == 1 ? 'Premium' : 'Standard',
@@ -2896,29 +3855,106 @@ class ApiService {
         'createdAt': '2026-06-25T10:00:00.000Z',
         'creator': {'name': 'Ar. Anand Sathiesivam'},
         'materials': [
-          {'id': 1, 'materialName': 'Cement', 'unit': 'Bags', 'quantity': 1400.0, 'rate': 420.0, 'cost': 588000.0},
-          {'id': 2, 'materialName': 'Steel', 'unit': 'Kgs', 'quantity': 14000.0, 'rate': 68.0, 'cost': 952000.0},
-          {'id': 3, 'materialName': 'Sand', 'unit': 'Cft', 'quantity': 5250.0, 'rate': 85.0, 'cost': 446250.0}
+          {
+            'id': 1,
+            'materialName': 'Cement',
+            'unit': 'Bags',
+            'quantity': 1400.0,
+            'rate': 420.0,
+            'cost': 588000.0,
+          },
+          {
+            'id': 2,
+            'materialName': 'Steel',
+            'unit': 'Kgs',
+            'quantity': 14000.0,
+            'rate': 68.0,
+            'cost': 952000.0,
+          },
+          {
+            'id': 3,
+            'materialName': 'Sand',
+            'unit': 'Cft',
+            'quantity': 5250.0,
+            'rate': 85.0,
+            'cost': 446250.0,
+          },
         ],
         'labours': [
-          {'id': 1, 'labourType': 'Mason', 'requiredWorkers': 5, 'estimatedDays': 60, 'estimatedCost': 285000.0},
-          {'id': 2, 'labourType': 'Helper', 'requiredWorkers': 8, 'estimatedDays': 60, 'estimatedCost': 312000.0}
+          {
+            'id': 1,
+            'labourType': 'Mason',
+            'requiredWorkers': 5,
+            'estimatedDays': 60,
+            'estimatedCost': 285000.0,
+          },
+          {
+            'id': 2,
+            'labourType': 'Helper',
+            'requiredWorkers': 8,
+            'estimatedDays': 60,
+            'estimatedCost': 312000.0,
+          },
         ],
         'phases': [
-          {'id': 1, 'phaseName': 'Foundation', 'estimatedCost': 980000.0, 'estimatedDuration': 25, 'completionPercentage': 100, 'budgetAllocation': 980000.0},
-          {'id': 2, 'phaseName': 'RCC Structure', 'estimatedCost': 2450000.0, 'estimatedDuration': 45, 'completionPercentage': 20, 'budgetAllocation': 2450000.0},
-          {'id': 3, 'phaseName': 'Brick Work', 'estimatedCost': 1176000.0, 'estimatedDuration': 20, 'completionPercentage': 0, 'budgetAllocation': 1176000.0}
+          {
+            'id': 1,
+            'phaseName': 'Foundation',
+            'estimatedCost': 980000.0,
+            'estimatedDuration': 25,
+            'completionPercentage': 100,
+            'budgetAllocation': 980000.0,
+          },
+          {
+            'id': 2,
+            'phaseName': 'RCC Structure',
+            'estimatedCost': 2450000.0,
+            'estimatedDuration': 45,
+            'completionPercentage': 20,
+            'budgetAllocation': 2450000.0,
+          },
+          {
+            'id': 3,
+            'phaseName': 'Brick Work',
+            'estimatedCost': 1176000.0,
+            'estimatedDuration': 20,
+            'completionPercentage': 0,
+            'budgetAllocation': 1176000.0,
+          },
         ],
         'boqs': [
-          {'id': 1, 'materialName': 'Cement', 'unit': 'Bags', 'quantity': 1400.0, 'rate': 420.0, 'amount': 588000.0, 'gstRate': 18.0, 'gstAmount': 105840.0, 'totalAmount': 693840.0},
-          {'id': 2, 'materialName': 'Steel', 'unit': 'Kgs', 'quantity': 14000.0, 'rate': 68.0, 'amount': 952000.0, 'gstRate': 18.0, 'gstAmount': 171360.0, 'totalAmount': 1123360.0}
-        ]
+          {
+            'id': 1,
+            'materialName': 'Cement',
+            'unit': 'Bags',
+            'quantity': 1400.0,
+            'rate': 420.0,
+            'amount': 588000.0,
+            'gstRate': 18.0,
+            'gstAmount': 105840.0,
+            'totalAmount': 693840.0,
+          },
+          {
+            'id': 2,
+            'materialName': 'Steel',
+            'unit': 'Kgs',
+            'quantity': 14000.0,
+            'rate': 68.0,
+            'amount': 952000.0,
+            'gstRate': 18.0,
+            'gstAmount': 171360.0,
+            'totalAmount': 1123360.0,
+          },
+        ],
       };
     }
   }
 
   // Update pending estimate
-  static Future<Map<String, dynamic>> updateEstimate(int id, Map<String, dynamic> data) async {
+  static Future<Map<String, dynamic>> updateEstimate(
+    int id,
+    Map<String, dynamic> data,
+  ) async {
     try {
       final response = await http.put(
         Uri.parse('$baseUrl/estimations/$id'),
@@ -2927,7 +3963,10 @@ class ApiService {
       );
       return json.decode(response.body);
     } catch (_) {
-      return {'success': true, 'message': 'Estimate updated successfully (Offline Mock)'};
+      return {
+        'success': true,
+        'message': 'Estimate updated successfully (Offline Mock)',
+      };
     }
   }
 
@@ -2942,13 +3981,14 @@ class ApiService {
     } catch (_) {
       return {
         'success': true,
-        'message': 'Estimate approved and Project created successfully (Offline Mock)',
+        'message':
+            'Estimate approved and Project created successfully (Offline Mock)',
         'project': {
           'id': 10,
           'projectId': 'VIAN-2026-0010',
           'name': 'Villa Horizon Chennai Project',
-          'status': 'Planning'
-        }
+          'status': 'Planning',
+        },
       };
     }
   }
@@ -2956,7 +3996,10 @@ class ApiService {
   // Get cost settings (Super Admin / Managing Director)
   static Future<Map<String, dynamic>> getEstimationSettings() async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/estimations/settings'), headers: _headers);
+      final response = await http.get(
+        Uri.parse('$baseUrl/estimations/settings'),
+        headers: _headers,
+      );
       if (response.statusCode == 200) {
         return json.decode(response.body);
       }
@@ -2977,34 +4020,98 @@ class ApiService {
           'Madurai': 0.95,
           'Trichy': 0.95,
           'Salem': 0.9,
-          'Tiruppur': 1.0
+          'Tiruppur': 1.0,
         }),
         'materialsFormula': json.encode({
-          'Cement': {'unit': 'Bags', 'economy': 0.38, 'standard': 0.4, 'premium': 0.42, 'defaultRate': 420.0},
-          'Steel': {'unit': 'Kgs', 'economy': 3.5, 'standard': 4.0, 'premium': 4.5, 'defaultRate': 68.0},
-          'Sand': {'unit': 'Cft', 'economy': 1.4, 'standard': 1.5, 'premium': 1.6, 'defaultRate': 85.0},
-          'Aggregate': {'unit': 'Cft', 'economy': 1.6, 'standard': 1.8, 'premium': 2.0, 'defaultRate': 72.0},
-          'Concrete': {'unit': 'Cu.m', 'economy': 0.04, 'standard': 0.05, 'premium': 0.06, 'defaultRate': 4500.0},
-          'Tiles': {'unit': 'Sq.ft', 'economy': 1.0, 'standard': 1.2, 'premium': 1.4, 'defaultRate': 90.0},
-          'Paint': {'unit': 'Litres', 'economy': 0.12, 'standard': 0.15, 'premium': 0.18, 'defaultRate': 280.0}
+          'Cement': {
+            'unit': 'Bags',
+            'economy': 0.38,
+            'standard': 0.4,
+            'premium': 0.42,
+            'defaultRate': 420.0,
+          },
+          'Steel': {
+            'unit': 'Kgs',
+            'economy': 3.5,
+            'standard': 4.0,
+            'premium': 4.5,
+            'defaultRate': 68.0,
+          },
+          'Sand': {
+            'unit': 'Cft',
+            'economy': 1.4,
+            'standard': 1.5,
+            'premium': 1.6,
+            'defaultRate': 85.0,
+          },
+          'Aggregate': {
+            'unit': 'Cft',
+            'economy': 1.6,
+            'standard': 1.8,
+            'premium': 2.0,
+            'defaultRate': 72.0,
+          },
+          'Concrete': {
+            'unit': 'Cu.m',
+            'economy': 0.04,
+            'standard': 0.05,
+            'premium': 0.06,
+            'defaultRate': 4500.0,
+          },
+          'Tiles': {
+            'unit': 'Sq.ft',
+            'economy': 1.0,
+            'standard': 1.2,
+            'premium': 1.4,
+            'defaultRate': 90.0,
+          },
+          'Paint': {
+            'unit': 'Litres',
+            'economy': 0.12,
+            'standard': 0.15,
+            'premium': 0.18,
+            'defaultRate': 280.0,
+          },
         }),
         'labourFormula': json.encode({
-          'Mason': {'economy': 18, 'standard': 20, 'premium': 22, 'defaultWage': 950.0},
-          'Helper': {'economy': 25, 'standard': 30, 'premium': 35, 'defaultWage': 650.0},
-          'Carpenter': {'economy': 4, 'standard': 5, 'premium': 6, 'defaultWage': 900.0},
-          'Bar Bender': {'economy': 6, 'standard': 7, 'premium': 8, 'defaultWage': 900.0}
+          'Mason': {
+            'economy': 18,
+            'standard': 20,
+            'premium': 22,
+            'defaultWage': 950.0,
+          },
+          'Helper': {
+            'economy': 25,
+            'standard': 30,
+            'premium': 35,
+            'defaultWage': 650.0,
+          },
+          'Carpenter': {
+            'economy': 4,
+            'standard': 5,
+            'premium': 6,
+            'defaultWage': 900.0,
+          },
+          'Bar Bender': {
+            'economy': 6,
+            'standard': 7,
+            'premium': 8,
+            'defaultWage': 900.0,
+          },
         }),
         'timelineFormula': json.encode([
           {'maxArea': 1500, 'months': 6},
           {'maxArea': 3000, 'months': 8},
-          {'maxArea': 5000, 'months': 10}
-        ])
+          {'maxArea': 5000, 'months': 10},
+        ]),
       };
     }
   }
 
   // Update cost settings
-  static Future<Map<String, dynamic>> updateEstimationSettings(Map<String, dynamic> data) async {
+  static Future<Map<String, dynamic>> updateEstimationSettings(
+    Map<String, dynamic> data,
+  ) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/estimations/settings'),
@@ -3013,14 +4120,20 @@ class ApiService {
       );
       return json.decode(response.body);
     } catch (_) {
-      return {'success': true, 'message': 'Estimation settings updated successfully (Offline Mock)'};
+      return {
+        'success': true,
+        'message': 'Estimation settings updated successfully (Offline Mock)',
+      };
     }
   }
 
   // Get Company Settings
   static Future<Map<String, dynamic>> getCompanySettings() async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/settings'), headers: _headers);
+      final response = await http.get(
+        Uri.parse('$baseUrl/settings'),
+        headers: _headers,
+      );
       if (response.statusCode == 200) {
         return json.decode(response.body);
       }
@@ -3035,14 +4148,16 @@ class ApiService {
           'phone': '+91 124 4567890',
           'cloudinaryCloudName': '',
           'cloudinaryApiKey': '',
-          'cloudinaryApiSecret': ''
-        }
+          'cloudinaryApiSecret': '',
+        },
       };
     }
   }
 
   // Update Company Settings
-  static Future<Map<String, dynamic>> updateCompanySettings(Map<String, dynamic> data) async {
+  static Future<Map<String, dynamic>> updateCompanySettings(
+    Map<String, dynamic> data,
+  ) async {
     try {
       final response = await http.put(
         Uri.parse('$baseUrl/settings'),
@@ -3051,14 +4166,20 @@ class ApiService {
       );
       return json.decode(response.body);
     } catch (_) {
-      return {'success': true, 'message': 'Company settings updated successfully (Offline Mock)'};
+      return {
+        'success': true,
+        'message': 'Company settings updated successfully (Offline Mock)',
+      };
     }
   }
 
   // Get AI settings
   static Future<Map<String, dynamic>> getAiSettings() async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/ai/settings'), headers: _headers);
+      final response = await http.get(
+        Uri.parse('$baseUrl/ai/settings'),
+        headers: _headers,
+      );
       if (response.statusCode == 200) {
         return json.decode(response.body);
       }
@@ -3077,13 +4198,15 @@ class ApiService {
         'enableBoqGeneration': true,
         'enableCostEstimation': true,
         'apiUsageCount': 0,
-        'dailyTokenUsage': 0
+        'dailyTokenUsage': 0,
       };
     }
   }
 
   // Update AI settings
-  static Future<Map<String, dynamic>> updateAiSettings(Map<String, dynamic> data) async {
+  static Future<Map<String, dynamic>> updateAiSettings(
+    Map<String, dynamic> data,
+  ) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/ai/settings'),
@@ -3092,12 +4215,18 @@ class ApiService {
       );
       return json.decode(response.body);
     } catch (_) {
-      return {'success': true, 'message': 'AI settings updated successfully (Offline Mock)'};
+      return {
+        'success': true,
+        'message': 'AI settings updated successfully (Offline Mock)',
+      };
     }
   }
 
   // Test AI Connection
-  static Future<Map<String, dynamic>> testAiConnection(String apiKey, String model) async {
+  static Future<Map<String, dynamic>> testAiConnection(
+    String apiKey,
+    String model,
+  ) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/ai/test'),
@@ -3106,44 +4235,51 @@ class ApiService {
       );
       return json.decode(response.body);
     } catch (_) {
-      return {'success': false, 'message': 'Connection test failed (Offline Mock)'};
+      return {
+        'success': false,
+        'message': 'Connection test failed (Offline Mock)',
+      };
     }
   }
 
   // Upload floor plan for AI analysis
-  static Future<Map<String, dynamic>> analyzeFloorPlanWithAi(List<int> bytes, String fileName) async {
+  static Future<Map<String, dynamic>> analyzeFloorPlanWithAi(
+    List<int> bytes,
+    String fileName,
+  ) async {
     try {
-      final request = http.MultipartRequest('POST', Uri.parse('$baseUrl/estimations/ai-analyze'));
-      request.headers.addAll(_headers);
-      
-      request.files.add(
-        http.MultipartFile.fromBytes(
-          'file',
-          bytes,
-          filename: fileName,
-        ),
+      final request = http.MultipartRequest(
+        'POST',
+        Uri.parse('$baseUrl/estimations/ai-analyze'),
       );
-      
+      request.headers.addAll(_headers);
+
+      request.files.add(
+        http.MultipartFile.fromBytes('file', bytes, filename: fileName),
+      );
+
       final streamedResponse = await request.send();
       final response = await http.Response.fromStream(streamedResponse);
-      
+
       if (response.statusCode == 200) {
         return json.decode(response.body);
       }
       return {
         'success': false,
-        'message': 'Failed to analyze floor plan (Status code: ${response.statusCode})'
+        'message':
+            'Failed to analyze floor plan (Status code: ${response.statusCode})',
       };
     } catch (e) {
-      return {
-        'success': false,
-        'message': 'Error uploading floor plan: $e'
-      };
+      return {'success': false, 'message': 'Error uploading floor plan: $e'};
     }
   }
 
   // Share quotation
-  static Future<Map<String, dynamic>> shareQuotation(int id, String channel, String recipient) async {
+  static Future<Map<String, dynamic>> shareQuotation(
+    int id,
+    String channel,
+    String recipient,
+  ) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/estimations/$id/share'),
@@ -3152,7 +4288,10 @@ class ApiService {
       );
       return json.decode(response.body);
     } catch (_) {
-      return {'success': true, 'message': 'Quotation shared successfully (Offline Mock)'};
+      return {
+        'success': true,
+        'message': 'Quotation shared successfully (Offline Mock)',
+      };
     }
   }
 
@@ -3175,7 +4314,9 @@ class ApiService {
   // Get market prices
   static Future<List<dynamic>> getMarketPrices({String? district}) async {
     try {
-      final url = district != null ? '$baseUrl/estimations/market-prices?district=$district' : '$baseUrl/estimations/market-prices';
+      final url = district != null
+          ? '$baseUrl/estimations/market-prices?district=$district'
+          : '$baseUrl/estimations/market-prices';
       final response = await http.get(Uri.parse(url), headers: _headers);
       if (response.statusCode == 200) {
         return json.decode(response.body);
@@ -3183,16 +4324,46 @@ class ApiService {
       throw Exception();
     } catch (_) {
       return [
-        {'id': 1, 'materialName': 'Cement', 'currentRate': 420.0, 'previousRate': 415.0, 'supplier': 'UltraTech Direct', 'district': district ?? 'Chennai'},
-        {'id': 2, 'materialName': 'Steel', 'currentRate': 68.0, 'previousRate': 70.0, 'supplier': 'TATA Tiscon Dealer', 'district': district ?? 'Chennai'},
-        {'id': 3, 'materialName': 'Sand', 'currentRate': 85.0, 'previousRate': 82.0, 'supplier': 'Local Riverbed Quarry', 'district': district ?? 'Chennai'},
-        {'id': 4, 'materialName': 'Aggregate', 'currentRate': 72.0, 'previousRate': 72.0, 'supplier': 'Blue Metal Crushers', 'district': district ?? 'Chennai'}
+        {
+          'id': 1,
+          'materialName': 'Cement',
+          'currentRate': 420.0,
+          'previousRate': 415.0,
+          'supplier': 'UltraTech Direct',
+          'district': district ?? 'Chennai',
+        },
+        {
+          'id': 2,
+          'materialName': 'Steel',
+          'currentRate': 68.0,
+          'previousRate': 70.0,
+          'supplier': 'TATA Tiscon Dealer',
+          'district': district ?? 'Chennai',
+        },
+        {
+          'id': 3,
+          'materialName': 'Sand',
+          'currentRate': 85.0,
+          'previousRate': 82.0,
+          'supplier': 'Local Riverbed Quarry',
+          'district': district ?? 'Chennai',
+        },
+        {
+          'id': 4,
+          'materialName': 'Aggregate',
+          'currentRate': 72.0,
+          'previousRate': 72.0,
+          'supplier': 'Blue Metal Crushers',
+          'district': district ?? 'Chennai',
+        },
       ];
     }
   }
 
   // Update specific market price
-  static Future<Map<String, dynamic>> updateMarketPrice(Map<String, dynamic> data) async {
+  static Future<Map<String, dynamic>> updateMarketPrice(
+    Map<String, dynamic> data,
+  ) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/estimations/market-prices'),
@@ -3201,12 +4372,17 @@ class ApiService {
       );
       return json.decode(response.body);
     } catch (_) {
-      return {'success': true, 'message': 'Market price updated successfully (Offline Mock)'};
+      return {
+        'success': true,
+        'message': 'Market price updated successfully (Offline Mock)',
+      };
     }
   }
 
   // Create a new market price record
-  static Future<Map<String, dynamic>> createMarketPrice(Map<String, dynamic> data) async {
+  static Future<Map<String, dynamic>> createMarketPrice(
+    Map<String, dynamic> data,
+  ) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/estimations/market-prices/new'),
@@ -3215,7 +4391,10 @@ class ApiService {
       );
       return json.decode(response.body);
     } catch (_) {
-      return {'success': true, 'message': 'Market price created successfully (Offline Mock)'};
+      return {
+        'success': true,
+        'message': 'Market price created successfully (Offline Mock)',
+      };
     }
   }
 
@@ -3228,14 +4407,20 @@ class ApiService {
       );
       return json.decode(response.body);
     } catch (_) {
-      return {'success': true, 'message': 'Market price record deleted successfully (Offline Mock)'};
+      return {
+        'success': true,
+        'message': 'Market price record deleted successfully (Offline Mock)',
+      };
     }
   }
 
   // Get budget vs actual details
   static Future<Map<String, dynamic>> getBudgetVsActual(int id) async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/estimations/$id/budget-actual'), headers: _headers);
+      final response = await http.get(
+        Uri.parse('$baseUrl/estimations/$id/budget-actual'),
+        headers: _headers,
+      );
       if (response.statusCode == 200) {
         return json.decode(response.body);
       }
@@ -3260,7 +4445,7 @@ class ApiService {
         'totalEstimatedCost': 9800000.0,
         'totalActualCost': 2545000.0,
         'totalVariance': 7255000.0,
-        'totalStatus': 'green'
+        'totalStatus': 'green',
       };
     }
   }
@@ -3268,7 +4453,10 @@ class ApiService {
   // Get project by ID with full nested details
   static Future<Map<String, dynamic>> getProjectDetails(int id) async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/projects/$id'), headers: _headers);
+      final response = await http.get(
+        Uri.parse('$baseUrl/projects/$id'),
+        headers: _headers,
+      );
       if (response.statusCode == 200) {
         return json.decode(response.body);
       }
@@ -3281,7 +4469,10 @@ class ApiService {
   // Archive project
   static Future<bool> archiveProject(int id) async {
     try {
-      final response = await http.post(Uri.parse('$baseUrl/projects/$id/archive'), headers: _headers);
+      final response = await http.post(
+        Uri.parse('$baseUrl/projects/$id/archive'),
+        headers: _headers,
+      );
       return response.statusCode == 200;
     } catch (_) {
       return true;
@@ -3291,7 +4482,10 @@ class ApiService {
   // Restore project
   static Future<bool> restoreProject(int id) async {
     try {
-      final response = await http.post(Uri.parse('$baseUrl/projects/$id/restore'), headers: _headers);
+      final response = await http.post(
+        Uri.parse('$baseUrl/projects/$id/restore'),
+        headers: _headers,
+      );
       return response.statusCode == 200;
     } catch (_) {
       return true;
@@ -3301,7 +4495,10 @@ class ApiService {
   // Duplicate project
   static Future<bool> duplicateProject(int id) async {
     try {
-      final response = await http.post(Uri.parse('$baseUrl/projects/$id/duplicate'), headers: _headers);
+      final response = await http.post(
+        Uri.parse('$baseUrl/projects/$id/duplicate'),
+        headers: _headers,
+      );
       return response.statusCode == 201;
     } catch (_) {
       return true;
@@ -3311,7 +4508,10 @@ class ApiService {
   // Delete project (MD / Super Admin only)
   static Future<bool> deleteProject(int id) async {
     try {
-      final response = await http.delete(Uri.parse('$baseUrl/projects/$id'), headers: _headers);
+      final response = await http.delete(
+        Uri.parse('$baseUrl/projects/$id'),
+        headers: _headers,
+      );
       return response.statusCode == 200;
     } catch (_) {
       return true;
@@ -3319,7 +4519,10 @@ class ApiService {
   }
 
   // Create project stage
-  static Future<bool> addProjectStage(int projectId, Map<String, dynamic> data) async {
+  static Future<bool> addProjectStage(
+    int projectId,
+    Map<String, dynamic> data,
+  ) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/projects/$projectId/stages'),
@@ -3333,7 +4536,11 @@ class ApiService {
   }
 
   // Update project stage
-  static Future<bool> updateProjectStage(int projectId, int stageId, Map<String, dynamic> data) async {
+  static Future<bool> updateProjectStage(
+    int projectId,
+    int stageId,
+    Map<String, dynamic> data,
+  ) async {
     try {
       final response = await http.put(
         Uri.parse('$baseUrl/projects/$projectId/stages/$stageId'),
@@ -3360,7 +4567,11 @@ class ApiService {
   }
 
   // Record daily report / hourly site tracking
-  static Future<bool> addStageReport(int projectId, int stageId, Map<String, dynamic> data) async {
+  static Future<bool> addStageReport(
+    int projectId,
+    int stageId,
+    Map<String, dynamic> data,
+  ) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/projects/$projectId/stages/$stageId/reports'),
@@ -3374,7 +4585,11 @@ class ApiService {
   }
 
   // Record material log
-  static Future<bool> addStageMaterialLog(int projectId, int stageId, Map<String, dynamic> data) async {
+  static Future<bool> addStageMaterialLog(
+    int projectId,
+    int stageId,
+    Map<String, dynamic> data,
+  ) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/projects/$projectId/stages/$stageId/materials'),
@@ -3388,7 +4603,11 @@ class ApiService {
   }
 
   // Record labour log
-  static Future<bool> addStageLabourLog(int projectId, int stageId, Map<String, dynamic> data) async {
+  static Future<bool> addStageLabourLog(
+    int projectId,
+    int stageId,
+    Map<String, dynamic> data,
+  ) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/projects/$projectId/stages/$stageId/labours'),
@@ -3402,7 +4621,11 @@ class ApiService {
   }
 
   // Record payment log
-  static Future<bool> addStagePaymentLog(int projectId, int stageId, Map<String, dynamic> data) async {
+  static Future<bool> addStagePaymentLog(
+    int projectId,
+    int stageId,
+    Map<String, dynamic> data,
+  ) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/projects/$projectId/stages/$stageId/payments'),
@@ -3416,7 +4639,11 @@ class ApiService {
   }
 
   // Approve stage step
-  static Future<bool> approveStage(int projectId, int stageId, Map<String, dynamic> data) async {
+  static Future<bool> approveStage(
+    int projectId,
+    int stageId,
+    Map<String, dynamic> data,
+  ) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/projects/$projectId/stages/$stageId/approve'),
@@ -3434,7 +4661,10 @@ class ApiService {
   // ==========================================
 
   // Generate Enquiry Link
-  static Future<Map<String, dynamic>> generateEnquiryLink(int leadId, {int? expiryDays}) async {
+  static Future<Map<String, dynamic>> generateEnquiryLink(
+    int leadId, {
+    int? expiryDays,
+  }) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/enquiry/generate-link'),
@@ -3451,15 +4681,17 @@ class ApiService {
   }
 
   // Upload Enquiry Attachment (Public)
-  static Future<Map<String, dynamic>> uploadEnquiryAttachment(String fileName, List<int> bytes) async {
+  static Future<Map<String, dynamic>> uploadEnquiryAttachment(
+    String fileName,
+    List<int> bytes,
+  ) async {
     try {
-      final request = http.MultipartRequest('POST', Uri.parse('$baseUrl/enquiry/upload'))
-        ..files.add(http.MultipartFile.fromBytes(
-          'file',
-          bytes,
-          filename: fileName,
-        ));
-      
+      final request =
+          http.MultipartRequest('POST', Uri.parse('$baseUrl/enquiry/upload'))
+            ..files.add(
+              http.MultipartFile.fromBytes('file', bytes, filename: fileName),
+            );
+
       final streamedResponse = await request.send();
       final response = await http.Response.fromStream(streamedResponse);
       if (response.statusCode == 200) {
@@ -3472,7 +4704,10 @@ class ApiService {
   }
 
   // Toggle Enquiry Link Status
-  static Future<Map<String, dynamic>> statusEnquiryLink(int leadId, String status) async {
+  static Future<Map<String, dynamic>> statusEnquiryLink(
+    int leadId,
+    String status,
+  ) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/enquiry/status-link'),
@@ -3498,14 +4733,20 @@ class ApiService {
       if (response.statusCode == 200) {
         return json.decode(response.body);
       }
-      return {'success': false, 'message': json.decode(response.body)['message'] ?? 'Invalid token'};
+      return {
+        'success': false,
+        'message': json.decode(response.body)['message'] ?? 'Invalid token',
+      };
     } catch (e) {
       return {'success': false, 'message': e.toString()};
     }
   }
 
   // Save Draft by Token (Public)
-  static Future<Map<String, dynamic>> saveEnquiryDraft(String token, Map<String, dynamic> draftData) async {
+  static Future<Map<String, dynamic>> saveEnquiryDraft(
+    String token,
+    Map<String, dynamic> draftData,
+  ) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/enquiry/draft/$token'),
@@ -3522,7 +4763,10 @@ class ApiService {
   }
 
   // Submit Enquiry by Token (Public)
-  static Future<Map<String, dynamic>> submitEnquiry(String token, Map<String, dynamic> payload) async {
+  static Future<Map<String, dynamic>> submitEnquiry(
+    String token,
+    Map<String, dynamic> payload,
+  ) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/enquiry/submit/$token'),
@@ -3532,7 +4776,10 @@ class ApiService {
       if (response.statusCode == 200) {
         return json.decode(response.body);
       }
-      return {'success': false, 'message': json.decode(response.body)['message'] ?? 'Submission failed'};
+      return {
+        'success': false,
+        'message': json.decode(response.body)['message'] ?? 'Submission failed',
+      };
     } catch (e) {
       return {'success': false, 'message': e.toString()};
     }
@@ -3597,6 +4844,7 @@ class ApiService {
       return {'success': false, 'message': e.toString()};
     }
   }
+
   // Get trash items for a module
   static Future<List<dynamic>> getTrashItems(String module) async {
     try {
@@ -3627,7 +4875,10 @@ class ApiService {
   }
 
   // Check dependencies before archive or delete
-  static Future<Map<String, dynamic>> checkDependencies(String module, int id) async {
+  static Future<Map<String, dynamic>> checkDependencies(
+    String module,
+    int id,
+  ) async {
     try {
       final response = await http.get(
         Uri.parse('$baseUrl/check-dependencies/$module/$id'),
@@ -3670,8 +4921,12 @@ class ApiService {
 
   // --- OFFLINE SYNC QUEUE ---
   static List<Map<String, dynamic>> offlineQueue = [];
-  
-  static void queueOfflineRequest(String endpoint, String method, Map<String, dynamic> data) {
+
+  static void queueOfflineRequest(
+    String endpoint,
+    String method,
+    Map<String, dynamic> data,
+  ) {
     offlineQueue.add({
       'endpoint': endpoint,
       'method': method,
@@ -3684,7 +4939,7 @@ class ApiService {
   static Future<void> processOfflineQueue() async {
     if (offlineQueue.isEmpty) return;
     print('Processing offline queue (${offlineQueue.length} items)...');
-    
+
     final tempQueue = List<Map<String, dynamic>>.from(offlineQueue);
     offlineQueue.clear();
 
@@ -3783,7 +5038,8 @@ class ApiService {
       if (finalAmount != null) data['finalAmount'] = finalAmount;
       if (remarks != null) data['remarks'] = remarks;
       if (adminRemarks != null) data['adminRemarks'] = adminRemarks;
-      if (superAdminRemarks != null) data['superAdminRemarks'] = superAdminRemarks;
+      if (superAdminRemarks != null)
+        data['superAdminRemarks'] = superAdminRemarks;
       if (locked != null) data['locked'] = locked;
       if (reason != null) data['reason'] = reason;
 
@@ -3813,8 +5069,7 @@ int safeToInt(dynamic value) {
   if (value is int) return value;
   if (value is double) return value.toInt();
   if (value is num) return value.toInt();
-  if (value is String) return int.tryParse(value) ?? double.tryParse(value)?.toInt() ?? 0;
+  if (value is String)
+    return int.tryParse(value) ?? double.tryParse(value)?.toInt() ?? 0;
   return 0;
 }
-
-

@@ -11,7 +11,8 @@ class HapticTapEffect extends StatefulWidget {
   final Widget child;
   final VoidCallback onTap;
 
-  const HapticTapEffect({Key? key, required this.child, required this.onTap}) : super(key: key);
+  const HapticTapEffect({Key? key, required this.child, required this.onTap})
+    : super(key: key);
 
   @override
   State<HapticTapEffect> createState() => _HapticTapEffectState();
@@ -95,7 +96,7 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
     if (password.contains(RegExp(r'[A-Z]'))) score++;
     if (password.contains(RegExp(r'[0-9]'))) score++;
     if (password.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'))) score++;
-    
+
     if (score <= 1) return 'Weak';
     if (score == 2) return 'Fair';
     if (score == 3) return 'Good';
@@ -104,18 +105,27 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
 
   Color _getPasswordStrengthColor(String strength) {
     switch (strength) {
-      case 'Weak': return Colors.red;
-      case 'Fair': return Colors.orange;
-      case 'Good': return Colors.blue;
-      case 'Strong': return Colors.green;
-      default: return Colors.transparent;
+      case 'Weak':
+        return Colors.red;
+      case 'Fair':
+        return Colors.orange;
+      case 'Good':
+        return Colors.blue;
+      case 'Strong':
+        return Colors.green;
+      default:
+        return Colors.transparent;
     }
   }
 
   String _generateRandomPassword() {
-    const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#%^&*';
+    const chars =
+        'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#%^&*';
     final rand = math.Random();
-    return List.generate(12, (index) => chars[rand.nextInt(chars.length)]).join();
+    return List.generate(
+      12,
+      (index) => chars[rand.nextInt(chars.length)],
+    ).join();
   }
 
   @override
@@ -135,17 +145,29 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
         final size = MediaQuery.of(context).size;
-        _showAddUserForm(context, size.width < 650, size.width >= 650 && size.width < 1000);
+        _showAddUserForm(
+          context,
+          size.width < 650,
+          size.width >= 650 && size.width < 1000,
+        );
       });
     } else if (widget.editUserId != null) {
       final targetId = int.tryParse(widget.editUserId!);
       if (targetId != null) {
-        final existing = list.firstWhere((element) => element['id'] == targetId, orElse: () => null);
+        final existing = list.firstWhere(
+          (element) => element['id'] == targetId,
+          orElse: () => null,
+        );
         if (existing != null) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (!mounted) return;
             final size = MediaQuery.of(context).size;
-            _showAddUserForm(context, size.width < 650, size.width >= 650 && size.width < 1000, existingUser: existing);
+            _showAddUserForm(
+              context,
+              size.width < 650,
+              size.width >= 650 && size.width < 1000,
+              existingUser: existing,
+            );
           });
         }
       }
@@ -160,7 +182,8 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
     final bool isReqAdmin = r.contains('admin');
     if (isReqAdmin) {
       final String tRole = (targetUser['role'] ?? 'Employee').toLowerCase();
-      final bool isTargetSuper = tRole == 'super admin' || tRole == 'managing director';
+      final bool isTargetSuper =
+          tRole == 'super admin' || tRole == 'managing director';
       return !isTargetSuper;
     }
     return false;
@@ -174,7 +197,8 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
     final bool isReqAdmin = r.contains('admin');
     if (isReqAdmin) {
       final String tRole = (targetUser['role'] ?? 'Employee').toLowerCase();
-      final bool isTargetSuper = tRole == 'super admin' || tRole == 'managing director';
+      final bool isTargetSuper =
+          tRole == 'super admin' || tRole == 'managing director';
       return !isTargetSuper;
     }
     return false;
@@ -194,7 +218,11 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
           children: [
             Row(
               children: [
-                const Icon(Icons.warning_amber_rounded, color: VianTheme.danger, size: 28),
+                const Icon(
+                  Icons.warning_amber_rounded,
+                  color: VianTheme.danger,
+                  size: 28,
+                ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
@@ -211,7 +239,11 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
             const SizedBox(height: 16),
             Text(
               'User: $name ($role)',
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: VianTheme.headerBlack),
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 13,
+                color: VianTheme.headerBlack,
+              ),
             ),
             const SizedBox(height: 12),
             const Text(
@@ -231,7 +263,10 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: VianTheme.danger,
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 14,
+                    ),
                   ),
                   onPressed: () async {
                     final ok = await ApiService.deleteEmployee(userId);
@@ -264,16 +299,19 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
         builder: (ctx) => AlertDialog(
           backgroundColor: Colors.white,
           contentPadding: EdgeInsets.zero,
-          content: Container(
-            width: 450,
-            child: modalContent(),
-          ),
+          content: Container(width: 450, child: modalContent()),
         ),
       );
     }
   }
 
-  void _showMobileActions(BuildContext context, dynamic u, bool showEdit, bool showDelete, bool isSelf) {
+  void _showMobileActions(
+    BuildContext context,
+    dynamic u,
+    bool showEdit,
+    bool showDelete,
+    bool isSelf,
+  ) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
@@ -294,20 +332,25 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   decoration: const BoxDecoration(
-                    border: Border(bottom: BorderSide(color: Color(0xFFF1F1F1))),
+                    border: Border(
+                      bottom: BorderSide(color: Color(0xFFF1F1F1)),
+                    ),
                   ),
                   child: const Row(
                     children: [
                       Icon(Icons.edit_outlined, color: Color(0xFF6B6560)),
                       SizedBox(width: 16),
-                      Text('Edit User Info', style: TextStyle(fontWeight: FontWeight.bold)),
+                      Text(
+                        'Edit User Info',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
                     ],
                   ),
                 ),
               ),
             if (showDelete)
               HapticTapEffect(
-                onTap: isSelf 
+                onTap: isSelf
                     ? () {} // disabled
                     : () {
                         Navigator.of(ctx).pop();
@@ -317,10 +360,15 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   child: Row(
                     children: [
-                      Icon(Icons.delete_outline, color: isSelf ? Colors.grey : const Color(0xFFB33A3A)),
+                      Icon(
+                        Icons.delete_outline,
+                        color: isSelf ? Colors.grey : const Color(0xFFB33A3A),
+                      ),
                       const SizedBox(width: 16),
                       Text(
-                        isSelf ? 'Delete User (Disabled: Self)' : 'Delete User Account',
+                        isSelf
+                            ? 'Delete User (Disabled: Self)'
+                            : 'Delete User Account',
                         style: TextStyle(
                           color: isSelf ? Colors.grey : const Color(0xFFB33A3A),
                           fontWeight: FontWeight.bold,
@@ -336,19 +384,33 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
     );
   }
 
-  void _showAddUserForm(BuildContext context, bool isMobile, bool isTablet, {dynamic existingUser}) {
-    final nameCtrl = TextEditingController(text: existingUser != null ? existingUser['name'] : '');
-    final emailCtrl = TextEditingController(text: existingUser != null ? existingUser['email'] : '');
+  void _showAddUserForm(
+    BuildContext context,
+    bool isMobile,
+    bool isTablet, {
+    dynamic existingUser,
+  }) {
+    final nameCtrl = TextEditingController(
+      text: existingUser != null ? existingUser['name'] : '',
+    );
+    final emailCtrl = TextEditingController(
+      text: existingUser != null ? existingUser['email'] : '',
+    );
     final passwordCtrl = TextEditingController(text: '');
     final confirmPasswordCtrl = TextEditingController(text: '');
-    final roleCtrl = TextEditingController(text: existingUser != null ? existingUser['role'] : 'Employee');
-    final deptCtrl = TextEditingController(text: existingUser != null ? existingUser['department'] : 'Site Team');
+    final roleCtrl = TextEditingController(
+      text: existingUser != null ? existingUser['role'] : 'Employee',
+    );
+    final deptCtrl = TextEditingController(
+      text: existingUser != null ? existingUser['department'] : 'Site Team',
+    );
     bool obscurePassword = true;
     bool showPasswordFields = existingUser == null;
-    
+
     final requesterRole = ApiService.currentUser?['role'] ?? 'Client';
-    final isRequesterSuperAdmin = requesterRole == 'Super Admin' || requesterRole == 'Managing Director';
-    final List<String> availableRoles = isRequesterSuperAdmin 
+    final isRequesterSuperAdmin =
+        requesterRole == 'Super Admin' || requesterRole == 'Managing Director';
+    final List<String> availableRoles = isRequesterSuperAdmin
         ? ['Employee', 'Site Manager', 'Architect', 'Admin', 'Super Admin']
         : ['Employee', 'Site Manager', 'Architect'];
 
@@ -428,11 +490,12 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
               value: roleCtrl.text,
               dropdownColor: VianTheme.cardColor,
               style: GoogleFonts.inter(color: Colors.white, fontSize: 14),
-              decoration: const InputDecoration(
-                labelText: 'ROLE ACCESS',
-              ),
+              decoration: const InputDecoration(labelText: 'ROLE ACCESS'),
               items: availableRoles.map((r) {
-                return DropdownMenuItem(value: r, child: Text(r, style: const TextStyle(color: Colors.white)));
+                return DropdownMenuItem(
+                  value: r,
+                  child: Text(r, style: const TextStyle(color: Colors.white)),
+                );
               }).toList(),
               onChanged: (val) => setStateDlg(() => roleCtrl.text = val!),
             ),
@@ -441,12 +504,23 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
               value: deptCtrl.text,
               dropdownColor: VianTheme.cardColor,
               style: GoogleFonts.inter(color: Colors.white, fontSize: 14),
-              decoration: const InputDecoration(
-                labelText: 'DEPARTMENT',
-              ),
-              items: ['Site Team', 'Designing Team', 'Core Team', 'Executive', 'Administration'].map((d) {
-                return DropdownMenuItem(value: d, child: Text(d, style: const TextStyle(color: Colors.white)));
-              }).toList(),
+              decoration: const InputDecoration(labelText: 'DEPARTMENT'),
+              items:
+                  [
+                    'Site Team',
+                    'Designing Team',
+                    'Core Team',
+                    'Executive',
+                    'Administration',
+                  ].map((d) {
+                    return DropdownMenuItem(
+                      value: d,
+                      child: Text(
+                        d,
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                    );
+                  }).toList(),
               onChanged: (val) => setStateDlg(() => deptCtrl.text = val!),
             ),
             if (existingUser != null) ...[
@@ -457,9 +531,18 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
                     value: showPasswordFields,
                     activeColor: VianTheme.primaryGold,
                     checkColor: VianTheme.cardColor,
-                    onChanged: (val) => setStateDlg(() => showPasswordFields = val ?? false),
+                    onChanged: (val) =>
+                        setStateDlg(() => showPasswordFields = val ?? false),
                   ),
-                  Text('RESET / CHANGE PASSWORD', style: GoogleFonts.outfit(fontSize: 10, fontWeight: FontWeight.bold, color: VianTheme.primaryGold, letterSpacing: 0.5)),
+                  Text(
+                    'RESET / CHANGE PASSWORD',
+                    style: GoogleFonts.outfit(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: VianTheme.primaryGold,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
                 ],
               ),
             ],
@@ -472,20 +555,34 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
                       controller: passwordCtrl,
                       obscureText: obscurePassword,
                       onChanged: (_) => setStateDlg(() {}),
-                      style: GoogleFonts.inter(color: Colors.white, fontSize: 14),
+                      style: GoogleFonts.inter(
+                        color: Colors.white,
+                        fontSize: 14,
+                      ),
                       decoration: InputDecoration(
                         labelText: 'PASSWORD',
                         hintText: 'Enter password',
                         suffixIcon: IconButton(
-                          icon: Icon(obscurePassword ? Icons.visibility_off : Icons.visibility, color: VianTheme.primaryGold, size: 18),
-                          onPressed: () => setStateDlg(() => obscurePassword = !obscurePassword),
+                          icon: Icon(
+                            obscurePassword
+                                ? Icons.visibility_off
+                                : Icons.visibility,
+                            color: VianTheme.primaryGold,
+                            size: 18,
+                          ),
+                          onPressed: () => setStateDlg(
+                            () => obscurePassword = !obscurePassword,
+                          ),
                         ),
                       ),
                     ),
                   ),
                   const SizedBox(width: 8),
                   IconButton(
-                    icon: const Icon(Icons.shuffle, color: VianTheme.primaryGold),
+                    icon: const Icon(
+                      Icons.shuffle,
+                      color: VianTheme.primaryGold,
+                    ),
                     tooltip: 'Generate Random Password',
                     onPressed: () {
                       final pass = _generateRandomPassword();
@@ -505,14 +602,23 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('STRENGTH: ${strength.toUpperCase()}', style: GoogleFonts.outfit(color: color, fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+                      Text(
+                        'STRENGTH: ${strength.toUpperCase()}',
+                        style: GoogleFonts.outfit(
+                          color: color,
+                          fontSize: 9,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
                       const SizedBox(height: 6),
                       Row(
                         children: List.generate(4, (index) {
-                          final filled = (strength == 'Weak' && index == 0) ||
-                                         (strength == 'Fair' && index <= 1) ||
-                                         (strength == 'Good' && index <= 2) ||
-                                         (strength == 'Strong');
+                          final filled =
+                              (strength == 'Weak' && index == 0) ||
+                              (strength == 'Fair' && index <= 1) ||
+                              (strength == 'Good' && index <= 2) ||
+                              (strength == 'Strong');
                           return Expanded(
                             child: Container(
                               height: 3,
@@ -544,38 +650,48 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
               children: [
                 Expanded(
                   child: VianButton(
-                    text: existingUser != null ? 'COMMIT CHANGES' : 'CREATE USER',
+                    text: existingUser != null
+                        ? 'COMMIT CHANGES'
+                        : 'CREATE USER',
                     onPressed: () async {
-                      if (nameCtrl.text.isNotEmpty && emailCtrl.text.isNotEmpty) {
+                      if (nameCtrl.text.isNotEmpty &&
+                          emailCtrl.text.isNotEmpty) {
                         if (showPasswordFields) {
                           if (passwordCtrl.text.isEmpty) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Password cannot be empty.')),
+                              const SnackBar(
+                                content: Text('Password cannot be empty.'),
+                              ),
                             );
                             return;
                           }
                           if (passwordCtrl.text != confirmPasswordCtrl.text) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Passwords do not match.')),
+                              const SnackBar(
+                                content: Text('Passwords do not match.'),
+                              ),
                             );
                             return;
                           }
                         }
-                        
+
                         final Map<String, dynamic> payload = {
                           'name': nameCtrl.text,
                           'email': emailCtrl.text,
                           'role': roleCtrl.text,
                           'department': deptCtrl.text,
                         };
-                        
+
                         if (showPasswordFields) {
                           payload['password'] = passwordCtrl.text;
                         }
-                        
+
                         final Map<String, dynamic> ok;
                         if (existingUser != null) {
-                          ok = await ApiService.updateEmployee(existingUser['id'], payload);
+                          ok = await ApiService.updateEmployee(
+                            existingUser['id'],
+                            payload,
+                          );
                         } else {
                           payload['username'] = emailCtrl.text.split('@').first;
                           payload['isActive'] = true;
@@ -586,7 +702,9 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
                           _loadUsers();
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(ok['message'] ?? 'Action failed.')),
+                            SnackBar(
+                              content: Text(ok['message'] ?? 'Action failed.'),
+                            ),
                           );
                         }
                       }
@@ -598,11 +716,23 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
                   style: OutlinedButton.styleFrom(
                     foregroundColor: VianTheme.lightText,
                     side: const BorderSide(color: VianTheme.goldBorder),
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 16,
+                    ),
+                    shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.zero,
+                    ),
                   ),
                   onPressed: () => Navigator.of(context).pop(),
-                  child: Text('RESET', style: GoogleFonts.outfit(fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
+                  child: Text(
+                    'RESET',
+                    style: GoogleFonts.outfit(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.0,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -616,12 +746,12 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
         context: context,
         isScrollControlled: true,
         backgroundColor: VianTheme.cardColor,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.zero,
-        ),
+        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
         builder: (ctx) => StatefulBuilder(
           builder: (ctx, setDlgState) => Padding(
-            padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(ctx).viewInsets.bottom,
+            ),
             child: SingleChildScrollView(child: formContent(setDlgState)),
           ),
         ),
@@ -639,7 +769,9 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
               width: 480,
               height: double.infinity,
               decoration: const BoxDecoration(
-                border: Border(left: BorderSide(color: VianTheme.goldBorder, width: 1)),
+                border: Border(
+                  left: BorderSide(color: VianTheme.goldBorder, width: 1),
+                ),
               ),
               child: StatefulBuilder(
                 builder: (ctx, setDlgState) => formContent(setDlgState),
@@ -661,8 +793,8 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
           style: GoogleFonts.inter(fontWeight: FontWeight.bold),
         ),
         content: Text(
-          currentStatus 
-              ? 'Are you sure you want to suspend the user account of "$name"?' 
+          currentStatus
+              ? 'Are you sure you want to suspend the user account of "$name"?'
               : 'Are you sure you want to reactivate the user account of "$name"?',
         ),
         actions: [
@@ -672,11 +804,15 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: currentStatus ? VianTheme.danger : VianTheme.success,
+              backgroundColor: currentStatus
+                  ? VianTheme.danger
+                  : VianTheme.success,
               foregroundColor: Colors.white,
             ),
             onPressed: () async {
-              final ok = await ApiService.updateEmployee(userId, {'isActive': !currentStatus});
+              final ok = await ApiService.updateEmployee(userId, {
+                'isActive': !currentStatus,
+              });
               if (ok['success'] == true) {
                 Navigator.of(ctx).pop();
                 _loadUsers();
@@ -696,7 +832,7 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
     final isTablet = size.width >= 650 && size.width < 1000;
     final currentUser = ref.watch(userProvider);
     final userRole = currentUser?['role'] ?? 'Client';
-    
+
     final r = userRole.toLowerCase();
     final isSuperAdmin = r == 'super admin' || r == 'managing director';
     final isAdmin = r.contains('admin');
@@ -707,7 +843,10 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
       return const Scaffold(
         backgroundColor: VianTheme.darkBackground,
         body: Center(
-          child: Text('Access Denied: You do not have permissions to manage users.', style: TextStyle(color: Colors.white70)),
+          child: Text(
+            'Access Denied: You do not have permissions to manage users.',
+            style: TextStyle(color: Colors.white70),
+          ),
         ),
       );
     }
@@ -740,7 +879,10 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
                     const SizedBox(height: 4),
                     Text(
                       'Manage organization access and hierarchical roles.',
-                      style: GoogleFonts.inter(color: VianTheme.lightText, fontSize: 13),
+                      style: GoogleFonts.inter(
+                        color: VianTheme.lightText,
+                        fontSize: 13,
+                      ),
                     ),
                   ],
                 ),
@@ -749,12 +891,25 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
                     style: OutlinedButton.styleFrom(
                       foregroundColor: VianTheme.primaryGold,
                       side: const BorderSide(color: VianTheme.primaryGold),
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 16,
+                      ),
+                      shape: const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.zero,
+                      ),
                     ),
-                    onPressed: () => _showAddUserForm(context, isMobile, isTablet),
+                    onPressed: () =>
+                        _showAddUserForm(context, isMobile, isTablet),
                     icon: const Icon(Icons.add, size: 16),
-                    label: Text('ADD NEW USER', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 11, letterSpacing: 1.0)),
+                    label: Text(
+                      'ADD NEW USER',
+                      style: GoogleFonts.outfit(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 11,
+                        letterSpacing: 1.0,
+                      ),
+                    ),
                   ),
               ],
             ),
@@ -772,8 +927,16 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
                 children: [
                   _segmentButton(0, 'USERS DIRECTORY', Icons.people_outline),
                   if (isSuperAdmin) ...[
-                    _segmentButton(1, 'PERMISSION MATRIX', Icons.grid_on_outlined),
-                    _segmentButton(2, 'AUDIT LOGS', Icons.history_toggle_off_outlined),
+                    _segmentButton(
+                      1,
+                      'PERMISSION MATRIX',
+                      Icons.grid_on_outlined,
+                    ),
+                    _segmentButton(
+                      2,
+                      'AUDIT LOGS',
+                      Icons.history_toggle_off_outlined,
+                    ),
                   ],
                 ],
               ),
@@ -782,7 +945,9 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
             Expanded(
               child: _activeTab == 0
                   ? _buildUsersList(isMobile, isTablet)
-                  : (_activeTab == 1 ? _buildPermissionMatrix() : _buildAuditLogs()),
+                  : (_activeTab == 1
+                        ? _buildPermissionMatrix()
+                        : _buildAuditLogs()),
             ),
           ],
         ),
@@ -791,7 +956,9 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
           ? FloatingActionButton(
               backgroundColor: VianTheme.primaryGold,
               foregroundColor: VianTheme.cardColor,
-              shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+              shape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.zero,
+              ),
               onPressed: () => _showAddUserForm(context, isMobile, isTablet),
               child: const Icon(Icons.add),
             )
@@ -806,14 +973,22 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
         onTap: () => setState(() => _activeTab = index),
         child: Container(
           decoration: BoxDecoration(
-            color: active ? VianTheme.primaryGold.withOpacity(0.08) : Colors.transparent,
-            border: active ? Border.all(color: VianTheme.primaryGold.withOpacity(0.3)) : null,
+            color: active
+                ? VianTheme.primaryGold.withOpacity(0.08)
+                : Colors.transparent,
+            border: active
+                ? Border.all(color: VianTheme.primaryGold.withOpacity(0.3))
+                : null,
             borderRadius: BorderRadius.zero,
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, size: 16, color: active ? VianTheme.primaryGold : VianTheme.lightText),
+              Icon(
+                icon,
+                size: 16,
+                color: active ? VianTheme.primaryGold : VianTheme.lightText,
+              ),
               const SizedBox(width: 8),
               Text(
                 label,
@@ -844,13 +1019,17 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
       final matchesSearch = name.contains(query) || email.contains(query);
 
       final roleStr = (u['role'] ?? 'Employee').toString();
-      final matchesRole = _selectedRoleFilter == 'All' || 
+      final matchesRole =
+          _selectedRoleFilter == 'All' ||
           roleStr.toLowerCase() == _selectedRoleFilter.toLowerCase() ||
-          (roleStr.toLowerCase().contains('admin') && _selectedRoleFilter == 'Admin') ||
-          (roleStr.toLowerCase().contains('project manager') && _selectedRoleFilter == 'Project Manager');
+          (roleStr.toLowerCase().contains('admin') &&
+              _selectedRoleFilter == 'Admin') ||
+          (roleStr.toLowerCase().contains('project manager') &&
+              _selectedRoleFilter == 'Project Manager');
 
       final bool isActive = u['isActive'] ?? true;
-      final matchesStatus = _selectedStatusFilter == 'All' || 
+      final matchesStatus =
+          _selectedStatusFilter == 'All' ||
           (_selectedStatusFilter == 'Active' && isActive) ||
           (_selectedStatusFilter == 'Suspended' && !isActive);
 
@@ -862,9 +1041,9 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
     final int totalPages = (totalItems / _itemsPerPage).ceil();
     final int startIndex = (_currentPage - 1) * _itemsPerPage;
     final int endIndex = math.min(startIndex + _itemsPerPage, totalItems);
-    
-    final paginatedUsers = (startIndex < totalItems) 
-        ? filteredUsers.sublist(startIndex, endIndex) 
+
+    final paginatedUsers = (startIndex < totalItems)
+        ? filteredUsers.sublist(startIndex, endIndex)
         : <dynamic>[];
 
     // Filter controls UI
@@ -878,11 +1057,22 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
               style: const TextStyle(color: Colors.white, fontSize: 13),
               decoration: InputDecoration(
                 hintText: 'SEARCH DIRECTORY...',
-                hintStyle: const TextStyle(color: Colors.white30, fontSize: 12, letterSpacing: 0.5),
-                prefixIcon: const Icon(Icons.search, color: VianTheme.primaryGold, size: 18),
+                hintStyle: const TextStyle(
+                  color: Colors.white30,
+                  fontSize: 12,
+                  letterSpacing: 0.5,
+                ),
+                prefixIcon: const Icon(
+                  Icons.search,
+                  color: VianTheme.primaryGold,
+                  size: 18,
+                ),
                 fillColor: VianTheme.cardColor,
                 filled: true,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
                 border: const OutlineInputBorder(
                   borderRadius: BorderRadius.zero,
                   borderSide: BorderSide(color: VianTheme.goldBorder),
@@ -893,7 +1083,10 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
                 ),
                 focusedBorder: const OutlineInputBorder(
                   borderRadius: BorderRadius.zero,
-                  borderSide: BorderSide(color: VianTheme.primaryGold, width: 1.5),
+                  borderSide: BorderSide(
+                    color: VianTheme.primaryGold,
+                    width: 1.5,
+                  ),
                 ),
               ),
               onChanged: (val) {
@@ -916,10 +1109,28 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
               child: DropdownButton<String>(
                 dropdownColor: VianTheme.cardColor,
                 value: _selectedRoleFilter,
-                style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
-                items: ['All', 'Super Admin', 'Admin', 'Project Manager', 'Engineer', 'Staff'].map((r) {
-                  return DropdownMenuItem(value: r, child: Text(r, style: const TextStyle(color: Colors.white)));
-                }).toList(),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                ),
+                items:
+                    [
+                      'All',
+                      'Super Admin',
+                      'Admin',
+                      'Project Manager',
+                      'Engineer',
+                      'Staff',
+                    ].map((r) {
+                      return DropdownMenuItem(
+                        value: r,
+                        child: Text(
+                          r,
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                      );
+                    }).toList(),
                 onChanged: (val) {
                   setState(() {
                     _selectedRoleFilter = val ?? 'All';
@@ -941,9 +1152,16 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
               child: DropdownButton<String>(
                 dropdownColor: VianTheme.cardColor,
                 value: _selectedStatusFilter,
-                style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                ),
                 items: ['All', 'Active', 'Suspended'].map((s) {
-                  return DropdownMenuItem(value: s, child: Text(s, style: const TextStyle(color: Colors.white)));
+                  return DropdownMenuItem(
+                    value: s,
+                    child: Text(s, style: const TextStyle(color: Colors.white)),
+                  );
                 }).toList(),
                 onChanged: (val) {
                   setState(() {
@@ -959,30 +1177,42 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
     );
 
     // Pagination controls UI
-    final Widget paginationRow = totalPages <= 1 ? const SizedBox() : Padding(
-      padding: const EdgeInsets.only(top: 16.0, bottom: 8.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          IconButton(
-            icon: const Icon(Icons.chevron_left, color: VianTheme.primaryGold),
-            onPressed: _currentPage > 1
-                ? () => setState(() => _currentPage--)
-                : null,
-          ),
-          Text(
-            'Page $_currentPage of $totalPages',
-            style: const TextStyle(color: VianTheme.headerBlack, fontSize: 13, fontWeight: FontWeight.bold),
-          ),
-          IconButton(
-            icon: const Icon(Icons.chevron_right, color: VianTheme.primaryGold),
-            onPressed: _currentPage < totalPages
-                ? () => setState(() => _currentPage++)
-                : null,
-          ),
-        ],
-      ),
-    );
+    final Widget paginationRow = totalPages <= 1
+        ? const SizedBox()
+        : Padding(
+            padding: const EdgeInsets.only(top: 16.0, bottom: 8.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                IconButton(
+                  icon: const Icon(
+                    Icons.chevron_left,
+                    color: VianTheme.primaryGold,
+                  ),
+                  onPressed: _currentPage > 1
+                      ? () => setState(() => _currentPage--)
+                      : null,
+                ),
+                Text(
+                  'Page $_currentPage of $totalPages',
+                  style: const TextStyle(
+                    color: VianTheme.headerBlack,
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(
+                    Icons.chevron_right,
+                    color: VianTheme.primaryGold,
+                  ),
+                  onPressed: _currentPage < totalPages
+                      ? () => setState(() => _currentPage++)
+                      : null,
+                ),
+              ],
+            ),
+          );
 
     if (isMobile) {
       return Column(
@@ -1006,21 +1236,43 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
                           contentPadding: EdgeInsets.zero,
                           leading: CircleAvatar(
                             backgroundColor: VianTheme.darkBackground,
-                            child: Text((u['name']?.toString() ?? '').isNotEmpty ? u['name'].toString().substring(0, 1).toUpperCase() : 'U', style: const TextStyle(color: VianTheme.primaryGold)),
+                            child: Text(
+                              (u['name']?.toString() ?? '').isNotEmpty
+                                  ? u['name']
+                                        .toString()
+                                        .substring(0, 1)
+                                        .toUpperCase()
+                                  : 'U',
+                              style: const TextStyle(
+                                color: VianTheme.primaryGold,
+                              ),
+                            ),
                           ),
-                          title: Text(u['name'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold)),
+                          title: Text(
+                            u['name'] ?? '',
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
                           subtitle: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(u['email'] ?? '', style: const TextStyle(fontSize: 12)),
+                              Text(
+                                u['email'] ?? '',
+                                style: const TextStyle(fontSize: 12),
+                              ),
                               const SizedBox(height: 4),
                               Text(
                                 'Created: ${u['createdAt'] != null ? u['createdAt'].toString().split('T').first : '2026-06-15'}',
-                                style: const TextStyle(fontSize: 11, color: Colors.grey),
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  color: Colors.grey,
+                                ),
                               ),
                               Text(
                                 'Last Login: ${u['lastLogin'] ?? 'Active Now'}',
-                                style: const TextStyle(fontSize: 11, color: Colors.grey),
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  color: Colors.grey,
+                                ),
                               ),
                               const SizedBox(height: 6),
                               _buildRoleBadge(u['role'] ?? 'Employee'),
@@ -1032,7 +1284,13 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
                             top: 0,
                             right: 0,
                             child: HapticTapEffect(
-                              onTap: () => _showMobileActions(context, u, showEdit, showDelete, isSelf),
+                              onTap: () => _showMobileActions(
+                                context,
+                                u,
+                                showEdit,
+                                showDelete,
+                                isSelf,
+                              ),
                               child: Container(
                                 padding: const EdgeInsets.all(8),
                                 child: const Icon(Icons.more_vert, size: 20),
@@ -1072,20 +1330,44 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
                         CircleAvatar(
                           backgroundColor: VianTheme.darkBackground,
                           radius: 20,
-                          child: Text((u['name']?.toString() ?? '').isNotEmpty ? u['name'].toString().substring(0, 1).toUpperCase() : 'U', style: const TextStyle(color: VianTheme.primaryGold)),
+                          child: Text(
+                            (u['name']?.toString() ?? '').isNotEmpty
+                                ? u['name']
+                                      .toString()
+                                      .substring(0, 1)
+                                      .toUpperCase()
+                                : 'U',
+                            style: const TextStyle(
+                              color: VianTheme.primaryGold,
+                            ),
+                          ),
                         ),
                         const SizedBox(width: 16),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(u['name'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold)),
+                              Text(
+                                u['name'] ?? '',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                               const SizedBox(height: 2),
-                              Text(u['email'] ?? '', style: const TextStyle(color: VianTheme.lightText, fontSize: 12)),
+                              Text(
+                                u['email'] ?? '',
+                                style: const TextStyle(
+                                  color: VianTheme.lightText,
+                                  fontSize: 12,
+                                ),
+                              ),
                               const SizedBox(height: 4),
                               Text(
                                 'Created: ${u['createdAt'] != null ? u['createdAt'].toString().split('T').first : '2026-06-15'} | Last Login: ${u['lastLogin'] ?? 'Active Now'}',
-                                style: const TextStyle(color: VianTheme.lightText, fontSize: 10),
+                                style: const TextStyle(
+                                  color: VianTheme.lightText,
+                                  fontSize: 10,
+                                ),
                               ),
                             ],
                           ),
@@ -1097,7 +1379,12 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
                             icon: const Icon(Icons.more_vert),
                             onSelected: (val) {
                               if (val == 'edit') {
-                                _showAddUserForm(context, false, true, existingUser: u);
+                                _showAddUserForm(
+                                  context,
+                                  false,
+                                  true,
+                                  existingUser: u,
+                                );
                               } else if (val == 'delete') {
                                 _confirmDeleteUser(u, false);
                               }
@@ -1108,7 +1395,11 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
                                   value: 'edit',
                                   child: Row(
                                     children: [
-                                      Icon(Icons.edit_outlined, size: 16, color: Color(0xFF6B6560)),
+                                      Icon(
+                                        Icons.edit_outlined,
+                                        size: 16,
+                                        color: Color(0xFF6B6560),
+                                      ),
                                       SizedBox(width: 8),
                                       Text('Edit User'),
                                     ],
@@ -1120,11 +1411,21 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
                                   enabled: !isSelf,
                                   child: Row(
                                     children: [
-                                      Icon(Icons.delete_outline, size: 16, color: isSelf ? Colors.grey : Color(0xFFB33A3A)),
+                                      Icon(
+                                        Icons.delete_outline,
+                                        size: 16,
+                                        color: isSelf
+                                            ? Colors.grey
+                                            : Color(0xFFB33A3A),
+                                      ),
                                       SizedBox(width: 8),
                                       Text(
                                         'Delete User',
-                                        style: TextStyle(color: isSelf ? Colors.grey : Color(0xFFB33A3A)),
+                                        style: TextStyle(
+                                          color: isSelf
+                                              ? Colors.grey
+                                              : Color(0xFFB33A3A),
+                                        ),
                                       ),
                                     ],
                                   ),
@@ -1157,138 +1458,272 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
                   // Table header
                   Container(
                     color: const Color(0xFF1A1B1F),
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 14,
+                    ),
                     child: Row(
                       children: [
-                        Expanded(flex: 3, child: Text('NAME / EMAIL', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 11, color: VianTheme.primaryGold, letterSpacing: 0.8))),
-                        Expanded(flex: 2, child: Text('ROLE', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 11, color: VianTheme.primaryGold, letterSpacing: 0.8))),
-                        Expanded(flex: 2, child: Text('CREATED DATE', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 11, color: VianTheme.primaryGold, letterSpacing: 0.8))),
-                        Expanded(flex: 2, child: Text('LAST LOGIN', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 11, color: VianTheme.primaryGold, letterSpacing: 0.8))),
-                        Expanded(flex: 2, child: Text('STATUS', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 11, color: VianTheme.primaryGold, letterSpacing: 0.8))),
-                        Expanded(flex: 2, child: Align(alignment: Alignment.centerRight, child: Text('ACTIONS', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 11, color: VianTheme.primaryGold, letterSpacing: 0.8)))),
+                        Expanded(
+                          flex: 3,
+                          child: Text(
+                            'NAME / EMAIL',
+                            style: GoogleFonts.outfit(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 11,
+                              color: VianTheme.primaryGold,
+                              letterSpacing: 0.8,
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          flex: 2,
+                          child: Text(
+                            'ROLE',
+                            style: GoogleFonts.outfit(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 11,
+                              color: VianTheme.primaryGold,
+                              letterSpacing: 0.8,
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          flex: 2,
+                          child: Text(
+                            'CREATED DATE',
+                            style: GoogleFonts.outfit(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 11,
+                              color: VianTheme.primaryGold,
+                              letterSpacing: 0.8,
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          flex: 2,
+                          child: Text(
+                            'LAST LOGIN',
+                            style: GoogleFonts.outfit(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 11,
+                              color: VianTheme.primaryGold,
+                              letterSpacing: 0.8,
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          flex: 2,
+                          child: Text(
+                            'STATUS',
+                            style: GoogleFonts.outfit(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 11,
+                              color: VianTheme.primaryGold,
+                              letterSpacing: 0.8,
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          flex: 2,
+                          child: Align(
+                            alignment: Alignment.centerRight,
+                            child: Text(
+                              'ACTIONS',
+                              style: GoogleFonts.outfit(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 11,
+                                color: VianTheme.primaryGold,
+                                letterSpacing: 0.8,
+                              ),
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   ),
-                Expanded(
-                  child: ListView.separated(
-                    itemCount: paginatedUsers.length,
-                    separatorBuilder: (context, index) => const Divider(height: 1, color: VianTheme.goldBorder),
-                    itemBuilder: (context, index) {
-                      final u = paginatedUsers[index];
-                      final bool isActive = u['isActive'] ?? true;
-                      final bool showEdit = _canEditUser(u, userRole);
-                      final bool showDelete = _canDeleteUser(u, userRole);
-                      final bool isSelf = u['id'] == currentUserId;
+                  Expanded(
+                    child: ListView.separated(
+                      itemCount: paginatedUsers.length,
+                      separatorBuilder: (context, index) =>
+                          const Divider(height: 1, color: VianTheme.goldBorder),
+                      itemBuilder: (context, index) {
+                        final u = paginatedUsers[index];
+                        final bool isActive = u['isActive'] ?? true;
+                        final bool showEdit = _canEditUser(u, userRole);
+                        final bool showDelete = _canDeleteUser(u, userRole);
+                        final bool isSelf = u['id'] == currentUserId;
 
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              flex: 3,
-                              child: Row(
-                                children: [
-                                  CircleAvatar(
-                                    backgroundColor: VianTheme.darkBackground,
-                                    child: Text((u['name']?.toString() ?? '').isNotEmpty ? u['name'].toString().substring(0, 1).toUpperCase() : 'U', style: const TextStyle(color: VianTheme.primaryGold)),
-                                  ),
-                                  const SizedBox(width: 16),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(u['name'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold)),
-                                        Text(u['email'] ?? '', style: const TextStyle(color: VianTheme.lightText, fontSize: 11.5)),
-                                      ],
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 12,
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                flex: 3,
+                                child: Row(
+                                  children: [
+                                    CircleAvatar(
+                                      backgroundColor: VianTheme.darkBackground,
+                                      child: Text(
+                                        (u['name']?.toString() ?? '').isNotEmpty
+                                            ? u['name']
+                                                  .toString()
+                                                  .substring(0, 1)
+                                                  .toUpperCase()
+                                            : 'U',
+                                        style: const TextStyle(
+                                          color: VianTheme.primaryGold,
+                                        ),
+                                      ),
                                     ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Expanded(
-                              flex: 2,
-                              child: Align(
-                                alignment: Alignment.centerLeft,
-                                child: _buildRoleBadge(u['role'] ?? 'Employee'),
-                              ),
-                            ),
-                            Expanded(
-                              flex: 2,
-                              child: Text(
-                                u['createdAt'] != null
-                                    ? u['createdAt'].toString().split('T').first
-                                    : '2026-06-15',
-                                style: const TextStyle(color: VianTheme.lightText, fontSize: 12),
-                              ),
-                            ),
-                            Expanded(
-                              flex: 2,
-                              child: Text(
-                                u['lastLogin'] ?? 'Active Now',
-                                style: const TextStyle(color: VianTheme.lightText, fontSize: 12),
-                              ),
-                            ),
-                            Expanded(
-                              flex: 2,
-                              child: Row(
-                                children: [
-                                  Switch(
-                                    value: isActive,
-                                    activeColor: VianTheme.success,
-                                    onChanged: (val) => _toggleUserStatus(u['id'], u['name'], isActive),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    isActive ? 'Active' : 'Suspended',
-                                    style: TextStyle(
-                                      color: isActive ? VianTheme.success : VianTheme.danger,
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Expanded(
-                              flex: 2,
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.end,
-                                children: [
-                                  if (showEdit)
-                                    IconButton(
-                                      icon: const Icon(Icons.edit_outlined, size: 18, color: Color(0xFF6B6560)),
-                                      onPressed: () => _showAddUserForm(context, false, false, existingUser: u),
-                                      tooltip: 'Edit User',
-                                    ),
-                                  if (showEdit && showDelete)
-                                    const SizedBox(width: 8),
-                                  if (showDelete)
-                                    isSelf
-                                        ? const Tooltip(
-                                            message: 'You cannot delete your own account.',
-                                            child: IconButton(
-                                              icon: Icon(Icons.delete_outline, size: 18, color: Colors.grey),
-                                              onPressed: null,
+                                    const SizedBox(width: 16),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            u['name'] ?? '',
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
                                             ),
-                                          )
-                                        : IconButton(
-                                            icon: const Icon(Icons.delete_outline, size: 18, color: Color(0xFFB33A3A)),
-                                            onPressed: () => _confirmDeleteUser(u, false),
-                                            tooltip: 'Delete User',
                                           ),
-                                ],
+                                          Text(
+                                            u['email'] ?? '',
+                                            style: const TextStyle(
+                                              color: VianTheme.lightText,
+                                              fontSize: 11.5,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
+                              Expanded(
+                                flex: 2,
+                                child: Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: _buildRoleBadge(
+                                    u['role'] ?? 'Employee',
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 2,
+                                child: Text(
+                                  u['createdAt'] != null
+                                      ? u['createdAt']
+                                            .toString()
+                                            .split('T')
+                                            .first
+                                      : '2026-06-15',
+                                  style: const TextStyle(
+                                    color: VianTheme.lightText,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 2,
+                                child: Text(
+                                  u['lastLogin'] ?? 'Active Now',
+                                  style: const TextStyle(
+                                    color: VianTheme.lightText,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 2,
+                                child: Row(
+                                  children: [
+                                    Switch(
+                                      value: isActive,
+                                      activeColor: VianTheme.success,
+                                      onChanged: (val) => _toggleUserStatus(
+                                        u['id'],
+                                        u['name'],
+                                        isActive,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      isActive ? 'Active' : 'Suspended',
+                                      style: TextStyle(
+                                        color: isActive
+                                            ? VianTheme.success
+                                            : VianTheme.danger,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Expanded(
+                                flex: 2,
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    if (showEdit)
+                                      IconButton(
+                                        icon: const Icon(
+                                          Icons.edit_outlined,
+                                          size: 18,
+                                          color: Color(0xFF6B6560),
+                                        ),
+                                        onPressed: () => _showAddUserForm(
+                                          context,
+                                          false,
+                                          false,
+                                          existingUser: u,
+                                        ),
+                                        tooltip: 'Edit User',
+                                      ),
+                                    if (showEdit && showDelete)
+                                      const SizedBox(width: 8),
+                                    if (showDelete)
+                                      isSelf
+                                          ? const Tooltip(
+                                              message:
+                                                  'You cannot delete your own account.',
+                                              child: IconButton(
+                                                icon: Icon(
+                                                  Icons.delete_outline,
+                                                  size: 18,
+                                                  color: Colors.grey,
+                                                ),
+                                                onPressed: null,
+                                              ),
+                                            )
+                                          : IconButton(
+                                              icon: const Icon(
+                                                Icons.delete_outline,
+                                                size: 18,
+                                                color: Color(0xFFB33A3A),
+                                              ),
+                                              onPressed: () =>
+                                                  _confirmDeleteUser(u, false),
+                                              tooltip: 'Delete User',
+                                            ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
-        ),
         ),
         paginationRow,
       ],
@@ -1296,7 +1731,9 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
   }
 
   Widget _buildRoleBadge(String role) {
-    final bool isSuper = role.toLowerCase().contains('super') || role.toLowerCase().contains('managing');
+    final bool isSuper =
+        role.toLowerCase().contains('super') ||
+        role.toLowerCase().contains('managing');
     final bool isAdmin = role.toLowerCase().contains('admin') && !isSuper;
 
     if (isSuper) {
@@ -1310,11 +1747,19 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
         child: const Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.workspace_premium, size: 12, color: VianTheme.primaryGold),
+            Icon(
+              Icons.workspace_premium,
+              size: 12,
+              color: VianTheme.primaryGold,
+            ),
             SizedBox(width: 4),
             Text(
               'Superadmin',
-              style: TextStyle(color: VianTheme.primaryGold, fontSize: 10.5, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                color: VianTheme.primaryGold,
+                fontSize: 10.5,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ],
         ),
@@ -1336,7 +1781,11 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
             SizedBox(width: 4),
             Text(
               'Admin',
-              style: TextStyle(color: VianTheme.accentBlue, fontSize: 10.5, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                color: VianTheme.accentBlue,
+                fontSize: 10.5,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ],
         ),
@@ -1357,8 +1806,15 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
   }
 
   Widget _buildPermissionMatrix() {
-    final modules = ['CRM & Leads', 'Client Database', 'Project Workspace', 'Attendance Management', 'Expenses & Invoices', 'Settings Console'];
-    
+    final modules = [
+      'CRM & Leads',
+      'Client Database',
+      'Project Workspace',
+      'Attendance Management',
+      'Expenses & Invoices',
+      'Settings Console',
+    ];
+
     return VianCard(
       padding: EdgeInsets.zero,
       child: Column(
@@ -1368,20 +1824,67 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
             child: const Row(
               children: [
-                Expanded(flex: 3, child: Text('MODULE', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: VianTheme.lightText))),
-                Expanded(flex: 2, child: Text('SUPERADMIN', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: VianTheme.lightText), textAlign: TextAlign.center)),
-                Expanded(flex: 2, child: Text('ADMIN', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: VianTheme.lightText), textAlign: TextAlign.center)),
-                Expanded(flex: 2, child: Text('STAFF / SITE', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: VianTheme.lightText), textAlign: TextAlign.center)),
+                Expanded(
+                  flex: 3,
+                  child: Text(
+                    'MODULE',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 11,
+                      color: VianTheme.lightText,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    'SUPERADMIN',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 11,
+                      color: VianTheme.lightText,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    'ADMIN',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 11,
+                      color: VianTheme.lightText,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    'STAFF / SITE',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 11,
+                      color: VianTheme.lightText,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
               ],
             ),
           ),
           Expanded(
             child: ListView.separated(
               itemCount: modules.length,
-              separatorBuilder: (context, index) => const Divider(height: 1, color: VianTheme.goldBorder),
+              separatorBuilder: (context, index) =>
+                  const Divider(height: 1, color: VianTheme.goldBorder),
               itemBuilder: (context, index) {
                 return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 16,
+                  ),
                   child: Row(
                     children: [
                       Expanded(
@@ -1394,7 +1897,11 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
                       const Expanded(
                         flex: 2,
                         child: Center(
-                          child: Icon(Icons.check_circle, color: VianTheme.success, size: 20),
+                          child: Icon(
+                            Icons.check_circle,
+                            color: VianTheme.success,
+                            size: 20,
+                          ),
                         ),
                       ),
                       Expanded(
@@ -1402,7 +1909,9 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
                         child: Center(
                           child: Icon(
                             index == 5 ? Icons.cancel : Icons.check_circle,
-                            color: index == 5 ? VianTheme.danger : VianTheme.success,
+                            color: index == 5
+                                ? VianTheme.danger
+                                : VianTheme.success,
                             size: 20,
                           ),
                         ),
@@ -1412,7 +1921,9 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
                         child: Center(
                           child: Icon(
                             index >= 3 ? Icons.cancel : Icons.check_circle,
-                            color: index >= 3 ? VianTheme.danger : VianTheme.success,
+                            color: index >= 3
+                                ? VianTheme.danger
+                                : VianTheme.success,
                             size: 20,
                           ),
                         ),
@@ -1432,7 +1943,8 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
     return VianCard(
       child: ListView.separated(
         itemCount: _auditLogs.length,
-        separatorBuilder: (context, index) => const Divider(height: 1, color: VianTheme.goldBorder),
+        separatorBuilder: (context, index) =>
+            const Divider(height: 1, color: VianTheme.goldBorder),
         itemBuilder: (context, index) {
           final log = _auditLogs[index];
           return Padding(
@@ -1445,7 +1957,11 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
                     color: VianTheme.darkBackground,
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(log['icon'] as IconData, color: VianTheme.primaryGold, size: 20),
+                  child: Icon(
+                    log['icon'] as IconData,
+                    color: VianTheme.primaryGold,
+                    size: 20,
+                  ),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -1457,18 +1973,27 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
                         children: [
                           Text(
                             log['actor'] as String,
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5),
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13.5,
+                            ),
                           ),
                           Text(
                             log['time'] as String,
-                            style: const TextStyle(color: VianTheme.lightText, fontSize: 11),
+                            style: const TextStyle(
+                              color: VianTheme.lightText,
+                              fontSize: 11,
+                            ),
                           ),
                         ],
                       ),
                       const SizedBox(height: 4),
                       Text(
                         '${log['action']} on: ${log['target']}',
-                        style: const TextStyle(color: VianTheme.lightText, fontSize: 12.5),
+                        style: const TextStyle(
+                          color: VianTheme.lightText,
+                          fontSize: 12.5,
+                        ),
                       ),
                     ],
                   ),

@@ -20,16 +20,18 @@ class FaceRegistrationWizard extends StatefulWidget {
   State<FaceRegistrationWizard> createState() => _FaceRegistrationWizardState();
 }
 
-class _FaceRegistrationWizardState extends State<FaceRegistrationWizard> with SingleTickerProviderStateMixin {
+class _FaceRegistrationWizardState extends State<FaceRegistrationWizard>
+    with SingleTickerProviderStateMixin {
   late AnimationController _scannerCtrl;
-  int _currentStep = 0; // 0 = Info, 1 = Front, 2 = Left, 3 = Right, 4 = Smile, 5 = Analyze/Save
-  
+  int _currentStep =
+      0; // 0 = Info, 1 = Front, 2 = Left, 3 = Right, 4 = Smile, 5 = Analyze/Save
+
   String? _frontFaceUrl;
   String? _leftFaceUrl;
   String? _rightFaceUrl;
   String? _smileFaceUrl;
   double _qualityScore = 98.4;
-  
+
   bool _isProcessing = false;
   String _processingText = '';
   double _processingProgress = 0.0;
@@ -62,7 +64,7 @@ class _FaceRegistrationWizardState extends State<FaceRegistrationWizard> with Si
         _processingText = 'Detecting facial contours...';
         _processingProgress = 0.6;
       });
-      
+
       Timer(const Duration(milliseconds: 600), () {
         if (!mounted) return;
         setState(() {
@@ -75,8 +77,9 @@ class _FaceRegistrationWizardState extends State<FaceRegistrationWizard> with Si
           setState(() {
             _isProcessing = false;
             final randomPhotoIdx = 10 + math.Random().nextInt(80);
-            final mockPhotoUrl = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80';
-            
+            final mockPhotoUrl =
+                'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80';
+
             if (_currentStep == 1) _frontFaceUrl = mockPhotoUrl;
             if (_currentStep == 2) _leftFaceUrl = mockPhotoUrl;
             if (_currentStep == 3) _rightFaceUrl = mockPhotoUrl;
@@ -109,10 +112,18 @@ class _FaceRegistrationWizardState extends State<FaceRegistrationWizard> with Si
 
     final ok = await ApiService.registerFace(
       userId: widget.employee['id'],
-      frontFace: _frontFaceUrl ?? 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80',
-      leftFace: _leftFaceUrl ?? 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80',
-      rightFace: _rightFaceUrl ?? 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80',
-      smileFace: _smileFaceUrl ?? 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80',
+      frontFace:
+          _frontFaceUrl ??
+          'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80',
+      leftFace:
+          _leftFaceUrl ??
+          'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80',
+      rightFace:
+          _rightFaceUrl ??
+          'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80',
+      smileFace:
+          _smileFaceUrl ??
+          'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80',
       qualityScore: _qualityScore,
     );
 
@@ -125,11 +136,19 @@ class _FaceRegistrationWizardState extends State<FaceRegistrationWizard> with Si
     if (ok) {
       widget.onComplete();
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('✓ Successfully registered biometric face for ${widget.employee['name']}.')),
+        SnackBar(
+          content: Text(
+            '✓ Successfully registered biometric face for ${widget.employee['name']}.',
+          ),
+        ),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to complete biometric enrollment. Check network connectivity.')),
+        const SnackBar(
+          content: Text(
+            'Failed to complete biometric enrollment. Check network connectivity.',
+          ),
+        ),
       );
     }
   }
@@ -139,15 +158,13 @@ class _FaceRegistrationWizardState extends State<FaceRegistrationWizard> with Si
     return Dialog(
       backgroundColor: const Color(0xFF13131A),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20), 
+        borderRadius: BorderRadius.circular(20),
         side: const BorderSide(color: Colors.white10),
       ),
       child: Container(
         width: 440,
         padding: const EdgeInsets.all(28),
-        child: _isProcessing 
-            ? _buildProcessingView()
-            : _buildWizardStepView(),
+        child: _isProcessing ? _buildProcessingView() : _buildWizardStepView(),
       ),
     );
   }
@@ -172,7 +189,10 @@ class _FaceRegistrationWizardState extends State<FaceRegistrationWizard> with Si
                       height: 100,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        border: Border.all(color: VianTheme.primaryGold.withOpacity(0.3), width: 1.5),
+                        border: Border.all(
+                          color: VianTheme.primaryGold.withOpacity(0.3),
+                          width: 1.5,
+                        ),
                       ),
                       child: const CircularProgressIndicator(
                         value: 0.35,
@@ -201,7 +221,9 @@ class _FaceRegistrationWizardState extends State<FaceRegistrationWizard> with Si
             child: LinearProgressIndicator(
               value: _processingProgress,
               backgroundColor: Colors.white.withOpacity(0.04),
-              valueColor: const AlwaysStoppedAnimation<Color>(VianTheme.primaryGold),
+              valueColor: const AlwaysStoppedAnimation<Color>(
+                VianTheme.primaryGold,
+              ),
               minHeight: 4,
             ),
           ),
@@ -216,13 +238,29 @@ class _FaceRegistrationWizardState extends State<FaceRegistrationWizard> with Si
       case 0:
         return _buildStepIntro();
       case 1:
-        return _buildStepCapture('CAPTURE FRONT FACE', 'Position the face directly in front of the lens. Keep expression neutral.', Icons.face);
+        return _buildStepCapture(
+          'CAPTURE FRONT FACE',
+          'Position the face directly in front of the lens. Keep expression neutral.',
+          Icons.face,
+        );
       case 2:
-        return _buildStepCapture('CAPTURE LEFT PROFILE', 'Turn head 45 degrees to the left. Capture side jaw profile.', Icons.chevron_left);
+        return _buildStepCapture(
+          'CAPTURE LEFT PROFILE',
+          'Turn head 45 degrees to the left. Capture side jaw profile.',
+          Icons.chevron_left,
+        );
       case 3:
-        return _buildStepCapture('CAPTURE RIGHT PROFILE', 'Turn head 45 degrees to the right. Capture side jaw profile.', Icons.chevron_right);
+        return _buildStepCapture(
+          'CAPTURE RIGHT PROFILE',
+          'Turn head 45 degrees to the right. Capture side jaw profile.',
+          Icons.chevron_right,
+        );
       case 4:
-        return _buildStepCapture('CAPTURE SMILE PROFILE', 'Smile naturally at the camera. Verifying muscle landmarks.', Icons.sentiment_satisfied_alt);
+        return _buildStepCapture(
+          'CAPTURE SMILE PROFILE',
+          'Smile naturally at the camera. Verifying muscle landmarks.',
+          Icons.sentiment_satisfied_alt,
+        );
       case 5:
       default:
         return _buildStepReview();
@@ -236,7 +274,12 @@ class _FaceRegistrationWizardState extends State<FaceRegistrationWizard> with Si
       children: [
         Text(
           'BIOMETRIC FACE REGISTER',
-          style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 1.5),
+          style: GoogleFonts.outfit(
+            color: VianTheme.primaryGold,
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1.5,
+          ),
         ),
         const SizedBox(height: 8),
         Text(
@@ -251,7 +294,11 @@ class _FaceRegistrationWizardState extends State<FaceRegistrationWizard> with Si
         const SizedBox(height: 16),
         const Text(
           'Required Captures:',
-          style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: Colors.white70,
+            fontSize: 12,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         const SizedBox(height: 8),
         _buildBullet('1. Front face template'),
@@ -264,7 +311,10 @@ class _FaceRegistrationWizardState extends State<FaceRegistrationWizard> with Si
           children: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
+              child: const Text(
+                'Cancel',
+                style: TextStyle(color: Colors.white54),
+              ),
             ),
             const SizedBox(width: 12),
             VianButton(
@@ -272,7 +322,7 @@ class _FaceRegistrationWizardState extends State<FaceRegistrationWizard> with Si
               onPressed: () => setState(() => _currentStep = 1),
             ),
           ],
-        )
+        ),
       ],
     );
   }
@@ -282,21 +332,37 @@ class _FaceRegistrationWizardState extends State<FaceRegistrationWizard> with Si
       padding: const EdgeInsets.only(bottom: 6.0, left: 4),
       child: Row(
         children: [
-          const Icon(Icons.check_circle_outline, color: VianTheme.primaryGold, size: 14),
+          const Icon(
+            Icons.check_circle_outline,
+            color: VianTheme.primaryGold,
+            size: 14,
+          ),
           const SizedBox(width: 8),
-          Text(text, style: const TextStyle(color: Colors.white54, fontSize: 11)),
+          Text(
+            text,
+            style: const TextStyle(color: Colors.white54, fontSize: 11),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildStepCapture(String title, String subtitle, IconData placeholderIcon) {
+  Widget _buildStepCapture(
+    String title,
+    String subtitle,
+    IconData placeholderIcon,
+  ) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
           title,
-          style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 15, fontWeight: FontWeight.bold, letterSpacing: 1.2),
+          style: GoogleFonts.outfit(
+            color: VianTheme.primaryGold,
+            fontSize: 15,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1.2,
+          ),
         ),
         const SizedBox(height: 8),
         Text(
@@ -311,12 +377,19 @@ class _FaceRegistrationWizardState extends State<FaceRegistrationWizard> with Si
           decoration: BoxDecoration(
             color: Colors.white.withOpacity(0.02),
             shape: BoxShape.circle,
-            border: Border.all(color: VianTheme.primaryGold.withOpacity(0.2), width: 1.5),
+            border: Border.all(
+              color: VianTheme.primaryGold.withOpacity(0.2),
+              width: 1.5,
+            ),
           ),
           child: Stack(
             alignment: Alignment.center,
             children: [
-              Icon(placeholderIcon, color: VianTheme.primaryGold.withOpacity(0.3), size: 60),
+              Icon(
+                placeholderIcon,
+                color: VianTheme.primaryGold.withOpacity(0.3),
+                size: 60,
+              ),
               AnimatedBuilder(
                 animation: _scannerCtrl,
                 builder: (context, child) {
@@ -330,7 +403,10 @@ class _FaceRegistrationWizardState extends State<FaceRegistrationWizard> with Si
                       decoration: BoxDecoration(
                         color: Colors.greenAccent,
                         boxShadow: [
-                          BoxShadow(color: Colors.greenAccent.withOpacity(0.5), blurRadius: 4),
+                          BoxShadow(
+                            color: Colors.greenAccent.withOpacity(0.5),
+                            blurRadius: 4,
+                          ),
                         ],
                       ),
                     ),
@@ -346,14 +422,14 @@ class _FaceRegistrationWizardState extends State<FaceRegistrationWizard> with Si
           children: [
             TextButton(
               onPressed: () => setState(() => _currentStep--),
-              child: const Text('Back', style: TextStyle(color: Colors.white54)),
+              child: const Text(
+                'Back',
+                style: TextStyle(color: Colors.white54),
+              ),
             ),
-            VianButton(
-              text: 'Simulate Capture',
-              onPressed: _simulateCapture,
-            ),
+            VianButton(text: 'Simulate Capture', onPressed: _simulateCapture),
           ],
-        )
+        ),
       ],
     );
   }
@@ -365,7 +441,12 @@ class _FaceRegistrationWizardState extends State<FaceRegistrationWizard> with Si
       children: [
         Text(
           'BIOMETRIC DATA VERIFICATION',
-          style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 15, fontWeight: FontWeight.bold, letterSpacing: 1.2),
+          style: GoogleFonts.outfit(
+            color: VianTheme.primaryGold,
+            fontSize: 15,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1.2,
+          ),
         ),
         const SizedBox(height: 8),
         const Text(
@@ -393,10 +474,17 @@ class _FaceRegistrationWizardState extends State<FaceRegistrationWizard> with Si
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Biometric Quality Score:', style: TextStyle(color: Colors.white70, fontSize: 12)),
+              const Text(
+                'Biometric Quality Score:',
+                style: TextStyle(color: Colors.white70, fontSize: 12),
+              ),
               Text(
                 '${_qualityScore.toStringAsFixed(1)}%',
-                style: GoogleFonts.poppins(color: Colors.greenAccent, fontSize: 14, fontWeight: FontWeight.bold),
+                style: GoogleFonts.poppins(
+                  color: Colors.greenAccent,
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ],
           ),
@@ -407,14 +495,17 @@ class _FaceRegistrationWizardState extends State<FaceRegistrationWizard> with Si
           children: [
             TextButton(
               onPressed: () => setState(() => _currentStep = 0),
-              child: const Text('Restart', style: TextStyle(color: Colors.white54)),
+              child: const Text(
+                'Restart',
+                style: TextStyle(color: Colors.white54),
+              ),
             ),
             VianButton(
               text: 'Complete Enrollment',
               onPressed: _submitFaceRegistration,
             ),
           ],
-        )
+        ),
       ],
     );
   }

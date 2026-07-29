@@ -30,7 +30,10 @@ class CanvasElement {
 
   factory CanvasElement.fromJson(Map<String, dynamic> json) {
     return CanvasElement(
-      type: CanvasTool.values.firstWhere((e) => e.name == json['type'], orElse: () => CanvasTool.rectangle),
+      type: CanvasTool.values.firstWhere(
+        (e) => e.name == json['type'],
+        orElse: () => CanvasTool.rectangle,
+      ),
       start: Offset(safeToDouble(json['startX']), safeToDouble(json['startY'])),
       end: Offset(safeToDouble(json['endX']), safeToDouble(json['endY'])),
       text: json['text'] ?? '',
@@ -100,14 +103,22 @@ class _SiteLayoutCanvasState extends State<SiteLayoutCanvas> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: const Color(0xFF1E1E26),
-        title: const Text('Add Dimension/Label Text', style: TextStyle(color: VianTheme.primaryGold)),
+        title: const Text(
+          'Add Dimension/Label Text',
+          style: TextStyle(color: VianTheme.primaryGold),
+        ),
         content: TextField(
           controller: controller,
           autofocus: true,
-          decoration: const InputDecoration(hintText: 'e.g. 40ft road, Site boundary 30x50'),
+          decoration: const InputDecoration(
+            hintText: 'e.g. 40ft road, Site boundary 30x50',
+          ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, controller.text),
             child: const Text('Add'),
@@ -119,12 +130,14 @@ class _SiteLayoutCanvasState extends State<SiteLayoutCanvas> {
     if (text != null && text.trim().isNotEmpty) {
       _saveToHistory();
       final updated = List<CanvasElement>.from(widget.elements)
-        ..add(CanvasElement(
-          type: CanvasTool.text,
-          start: pos,
-          end: pos,
-          text: text.trim(),
-        ));
+        ..add(
+          CanvasElement(
+            type: CanvasTool.text,
+            start: pos,
+            end: pos,
+            text: text.trim(),
+          ),
+        );
       widget.onChanged(updated);
     }
   }
@@ -138,7 +151,10 @@ class _SiteLayoutCanvasState extends State<SiteLayoutCanvas> {
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
           decoration: const BoxDecoration(
             color: Color(0xFF1E1E26),
-            borderRadius: BorderRadius.only(topLeft: Radius.circular(8), topRight: Radius.circular(8)),
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(8),
+              topRight: Radius.circular(8),
+            ),
           ),
           child: Wrap(
             spacing: 8,
@@ -146,9 +162,17 @@ class _SiteLayoutCanvasState extends State<SiteLayoutCanvas> {
             alignment: WrapAlignment.start,
             children: [
               _buildToolButton(CanvasTool.rectangle, Icons.crop_square, 'Rect'),
-              _buildToolButton(CanvasTool.circle, Icons.circle_outlined, 'Circle'),
+              _buildToolButton(
+                CanvasTool.circle,
+                Icons.circle_outlined,
+                'Circle',
+              ),
               _buildToolButton(CanvasTool.arrow, Icons.trending_flat, 'Arrow'),
-              _buildToolButton(CanvasTool.northArrow, Icons.navigation_outlined, 'North'),
+              _buildToolButton(
+                CanvasTool.northArrow,
+                Icons.navigation_outlined,
+                'North',
+              ),
               _buildToolButton(CanvasTool.text, Icons.text_fields, 'Text'),
               const SizedBox(width: 8),
               IconButton(
@@ -162,7 +186,11 @@ class _SiteLayoutCanvasState extends State<SiteLayoutCanvas> {
                 tooltip: 'Redo',
               ),
               IconButton(
-                icon: const Icon(Icons.delete_outline, color: VianTheme.danger, size: 20),
+                icon: const Icon(
+                  Icons.delete_outline,
+                  color: VianTheme.danger,
+                  size: 20,
+                ),
                 onPressed: _clear,
                 tooltip: 'Clear Layout',
               ),
@@ -175,18 +203,23 @@ class _SiteLayoutCanvasState extends State<SiteLayoutCanvas> {
             final RenderBox renderBox = context.findRenderObject() as RenderBox;
             final localPos = renderBox.globalToLocal(details.globalPosition);
             // Adjust for toolbar offset
-            final pos = Offset(localPos.dx, localPos.dy - 40); // estimate toolbar height
+            final pos = Offset(
+              localPos.dx,
+              localPos.dy - 40,
+            ); // estimate toolbar height
 
             if (_currentTool == CanvasTool.text) {
               _addTextElement(pos);
             } else if (_currentTool == CanvasTool.northArrow) {
               _saveToHistory();
               final updated = List<CanvasElement>.from(widget.elements)
-                ..add(CanvasElement(
-                  type: CanvasTool.northArrow,
-                  start: pos,
-                  end: pos,
-                ));
+                ..add(
+                  CanvasElement(
+                    type: CanvasTool.northArrow,
+                    start: pos,
+                    end: pos,
+                  ),
+                );
               widget.onChanged(updated);
             } else {
               setState(() {
@@ -207,11 +240,13 @@ class _SiteLayoutCanvasState extends State<SiteLayoutCanvas> {
             if (_startPos != null && _currentPos != null) {
               _saveToHistory();
               final updated = List<CanvasElement>.from(widget.elements)
-                ..add(CanvasElement(
-                  type: _currentTool,
-                  start: _startPos!,
-                  end: _currentPos!,
-                ));
+                ..add(
+                  CanvasElement(
+                    type: _currentTool,
+                    start: _startPos!,
+                    end: _currentPos!,
+                  ),
+                );
               widget.onChanged(updated);
             }
             setState(() {
@@ -228,7 +263,11 @@ class _SiteLayoutCanvasState extends State<SiteLayoutCanvas> {
                 painter: SiteLayoutPainter(
                   widget.elements,
                   (_startPos != null && _currentPos != null)
-                      ? CanvasElement(type: _currentTool, start: _startPos!, end: _currentPos!)
+                      ? CanvasElement(
+                          type: _currentTool,
+                          start: _startPos!,
+                          end: _currentPos!,
+                        )
                       : null,
                 ),
               ),
@@ -249,7 +288,9 @@ class _SiteLayoutCanvasState extends State<SiteLayoutCanvas> {
         decoration: BoxDecoration(
           color: active ? VianTheme.primaryGold : Colors.transparent,
           borderRadius: BorderRadius.circular(4),
-          border: Border.all(color: active ? VianTheme.goldBorder : Colors.white12),
+          border: Border.all(
+            color: active ? VianTheme.goldBorder : Colors.white12,
+          ),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -346,8 +387,10 @@ class SiteLayoutPainter extends CustomPainter {
     const arrowHeadLength = 12.0;
     const arrowHeadWidth = 6.0;
 
-    final leftPoint = end - unitDirection * arrowHeadLength + normal * arrowHeadWidth;
-    final rightPoint = end - unitDirection * arrowHeadLength - normal * arrowHeadWidth;
+    final leftPoint =
+        end - unitDirection * arrowHeadLength + normal * arrowHeadWidth;
+    final rightPoint =
+        end - unitDirection * arrowHeadLength - normal * arrowHeadWidth;
 
     final fillPaint = Paint()
       ..color = paint.color
@@ -366,7 +409,11 @@ class SiteLayoutPainter extends CustomPainter {
       ..color = paint.color
       ..style = PaintingStyle.fill;
 
-    canvas.drawLine(pos + const Offset(0, 15), pos - const Offset(0, 15), paint);
+    canvas.drawLine(
+      pos + const Offset(0, 15),
+      pos - const Offset(0, 15),
+      paint,
+    );
     final arrowPath = Path()
       ..moveTo(pos.dx, pos.dy - 15)
       ..lineTo(pos.dx - 5, pos.dy - 7)
@@ -377,7 +424,11 @@ class SiteLayoutPainter extends CustomPainter {
     final textPainter = TextPainter(
       text: TextSpan(
         text: 'N',
-        style: TextStyle(color: paint.color, fontWeight: FontWeight.bold, fontSize: 13),
+        style: TextStyle(
+          color: paint.color,
+          fontWeight: FontWeight.bold,
+          fontSize: 13,
+        ),
       ),
       textDirection: TextDirection.ltr,
     )..layout();
@@ -388,11 +439,19 @@ class SiteLayoutPainter extends CustomPainter {
     final textPainter = TextPainter(
       text: TextSpan(
         text: text,
-        style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.w500, backgroundColor: const Color(0xDD000000)),
+        style: TextStyle(
+          color: color,
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+          backgroundColor: const Color(0xDD000000),
+        ),
       ),
       textDirection: TextDirection.ltr,
     )..layout();
-    textPainter.paint(canvas, pos - Offset(textPainter.width / 2, textPainter.height / 2));
+    textPainter.paint(
+      canvas,
+      pos - Offset(textPainter.width / 2, textPainter.height / 2),
+    );
   }
 
   @override
@@ -418,7 +477,9 @@ class SketchStroke {
 
   factory SketchStroke.fromJson(Map<String, dynamic> json) {
     return SketchStroke(
-      points: (json['points'] as List).map((p) => Offset(safeToDouble(p['x']), safeToDouble(p['y']))).toList(),
+      points: (json['points'] as List)
+          .map((p) => Offset(safeToDouble(p['x']), safeToDouble(p['y'])))
+          .toList(),
       color: Color(safeToInt(json['color'])),
       width: safeToDouble(json['width']),
     );
@@ -489,13 +550,19 @@ class _ConceptSketchCanvasState extends State<ConceptSketchCanvas> {
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
           decoration: const BoxDecoration(
             color: Color(0xFF1E1E26),
-            borderRadius: BorderRadius.only(topLeft: Radius.circular(8), topRight: Radius.circular(8)),
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(8),
+              topRight: Radius.circular(8),
+            ),
           ),
           child: Row(
             children: [
               const Icon(Icons.edit, color: VianTheme.primaryGold, size: 18),
               const SizedBox(width: 8),
-              const Text('Brush Width:', style: TextStyle(fontSize: 12, color: Colors.white70)),
+              const Text(
+                'Brush Width:',
+                style: TextStyle(fontSize: 12, color: Colors.white70),
+              ),
               _buildWidthButton(1.5, 'Thin'),
               _buildWidthButton(3.0, 'Medium'),
               _buildWidthButton(6.0, 'Thick'),
@@ -511,7 +578,11 @@ class _ConceptSketchCanvasState extends State<ConceptSketchCanvas> {
                 tooltip: 'Redo',
               ),
               IconButton(
-                icon: const Icon(Icons.delete_outline, color: VianTheme.danger, size: 20),
+                icon: const Icon(
+                  Icons.delete_outline,
+                  color: VianTheme.danger,
+                  size: 20,
+                ),
                 onPressed: _clear,
                 tooltip: 'Clear Sketch',
               ),
@@ -523,7 +594,10 @@ class _ConceptSketchCanvasState extends State<ConceptSketchCanvas> {
           onPanStart: (details) {
             final RenderBox renderBox = context.findRenderObject() as RenderBox;
             final localPos = renderBox.globalToLocal(details.globalPosition);
-            final pos = Offset(localPos.dx, localPos.dy - 40); // offset estimate
+            final pos = Offset(
+              localPos.dx,
+              localPos.dy - 40,
+            ); // offset estimate
             setState(() {
               _currentStroke = [pos];
             });
@@ -542,11 +616,13 @@ class _ConceptSketchCanvasState extends State<ConceptSketchCanvas> {
             if (_currentStroke != null && _currentStroke!.isNotEmpty) {
               _saveToHistory();
               final updated = List<SketchStroke>.from(widget.strokes)
-                ..add(SketchStroke(
-                  points: _currentStroke!,
-                  color: VianTheme.primaryGold,
-                  width: _strokeWidth,
-                ));
+                ..add(
+                  SketchStroke(
+                    points: _currentStroke!,
+                    color: VianTheme.primaryGold,
+                    width: _strokeWidth,
+                  ),
+                );
               widget.onChanged(updated);
             }
             setState(() {
@@ -559,10 +635,7 @@ class _ConceptSketchCanvasState extends State<ConceptSketchCanvas> {
             color: const Color(0xFF13131A),
             child: ClipRect(
               child: CustomPaint(
-                painter: ConceptSketchPainter(
-                  widget.strokes,
-                  _currentStroke,
-                ),
+                painter: ConceptSketchPainter(widget.strokes, _currentStroke),
               ),
             ),
           ),
@@ -581,7 +654,9 @@ class _ConceptSketchCanvasState extends State<ConceptSketchCanvas> {
         decoration: BoxDecoration(
           color: active ? VianTheme.primaryGold : Colors.transparent,
           borderRadius: BorderRadius.circular(4),
-          border: Border.all(color: active ? VianTheme.goldBorder : Colors.white10),
+          border: Border.all(
+            color: active ? VianTheme.goldBorder : Colors.white10,
+          ),
         ),
         child: Text(
           label,
@@ -619,7 +694,12 @@ class ConceptSketchPainter extends CustomPainter {
     }
   }
 
-  void _drawStroke(Canvas canvas, List<Offset> points, Color color, double width) {
+  void _drawStroke(
+    Canvas canvas,
+    List<Offset> points,
+    Color color,
+    double width,
+  ) {
     if (points.isEmpty) return;
     final paint = Paint()
       ..color = color

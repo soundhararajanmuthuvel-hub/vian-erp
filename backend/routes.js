@@ -134,6 +134,14 @@ function registerRoutes(app, models) {
   // AUTHENTICATION MODULE
   // ==========================================
   
+  app.get('/api', (req, res) => {
+    res.json({ status: 'ok', message: 'VIAN ERP API Server is running' });
+  });
+
+  app.get('/api/health', (req, res) => {
+    res.json({ status: 'ok', message: 'VIAN ERP API Server is running' });
+  });
+
   app.post('/api/auth/login', async (req, res) => {
     const { username, password } = req.body;
     if (!username || !password) {

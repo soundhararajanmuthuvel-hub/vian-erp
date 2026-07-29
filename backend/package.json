@@ -4,8 +4,8 @@
   "description": "Production-grade ERP, CRM, and Project Management backend for VIAN Architects",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node server.js"
+    "start": "node seed_demo_roles.js && node server.js",
+    "dev": "node seed_demo_roles.js && node server.js"
   },
   "dependencies": {
     "adm-zip": "^0.5.17",

@@ -39,7 +39,9 @@ class _VianCardState extends State<VianCard> {
           color: _isHovered ? VianTheme.champagneGold : VianTheme.cardColor,
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
-            color: _isHovered ? VianTheme.primaryGold.withOpacity(0.5) : VianTheme.goldBorder,
+            color: _isHovered
+                ? VianTheme.primaryGold.withOpacity(0.5)
+                : VianTheme.goldBorder,
             width: 1.0,
           ),
         ),
@@ -95,9 +97,16 @@ class VianMetricCard extends StatelessWidget {
             decoration: BoxDecoration(
               color: const Color(0xFFF1F5F9), // Slate-100 container for icon
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.black.withOpacity(0.04), width: 1),
+              border: Border.all(
+                color: Colors.black.withOpacity(0.04),
+                width: 1,
+              ),
             ),
-            child: Icon(icon, color: iconColor ?? VianTheme.primaryGold, size: 28),
+            child: Icon(
+              icon,
+              color: iconColor ?? VianTheme.primaryGold,
+              size: 28,
+            ),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -186,37 +195,24 @@ class VianButton extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        if (icon != null) ...[
-          Icon(icon, size: 18),
-          const SizedBox(width: 8),
-        ],
+        if (icon != null) ...[Icon(icon, size: 18), const SizedBox(width: 8)],
         Text(text),
       ],
     );
 
     if (isSecondary) {
-      return OutlinedButton(
-        onPressed: onPressed,
-        style: style,
-        child: child,
-      );
+      return OutlinedButton(onPressed: onPressed, style: style, child: child);
     }
 
-    return ElevatedButton(
-      onPressed: onPressed,
-      style: style,
-      child: child,
-    );
+    return ElevatedButton(onPressed: onPressed, style: style, child: child);
   }
 }
 
 class VianProgressIndicator extends StatelessWidget {
   final double progress; // 0.0 to 1.0
 
-  const VianProgressIndicator({
-    Key? key,
-    required this.progress,
-  }) : super(key: key);
+  const VianProgressIndicator({Key? key, required this.progress})
+    : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -242,7 +238,11 @@ class VianProgressIndicator extends StatelessWidget {
             ),
             Text(
               '$percent%',
-              style: TextStyle(fontSize: 12, color: progressColor, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: 12,
+                color: progressColor,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ],
         ),
@@ -283,11 +283,23 @@ class AtelierBracketPainter extends CustomPainter {
 
     // Bottom Left Bracket
     canvas.drawLine(Offset(0, size.height), Offset(len, size.height), paint);
-    canvas.drawLine(Offset(0, size.height), Offset(0, size.height - len), paint);
+    canvas.drawLine(
+      Offset(0, size.height),
+      Offset(0, size.height - len),
+      paint,
+    );
 
     // Bottom Right Bracket
-    canvas.drawLine(Offset(size.width, size.height), Offset(size.width - len, size.height), paint);
-    canvas.drawLine(Offset(size.width, size.height), Offset(size.width, size.height - len), paint);
+    canvas.drawLine(
+      Offset(size.width, size.height),
+      Offset(size.width - len, size.height),
+      paint,
+    );
+    canvas.drawLine(
+      Offset(size.width, size.height),
+      Offset(size.width, size.height - len),
+      paint,
+    );
   }
 
   @override

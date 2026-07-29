@@ -1,8 +1,23 @@
 import 'package:intl/intl.dart';
 
 enum PackageTier { economy, standard, premium }
-enum EstimateStatus { draft, pendingApproval, approved, rejected, active, archived }
-enum UserRole { siteCoordinator, estimator, admin, superadmin, managingDirector }
+
+enum EstimateStatus {
+  draft,
+  pendingApproval,
+  approved,
+  rejected,
+  active,
+  archived,
+}
+
+enum UserRole {
+  siteCoordinator,
+  estimator,
+  admin,
+  superadmin,
+  managingDirector,
+}
 
 class ProjectClientInfo {
   String projectId;
@@ -37,10 +52,18 @@ class ProjectClientInfo {
       clientName: json['clientName'] ?? '',
       clientContact: json['clientContact'] ?? '',
       projectType: json['projectType'] ?? 'Residential',
-      builtUpAreaSqFt: double.tryParse(json['builtUpArea']?.toString() ?? json['builtUpAreaSqFt']?.toString() ?? '0.0') ?? 0.0,
+      builtUpAreaSqFt:
+          double.tryParse(
+            json['builtUpArea']?.toString() ??
+                json['builtUpAreaSqFt']?.toString() ??
+                '0.0',
+          ) ??
+          0.0,
       floorPlanFileUrl: json['floorPlanFileUrl'],
       aiExtractedAreas: extracted,
-      createdAt: json['createdAt'] != null ? DateTime.parse(json['createdAt'].toString()) : DateTime.now(),
+      createdAt: json['createdAt'] != null
+          ? DateTime.parse(json['createdAt'].toString())
+          : DateTime.now(),
     );
   }
 
@@ -82,21 +105,37 @@ class MaterialRate {
   });
 
   factory MaterialRate.fromJson(Map<String, dynamic> json) {
-    String tierStr = (json['tier'] ?? json['selectedPackage'] ?? 'standard').toString().toLowerCase();
+    String tierStr = (json['tier'] ?? json['selectedPackage'] ?? 'standard')
+        .toString()
+        .toLowerCase();
     PackageTier tierVal = PackageTier.standard;
     if (tierStr == 'economy') tierVal = PackageTier.economy;
     if (tierStr == 'premium') tierVal = PackageTier.premium;
 
     return MaterialRate(
-      materialId: json['id']?.toString() ?? json['materialId']?.toString() ?? '',
+      materialId:
+          json['id']?.toString() ?? json['materialId']?.toString() ?? '',
       name: json['materialName'] ?? json['name'] ?? '',
       unit: json['unit'] ?? '',
-      baseRate: double.tryParse(json['currentRate']?.toString() ?? json['baseRate']?.toString() ?? json['rate']?.toString() ?? '0.0') ?? 0.0,
-      quantityRatioPerSqFt: double.tryParse(json['quantityRatioPerSqFt']?.toString() ?? '0.0') ?? 0.0,
+      baseRate:
+          double.tryParse(
+            json['currentRate']?.toString() ??
+                json['baseRate']?.toString() ??
+                json['rate']?.toString() ??
+                '0.0',
+          ) ??
+          0.0,
+      quantityRatioPerSqFt:
+          double.tryParse(json['quantityRatioPerSqFt']?.toString() ?? '0.0') ??
+          0.0,
       tier: tierVal,
       region: json['district'] ?? json['region'] ?? '',
-      previousRate: json['previousRate'] != null ? double.tryParse(json['previousRate'].toString()) : null,
-      lastUpdated: json['updatedAt'] != null ? DateTime.parse(json['updatedAt'].toString()) : DateTime.now(),
+      previousRate: json['previousRate'] != null
+          ? double.tryParse(json['previousRate'].toString())
+          : null,
+      lastUpdated: json['updatedAt'] != null
+          ? DateTime.parse(json['updatedAt'].toString())
+          : DateTime.now(),
     );
   }
 
@@ -163,7 +202,9 @@ class PhaseMilestone {
   int durationDays;
   double costTarget;
   DateTime? startDate;
-  DateTime? get endDate => startDate != null ? startDate!.add(Duration(days: durationDays)) : null; // Derived
+  DateTime? get endDate => startDate != null
+      ? startDate!.add(Duration(days: durationDays))
+      : null; // Derived
   double percentOfTotalBudget;
 
   PhaseMilestone({
@@ -179,10 +220,25 @@ class PhaseMilestone {
     return PhaseMilestone(
       phaseId: json['id']?.toString() ?? json['phaseId']?.toString() ?? '',
       name: json['phaseName'] ?? json['name'] ?? '',
-      durationDays: int.tryParse(json['estimatedDuration']?.toString() ?? '0') ?? 0,
-      costTarget: double.tryParse(json['estimatedCost']?.toString() ?? json['costTarget']?.toString() ?? '0.0') ?? 0.0,
-      startDate: json['startDate'] != null ? DateTime.tryParse(json['startDate'].toString()) : null,
-      percentOfTotalBudget: double.tryParse(json['percentOfTotalBudget']?.toString() ?? json['budgetAllocation']?.toString() ?? '0.0') ?? 0.0,
+      durationDays:
+          int.tryParse(json['estimatedDuration']?.toString() ?? '0') ?? 0,
+      costTarget:
+          double.tryParse(
+            json['estimatedCost']?.toString() ??
+                json['costTarget']?.toString() ??
+                '0.0',
+          ) ??
+          0.0,
+      startDate: json['startDate'] != null
+          ? DateTime.tryParse(json['startDate'].toString())
+          : null,
+      percentOfTotalBudget:
+          double.tryParse(
+            json['percentOfTotalBudget']?.toString() ??
+                json['budgetAllocation']?.toString() ??
+                '0.0',
+          ) ??
+          0.0,
     );
   }
 
@@ -219,9 +275,17 @@ class LabourEntry {
     return LabourEntry(
       labourId: json['id']?.toString() ?? json['labourId']?.toString() ?? '',
       trade: json['labourType'] ?? json['trade'] ?? '',
-      count: int.tryParse(json['requiredWorkers']?.toString() ?? json['count']?.toString() ?? '0') ?? 0,
-      dailyWage: double.tryParse(json['dailyWage']?.toString() ?? '850.0') ?? 850.0,
-      estimatedDays: int.tryParse(json['estimatedDays']?.toString() ?? '0') ?? 0,
+      count:
+          int.tryParse(
+            json['requiredWorkers']?.toString() ??
+                json['count']?.toString() ??
+                '0',
+          ) ??
+          0,
+      dailyWage:
+          double.tryParse(json['dailyWage']?.toString() ?? '850.0') ?? 850.0,
+      estimatedDays:
+          int.tryParse(json['estimatedDays']?.toString() ?? '0') ?? 0,
     );
   }
 
@@ -250,9 +314,23 @@ class ProfitMarginConfig {
 
   factory ProfitMarginConfig.fromJson(Map<String, dynamic> json) {
     return ProfitMarginConfig(
-      marginPercent: double.tryParse(json['profitMarginPercentage']?.toString() ?? json['marginPercent']?.toString() ?? '12.0') ?? 12.0,
-      overheadBufferPercent: double.tryParse(json['companyOverheadPercent']?.toString() ?? json['overheadBufferPercent']?.toString() ?? '5.0') ?? 5.0,
-      contingencyPercent: double.tryParse(json['contingencyPercent']?.toString() ?? '0.0') ?? 0.0,
+      marginPercent:
+          double.tryParse(
+            json['profitMarginPercentage']?.toString() ??
+                json['marginPercent']?.toString() ??
+                '12.0',
+          ) ??
+          12.0,
+      overheadBufferPercent:
+          double.tryParse(
+            json['companyOverheadPercent']?.toString() ??
+                json['overheadBufferPercent']?.toString() ??
+                '5.0',
+          ) ??
+          5.0,
+      contingencyPercent:
+          double.tryParse(json['contingencyPercent']?.toString() ?? '0.0') ??
+          0.0,
     );
   }
 
@@ -280,13 +358,20 @@ class Estimate {
   String? approvedByUserId;
 
   // Derived Calculations
-  double get materialCost => materials.fold(0.0, (s, m) => s + m.quantityRatioPerSqFt * clientInfo.builtUpAreaSqFt * m.baseRate);
+  double get materialCost => materials.fold(
+    0.0,
+    (s, m) =>
+        s + m.quantityRatioPerSqFt * clientInfo.builtUpAreaSqFt * m.baseRate,
+  );
   double get labourCost => labour.fold(0.0, (s, l) => s + l.totalCost);
   double get baseCost => materialCost + labourCost;
   double get overheadAmount => baseCost * margin.overheadBufferPercent / 100;
-  double get marginAmount => (baseCost + overheadAmount) * margin.marginPercent / 100;
+  double get marginAmount =>
+      (baseCost + overheadAmount) * margin.marginPercent / 100;
   double get totalCost => baseCost + overheadAmount + marginAmount;
-  double get costPerSqFt => clientInfo.builtUpAreaSqFt == 0.0 ? 0.0 : totalCost / clientInfo.builtUpAreaSqFt;
+  double get costPerSqFt => clientInfo.builtUpAreaSqFt == 0.0
+      ? 0.0
+      : totalCost / clientInfo.builtUpAreaSqFt;
 
   Estimate({
     required this.estimateId,
@@ -304,7 +389,9 @@ class Estimate {
   });
 
   factory Estimate.fromJson(Map<String, dynamic> json) {
-    String pkgStr = (json['selectedPackage'] ?? 'standard').toString().toLowerCase();
+    String pkgStr = (json['selectedPackage'] ?? 'standard')
+        .toString()
+        .toLowerCase();
     PackageTier pkg = PackageTier.standard;
     if (pkgStr == 'economy') pkg = PackageTier.economy;
     if (pkgStr == 'premium') pkg = PackageTier.premium;
@@ -318,25 +405,38 @@ class Estimate {
     if (statusStr.toLowerCase() == 'archived') status = EstimateStatus.archived;
 
     return Estimate(
-      estimateId: json['id']?.toString() ?? json['estimateId']?.toString() ?? '',
+      estimateId:
+          json['id']?.toString() ?? json['estimateId']?.toString() ?? '',
       clientInfo: ProjectClientInfo.fromJson(json),
       selectedPackage: pkg,
       materials: json['materials'] != null
-          ? (json['materials'] as List).map((x) => MaterialRate.fromJson(x)).toList()
+          ? (json['materials'] as List)
+                .map((x) => MaterialRate.fromJson(x))
+                .toList()
           : [],
       phases: json['phases'] != null
-          ? (json['phases'] as List).map((x) => PhaseMilestone.fromJson(x)).toList()
+          ? (json['phases'] as List)
+                .map((x) => PhaseMilestone.fromJson(x))
+                .toList()
           : [],
       boqItems: json['boq'] != null || json['boqItems'] != null
-          ? ((json['boq'] ?? json['boqItems']) as List).map((x) => BOQItem.fromJson(x)).toList()
+          ? ((json['boq'] ?? json['boqItems']) as List)
+                .map((x) => BOQItem.fromJson(x))
+                .toList()
           : [],
       labour: json['labours'] ?? json['labour'] != null
-          ? ((json['labours'] ?? json['labour']) as List).map((x) => LabourEntry.fromJson(x)).toList()
+          ? ((json['labours'] ?? json['labour']) as List)
+                .map((x) => LabourEntry.fromJson(x))
+                .toList()
           : [],
       margin: ProfitMarginConfig.fromJson(json),
       status: status,
-      createdAt: json['createdAt'] != null ? DateTime.parse(json['createdAt'].toString()) : DateTime.now(),
-      approvedAt: json['approvedAt'] != null ? DateTime.parse(json['approvedAt'].toString()) : null,
+      createdAt: json['createdAt'] != null
+          ? DateTime.parse(json['createdAt'].toString())
+          : DateTime.now(),
+      approvedAt: json['approvedAt'] != null
+          ? DateTime.parse(json['approvedAt'].toString())
+          : null,
       approvedByUserId: json['approvedByUserId']?.toString(),
     );
   }
@@ -373,7 +473,8 @@ class Estimate {
 }
 
 extension on ProjectClientInfo {
-  String get projectName => clientName.isNotEmpty ? '$clientName\'s Project' : 'Horizon Villa ECR';
+  String get projectName =>
+      clientName.isNotEmpty ? '$clientName\'s Project' : 'Horizon Villa ECR';
   String get unit => 'Square Feet';
 }
 
@@ -385,9 +486,13 @@ class ActiveProject {
   double actualSpentLabour;
   double actualSpentSiteExpenses;
 
-  double get actualTotal => actualSpentMaterials + actualSpentLabour + actualSpentSiteExpenses;
-  double get variance => estimatedBudget - actualTotal; // positive = under budget, negative = overrun
-  double get variancePercent => estimatedBudget == 0.0 ? 0.0 : (variance / estimatedBudget) * 100.0;
+  double get actualTotal =>
+      actualSpentMaterials + actualSpentLabour + actualSpentSiteExpenses;
+  double get variance =>
+      estimatedBudget -
+      actualTotal; // positive = under budget, negative = overrun
+  double get variancePercent =>
+      estimatedBudget == 0.0 ? 0.0 : (variance / estimatedBudget) * 100.0;
 
   ActiveProject({
     required this.projectId,
@@ -402,10 +507,34 @@ class ActiveProject {
     return ActiveProject(
       projectId: json['projectId']?.toString() ?? json['id']?.toString() ?? '',
       estimateId: json['estimateId']?.toString() ?? '',
-      estimatedBudget: double.tryParse(json['estimatedBudget']?.toString() ?? json['totalEstimatedCost']?.toString() ?? '0.0') ?? 0.0,
-      actualSpentMaterials: double.tryParse(json['actualSpentMaterials']?.toString() ?? json['actualMaterialCost']?.toString() ?? '0.0') ?? 0.0,
-      actualSpentLabour: double.tryParse(json['actualSpentLabour']?.toString() ?? json['actualLabourCost']?.toString() ?? '0.0') ?? 0.0,
-      actualSpentSiteExpenses: double.tryParse(json['actualSpentSiteExpenses']?.toString() ?? json['actualExpenses']?.toString() ?? '0.0') ?? 0.0,
+      estimatedBudget:
+          double.tryParse(
+            json['estimatedBudget']?.toString() ??
+                json['totalEstimatedCost']?.toString() ??
+                '0.0',
+          ) ??
+          0.0,
+      actualSpentMaterials:
+          double.tryParse(
+            json['actualSpentMaterials']?.toString() ??
+                json['actualMaterialCost']?.toString() ??
+                '0.0',
+          ) ??
+          0.0,
+      actualSpentLabour:
+          double.tryParse(
+            json['actualSpentLabour']?.toString() ??
+                json['actualLabourCost']?.toString() ??
+                '0.0',
+          ) ??
+          0.0,
+      actualSpentSiteExpenses:
+          double.tryParse(
+            json['actualSpentSiteExpenses']?.toString() ??
+                json['actualExpenses']?.toString() ??
+                '0.0',
+          ) ??
+          0.0,
     );
   }
 
@@ -442,13 +571,30 @@ class EstimationEngineSettings {
 
   factory EstimationEngineSettings.fromJson(Map<String, dynamic> json) {
     return EstimationEngineSettings(
-      economyRatePerSqFt: double.tryParse(json['economyRate']?.toString() ?? '2200.0') ?? 2200.0,
-      standardRatePerSqFt: double.tryParse(json['standardRate']?.toString() ?? '2500.0') ?? 2500.0,
-      premiumRatePerSqFt: double.tryParse(json['premiumRate']?.toString() ?? '2800.0') ?? 2800.0,
-      defaultMarginPercent: double.tryParse(json['profitMarginPercentage']?.toString() ?? '15.0') ?? 15.0,
-      defaultOverheadPercent: double.tryParse(json['companyOverheadPercent']?.toString() ?? '5.0') ?? 5.0,
-      lastModified: json['updatedAt'] != null ? DateTime.parse(json['updatedAt'].toString()) : DateTime.now(),
-      lastModifiedByUserId: json['lastModifiedByUserId']?.toString() ?? 'System',
+      economyRatePerSqFt:
+          double.tryParse(json['economyRate']?.toString() ?? '2200.0') ??
+          2200.0,
+      standardRatePerSqFt:
+          double.tryParse(json['standardRate']?.toString() ?? '2500.0') ??
+          2500.0,
+      premiumRatePerSqFt:
+          double.tryParse(json['premiumRate']?.toString() ?? '2800.0') ??
+          2800.0,
+      defaultMarginPercent:
+          double.tryParse(
+            json['profitMarginPercentage']?.toString() ?? '15.0',
+          ) ??
+          15.0,
+      defaultOverheadPercent:
+          double.tryParse(
+            json['companyOverheadPercent']?.toString() ?? '5.0',
+          ) ??
+          5.0,
+      lastModified: json['updatedAt'] != null
+          ? DateTime.parse(json['updatedAt'].toString())
+          : DateTime.now(),
+      lastModifiedByUserId:
+          json['lastModifiedByUserId']?.toString() ?? 'System',
     );
   }
 

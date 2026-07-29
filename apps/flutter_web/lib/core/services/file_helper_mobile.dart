@@ -17,9 +17,7 @@ class PickedFileResult {
 
 Future<PickedFileResult?> pickDrawingFile() async {
   try {
-    final result = await FilePicker.pickFiles(
-      type: FileType.any,
-    );
+    final result = await FilePicker.pickFiles(type: FileType.any);
     if (result != null && result.files.isNotEmpty) {
       final file = result.files.first;
       final bytes = file.bytes ?? io.File(file.path!).readAsBytesSync();

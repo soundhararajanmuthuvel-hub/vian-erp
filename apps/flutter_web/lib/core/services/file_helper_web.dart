@@ -36,12 +36,12 @@ Future<PickedFileResult?> pickDrawingFile() async {
     final file = files[0];
     final reader = html.FileReader();
     reader.readAsArrayBuffer(file);
-    
+
     reader.onLoadEnd.listen((e) {
       final bytes = reader.result as List<int>;
       completer.complete(PickedFileResult(file.name, bytes));
     });
-    
+
     reader.onError.listen((e) {
       completer.complete(null);
     });

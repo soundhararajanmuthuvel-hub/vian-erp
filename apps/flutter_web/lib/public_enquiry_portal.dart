@@ -13,10 +13,12 @@ import 'package:file_picker/file_picker.dart';
 
 class PublicEnquiryPortalPage extends StatefulWidget {
   final String token;
-  const PublicEnquiryPortalPage({Key? key, required this.token}) : super(key: key);
+  const PublicEnquiryPortalPage({Key? key, required this.token})
+    : super(key: key);
 
   @override
-  State<PublicEnquiryPortalPage> createState() => _PublicEnquiryPortalPageState();
+  State<PublicEnquiryPortalPage> createState() =>
+      _PublicEnquiryPortalPageState();
 }
 
 class _PublicEnquiryPortalPageState extends State<PublicEnquiryPortalPage> {
@@ -35,7 +37,9 @@ class _PublicEnquiryPortalPageState extends State<PublicEnquiryPortalPage> {
   final _emailCtrl = TextEditingController();
   final _occupationCtrl = TextEditingController();
   final _preferredContactTimeCtrl = TextEditingController();
-  final _dateCtrl = TextEditingController(text: DateTime.now().toString().split(' ').first);
+  final _dateCtrl = TextEditingController(
+    text: DateTime.now().toString().split(' ').first,
+  );
 
   // Section 2: Site Details
   final _siteAddressCtrl = TextEditingController();
@@ -200,10 +204,13 @@ class _PublicEnquiryPortalPageState extends State<PublicEnquiryPortalPage> {
     _stateCtrl.text = draft['state'] ?? 'Tamil Nadu';
     _pincodeCtrl.text = draft['pincode'] ?? '';
     _selectedSiteFacing = draft['siteFacing'];
-    
-    if (draft['buildingType'] != null && (draft['buildingType'] as String).isNotEmpty) {
+
+    if (draft['buildingType'] != null &&
+        (draft['buildingType'] as String).isNotEmpty) {
       _selectedBuildingTypes.clear();
-      _selectedBuildingTypes.addAll((draft['buildingType'] as String).split(', '));
+      _selectedBuildingTypes.addAll(
+        (draft['buildingType'] as String).split(', '),
+      );
     }
     _selectedLocalAuthority = draft['localAuthority'];
     _roadWidthCtrl.text = draft['roadWidth'] ?? '';
@@ -211,12 +218,16 @@ class _PublicEnquiryPortalPageState extends State<PublicEnquiryPortalPage> {
     _mainRoadWidthCtrl.text = draft['mainRoadWidth'] ?? '';
     _connectingRoadWidthCtrl.text = draft['connectingRoadWidth'] ?? '';
 
-    if (draft['siteCondition'] != null && (draft['siteCondition'] as String).isNotEmpty) {
+    if (draft['siteCondition'] != null &&
+        (draft['siteCondition'] as String).isNotEmpty) {
       _selectedSiteConditions.clear();
-      _selectedSiteConditions.addAll((draft['siteCondition'] as String).split(', '));
+      _selectedSiteConditions.addAll(
+        (draft['siteCondition'] as String).split(', '),
+      );
     }
     _siteConditionOtherCtrl.text = draft['siteConditionOther'] ?? '';
-    if (draft['waterCondition'] != null && (draft['waterCondition'] as String).isNotEmpty) {
+    if (draft['waterCondition'] != null &&
+        (draft['waterCondition'] as String).isNotEmpty) {
       _waterCondition.clear();
       _waterCondition.addAll((draft['waterCondition'] as String).split(', '));
     }
@@ -261,11 +272,15 @@ class _PublicEnquiryPortalPageState extends State<PublicEnquiryPortalPage> {
 
     if (draft['attachments'] != null) {
       _attachmentsList.clear();
-      _attachmentsList.addAll(List<Map<String, dynamic>>.from(draft['attachments']));
+      _attachmentsList.addAll(
+        List<Map<String, dynamic>>.from(draft['attachments']),
+      );
     }
     if (draft['conceptualIdeas'] != null) {
       _conceptualIdeasFiles.clear();
-      _conceptualIdeasFiles.addAll(List<Map<String, dynamic>>.from(draft['conceptualIdeas']));
+      _conceptualIdeasFiles.addAll(
+        List<Map<String, dynamic>>.from(draft['conceptualIdeas']),
+      );
     }
     if (draft['siteLayout'] != null) {
       _siteLayoutFile = Map<String, dynamic>.from(draft['siteLayout']);
@@ -339,7 +354,7 @@ class _PublicEnquiryPortalPageState extends State<PublicEnquiryPortalPage> {
       'confirmCheckbox': _confirmCheckbox,
       'attachments': _attachmentsList,
       'conceptualIdeas': _conceptualIdeasFiles,
-      'siteLayout': _siteLayoutFile
+      'siteLayout': _siteLayoutFile,
     };
   }
 
@@ -358,7 +373,7 @@ class _PublicEnquiryPortalPageState extends State<PublicEnquiryPortalPage> {
     final file = result.files.first;
     if (file.size > 25 * 1024 * 1024) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('File exceeds 25 MB size limit.'))
+        const SnackBar(content: Text('File exceeds 25 MB size limit.')),
       );
       return;
     }
@@ -373,7 +388,7 @@ class _PublicEnquiryPortalPageState extends State<PublicEnquiryPortalPage> {
           'fileName': file.name,
           'fileUrl': res['fileUrl'],
           'fileSize': file.size,
-          'fileType': category
+          'fileType': category,
         };
 
         if (category == 'Layout') {
@@ -391,15 +406,23 @@ class _PublicEnquiryPortalPageState extends State<PublicEnquiryPortalPage> {
   }
 
   Future<void> _submitForm() async {
-    if (_clientNameCtrl.text.isEmpty || _mobileCtrl.text.isEmpty || _siteAddressCtrl.text.isEmpty) {
+    if (_clientNameCtrl.text.isEmpty ||
+        _mobileCtrl.text.isEmpty ||
+        _siteAddressCtrl.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill out all required fields (*).'))
+        const SnackBar(
+          content: Text('Please fill out all required fields (*).'),
+        ),
       );
       return;
     }
     if (!_confirmCheckbox || _confirmNameCtrl.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please review electronic signature and check "I Agree".'))
+        const SnackBar(
+          content: Text(
+            'Please review electronic signature and check "I Agree".',
+          ),
+        ),
       );
       return;
     }
@@ -413,7 +436,7 @@ class _PublicEnquiryPortalPageState extends State<PublicEnquiryPortalPage> {
       setState(() {
         _loading = false;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Submission failed: ${res['message']}'))
+          SnackBar(content: Text('Submission failed: ${res['message']}')),
         );
       });
     }
@@ -437,7 +460,8 @@ class _PublicEnquiryPortalPageState extends State<PublicEnquiryPortalPage> {
     Future.delayed(const Duration(seconds: 3), () {
       setState(() {
         _isDictating = false;
-        _notesCtrl.text += ' (Dictated: Premium glassmorphism design layouts with double floor height in living areas required.)';
+        _notesCtrl.text +=
+            ' (Dictated: Premium glassmorphism design layouts with double floor height in living areas required.)';
       });
       _triggerAutosave();
     });
@@ -448,7 +472,9 @@ class _PublicEnquiryPortalPageState extends State<PublicEnquiryPortalPage> {
     if (_loading) {
       return const Scaffold(
         backgroundColor: Color(0xFF0F0F0F),
-        body: Center(child: CircularProgressIndicator(color: VianTheme.primaryGold)),
+        body: Center(
+          child: CircularProgressIndicator(color: VianTheme.primaryGold),
+        ),
       );
     }
 
@@ -459,9 +485,16 @@ class _PublicEnquiryPortalPageState extends State<PublicEnquiryPortalPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.error_outline, size: 64, color: VianTheme.danger),
+              const Icon(
+                Icons.error_outline,
+                size: 64,
+                color: VianTheme.danger,
+              ),
               const SizedBox(height: 16),
-              Text(_errorMessage!, style: const TextStyle(fontSize: 18, color: Colors.white)),
+              Text(
+                _errorMessage!,
+                style: const TextStyle(fontSize: 18, color: Colors.white),
+              ),
             ],
           ),
         ),
@@ -481,14 +514,20 @@ class _PublicEnquiryPortalPageState extends State<PublicEnquiryPortalPage> {
               padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 24),
               decoration: const BoxDecoration(
                 color: Color(0xFF1E1E26),
-                border: Border(bottom: BorderSide(color: VianTheme.primaryGold, width: 2)),
+                border: Border(
+                  bottom: BorderSide(color: VianTheme.primaryGold, width: 2),
+                ),
               ),
               child: Center(
                 child: Container(
                   constraints: const BoxConstraints(maxWidth: 800),
                   child: Column(
                     children: [
-                      const Icon(Icons.architecture, size: 56, color: VianTheme.primaryGold),
+                      const Icon(
+                        Icons.architecture,
+                        size: 56,
+                        color: VianTheme.primaryGold,
+                      ),
                       const SizedBox(height: 12),
                       Text(
                         'VIAN ARCHITECTS',
@@ -496,19 +535,26 @@ class _PublicEnquiryPortalPageState extends State<PublicEnquiryPortalPage> {
                           fontSize: 28,
                           fontWeight: FontWeight.bold,
                           color: VianTheme.primaryGold,
-                          letterSpacing: 2.5
+                          letterSpacing: 2.5,
                         ),
                       ),
                       const SizedBox(height: 8),
                       const Text(
                         'NEW CLIENT ENQUIRY FORM',
-                        style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
                       ),
                       const SizedBox(height: 8),
                       Text(
                         'Welcome to VIAN Architects & Interior Designers. Estimated Time: $_estTime',
                         textAlign: TextAlign.center,
-                        style: const TextStyle(color: VianTheme.lightText, fontSize: 13),
+                        style: const TextStyle(
+                          color: VianTheme.lightText,
+                          fontSize: 13,
+                        ),
                       ),
                     ],
                   ),
@@ -519,7 +565,9 @@ class _PublicEnquiryPortalPageState extends State<PublicEnquiryPortalPage> {
             LinearProgressIndicator(
               value: progress,
               backgroundColor: const Color(0xFF1E1E26),
-              valueColor: const AlwaysStoppedAnimation<Color>(VianTheme.primaryGold),
+              valueColor: const AlwaysStoppedAnimation<Color>(
+                VianTheme.primaryGold,
+              ),
               minHeight: 6,
             ),
 
@@ -533,60 +581,119 @@ class _PublicEnquiryPortalPageState extends State<PublicEnquiryPortalPage> {
                       // Section 1: Client Information
                       _buildSectionCard('Section 1: Client Information', [
                         _buildTextField('Client Name *', _clientNameCtrl),
-                        _buildTextField('Contact Number *', _mobileCtrl, keyboardType: TextInputType.phone),
-                        _buildTextField('WhatsApp Number', _whatsappCtrl, keyboardType: TextInputType.phone),
-                        _buildTextField('Email Address', _emailCtrl, keyboardType: TextInputType.emailAddress),
+                        _buildTextField(
+                          'Contact Number *',
+                          _mobileCtrl,
+                          keyboardType: TextInputType.phone,
+                        ),
+                        _buildTextField(
+                          'WhatsApp Number',
+                          _whatsappCtrl,
+                          keyboardType: TextInputType.phone,
+                        ),
+                        _buildTextField(
+                          'Email Address',
+                          _emailCtrl,
+                          keyboardType: TextInputType.emailAddress,
+                        ),
                         _buildTextField('Occupation', _occupationCtrl),
-                        _buildTextField('Preferred Contact Time', _preferredContactTimeCtrl),
-                        _buildTextField('Submission Date (Auto Filled)', _dateCtrl, readOnly: true),
+                        _buildTextField(
+                          'Preferred Contact Time',
+                          _preferredContactTimeCtrl,
+                        ),
+                        _buildTextField(
+                          'Submission Date (Auto Filled)',
+                          _dateCtrl,
+                          readOnly: true,
+                        ),
                       ]),
 
                       // Section 2: Site Details
                       _buildSectionCard('Section 2: Site Details', [
-                        _buildTextField('Site Address *', _siteAddressCtrl, maxLines: 2),
+                        _buildTextField(
+                          'Site Address *',
+                          _siteAddressCtrl,
+                          maxLines: 2,
+                        ),
                         _buildTextField('Near Landmark', _landmarkCtrl),
                         Row(
                           children: [
-                            Expanded(child: _buildTextField('Latitude', _latCtrl)),
+                            Expanded(
+                              child: _buildTextField('Latitude', _latCtrl),
+                            ),
                             const SizedBox(width: 16),
-                            Expanded(child: _buildTextField('Longitude', _lngCtrl)),
+                            Expanded(
+                              child: _buildTextField('Longitude', _lngCtrl),
+                            ),
                           ],
                         ),
                         Row(
                           children: [
-                            Expanded(child: _buildTextField('Village / City', _villageCtrl)),
+                            Expanded(
+                              child: _buildTextField(
+                                'Village / City',
+                                _villageCtrl,
+                              ),
+                            ),
                             const SizedBox(width: 16),
-                            Expanded(child: _buildTextField('Taluk', _talukCtrl)),
+                            Expanded(
+                              child: _buildTextField('Taluk', _talukCtrl),
+                            ),
                           ],
                         ),
                         Row(
                           children: [
-                            Expanded(child: _buildTextField('District', _districtCtrl)),
+                            Expanded(
+                              child: _buildTextField('District', _districtCtrl),
+                            ),
                             const SizedBox(width: 16),
-                            Expanded(child: _buildTextField('State', _stateCtrl)),
+                            Expanded(
+                              child: _buildTextField('State', _stateCtrl),
+                            ),
                             const SizedBox(width: 16),
-                            Expanded(child: _buildTextField('Pincode', _pincodeCtrl)),
+                            Expanded(
+                              child: _buildTextField('Pincode', _pincodeCtrl),
+                            ),
                           ],
                         ),
                       ]),
 
                       // Site Facing Compass
                       _buildSectionCard('Site Facing (Compass Direction)', [
-                        const Text('Select property frontage facing:', style: TextStyle(color: VianTheme.lightText, fontSize: 13)),
+                        const Text(
+                          'Select property frontage facing:',
+                          style: TextStyle(
+                            color: VianTheme.lightText,
+                            fontSize: 13,
+                          ),
+                        ),
                         const SizedBox(height: 12),
                         Wrap(
                           spacing: 12,
                           runSpacing: 12,
-                          children: ['North', 'South', 'East', 'West', 'North East', 'North West', 'South East', 'South West'].map((face) {
-                            final sel = _selectedSiteFacing == face;
-                            return ChoiceChip(
-                              label: Text(face),
-                              selected: sel,
-                              onSelected: (val) {
-                                if (val) setState(() => _selectedSiteFacing = face);
-                              },
-                            );
-                          }).toList(),
+                          children:
+                              [
+                                'North',
+                                'South',
+                                'East',
+                                'West',
+                                'North East',
+                                'North West',
+                                'South East',
+                                'South West',
+                              ].map((face) {
+                                final sel = _selectedSiteFacing == face;
+                                return ChoiceChip(
+                                  label: Text(face),
+                                  selected: sel,
+                                  onSelected: (val) {
+                                    if (val)
+                                      setState(
+                                        () => _selectedSiteFacing = face,
+                                      );
+                                  },
+                                );
+                              }).toList(),
                         ),
                       ]),
 
@@ -596,55 +703,97 @@ class _PublicEnquiryPortalPageState extends State<PublicEnquiryPortalPage> {
                           spacing: 12,
                           runSpacing: 12,
                           children: [
-                            _buildSelectionCard('🏠 Residential', 'Residential'),
+                            _buildSelectionCard(
+                              '🏠 Residential',
+                              'Residential',
+                            ),
                             _buildSelectionCard('🏢 Commercial', 'Commercial'),
-                            _buildSelectionCard('🏗 New Building', 'New Building'),
+                            _buildSelectionCard(
+                              '🏗 New Building',
+                              'New Building',
+                            ),
                             _buildSelectionCard('🔨 Renovation', 'Renovation'),
-                            _buildSelectionCard('🏚 Built After Demolition', 'Built After Demolition'),
+                            _buildSelectionCard(
+                              '🏚 Built After Demolition',
+                              'Built After Demolition',
+                            ),
                           ],
                         ),
                       ]),
 
                       // Section 4: Local Authority
                       _buildSectionCard('Section 4: Local Authority', [
-                        _buildDropdown('Local Authority', ['Panchayat', 'Taluk', 'Municipality', 'Corporation'], _selectedLocalAuthority, (val) {
-                          setState(() => _selectedLocalAuthority = val);
-                        }),
+                        _buildDropdown(
+                          'Local Authority',
+                          ['Panchayat', 'Taluk', 'Municipality', 'Corporation'],
+                          _selectedLocalAuthority,
+                          (val) {
+                            setState(() => _selectedLocalAuthority = val);
+                          },
+                        ),
                       ]),
 
                       // Section 5: Road Details
                       _buildSectionCard('Section 5: Road Width & Details', [
-                        _buildTextField('Road Width (Feet)', _roadWidthCtrl, keyboardType: TextInputType.number),
-                        _buildTextField('Front Road Width (Feet)', _frontRoadWidthCtrl, keyboardType: TextInputType.number),
-                        _buildTextField('Main Road Width (Feet)', _mainRoadWidthCtrl, keyboardType: TextInputType.number),
-                        _buildTextField('Connecting Road Width (Feet)', _connectingRoadWidthCtrl, keyboardType: TextInputType.number),
+                        _buildTextField(
+                          'Road Width (Feet)',
+                          _roadWidthCtrl,
+                          keyboardType: TextInputType.number,
+                        ),
+                        _buildTextField(
+                          'Front Road Width (Feet)',
+                          _frontRoadWidthCtrl,
+                          keyboardType: TextInputType.number,
+                        ),
+                        _buildTextField(
+                          'Main Road Width (Feet)',
+                          _mainRoadWidthCtrl,
+                          keyboardType: TextInputType.number,
+                        ),
+                        _buildTextField(
+                          'Connecting Road Width (Feet)',
+                          _connectingRoadWidthCtrl,
+                          keyboardType: TextInputType.number,
+                        ),
                       ]),
 
                       // Section 6: Site Soil Condition
                       _buildSectionCard('Section 6: Site Condition', [
                         Wrap(
                           spacing: 8,
-                          children: ['Clay', 'Sand', 'Farm Land', 'Rock', 'Filled Land', 'Other'].map((cond) {
-                            final selected = _selectedSiteConditions.contains(cond);
-                            return FilterChip(
-                              selected: selected,
-                              label: Text(cond),
-                              onSelected: (val) {
-                                setState(() {
-                                  if (val) {
-                                    _selectedSiteConditions.add(cond);
-                                  } else {
-                                    _selectedSiteConditions.remove(cond);
-                                  }
-                                });
-                              },
-                            );
-                          }).toList(),
+                          children:
+                              [
+                                'Clay',
+                                'Sand',
+                                'Farm Land',
+                                'Rock',
+                                'Filled Land',
+                                'Other',
+                              ].map((cond) {
+                                final selected = _selectedSiteConditions
+                                    .contains(cond);
+                                return FilterChip(
+                                  selected: selected,
+                                  label: Text(cond),
+                                  onSelected: (val) {
+                                    setState(() {
+                                      if (val) {
+                                        _selectedSiteConditions.add(cond);
+                                      } else {
+                                        _selectedSiteConditions.remove(cond);
+                                      }
+                                    });
+                                  },
+                                );
+                              }).toList(),
                         ),
                         if (_selectedSiteConditions.contains('Other')) ...[
                           const SizedBox(height: 12),
-                          _buildTextField('If Other (Please describe)', _siteConditionOtherCtrl),
-                        ]
+                          _buildTextField(
+                            'If Other (Please describe)',
+                            _siteConditionOtherCtrl,
+                          ),
+                        ],
                       ]),
 
                       // Section 7: Water Condition
@@ -678,7 +827,8 @@ class _PublicEnquiryPortalPageState extends State<PublicEnquiryPortalPage> {
                           children: [
                             Checkbox(
                               value: _boreAvailable,
-                              onChanged: (val) => setState(() => _boreAvailable = val ?? false),
+                              onChanged: (val) =>
+                                  setState(() => _boreAvailable = val ?? false),
                             ),
                             const Text('Borewell Available'),
                           ],
@@ -686,9 +836,21 @@ class _PublicEnquiryPortalPageState extends State<PublicEnquiryPortalPage> {
                         if (_boreAvailable) ...[
                           Row(
                             children: [
-                              Expanded(child: _buildTextField('Bore Depth (Feet)', _boreDepthCtrl, keyboardType: TextInputType.number)),
+                              Expanded(
+                                child: _buildTextField(
+                                  'Bore Depth (Feet)',
+                                  _boreDepthCtrl,
+                                  keyboardType: TextInputType.number,
+                                ),
+                              ),
                               const SizedBox(width: 16),
-                              Expanded(child: _buildTextField('Water Level (Feet)', _waterLevelCtrl, keyboardType: TextInputType.number)),
+                              Expanded(
+                                child: _buildTextField(
+                                  'Water Level (Feet)',
+                                  _waterLevelCtrl,
+                                  keyboardType: TextInputType.number,
+                                ),
+                              ),
                             ],
                           ),
                         ],
@@ -698,18 +860,32 @@ class _PublicEnquiryPortalPageState extends State<PublicEnquiryPortalPage> {
 
                       // Section 8: EB Connection
                       _buildSectionCard('Section 8: EB Connection', [
-                        _buildRadioGroup('Connection Type', ['New', 'Existing'], _electricityConnection, (val) {
-                          setState(() => _electricityConnection = val);
-                        }),
-                        _buildTextField('EB Pole Distance (Meters)', _ebDistanceCtrl, keyboardType: TextInputType.number),
+                        _buildRadioGroup(
+                          'Connection Type',
+                          ['New', 'Existing'],
+                          _electricityConnection,
+                          (val) {
+                            setState(() => _electricityConnection = val);
+                          },
+                        ),
+                        _buildTextField(
+                          'EB Pole Distance (Meters)',
+                          _ebDistanceCtrl,
+                          keyboardType: TextInputType.number,
+                        ),
                         _buildTextField('Remarks', _ebRemarksCtrl),
                       ]),
 
                       // Section 9: Drainage
                       _buildSectionCard('Section 9: Drainage', [
-                        _buildRadioGroup('Type', ['Government', 'Septic Tank', 'Manual', 'Bio Septic'], _drainageType, (val) {
-                          setState(() => _drainageType = val);
-                        }),
+                        _buildRadioGroup(
+                          'Type',
+                          ['Government', 'Septic Tank', 'Manual', 'Bio Septic'],
+                          _drainageType,
+                          (val) {
+                            setState(() => _drainageType = val);
+                          },
+                        ),
                         _buildTextField('Remarks', _drainageRemarksCtrl),
                       ]),
 
@@ -718,40 +894,66 @@ class _PublicEnquiryPortalPageState extends State<PublicEnquiryPortalPage> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text('Sump Needed?', style: TextStyle(fontWeight: FontWeight.bold)),
+                            const Text(
+                              'Sump Needed?',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
                             Switch(
                               value: _undergroundSump,
-                              onChanged: (val) => setState(() => _undergroundSump = val),
+                              onChanged: (val) =>
+                                  setState(() => _undergroundSump = val),
                             ),
                           ],
                         ),
                         if (_undergroundSump) ...[
-                          _buildTextField('Capacity (Liters)', _sumpCapacityCtrl, keyboardType: TextInputType.number),
+                          _buildTextField(
+                            'Capacity (Liters)',
+                            _sumpCapacityCtrl,
+                            keyboardType: TextInputType.number,
+                          ),
                         ],
                         _buildTextField('Remarks', _sumpRemarksCtrl),
                       ]),
 
                       // Section 11: Road to Plinth Level
                       _buildSectionCard('Section 11: Road to Plinth Level', [
-                        _buildDropdown('Height', ['1.6 ft', '2.0 ft', '2.6 ft', '3.0 ft', '3.6 ft'], _roadToPlinth, (val) {
-                          setState(() => _roadToPlinth = val);
-                        }),
+                        _buildDropdown(
+                          'Height',
+                          ['1.6 ft', '2.0 ft', '2.6 ft', '3.0 ft', '3.6 ft'],
+                          _roadToPlinth,
+                          (val) {
+                            setState(() => _roadToPlinth = val);
+                          },
+                        ),
                         _buildTextField('Remarks', _roadToPlinthRemarksCtrl),
                       ]),
 
                       // Section 12: Site Level from Road
                       _buildSectionCard('Section 12: Site Level from Road', [
-                        _buildDropdown('Offset', ['6"', '1\'-0"', '1\'-6"', '2\'-0"', '2\'-6"'], _siteLevel, (val) {
-                          setState(() => _siteLevel = val);
-                        }),
+                        _buildDropdown(
+                          'Offset',
+                          ['6"', '1\'-0"', '1\'-6"', '2\'-0"', '2\'-6"'],
+                          _siteLevel,
+                          (val) {
+                            setState(() => _siteLevel = val);
+                          },
+                        ),
                         _buildTextField('Remarks', _siteLevelRemarksCtrl),
                       ]),
 
                       // Section 13: Parking
                       _buildSectionCard('Section 13: Parking Requirements', [
-                        _buildStepper('Cars slots', _parkingCars, (val) => setState(() => _parkingCars = val)),
+                        _buildStepper(
+                          'Cars slots',
+                          _parkingCars,
+                          (val) => setState(() => _parkingCars = val),
+                        ),
                         const SizedBox(height: 16),
-                        _buildStepper('Bikes slots', _parkingBikes, (val) => setState(() => _parkingBikes = val)),
+                        _buildStepper(
+                          'Bikes slots',
+                          _parkingBikes,
+                          (val) => setState(() => _parkingBikes = val),
+                        ),
                         const SizedBox(height: 12),
                         _buildTextField('Remarks', _parkingRemarksCtrl),
                       ]),
@@ -760,53 +962,113 @@ class _PublicEnquiryPortalPageState extends State<PublicEnquiryPortalPage> {
                       _buildSectionCard('Section 14: Water Tank', [
                         Wrap(
                           spacing: 12,
-                          children: ['500', '750', '1000', '1500', '2000', 'Custom'].map((cap) {
-                            final sel = _waterTankCapacity == cap;
-                            return ChoiceChip(
-                              label: Text(cap),
-                              selected: sel,
-                              onSelected: (val) {
-                                if (val) setState(() => _waterTankCapacity = cap);
-                              },
-                            );
-                          }).toList(),
+                          children:
+                              [
+                                '500',
+                                '750',
+                                '1000',
+                                '1500',
+                                '2000',
+                                'Custom',
+                              ].map((cap) {
+                                final sel = _waterTankCapacity == cap;
+                                return ChoiceChip(
+                                  label: Text(cap),
+                                  selected: sel,
+                                  onSelected: (val) {
+                                    if (val)
+                                      setState(() => _waterTankCapacity = cap);
+                                  },
+                                );
+                              }).toList(),
                         ),
                         if (_waterTankCapacity == 'Custom') ...[
                           const SizedBox(height: 12),
-                          _buildTextField('Custom Capacity', _customWaterTankCtrl),
-                        ]
+                          _buildTextField(
+                            'Custom Capacity',
+                            _customWaterTankCtrl,
+                          ),
+                        ],
                       ]),
 
                       // Section 15: Purpose of Building
                       _buildSectionCard('Section 15: Purpose of Building', [
-                        _buildRadioGroup('Purpose', ['Personal', 'Rental', 'Both'], _buildingPurpose, (val) {
-                          setState(() => _buildingPurpose = val);
-                        }),
+                        _buildRadioGroup(
+                          'Purpose',
+                          ['Personal', 'Rental', 'Both'],
+                          _buildingPurpose,
+                          (val) {
+                            setState(() => _buildingPurpose = val);
+                          },
+                        ),
                       ]),
 
                       // Section 16: Staircase
                       _buildSectionCard('Section 16: Staircase', [
-                        _buildRadioGroup('Staircase Type', ['Internal', 'External', 'Concrete', 'Steel', 'Floating Stair', 'Spiral Stair'], _staircaseDesign, (val) {
-                          setState(() => _staircaseDesign = val);
-                        }),
+                        _buildRadioGroup(
+                          'Staircase Type',
+                          [
+                            'Internal',
+                            'External',
+                            'Concrete',
+                            'Steel',
+                            'Floating Stair',
+                            'Spiral Stair',
+                          ],
+                          _staircaseDesign,
+                          (val) {
+                            setState(() => _staircaseDesign = val);
+                          },
+                        ),
                       ]),
 
                       // Section 17: Terrace Access
                       _buildSectionCard('Section 17: Terrace Access', [
-                        _buildRadioGroup('Access Type', ['Concrete Staircase', 'Steel Staircase', 'Other'], _terraceAccess, (val) {
-                          setState(() => _terraceAccess = val);
-                        }),
+                        _buildRadioGroup(
+                          'Access Type',
+                          ['Concrete Staircase', 'Steel Staircase', 'Other'],
+                          _terraceAccess,
+                          (val) {
+                            setState(() => _terraceAccess = val);
+                          },
+                        ),
                         _buildTextField('Remarks', _terraceRemarksCtrl),
                       ]),
 
                       // Section 18: Existing Site Context
                       _buildSectionCard('Section 18: Existing Site Context', [
-                        const Text('Describe property boundary neighbors:', style: TextStyle(color: VianTheme.lightText, fontSize: 13)),
+                        const Text(
+                          'Describe property boundary neighbors:',
+                          style: TextStyle(
+                            color: VianTheme.lightText,
+                            fontSize: 13,
+                          ),
+                        ),
                         const SizedBox(height: 16),
-                        _buildContextCard('North Neighbor', _contextNorth, (val) => setState(() => _contextNorth = val), _contextNorthRemarksCtrl),
-                        _buildContextCard('South Neighbor', _contextSouth, (val) => setState(() => _contextSouth = val), _contextSouthRemarksCtrl),
-                        _buildContextCard('East Neighbor', _contextEast, (val) => setState(() => _contextEast = val), _contextEastRemarksCtrl),
-                        _buildContextCard('West Neighbor', _contextWest, (val) => setState(() => _contextWest = val), _contextWestRemarksCtrl),
+                        _buildContextCard(
+                          'North Neighbor',
+                          _contextNorth,
+                          (val) => setState(() => _contextNorth = val),
+                          _contextNorthRemarksCtrl,
+                        ),
+                        _buildContextCard(
+                          'South Neighbor',
+                          _contextSouth,
+                          (val) => setState(() => _contextSouth = val),
+                          _contextSouthRemarksCtrl,
+                        ),
+                        _buildContextCard(
+                          'East Neighbor',
+                          _contextEast,
+                          (val) => setState(() => _contextEast = val),
+                          _contextEastRemarksCtrl,
+                        ),
+                        _buildContextCard(
+                          'West Neighbor',
+                          _contextWest,
+                          (val) => setState(() => _contextWest = val),
+                          _contextWestRemarksCtrl,
+                        ),
                       ]),
 
                       // Section 19: Client Requirements
@@ -815,84 +1077,158 @@ class _PublicEnquiryPortalPageState extends State<PublicEnquiryPortalPage> {
                           'Floor layout room requirements spec',
                           _requirementsCtrl,
                           maxLines: 10,
-                          hintText: 'Example:\nGround Floor: 2 BHK, Pooja, Sitout\nFirst Floor: 2 Bedrooms, Gym, Home Theatre, Swimming Pool\nSpecial Requirements: Smart home integration, floating stairs',
+                          hintText:
+                              'Example:\nGround Floor: 2 BHK, Pooja, Sitout\nFirst Floor: 2 Bedrooms, Gym, Home Theatre, Swimming Pool\nSpecial Requirements: Smart home integration, floating stairs',
                         ),
                       ]),
 
                       // Section 20: Site Layout Upload & Custom Scale/Rotate Preview
-                      _buildSectionCard('Section 20: Site Layout Document (Max 25MB)', [
-                        if (_siteLayoutFile != null) ...[
-                          Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(color: const Color(0xFF1E1E26), borderRadius: BorderRadius.circular(12)),
-                            child: Column(
-                              children: [
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Expanded(child: Text(_siteLayoutFile!['fileName'], style: const TextStyle(fontWeight: FontWeight.bold))),
-                                    Row(
-                                      children: [
-                                        IconButton(
-                                          icon: const Icon(Icons.zoom_in, color: VianTheme.primaryGold),
-                                          onPressed: () => setState(() => _layoutScale += 0.25),
+                      _buildSectionCard(
+                        'Section 20: Site Layout Document (Max 25MB)',
+                        [
+                          if (_siteLayoutFile != null) ...[
+                            Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF1E1E26),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Column(
+                                children: [
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          _siteLayoutFile!['fileName'],
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                          ),
                                         ),
-                                        IconButton(
-                                          icon: const Icon(Icons.zoom_out, color: VianTheme.primaryGold),
-                                          onPressed: () => setState(() => _layoutScale = _layoutScale > 0.5 ? _layoutScale - 0.25 : 0.5),
+                                      ),
+                                      Row(
+                                        children: [
+                                          IconButton(
+                                            icon: const Icon(
+                                              Icons.zoom_in,
+                                              color: VianTheme.primaryGold,
+                                            ),
+                                            onPressed: () => setState(
+                                              () => _layoutScale += 0.25,
+                                            ),
+                                          ),
+                                          IconButton(
+                                            icon: const Icon(
+                                              Icons.zoom_out,
+                                              color: VianTheme.primaryGold,
+                                            ),
+                                            onPressed: () => setState(
+                                              () => _layoutScale =
+                                                  _layoutScale > 0.5
+                                                  ? _layoutScale - 0.25
+                                                  : 0.5,
+                                            ),
+                                          ),
+                                          IconButton(
+                                            icon: const Icon(
+                                              Icons.rotate_right,
+                                              color: VianTheme.primaryGold,
+                                            ),
+                                            onPressed: () => setState(
+                                              () => _layoutRotation += 90.0,
+                                            ),
+                                          ),
+                                          IconButton(
+                                            icon: const Icon(
+                                              Icons.delete,
+                                              color: VianTheme.danger,
+                                            ),
+                                            onPressed: () => setState(
+                                              () => _siteLayoutFile = null,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 12),
+                                  // Preview Container
+                                  Container(
+                                    height: 250,
+                                    width: double.infinity,
+                                    decoration: BoxDecoration(
+                                      color: Colors.black,
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    clipBehavior: Clip.hardEdge,
+                                    child: Center(
+                                      child: Transform.rotate(
+                                        angle:
+                                            _layoutRotation *
+                                            3.1415926535 /
+                                            180,
+                                        child: Transform.scale(
+                                          scale: _layoutScale,
+                                          child:
+                                              _siteLayoutFile!['fileName']
+                                                  .toString()
+                                                  .toLowerCase()
+                                                  .endsWith('.pdf')
+                                              ? const Icon(
+                                                  Icons.picture_as_pdf,
+                                                  size: 80,
+                                                  color: Colors.white,
+                                                )
+                                              : Image.network(
+                                                  _siteLayoutFile!['fileUrl'],
+                                                  errorBuilder: (c, o, s) =>
+                                                      const Icon(
+                                                        Icons.insert_drive_file,
+                                                        size: 80,
+                                                      ),
+                                                ),
                                         ),
-                                        IconButton(
-                                          icon: const Icon(Icons.rotate_right, color: VianTheme.primaryGold),
-                                          onPressed: () => setState(() => _layoutRotation += 90.0),
-                                        ),
-                                        IconButton(
-                                          icon: const Icon(Icons.delete, color: VianTheme.danger),
-                                          onPressed: () => setState(() => _siteLayoutFile = null),
-                                        ),
-                                      ],
-                                    )
-                                  ],
-                                ),
-                                const SizedBox(height: 12),
-                                // Preview Container
-                                Container(
-                                  height: 250,
-                                  width: double.infinity,
-                                  decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(8)),
-                                  clipBehavior: Clip.hardEdge,
-                                  child: Center(
-                                    child: Transform.rotate(
-                                      angle: _layoutRotation * 3.1415926535 / 180,
-                                      child: Transform.scale(
-                                        scale: _layoutScale,
-                                        child: _siteLayoutFile!['fileName'].toString().toLowerCase().endsWith('.pdf')
-                                            ? const Icon(Icons.picture_as_pdf, size: 80, color: Colors.white)
-                                            : Image.network(_siteLayoutFile!['fileUrl'], errorBuilder: (c, o, s) => const Icon(Icons.insert_drive_file, size: 80)),
                                       ),
                                     ),
                                   ),
-                                )
-                              ],
+                                ],
+                              ),
                             ),
-                          ),
-                        ] else ...[
-                          ElevatedButton.icon(
-                            style: ElevatedButton.styleFrom(backgroundColor: VianTheme.primaryGold, foregroundColor: Colors.black),
-                            onPressed: () => _handleFileUpload('Layout'),
-                            icon: const Icon(Icons.upload_file),
-                            label: const Text('Upload Site Layout'),
-                          ),
+                          ] else ...[
+                            ElevatedButton.icon(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: VianTheme.primaryGold,
+                                foregroundColor: Colors.black,
+                              ),
+                              onPressed: () => _handleFileUpload('Layout'),
+                              icon: const Icon(Icons.upload_file),
+                              label: const Text('Upload Site Layout'),
+                            ),
+                          ],
                         ],
-                      ]),
+                      ),
 
                       // Section 21: Notes with dictation support
                       _buildSectionCard('Section 21: Additional Notes', [
                         Row(
                           children: [
-                            Expanded(child: _buildTextField('Notes', _notesCtrl, maxLines: 4)),
+                            Expanded(
+                              child: _buildTextField(
+                                'Notes',
+                                _notesCtrl,
+                                maxLines: 4,
+                              ),
+                            ),
                             const SizedBox(width: 12),
                             IconButton(
-                              icon: Icon(_isDictating ? Icons.mic : Icons.mic_none, color: _isDictating ? VianTheme.danger : VianTheme.primaryGold, size: 28),
+                              icon: Icon(
+                                _isDictating ? Icons.mic : Icons.mic_none,
+                                color: _isDictating
+                                    ? VianTheme.danger
+                                    : VianTheme.primaryGold,
+                                size: 28,
+                              ),
                               onPressed: _mockVoiceDictation,
                               tooltip: 'Mock Voice Dictation',
                             ),
@@ -901,39 +1237,60 @@ class _PublicEnquiryPortalPageState extends State<PublicEnquiryPortalPage> {
                       ]),
 
                       // Section 22: Conceptual Ideas
-                      _buildSectionCard('Section 22: Conceptual Ideas & Sketches', [
-                        ElevatedButton.icon(
-                          style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1E1E26), foregroundColor: VianTheme.primaryGold),
-                          onPressed: () => _handleFileUpload('Conceptual'),
-                          icon: const Icon(Icons.add_photo_alternate),
-                          label: const Text('Add Reference Images / Sketches'),
-                        ),
-                        const SizedBox(height: 12),
-                        ListView.builder(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: _conceptualIdeasFiles.length,
-                          itemBuilder: (context, index) {
-                            final f = _conceptualIdeasFiles[index];
-                            return ListTile(
-                              leading: const Icon(Icons.image, color: VianTheme.primaryGold),
-                              title: Text(f['fileName']),
-                              trailing: IconButton(
-                                icon: const Icon(Icons.delete, color: VianTheme.danger),
-                                onPressed: () => setState(() => _conceptualIdeasFiles.removeAt(index)),
-                              ),
-                            );
-                          },
-                        ),
-                      ]),
+                      _buildSectionCard(
+                        'Section 22: Conceptual Ideas & Sketches',
+                        [
+                          ElevatedButton.icon(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF1E1E26),
+                              foregroundColor: VianTheme.primaryGold,
+                            ),
+                            onPressed: () => _handleFileUpload('Conceptual'),
+                            icon: const Icon(Icons.add_photo_alternate),
+                            label: const Text(
+                              'Add Reference Images / Sketches',
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          ListView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: _conceptualIdeasFiles.length,
+                            itemBuilder: (context, index) {
+                              final f = _conceptualIdeasFiles[index];
+                              return ListTile(
+                                leading: const Icon(
+                                  Icons.image,
+                                  color: VianTheme.primaryGold,
+                                ),
+                                title: Text(f['fileName']),
+                                trailing: IconButton(
+                                  icon: const Icon(
+                                    Icons.delete,
+                                    color: VianTheme.danger,
+                                  ),
+                                  onPressed: () => setState(
+                                    () => _conceptualIdeasFiles.removeAt(index),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ],
+                      ),
 
                       // Section 23: Attachments
                       _buildSectionCard('Section 23: Document Attachments', [
                         ElevatedButton.icon(
-                          style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1E1E26), foregroundColor: VianTheme.primaryGold),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF1E1E26),
+                            foregroundColor: VianTheme.primaryGold,
+                          ),
                           onPressed: () => _handleFileUpload('Attachment'),
                           icon: const Icon(Icons.attach_file),
-                          label: const Text('Upload Aadhaar, PAN, Patta, EC...'),
+                          label: const Text(
+                            'Upload Aadhaar, PAN, Patta, EC...',
+                          ),
                         ),
                         const SizedBox(height: 12),
                         ListView.builder(
@@ -943,11 +1300,19 @@ class _PublicEnquiryPortalPageState extends State<PublicEnquiryPortalPage> {
                           itemBuilder: (context, index) {
                             final f = _attachmentsList[index];
                             return ListTile(
-                              leading: const Icon(Icons.file_present, color: VianTheme.primaryGold),
+                              leading: const Icon(
+                                Icons.file_present,
+                                color: VianTheme.primaryGold,
+                              ),
                               title: Text(f['fileName']),
                               trailing: IconButton(
-                                icon: const Icon(Icons.delete, color: VianTheme.danger),
-                                onPressed: () => setState(() => _attachmentsList.removeAt(index)),
+                                icon: const Icon(
+                                  Icons.delete,
+                                  color: VianTheme.danger,
+                                ),
+                                onPressed: () => setState(
+                                  () => _attachmentsList.removeAt(index),
+                                ),
                               ),
                             );
                           },
@@ -958,19 +1323,40 @@ class _PublicEnquiryPortalPageState extends State<PublicEnquiryPortalPage> {
                       _buildSectionCard('Section 24: Confirmation & Sign-off', [
                         const Text(
                           'I confirm that the information entered above is correct to the best of my knowledge.',
-                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                          ),
                         ),
                         const SizedBox(height: 16),
-                        _buildTextField('Full Name (Electronic Signature) *', _confirmNameCtrl),
-                        _buildDropdown('Relationship to property owner', ['Owner', 'Family Member', 'Builder', 'Contractor', 'Representative', 'Other'], _relationship, (val) {
-                          setState(() => _relationship = val);
-                        }),
+                        _buildTextField(
+                          'Full Name (Electronic Signature) *',
+                          _confirmNameCtrl,
+                        ),
+                        _buildDropdown(
+                          'Relationship to property owner',
+                          [
+                            'Owner',
+                            'Family Member',
+                            'Builder',
+                            'Contractor',
+                            'Representative',
+                            'Other',
+                          ],
+                          _relationship,
+                          (val) {
+                            setState(() => _relationship = val);
+                          },
+                        ),
                         const SizedBox(height: 12),
                         Row(
                           children: [
                             Checkbox(
                               value: _confirmCheckbox,
-                              onChanged: (val) => setState(() => _confirmCheckbox = val ?? false),
+                              onChanged: (val) => setState(
+                                () => _confirmCheckbox = val ?? false,
+                              ),
                             ),
                             const Expanded(child: Text('I Agree and submit.')),
                           ],
@@ -988,7 +1374,10 @@ class _PublicEnquiryPortalPageState extends State<PublicEnquiryPortalPage> {
                             child: const Text('Save Draft'),
                           ),
                           OutlinedButton(
-                            style: OutlinedButton.styleFrom(foregroundColor: VianTheme.danger, side: const BorderSide(color: VianTheme.danger)),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: VianTheme.danger,
+                              side: const BorderSide(color: VianTheme.danger),
+                            ),
                             onPressed: () {
                               setState(() {
                                 _selectedBuildingTypes.clear();
@@ -1005,18 +1394,21 @@ class _PublicEnquiryPortalPageState extends State<PublicEnquiryPortalPage> {
                             style: ElevatedButton.styleFrom(
                               backgroundColor: VianTheme.primaryGold,
                               foregroundColor: Colors.black,
-                              padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 18),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 48,
+                                vertical: 18,
+                              ),
                             ),
                             onPressed: _submitForm,
                             child: const Text('Submit Enquiry'),
                           ),
                         ],
-                      )
+                      ),
                     ],
                   ),
                 ),
               ),
-            )
+            ),
           ],
         ),
       ),
@@ -1040,17 +1432,26 @@ class _PublicEnquiryPortalPageState extends State<PublicEnquiryPortalPage> {
               ),
             ),
             const Divider(color: Color(0xFF2C2C35), height: 24),
-            ...children.map((child) => Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: child,
-            )),
+            ...children.map(
+              (child) => Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: child,
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildTextField(String label, TextEditingController controller, {int maxLines = 1, TextInputType keyboardType = TextInputType.text, String? hintText, bool readOnly = false}) {
+  Widget _buildTextField(
+    String label,
+    TextEditingController controller, {
+    int maxLines = 1,
+    TextInputType keyboardType = TextInputType.text,
+    String? hintText,
+    bool readOnly = false,
+  }) {
     return TextFormField(
       controller: controller,
       maxLines: maxLines,
@@ -1064,12 +1465,20 @@ class _PublicEnquiryPortalPageState extends State<PublicEnquiryPortalPage> {
         hintStyle: const TextStyle(color: Color(0xFF70707C), fontSize: 13),
         filled: true,
         fillColor: const Color(0xFF1E1E26),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide.none,
+        ),
       ),
     );
   }
 
-  Widget _buildDropdown(String label, List<String> items, String? currentValue, ValueChanged<String?> onChanged) {
+  Widget _buildDropdown(
+    String label,
+    List<String> items,
+    String? currentValue,
+    ValueChanged<String?> onChanged,
+  ) {
     return DropdownButtonFormField<String>(
       value: currentValue,
       dropdownColor: const Color(0xFF1E1E26),
@@ -1079,9 +1488,14 @@ class _PublicEnquiryPortalPageState extends State<PublicEnquiryPortalPage> {
         labelStyle: const TextStyle(color: VianTheme.lightText, fontSize: 13),
         filled: true,
         fillColor: const Color(0xFF1E1E26),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide.none,
+        ),
       ),
-      items: items.map((item) => DropdownMenuItem(value: item, child: Text(item))).toList(),
+      items: items
+          .map((item) => DropdownMenuItem(value: item, child: Text(item)))
+          .toList(),
       onChanged: onChanged,
     );
   }
@@ -1101,20 +1515,43 @@ class _PublicEnquiryPortalPageState extends State<PublicEnquiryPortalPage> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          color: selected ? VianTheme.primaryGold.withOpacity(0.1) : const Color(0xFF1E1E26),
-          border: Border.all(color: selected ? VianTheme.primaryGold : Colors.transparent, width: 1.5),
+          color: selected
+              ? VianTheme.primaryGold.withOpacity(0.1)
+              : const Color(0xFF1E1E26),
+          border: Border.all(
+            color: selected ? VianTheme.primaryGold : Colors.transparent,
+            width: 1.5,
+          ),
           borderRadius: BorderRadius.circular(8),
         ),
-        child: Text(label, style: TextStyle(color: selected ? VianTheme.primaryGold : Colors.white, fontWeight: selected ? FontWeight.bold : FontWeight.normal)),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: selected ? VianTheme.primaryGold : Colors.white,
+            fontWeight: selected ? FontWeight.bold : FontWeight.normal,
+          ),
+        ),
       ),
     );
   }
 
-  Widget _buildRadioGroup(String label, List<String> options, String? currentValue, ValueChanged<String?> onChanged) {
+  Widget _buildRadioGroup(
+    String label,
+    List<String> options,
+    String? currentValue,
+    ValueChanged<String?> onChanged,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(color: VianTheme.lightText, fontSize: 13, fontWeight: FontWeight.bold)),
+        Text(
+          label,
+          style: const TextStyle(
+            color: VianTheme.lightText,
+            fontSize: 13,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         const SizedBox(height: 8),
         Wrap(
           spacing: 16,
@@ -1141,16 +1578,28 @@ class _PublicEnquiryPortalPageState extends State<PublicEnquiryPortalPage> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: const TextStyle(color: VianTheme.lightText, fontSize: 13)),
+        Text(
+          label,
+          style: const TextStyle(color: VianTheme.lightText, fontSize: 13),
+        ),
         Row(
           children: [
             IconButton(
-              icon: const Icon(Icons.remove_circle_outline, color: VianTheme.primaryGold),
+              icon: const Icon(
+                Icons.remove_circle_outline,
+                color: VianTheme.primaryGold,
+              ),
               onPressed: () => onChanged(value > 0 ? value - 1 : 0),
             ),
-            Text('$value', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            Text(
+              '$value',
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
             IconButton(
-              icon: const Icon(Icons.add_circle_outline, color: VianTheme.primaryGold),
+              icon: const Icon(
+                Icons.add_circle_outline,
+                color: VianTheme.primaryGold,
+              ),
               onPressed: () => onChanged(value + 1),
             ),
           ],
@@ -1159,16 +1608,46 @@ class _PublicEnquiryPortalPageState extends State<PublicEnquiryPortalPage> {
     );
   }
 
-  Widget _buildContextCard(String direction, String? contextType, ValueChanged<String?> onChanged, TextEditingController controller) {
-    final list = ['House', 'Apartment', 'Shop', 'Commercial Building', 'School', 'Temple', 'Road', 'Vacant Land', 'Agriculture', 'Lake', 'River', 'Hospital', 'Factory', 'Other'];
+  Widget _buildContextCard(
+    String direction,
+    String? contextType,
+    ValueChanged<String?> onChanged,
+    TextEditingController controller,
+  ) {
+    final list = [
+      'House',
+      'Apartment',
+      'Shop',
+      'Commercial Building',
+      'School',
+      'Temple',
+      'Road',
+      'Vacant Land',
+      'Agriculture',
+      'Lake',
+      'River',
+      'Hospital',
+      'Factory',
+      'Other',
+    ];
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(color: const Color(0xFF1E1E26), borderRadius: BorderRadius.circular(8)),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1E1E26),
+        borderRadius: BorderRadius.circular(8),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(direction, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: VianTheme.primaryGold)),
+          Text(
+            direction,
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 13,
+              color: VianTheme.primaryGold,
+            ),
+          ),
           const SizedBox(height: 8),
           _buildDropdown('Structure Category', list, contextType, onChanged),
           const SizedBox(height: 8),
@@ -1181,7 +1660,8 @@ class _PublicEnquiryPortalPageState extends State<PublicEnquiryPortalPage> {
 
 class PublicEnquirySuccessPage extends StatelessWidget {
   final String refCode;
-  const PublicEnquirySuccessPage({Key? key, required this.refCode}) : super(key: key);
+  const PublicEnquirySuccessPage({Key? key, required this.refCode})
+    : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -1195,7 +1675,11 @@ class PublicEnquirySuccessPage extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.check_circle_outline, size: 80, color: VianTheme.success),
+                const Icon(
+                  Icons.check_circle_outline,
+                  size: 80,
+                  color: VianTheme.success,
+                ),
                 const SizedBox(height: 24),
                 Text(
                   'Thank You!',
@@ -1213,15 +1697,32 @@ class PublicEnquirySuccessPage extends StatelessWidget {
                 ),
                 const SizedBox(height: 24),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                  decoration: BoxDecoration(color: const Color(0xFF1E1E26), borderRadius: BorderRadius.circular(8)),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1E1E26),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                   child: Column(
                     children: [
-                      const Text('Reference Number', style: TextStyle(color: VianTheme.lightText, fontSize: 12)),
+                      const Text(
+                        'Reference Number',
+                        style: TextStyle(
+                          color: VianTheme.lightText,
+                          fontSize: 12,
+                        ),
+                      ),
                       const SizedBox(height: 4),
                       Text(
                         refCode,
-                        style: const TextStyle(color: VianTheme.primaryGold, fontSize: 18, fontWeight: FontWeight.bold, letterSpacing: 1.2),
+                        style: const TextStyle(
+                          color: VianTheme.primaryGold,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1.2,
+                        ),
                       ),
                     ],
                   ),
@@ -1230,7 +1731,11 @@ class PublicEnquirySuccessPage extends StatelessWidget {
                 const Text(
                   'Our team will contact you shortly.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: VianTheme.lightText, fontSize: 12, height: 1.5),
+                  style: TextStyle(
+                    color: VianTheme.lightText,
+                    fontSize: 12,
+                    height: 1.5,
+                  ),
                 ),
               ],
             ),
@@ -1267,7 +1772,9 @@ class _EnquiryInboxTabState extends State<EnquiryInboxTab> {
       _submissions = list;
       _loading = false;
       if (_selectedSubmission != null) {
-        final match = list.where((s) => s['id'] == _selectedSubmission!['id']).toList();
+        final match = list
+            .where((s) => s['id'] == _selectedSubmission!['id'])
+            .toList();
         _selectedSubmission = match.isNotEmpty ? match.first : null;
       }
     });
@@ -1275,18 +1782,24 @@ class _EnquiryInboxTabState extends State<EnquiryInboxTab> {
 
   Future<void> _updateStatus(String status) async {
     if (_selectedSubmission == null) return;
-    final res = await ApiService.updateEnquiryStatus(_selectedSubmission!['id'], status);
+    final res = await ApiService.updateEnquiryStatus(
+      _selectedSubmission!['id'],
+      status,
+    );
     if (res) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Status updated to $status'))
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Status updated to $status')));
       _fetchInbox();
     }
   }
 
   Future<void> _addNote() async {
     if (_selectedSubmission == null || _noteCtrl.text.trim().isEmpty) return;
-    final res = await ApiService.addEnquiryNote(_selectedSubmission!['id'], _noteCtrl.text.trim());
+    final res = await ApiService.addEnquiryNote(
+      _selectedSubmission!['id'],
+      _noteCtrl.text.trim(),
+    );
     if (res) {
       _noteCtrl.clear();
       _fetchInbox();
@@ -1303,18 +1816,34 @@ class _EnquiryInboxTabState extends State<EnquiryInboxTab> {
         context: context,
         builder: (context) => AlertDialog(
           backgroundColor: VianTheme.headerBlack,
-          title: const Text('Enquiry Converted!', style: TextStyle(color: VianTheme.primaryGold)),
+          title: const Text(
+            'Enquiry Converted!',
+            style: TextStyle(color: VianTheme.primaryGold),
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('The client and project records have been created successfully:'),
+              const Text(
+                'The client and project records have been created successfully:',
+              ),
               const SizedBox(height: 12),
-              Text('Project ID: ${res['project']['projectId']}', style: const TextStyle(fontWeight: FontWeight.bold, color: VianTheme.primaryGold)),
+              Text(
+                'Project ID: ${res['project']['projectId']}',
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: VianTheme.primaryGold,
+                ),
+              ),
               const SizedBox(height: 4),
-              Text('Project Name: ${res['project']['name']}', style: const TextStyle(color: Colors.white)),
+              Text(
+                'Project Name: ${res['project']['name']}',
+                style: const TextStyle(color: Colors.white),
+              ),
               const SizedBox(height: 12),
-              const Text('The following defaults have been seeded:\n- 1 Initial Site Visit\n- 8 Construction stages & payment milestones\n- 1 Standard construction estimate with material, labour & BOQ lines\n- 1 Initial Task list item'),
+              const Text(
+                'The following defaults have been seeded:\n- 1 Initial Site Visit\n- 8 Construction stages & payment milestones\n- 1 Standard construction estimate with material, labour & BOQ lines\n- 1 Initial Task list item',
+              ),
             ],
           ),
           actions: [
@@ -1323,7 +1852,10 @@ class _EnquiryInboxTabState extends State<EnquiryInboxTab> {
                 Navigator.pop(context);
                 _fetchInbox();
               },
-              child: const Text('OK', style: TextStyle(color: VianTheme.primaryGold)),
+              child: const Text(
+                'OK',
+                style: TextStyle(color: VianTheme.primaryGold),
+              ),
             ),
           ],
         ),
@@ -1332,7 +1864,7 @@ class _EnquiryInboxTabState extends State<EnquiryInboxTab> {
       setState(() {
         _loading = false;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Conversion failed: ${res['message']}'))
+          SnackBar(content: Text('Conversion failed: ${res['message']}')),
         );
       });
     }
@@ -1341,10 +1873,14 @@ class _EnquiryInboxTabState extends State<EnquiryInboxTab> {
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return const Center(child: CircularProgressIndicator(color: VianTheme.primaryGold));
+      return const Center(
+        child: CircularProgressIndicator(color: VianTheme.primaryGold),
+      );
     }
 
-    final filteredList = _submissions.where((s) => s['status'] == _selectedStatus).toList();
+    final filteredList = _submissions
+        .where((s) => s['status'] == _selectedStatus)
+        .toList();
 
     return Scaffold(
       backgroundColor: const Color(0xFF121317),
@@ -1356,7 +1892,9 @@ class _EnquiryInboxTabState extends State<EnquiryInboxTab> {
             width: 220,
             decoration: BoxDecoration(
               color: VianTheme.cardColor,
-              border: Border(right: BorderSide(color: Colors.white.withOpacity(0.03))),
+              border: Border(
+                right: BorderSide(color: Colors.white.withOpacity(0.03)),
+              ),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1373,7 +1911,12 @@ class _EnquiryInboxTabState extends State<EnquiryInboxTab> {
                     ),
                   ),
                 ),
-                _channelTile(Icons.mail_outline, 'Direct Email', _submissions.length.toString(), true),
+                _channelTile(
+                  Icons.mail_outline,
+                  'Direct Email',
+                  _submissions.length.toString(),
+                  true,
+                ),
                 _channelTile(Icons.chat_bubble_outline, 'WhatsApp', '4', false),
                 _channelTile(Icons.language, 'Web Form', '0', false),
                 _channelTile(Icons.hub_outlined, 'ArchDaily', '1', false),
@@ -1391,21 +1934,36 @@ class _EnquiryInboxTabState extends State<EnquiryInboxTab> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                ...['New', 'In Review', 'Approved', 'Rejected', 'Converted'].map((status) {
+                ...[
+                  'New',
+                  'In Review',
+                  'Approved',
+                  'Rejected',
+                  'Converted',
+                ].map((status) {
                   final active = _selectedStatus == status;
-                  final count = _submissions.where((s) => s['status'] == status).length;
+                  final count = _submissions
+                      .where((s) => s['status'] == status)
+                      .length;
                   return InkWell(
                     onTap: () => setState(() => _selectedStatus = status),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
-                      color: active ? Colors.white.withOpacity(0.02) : Colors.transparent,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 10,
+                      ),
+                      color: active
+                          ? Colors.white.withOpacity(0.02)
+                          : Colors.transparent,
                       child: Row(
                         children: [
                           Container(
                             width: 6,
                             height: 6,
                             decoration: BoxDecoration(
-                              color: active ? VianTheme.primaryGold : Colors.white24,
+                              color: active
+                                  ? VianTheme.primaryGold
+                                  : Colors.white24,
                               shape: BoxShape.circle,
                             ),
                           ),
@@ -1413,19 +1971,25 @@ class _EnquiryInboxTabState extends State<EnquiryInboxTab> {
                           Text(
                             status,
                             style: GoogleFonts.inter(
-                              color: active ? Colors.white : VianTheme.lightText,
+                              color: active
+                                  ? Colors.white
+                                  : VianTheme.lightText,
                               fontSize: 13,
-                              fontWeight: active ? FontWeight.bold : FontWeight.normal,
+                              fontWeight: active
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
                             ),
                           ),
                           const Spacer(),
                           Text(
                             count.toString(),
                             style: GoogleFonts.poppins(
-                              color: active ? VianTheme.primaryGold : Colors.white24,
+                              color: active
+                                  ? VianTheme.primaryGold
+                                  : Colors.white24,
                               fontSize: 11,
                             ),
-                          )
+                          ),
                         ],
                       ),
                     ),
@@ -1440,7 +2004,9 @@ class _EnquiryInboxTabState extends State<EnquiryInboxTab> {
             width: 360,
             decoration: BoxDecoration(
               color: const Color(0xFF0D0E12),
-              border: Border(right: BorderSide(color: Colors.white.withOpacity(0.05))),
+              border: Border(
+                right: BorderSide(color: Colors.white.withOpacity(0.05)),
+              ),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1461,7 +2027,10 @@ class _EnquiryInboxTabState extends State<EnquiryInboxTab> {
                       ),
                       Text(
                         '${filteredList.length} Items',
-                        style: GoogleFonts.poppins(color: VianTheme.primaryGold, fontSize: 11),
+                        style: GoogleFonts.poppins(
+                          color: VianTheme.primaryGold,
+                          fontSize: 11,
+                        ),
                       ),
                     ],
                   ),
@@ -1472,39 +2041,54 @@ class _EnquiryInboxTabState extends State<EnquiryInboxTab> {
                       ? Center(
                           child: Text(
                             'No enquiries found.',
-                            style: GoogleFonts.inter(color: VianTheme.lightText, fontSize: 13),
+                            style: GoogleFonts.inter(
+                              color: VianTheme.lightText,
+                              fontSize: 13,
+                            ),
                           ),
                         )
                       : ListView.separated(
                           itemCount: filteredList.length,
-                          separatorBuilder: (context, idx) => const Divider(color: Colors.white10, height: 1),
+                          separatorBuilder: (context, idx) =>
+                              const Divider(color: Colors.white10, height: 1),
                           itemBuilder: (context, idx) {
                             final sub = filteredList[idx];
-                            final isSel = _selectedSubmission != null && _selectedSubmission!['id'] == sub['id'];
+                            final isSel =
+                                _selectedSubmission != null &&
+                                _selectedSubmission!['id'] == sub['id'];
 
                             return InkWell(
-                              onTap: () => setState(() => _selectedSubmission = sub),
+                              onTap: () =>
+                                  setState(() => _selectedSubmission = sub),
                               child: Container(
-                                color: isSel ? Colors.white.withOpacity(0.02) : Colors.transparent,
+                                color: isSel
+                                    ? Colors.white.withOpacity(0.02)
+                                    : Colors.transparent,
                                 padding: const EdgeInsets.all(20.0),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
                                       children: [
                                         Text(
                                           sub['clientName'] ?? 'Unknown Client',
                                           style: GoogleFonts.inter(
-                                            color: isSel ? VianTheme.primaryGold : Colors.white,
+                                            color: isSel
+                                                ? VianTheme.primaryGold
+                                                : Colors.white,
                                             fontWeight: FontWeight.bold,
                                             fontSize: 13.5,
                                           ),
                                         ),
                                         Text(
                                           sub['date'] ?? '',
-                                          style: GoogleFonts.poppins(color: Colors.white24, fontSize: 10),
-                                        )
+                                          style: GoogleFonts.poppins(
+                                            color: Colors.white24,
+                                            fontSize: 10,
+                                          ),
+                                        ),
                                       ],
                                     ),
                                     const SizedBox(height: 4),
@@ -1519,7 +2103,9 @@ class _EnquiryInboxTabState extends State<EnquiryInboxTab> {
                                     ),
                                     const SizedBox(height: 8),
                                     Text(
-                                      sub['clientRequirements'] ?? sub['notes'] ?? 'No requirements specified.',
+                                      sub['clientRequirements'] ??
+                                          sub['notes'] ??
+                                          'No requirements specified.',
                                       style: GoogleFonts.inter(
                                         color: Colors.white54,
                                         fontSize: 12,
@@ -1546,11 +2132,20 @@ class _EnquiryInboxTabState extends State<EnquiryInboxTab> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(Icons.inbox, size: 48, color: Colors.white12),
+                        const Icon(
+                          Icons.inbox,
+                          size: 48,
+                          color: Colors.white12,
+                        ),
                         const SizedBox(height: 16),
                         Text(
                           'SELECT AN ENQUIRY TO REVIEW DETAILS',
-                          style: GoogleFonts.outfit(color: VianTheme.lightText, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.0),
+                          style: GoogleFonts.outfit(
+                            color: VianTheme.lightText,
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 1.0,
+                          ),
                         ),
                       ],
                     ),
@@ -1566,10 +2161,23 @@ class _EnquiryInboxTabState extends State<EnquiryInboxTab> {
                             children: [
                               CircleAvatar(
                                 radius: 24,
-                                backgroundColor: VianTheme.primaryGold.withOpacity(0.1),
+                                backgroundColor: VianTheme.primaryGold
+                                    .withOpacity(0.1),
                                 child: Text(
-                                  ((_selectedSubmission!['clientName']?.toString() ?? '').isNotEmpty) ? _selectedSubmission!['clientName'].toString().substring(0, 1).toUpperCase() : 'C',
-                                  style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 18, fontWeight: FontWeight.bold),
+                                  ((_selectedSubmission!['clientName']
+                                                  ?.toString() ??
+                                              '')
+                                          .isNotEmpty)
+                                      ? _selectedSubmission!['clientName']
+                                            .toString()
+                                            .substring(0, 1)
+                                            .toUpperCase()
+                                      : 'C',
+                                  style: GoogleFonts.outfit(
+                                    color: VianTheme.primaryGold,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
                               const SizedBox(width: 16),
@@ -1579,36 +2187,52 @@ class _EnquiryInboxTabState extends State<EnquiryInboxTab> {
                                   children: [
                                     Text(
                                       _selectedSubmission!['clientName'] ?? '',
-                                      style: GoogleFonts.inter(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                                      style: GoogleFonts.inter(
+                                        color: Colors.white,
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
                                       '${_selectedSubmission!['email'] ?? "No Email"} • ${_selectedSubmission!['contactNumber'] ?? "No Phone"}',
-                                      style: GoogleFonts.inter(color: VianTheme.lightText, fontSize: 12),
+                                      style: GoogleFonts.inter(
+                                        color: VianTheme.lightText,
+                                        fontSize: 12,
+                                      ),
                                     ),
                                   ],
                                 ),
                               ),
                               // Action buttons
-                              if (_selectedSubmission!['status'] != 'Converted') ...[
-                                if (_selectedSubmission!['status'] == 'New') ...[
+                              if (_selectedSubmission!['status'] !=
+                                  'Converted') ...[
+                                if (_selectedSubmission!['status'] ==
+                                    'New') ...[
                                   OutlinedButton(
                                     style: OutlinedButton.styleFrom(
                                       foregroundColor: VianTheme.primaryGold,
-                                      side: const BorderSide(color: VianTheme.primaryGold),
-                                      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+                                      side: const BorderSide(
+                                        color: VianTheme.primaryGold,
+                                      ),
+                                      shape: const RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.zero,
+                                      ),
                                     ),
                                     onPressed: () => _updateStatus('In Review'),
                                     child: const Text('MARK IN REVIEW'),
                                   ),
                                   const SizedBox(width: 12),
                                 ],
-                                if (_selectedSubmission!['status'] != 'Approved') ...[
+                                if (_selectedSubmission!['status'] !=
+                                    'Approved') ...[
                                   ElevatedButton(
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: VianTheme.primaryGold,
                                       foregroundColor: Colors.black,
-                                      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+                                      shape: const RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.zero,
+                                      ),
                                     ),
                                     onPressed: _approveAndConvert,
                                     child: const Text('APPROVE & CONVERT'),
@@ -1630,9 +2254,18 @@ class _EnquiryInboxTabState extends State<EnquiryInboxTab> {
                                 // Quote Block
                                 Container(
                                   decoration: BoxDecoration(
-                                    border: Border(left: BorderSide(color: VianTheme.primaryGold, width: 2)),
+                                    border: Border(
+                                      left: BorderSide(
+                                        color: VianTheme.primaryGold,
+                                        width: 2,
+                                      ),
+                                    ),
                                   ),
-                                  padding: const EdgeInsets.only(left: 20.0, top: 4, bottom: 4),
+                                  padding: const EdgeInsets.only(
+                                    left: 20.0,
+                                    top: 4,
+                                    bottom: 4,
+                                  ),
                                   child: Text(
                                     '"${_selectedSubmission!['clientRequirements'] ?? _selectedSubmission!['notes'] ?? "No initial description provided."}"',
                                     style: GoogleFonts.bodoniModa(
@@ -1647,27 +2280,47 @@ class _EnquiryInboxTabState extends State<EnquiryInboxTab> {
 
                                 // Structured Info tables
                                 _buildDetailGroup('Client & Location', {
-                                  'Client Name': _selectedSubmission!['clientName'],
-                                  'Phone': _selectedSubmission!['contactNumber'],
-                                  'Email': _selectedSubmission!['email'] ?? 'N/A',
-                                  'Site Address': _selectedSubmission!['siteAddress'],
-                                  'Taluk': _selectedSubmission!['taluk'] ?? 'N/A',
-                                  'Road Width': '${_selectedSubmission!['roadWidth'] ?? "N/A"} Feet',
-                                  'Site facing': _selectedSubmission!['siteFacing'] ?? 'N/A',
+                                  'Client Name':
+                                      _selectedSubmission!['clientName'],
+                                  'Phone':
+                                      _selectedSubmission!['contactNumber'],
+                                  'Email':
+                                      _selectedSubmission!['email'] ?? 'N/A',
+                                  'Site Address':
+                                      _selectedSubmission!['siteAddress'],
+                                  'Taluk':
+                                      _selectedSubmission!['taluk'] ?? 'N/A',
+                                  'Road Width':
+                                      '${_selectedSubmission!['roadWidth'] ?? "N/A"} Feet',
+                                  'Site facing':
+                                      _selectedSubmission!['siteFacing'] ??
+                                      'N/A',
                                 }),
 
                                 _buildDetailGroup('Structural Configuration', {
-                                  'Building Type': _selectedSubmission!['buildingType'],
-                                  'Local Authority': _selectedSubmission!['localAuthority'] ?? 'N/A',
-                                  'Soil Condition': _selectedSubmission!['siteCondition'] ?? 'N/A',
-                                  'EB Connection': _selectedSubmission!['electricity'] ?? 'N/A',
+                                  'Building Type':
+                                      _selectedSubmission!['buildingType'],
+                                  'Local Authority':
+                                      _selectedSubmission!['localAuthority'] ??
+                                      'N/A',
+                                  'Soil Condition':
+                                      _selectedSubmission!['siteCondition'] ??
+                                      'N/A',
+                                  'EB Connection':
+                                      _selectedSubmission!['electricity'] ??
+                                      'N/A',
                                 }),
                                 const SizedBox(height: 24),
 
                                 // Attachments
                                 Text(
                                   'ATTACHMENTS',
-                                  style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.5),
+                                  style: GoogleFonts.outfit(
+                                    color: VianTheme.primaryGold,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 1.5,
+                                  ),
                                 ),
                                 const SizedBox(height: 12),
                                 _buildAttachmentsList(),
@@ -1676,7 +2329,12 @@ class _EnquiryInboxTabState extends State<EnquiryInboxTab> {
                                 // Internal notes
                                 Text(
                                   'INTERNAL REVIEW NOTES',
-                                  style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.5),
+                                  style: GoogleFonts.outfit(
+                                    color: VianTheme.primaryGold,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 1.5,
+                                  ),
                                 ),
                                 const SizedBox(height: 16),
                                 _buildNotesThread(),
@@ -1686,30 +2344,50 @@ class _EnquiryInboxTabState extends State<EnquiryInboxTab> {
                                     Expanded(
                                       child: TextField(
                                         controller: _noteCtrl,
-                                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 13,
+                                        ),
                                         decoration: InputDecoration(
                                           hintText: 'Enter review comment...',
-                                          hintStyle: const TextStyle(color: Colors.white24, fontSize: 13),
+                                          hintStyle: const TextStyle(
+                                            color: Colors.white24,
+                                            fontSize: 13,
+                                          ),
                                           filled: true,
                                           fillColor: const Color(0xFF1C1D21),
                                           border: OutlineInputBorder(
                                             borderRadius: BorderRadius.zero,
-                                            borderSide: BorderSide(color: Colors.white.withOpacity(0.08)),
+                                            borderSide: BorderSide(
+                                              color: Colors.white.withOpacity(
+                                                0.08,
+                                              ),
+                                            ),
                                           ),
                                           enabledBorder: OutlineInputBorder(
                                             borderRadius: BorderRadius.zero,
-                                            borderSide: BorderSide(color: Colors.white.withOpacity(0.08)),
+                                            borderSide: BorderSide(
+                                              color: Colors.white.withOpacity(
+                                                0.08,
+                                              ),
+                                            ),
                                           ),
-                                          focusedBorder: const OutlineInputBorder(
-                                            borderRadius: BorderRadius.zero,
-                                            borderSide: BorderSide(color: VianTheme.primaryGold),
-                                          ),
+                                          focusedBorder:
+                                              const OutlineInputBorder(
+                                                borderRadius: BorderRadius.zero,
+                                                borderSide: BorderSide(
+                                                  color: VianTheme.primaryGold,
+                                                ),
+                                              ),
                                         ),
                                       ),
                                     ),
                                     const SizedBox(width: 12),
                                     IconButton(
-                                      icon: const Icon(Icons.send, color: VianTheme.primaryGold),
+                                      icon: const Icon(
+                                        Icons.send,
+                                        color: VianTheme.primaryGold,
+                                      ),
                                       onPressed: _addNote,
                                     ),
                                   ],
@@ -1731,14 +2409,25 @@ class _EnquiryInboxTabState extends State<EnquiryInboxTab> {
                                   height: 48,
                                   decoration: BoxDecoration(
                                     color: const Color(0xFF13131A),
-                                    border: Border.all(color: Colors.white.withOpacity(0.05)),
+                                    border: Border.all(
+                                      color: Colors.white.withOpacity(0.05),
+                                    ),
                                   ),
-                                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                  ),
                                   child: const TextField(
-                                    style: TextStyle(color: Colors.white, fontSize: 13),
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 13,
+                                    ),
                                     decoration: InputDecoration(
-                                      hintText: 'Write a response correspondence to client...',
-                                      hintStyle: TextStyle(color: Colors.white24, fontSize: 13),
+                                      hintText:
+                                          'Write a response correspondence to client...',
+                                      hintStyle: TextStyle(
+                                        color: Colors.white24,
+                                        fontSize: 13,
+                                      ),
                                       border: InputBorder.none,
                                     ),
                                   ),
@@ -1749,19 +2438,36 @@ class _EnquiryInboxTabState extends State<EnquiryInboxTab> {
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: VianTheme.primaryGold,
                                   foregroundColor: Colors.black,
-                                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                                  shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 24,
+                                    vertical: 16,
+                                  ),
+                                  shape: const RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.zero,
+                                  ),
                                 ),
                                 onPressed: () {
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Correspondence sent successfully!'), backgroundColor: VianTheme.success),
+                                    const SnackBar(
+                                      content: Text(
+                                        'Correspondence sent successfully!',
+                                      ),
+                                      backgroundColor: VianTheme.success,
+                                    ),
                                   );
                                 },
-                                child: Text('SEND', style: GoogleFonts.outfit(fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
-                              )
+                                child: Text(
+                                  'SEND',
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 1.0,
+                                  ),
+                                ),
+                              ),
                             ],
                           ),
-                        )
+                        ),
                       ],
                     ),
                   ),
@@ -1777,7 +2483,11 @@ class _EnquiryInboxTabState extends State<EnquiryInboxTab> {
       color: active ? Colors.white.withOpacity(0.02) : Colors.transparent,
       child: Row(
         children: [
-          Icon(icon, color: active ? VianTheme.primaryGold : VianTheme.lightText, size: 18),
+          Icon(
+            icon,
+            color: active ? VianTheme.primaryGold : VianTheme.lightText,
+            size: 18,
+          ),
           const SizedBox(width: 12),
           Text(
             title,
@@ -1791,10 +2501,15 @@ class _EnquiryInboxTabState extends State<EnquiryInboxTab> {
           if (count != '0')
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-              color: active ? VianTheme.primaryGold.withOpacity(0.2) : Colors.white.withOpacity(0.05),
+              color: active
+                  ? VianTheme.primaryGold.withOpacity(0.2)
+                  : Colors.white.withOpacity(0.05),
               child: Text(
                 count,
-                style: GoogleFonts.poppins(color: active ? VianTheme.primaryGold : VianTheme.lightText, fontSize: 10),
+                style: GoogleFonts.poppins(
+                  color: active ? VianTheme.primaryGold : VianTheme.lightText,
+                  fontSize: 10,
+                ),
               ),
             ),
         ],
@@ -1808,24 +2523,37 @@ class _EnquiryInboxTabState extends State<EnquiryInboxTab> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: VianTheme.primaryGold)),
+          Text(
+            title,
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 13,
+              color: VianTheme.primaryGold,
+            ),
+          ),
           const SizedBox(height: 8),
           Table(
             border: TableBorder.all(color: const Color(0xFF262630), width: 1),
-            columnWidths: const {
-              0: FlexColumnWidth(1),
-              1: FlexColumnWidth(2),
-            },
+            columnWidths: const {0: FlexColumnWidth(1), 1: FlexColumnWidth(2)},
             children: details.entries.map((e) {
               return TableRow(
                 children: [
                   Padding(
                     padding: const EdgeInsets.all(8.0),
-                    child: Text(e.key, style: const TextStyle(color: VianTheme.lightText, fontSize: 12)),
+                    child: Text(
+                      e.key,
+                      style: const TextStyle(
+                        color: VianTheme.lightText,
+                        fontSize: 12,
+                      ),
+                    ),
                   ),
                   Padding(
                     padding: const EdgeInsets.all(8.0),
-                    child: Text(e.value ?? 'N/A', style: const TextStyle(color: Colors.white, fontSize: 12)),
+                    child: Text(
+                      e.value ?? 'N/A',
+                      style: const TextStyle(color: Colors.white, fontSize: 12),
+                    ),
                   ),
                 ],
               );
@@ -1844,10 +2572,18 @@ class _EnquiryInboxTabState extends State<EnquiryInboxTab> {
         return Card(
           color: const Color(0xFF1E1E26),
           child: ListTile(
-            leading: const Icon(Icons.insert_drive_file, color: VianTheme.primaryGold),
+            leading: const Icon(
+              Icons.insert_drive_file,
+              color: VianTheme.primaryGold,
+            ),
             title: Text(doc['fileName']),
-            subtitle: Text('Category: ${doc['fileType']} | Size: ${(doc['fileSize'] / 1024).toStringAsFixed(1)} KB'),
-            trailing: const Icon(Icons.arrow_downward, color: VianTheme.primaryGold),
+            subtitle: Text(
+              'Category: ${doc['fileType']} | Size: ${(doc['fileSize'] / 1024).toStringAsFixed(1)} KB',
+            ),
+            trailing: const Icon(
+              Icons.arrow_downward,
+              color: VianTheme.primaryGold,
+            ),
             onTap: () => openUrl(doc['fileUrl']),
           ),
         );
@@ -1856,7 +2592,8 @@ class _EnquiryInboxTabState extends State<EnquiryInboxTab> {
   }
 
   Widget _buildNotesThread() {
-    final notes = _selectedSubmission!['submissionNotes'] as List<dynamic>? ?? [];
+    final notes =
+        _selectedSubmission!['submissionNotes'] as List<dynamic>? ?? [];
     if (notes.isEmpty) return const Text('No review notes recorded.');
     return Column(
       children: notes.map((n) {
@@ -1871,16 +2608,36 @@ class _EnquiryInboxTabState extends State<EnquiryInboxTab> {
                 CircleAvatar(
                   backgroundColor: VianTheme.primaryGold,
                   radius: 16,
-                  child: Text(n['author'][0].toUpperCase(), style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 12)),
+                  child: Text(
+                    n['author'][0].toUpperCase(),
+                    style: const TextStyle(
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
+                  ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(n['author'], style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 12)),
+                      Text(
+                        n['author'],
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          fontSize: 12,
+                        ),
+                      ),
                       const SizedBox(height: 4),
-                      Text(n['noteText'], style: const TextStyle(color: VianTheme.lightText, fontSize: 12)),
+                      Text(
+                        n['noteText'],
+                        style: const TextStyle(
+                          color: VianTheme.lightText,
+                          fontSize: 12,
+                        ),
+                      ),
                     ],
                   ),
                 ),

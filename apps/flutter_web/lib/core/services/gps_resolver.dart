@@ -31,7 +31,7 @@ class GpsAddress {
   String toShortString() {
     return '📍 $siteName (Near $landmark)';
   }
-  
+
   String toAddressOnly() {
     return '$addressLine, $area, $city, $state – $postalCode';
   }
@@ -76,7 +76,7 @@ class GpsAddressResolver {
     } else {
       final siteId = ((lat * 100).round() % 50) + 1;
       final isChennaiZone = lat >= 10.0 && lat <= 14.0;
-      
+
       if (isChennaiZone) {
         return GpsAddress(
           siteName: 'VIAN ECR Project Site Office',
@@ -101,16 +101,24 @@ class GpsAddressResolver {
     }
   }
 
-  static double _calculateDistance(double lat1, double lng1, double lat2, double lng2) {
+  static double _calculateDistance(
+    double lat1,
+    double lng1,
+    double lat2,
+    double lng2,
+  ) {
     const R = 6371000.0;
     final phi1 = lat1 * math.pi / 180;
     final phi2 = lat2 * math.pi / 180;
     final deltaPhi = (lat2 - lat1) * math.pi / 180;
     final deltaLambda = (lng2 - lng1) * math.pi / 180;
 
-    final a = math.sin(deltaPhi / 2) * math.sin(deltaPhi / 2) +
-        math.cos(phi1) * math.cos(phi2) *
-            math.sin(deltaLambda / 2) * math.sin(deltaLambda / 2);
+    final a =
+        math.sin(deltaPhi / 2) * math.sin(deltaPhi / 2) +
+        math.cos(phi1) *
+            math.cos(phi2) *
+            math.sin(deltaLambda / 2) *
+            math.sin(deltaLambda / 2);
     final c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a));
 
     return R * c;

@@ -68,18 +68,29 @@ class _ExecutiveDashboardViewState extends State<ExecutiveDashboardView> {
 
   void _showApplyFineDialog(Map<String, dynamic> warning) {
     final amountCtrl = TextEditingController();
-    final reasonCtrl = TextEditingController(text: 'Geofence Breach: Left assigned site boundary');
+    final reasonCtrl = TextEditingController(
+      text: 'Geofence Breach: Left assigned site boundary',
+    );
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: VianTheme.cardColor,
-        title: const Text('APPLY GEOFENCE FINE', style: TextStyle(color: VianTheme.danger)),
+        title: const Text(
+          'APPLY GEOFENCE FINE',
+          style: TextStyle(color: VianTheme.danger),
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('Employee: ${warning['user']?['name'] ?? 'Employee'}', style: const TextStyle(color: VianTheme.headerBlack)),
+            Text(
+              'Employee: ${warning['user']?['name'] ?? 'Employee'}',
+              style: const TextStyle(color: VianTheme.headerBlack),
+            ),
             const SizedBox(height: 8),
-            Text('Project: ${warning['project']?['name'] ?? 'Project'}', style: const TextStyle(color: VianTheme.lightText, fontSize: 12)),
+            Text(
+              'Project: ${warning['project']?['name'] ?? 'Project'}',
+              style: const TextStyle(color: VianTheme.lightText, fontSize: 12),
+            ),
             const SizedBox(height: 16),
             TextField(
               controller: amountCtrl,
@@ -87,24 +98,36 @@ class _ExecutiveDashboardViewState extends State<ExecutiveDashboardView> {
               keyboardType: TextInputType.number,
             ),
             const SizedBox(height: 12),
-            TextField(controller: reasonCtrl, maxLines: 2, decoration: const InputDecoration(labelText: 'Reason')),
+            TextField(
+              controller: reasonCtrl,
+              maxLines: 2,
+              decoration: const InputDecoration(labelText: 'Reason'),
+            ),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
           VianButton(
             text: 'Apply Fine',
             color: VianTheme.danger,
             onPressed: () async {
               final amt = double.tryParse(amountCtrl.text) ?? 0.0;
               if (amt > 0) {
-                await ApiService.applyFine(warning['id'], warning['userId'] ?? 1, amt, reasonCtrl.text);
+                await ApiService.applyFine(
+                  warning['id'],
+                  warning['userId'] ?? 1,
+                  amt,
+                  reasonCtrl.text,
+                );
                 Navigator.pop(context);
                 setState(() => _loading = true);
                 _loadAllData();
               }
             },
-          )
+          ),
         ],
       ),
     );
@@ -119,27 +142,50 @@ class _ExecutiveDashboardViewState extends State<ExecutiveDashboardView> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: VianTheme.cardColor,
-        title: const Text('PUBLISH COMPANY ANNOUNCEMENT', style: TextStyle(color: VianTheme.primaryGold)),
+        title: const Text(
+          'PUBLISH COMPANY ANNOUNCEMENT',
+          style: TextStyle(color: VianTheme.primaryGold),
+        ),
         content: StatefulBuilder(
           builder: (context, setDialogState) => Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              TextField(controller: titleCtrl, decoration: const InputDecoration(labelText: 'Title')),
+              TextField(
+                controller: titleCtrl,
+                decoration: const InputDecoration(labelText: 'Title'),
+              ),
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
                 value: type,
                 dropdownColor: VianTheme.cardColor,
                 decoration: const InputDecoration(labelText: 'Category'),
-                items: ['General', 'Urgent', 'Holiday', 'Meeting', 'Safety'].map((t) => DropdownMenuItem(value: t, child: Text(t, style: const TextStyle(color: VianTheme.headerBlack)))).toList(),
+                items: ['General', 'Urgent', 'Holiday', 'Meeting', 'Safety']
+                    .map(
+                      (t) => DropdownMenuItem(
+                        value: t,
+                        child: Text(
+                          t,
+                          style: const TextStyle(color: VianTheme.headerBlack),
+                        ),
+                      ),
+                    )
+                    .toList(),
                 onChanged: (v) => setDialogState(() => type = v!),
               ),
               const SizedBox(height: 12),
-              TextField(controller: messageCtrl, maxLines: 3, decoration: const InputDecoration(labelText: 'Message Body')),
+              TextField(
+                controller: messageCtrl,
+                maxLines: 3,
+                decoration: const InputDecoration(labelText: 'Message Body'),
+              ),
             ],
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
           VianButton(
             text: 'Publish',
             onPressed: () async {
@@ -148,14 +194,14 @@ class _ExecutiveDashboardViewState extends State<ExecutiveDashboardView> {
                   'title': titleCtrl.text,
                   'message': messageCtrl.text,
                   'targetRole': 'All',
-                  'type': type
+                  'type': type,
                 });
                 Navigator.pop(context);
                 setState(() => _loading = true);
                 _loadAllData();
               }
             },
-          )
+          ),
         ],
       ),
     );
@@ -177,12 +223,22 @@ class _ExecutiveDashboardViewState extends State<ExecutiveDashboardView> {
     );
   }
 
-  TableRow _tableRow(Map<String, dynamic> proj, NumberFormat currencyFormatter) {
+  TableRow _tableRow(
+    Map<String, dynamic> proj,
+    NumberFormat currencyFormatter,
+  ) {
     final status = proj['status'] ?? 'Draft';
-    final valuation = safeToDouble(proj['budgetedCost'] ?? proj['budget'] ?? 0.0);
+    final valuation = safeToDouble(
+      proj['budgetedCost'] ?? proj['budget'] ?? 0.0,
+    );
     return TableRow(
       decoration: BoxDecoration(
-        border: Border(bottom: BorderSide(color: VianTheme.goldBorder.withOpacity(0.4), width: 1)),
+        border: Border(
+          bottom: BorderSide(
+            color: VianTheme.goldBorder.withOpacity(0.4),
+            width: 1,
+          ),
+        ),
       ),
       children: [
         Padding(
@@ -196,13 +252,21 @@ class _ExecutiveDashboardViewState extends State<ExecutiveDashboardView> {
                   border: Border.all(color: VianTheme.goldBorder, width: 1),
                   color: const Color(0xFF1E1F23),
                 ),
-                child: const Icon(Icons.architecture, color: VianTheme.primaryGold, size: 14),
+                child: const Icon(
+                  Icons.architecture,
+                  color: VianTheme.primaryGold,
+                  size: 14,
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
                   proj['name'] ?? 'Untitled Project',
-                  style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.w500, fontSize: 13),
+                  style: GoogleFonts.inter(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w500,
+                    fontSize: 13,
+                  ),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
@@ -215,7 +279,10 @@ class _ExecutiveDashboardViewState extends State<ExecutiveDashboardView> {
             alignment: Alignment.centerLeft,
             child: Text(
               proj['clientName'] ?? proj['client']?['name'] ?? 'N/A',
-              style: GoogleFonts.inter(color: VianTheme.lightText, fontSize: 13),
+              style: GoogleFonts.inter(
+                color: VianTheme.lightText,
+                fontSize: 13,
+              ),
             ),
           ),
         ),
@@ -225,7 +292,10 @@ class _ExecutiveDashboardViewState extends State<ExecutiveDashboardView> {
             alignment: Alignment.centerLeft,
             child: Text(
               proj['address'] ?? 'Kyoto, JP',
-              style: GoogleFonts.inter(color: VianTheme.lightText, fontSize: 13),
+              style: GoogleFonts.inter(
+                color: VianTheme.lightText,
+                fontSize: 13,
+              ),
             ),
           ),
         ),
@@ -237,11 +307,19 @@ class _ExecutiveDashboardViewState extends State<ExecutiveDashboardView> {
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
                 color: VianTheme.primaryGold.withOpacity(0.08),
-                border: Border.all(color: VianTheme.primaryGold.withOpacity(0.2), width: 1),
+                border: Border.all(
+                  color: VianTheme.primaryGold.withOpacity(0.2),
+                  width: 1,
+                ),
               ),
               child: Text(
                 status.toUpperCase(),
-                style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 0.5),
+                style: GoogleFonts.outfit(
+                  color: VianTheme.primaryGold,
+                  fontSize: 9,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.5,
+                ),
               ),
             ),
           ),
@@ -252,7 +330,11 @@ class _ExecutiveDashboardViewState extends State<ExecutiveDashboardView> {
             alignment: Alignment.centerRight,
             child: Text(
               currencyFormatter.format(valuation),
-              style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w500, fontSize: 13),
+              style: GoogleFonts.poppins(
+                color: Colors.white,
+                fontWeight: FontWeight.w500,
+                fontSize: 13,
+              ),
             ),
           ),
         ),
@@ -277,16 +359,32 @@ class _ExecutiveDashboardViewState extends State<ExecutiveDashboardView> {
                       value: 0.65,
                       strokeWidth: 12,
                       backgroundColor: VianTheme.goldBorder.withOpacity(0.2),
-                      valueColor: const AlwaysStoppedAnimation<Color>(VianTheme.primaryGold),
+                      valueColor: const AlwaysStoppedAnimation<Color>(
+                        VianTheme.primaryGold,
+                      ),
                     ),
                   ),
                   Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text('65%', style: GoogleFonts.outfit(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
-                      Text('RESIDENTIAL', style: GoogleFonts.outfit(fontSize: 8, color: VianTheme.lightText, letterSpacing: 0.5)),
+                      Text(
+                        '65%',
+                        style: GoogleFonts.outfit(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      Text(
+                        'RESIDENTIAL',
+                        style: GoogleFonts.outfit(
+                          fontSize: 8,
+                          color: VianTheme.lightText,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
                     ],
-                  )
+                  ),
                 ],
               ),
             ),
@@ -302,7 +400,7 @@ class _ExecutiveDashboardViewState extends State<ExecutiveDashboardView> {
               const SizedBox(height: 10),
               _chartLegend(VianTheme.goldBorder, 'Civic (\$1.0M)'),
             ],
-          )
+          ),
         ],
       ),
     );
@@ -313,7 +411,10 @@ class _ExecutiveDashboardViewState extends State<ExecutiveDashboardView> {
       children: [
         Container(width: 8, height: 8, color: color),
         const SizedBox(width: 8),
-        Text(label, style: GoogleFonts.inter(color: VianTheme.lightText, fontSize: 11)),
+        Text(
+          label,
+          style: GoogleFonts.inter(color: VianTheme.lightText, fontSize: 11),
+        ),
       ],
     );
   }
@@ -343,7 +444,9 @@ class _ExecutiveDashboardViewState extends State<ExecutiveDashboardView> {
         Container(
           width: 18,
           height: height,
-          color: isHighlighted ? VianTheme.primaryGold : VianTheme.goldBorder.withOpacity(0.5),
+          color: isHighlighted
+              ? VianTheme.primaryGold
+              : VianTheme.goldBorder.withOpacity(0.5),
         ),
         const SizedBox(height: 8),
         Text(
@@ -360,29 +463,50 @@ class _ExecutiveDashboardViewState extends State<ExecutiveDashboardView> {
 
   @override
   Widget build(BuildContext context) {
-    if (_loading) return const Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(VianTheme.primaryGold)));
-    
-    final currencyFormatter = NumberFormat.currency(locale: 'en_IN', symbol: '₹', decimalDigits: 0);
+    if (_loading)
+      return const Center(
+        child: CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(VianTheme.primaryGold),
+        ),
+      );
+
+    final currencyFormatter = NumberFormat.currency(
+      locale: 'en_IN',
+      symbol: '₹',
+      decimalDigits: 0,
+    );
 
     final curPerf = _analytics?['currentPerformance'] ?? {};
     final targets = _analytics?['targets'] ?? {};
     final forecasts = _analytics?['forecasts'] ?? {};
     final scoreData = _analytics?['scorecard'] ?? {};
     final depts = _analytics?['departments'] ?? {};
-    
+
     final turnoverActual = safeToDouble(curPerf['actualTurnover']);
-    final turnoverTarget = safeToDouble(targets['annualRevenueTarget'] ?? 10000000.0);
-    
+    final turnoverTarget = safeToDouble(
+      targets['annualRevenueTarget'] ?? 10000000.0,
+    );
+
     final profitActual = safeToDouble(curPerf['netProfit']);
-    final profitTarget = safeToDouble(targets['annualProfitTarget'] ?? 3000000.0);
+    final profitTarget = safeToDouble(
+      targets['annualProfitTarget'] ?? 3000000.0,
+    );
 
     final projectsActual = safeToDouble(curPerf['projectsCompleted']);
-    final projectsTarget = safeToDouble(targets['annualProjectTarget'] ?? 120.0);
+    final projectsTarget = safeToDouble(
+      targets['annualProjectTarget'] ?? 120.0,
+    );
 
-    final clientsActual = safeToDouble((curPerf['newClients'] ?? 0) + (curPerf['repeatClients'] ?? 0));
-    final clientsTarget = safeToDouble((targets['newClientTarget'] ?? 15) + (targets['repeatClientTarget'] ?? 5));
+    final clientsActual = safeToDouble(
+      (curPerf['newClients'] ?? 0) + (curPerf['repeatClients'] ?? 0),
+    );
+    final clientsTarget = safeToDouble(
+      (targets['newClientTarget'] ?? 15) + (targets['repeatClientTarget'] ?? 5),
+    );
 
-    final monthlyRevenueData = List<double>.from((_analytics?['monthlyRevenue'] ?? []).map((e) => safeToDouble(e)));
+    final monthlyRevenueData = List<double>.from(
+      (_analytics?['monthlyRevenue'] ?? []).map((e) => safeToDouble(e)),
+    );
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -404,22 +528,31 @@ class _ExecutiveDashboardViewState extends State<ExecutiveDashboardView> {
                         Text(
                           'Executive Command Overview',
                           style: GoogleFonts.outfit(
-                            fontSize: 24, 
-                            fontWeight: FontWeight.bold, 
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
                             color: Colors.white,
-                            letterSpacing: -0.5
-                          )
+                            letterSpacing: -0.5,
+                          ),
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'Managing Director Command Panel (Anand)', 
-                          style: GoogleFonts.inter(color: VianTheme.lightText, fontSize: 13)
+                          'Managing Director Command Panel (Anand)',
+                          style: GoogleFonts.inter(
+                            color: VianTheme.lightText,
+                            fontSize: 13,
+                          ),
                         ),
                       ],
                     ),
                     IconButton(
-                      icon: const Icon(Icons.sync, color: VianTheme.primaryGold), 
-                      onPressed: () => setState(() { _loading = true; _loadAllData(); })
+                      icon: const Icon(
+                        Icons.sync,
+                        color: VianTheme.primaryGold,
+                      ),
+                      onPressed: () => setState(() {
+                        _loading = true;
+                        _loadAllData();
+                      }),
                     ),
                   ],
                 ),
@@ -438,7 +571,9 @@ class _ExecutiveDashboardViewState extends State<ExecutiveDashboardView> {
                       physics: const NeverScrollableScrollPhysics(),
                       children: [
                         CustomPaint(
-                          painter: AtelierBracketPainter(color: VianTheme.primaryGold),
+                          painter: AtelierBracketPainter(
+                            color: VianTheme.primaryGold,
+                          ),
                           child: Container(
                             color: VianTheme.cardColor,
                             padding: const EdgeInsets.all(24.0),
@@ -446,13 +581,38 @@ class _ExecutiveDashboardViewState extends State<ExecutiveDashboardView> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text('ACTIVE PROJECTS', style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1)),
-                                Text('142', style: GoogleFonts.bodoniModa(color: Colors.white, fontSize: 44, fontWeight: FontWeight.bold)),
+                                Text(
+                                  'ACTIVE PROJECTS',
+                                  style: GoogleFonts.outfit(
+                                    color: VianTheme.primaryGold,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 1,
+                                  ),
+                                ),
+                                Text(
+                                  '142',
+                                  style: GoogleFonts.bodoniModa(
+                                    color: Colors.white,
+                                    fontSize: 44,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                                 Row(
                                   children: [
-                                    const Icon(Icons.trending_up, color: VianTheme.primaryGold, size: 14),
+                                    const Icon(
+                                      Icons.trending_up,
+                                      color: VianTheme.primaryGold,
+                                      size: 14,
+                                    ),
                                     const SizedBox(width: 4),
-                                    Text('+12% since last month', style: GoogleFonts.inter(color: VianTheme.lightText, fontSize: 11)),
+                                    Text(
+                                      '+12% since last month',
+                                      style: GoogleFonts.inter(
+                                        color: VianTheme.lightText,
+                                        fontSize: 11,
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ],
@@ -460,7 +620,9 @@ class _ExecutiveDashboardViewState extends State<ExecutiveDashboardView> {
                           ),
                         ),
                         CustomPaint(
-                          painter: AtelierBracketPainter(color: VianTheme.primaryGold),
+                          painter: AtelierBracketPainter(
+                            color: VianTheme.primaryGold,
+                          ),
                           child: Container(
                             color: VianTheme.cardColor,
                             padding: const EdgeInsets.all(24.0),
@@ -468,13 +630,38 @@ class _ExecutiveDashboardViewState extends State<ExecutiveDashboardView> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text('TOTAL REVENUE', style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1)),
-                                Text('₹9.4M', style: GoogleFonts.bodoniModa(color: Colors.white, fontSize: 44, fontWeight: FontWeight.bold)),
+                                Text(
+                                  'TOTAL REVENUE',
+                                  style: GoogleFonts.outfit(
+                                    color: VianTheme.primaryGold,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 1,
+                                  ),
+                                ),
+                                Text(
+                                  '₹9.4M',
+                                  style: GoogleFonts.bodoniModa(
+                                    color: Colors.white,
+                                    fontSize: 44,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                                 Row(
                                   children: [
-                                    const Icon(Icons.trending_up, color: VianTheme.primaryGold, size: 14),
+                                    const Icon(
+                                      Icons.trending_up,
+                                      color: VianTheme.primaryGold,
+                                      size: 14,
+                                    ),
                                     const SizedBox(width: 4),
-                                    Text('+2.1M growth', style: GoogleFonts.inter(color: VianTheme.lightText, fontSize: 11)),
+                                    Text(
+                                      '+2.1M growth',
+                                      style: GoogleFonts.inter(
+                                        color: VianTheme.lightText,
+                                        fontSize: 11,
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ],
@@ -482,7 +669,9 @@ class _ExecutiveDashboardViewState extends State<ExecutiveDashboardView> {
                           ),
                         ),
                         CustomPaint(
-                          painter: AtelierBracketPainter(color: VianTheme.primaryGold),
+                          painter: AtelierBracketPainter(
+                            color: VianTheme.primaryGold,
+                          ),
                           child: Container(
                             color: VianTheme.cardColor,
                             padding: const EdgeInsets.all(24.0),
@@ -490,13 +679,38 @@ class _ExecutiveDashboardViewState extends State<ExecutiveDashboardView> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text('UTILIZATION RATE', style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1)),
-                                Text('88%', style: GoogleFonts.bodoniModa(color: Colors.white, fontSize: 44, fontWeight: FontWeight.bold)),
+                                Text(
+                                  'UTILIZATION RATE',
+                                  style: GoogleFonts.outfit(
+                                    color: VianTheme.primaryGold,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 1,
+                                  ),
+                                ),
+                                Text(
+                                  '88%',
+                                  style: GoogleFonts.bodoniModa(
+                                    color: Colors.white,
+                                    fontSize: 44,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                                 Row(
                                   children: [
-                                    const Icon(Icons.check_circle_outline, color: VianTheme.primaryGold, size: 14),
+                                    const Icon(
+                                      Icons.check_circle_outline,
+                                      color: VianTheme.primaryGold,
+                                      size: 14,
+                                    ),
                                     const SizedBox(width: 4),
-                                    Text('Optimal capacity', style: GoogleFonts.inter(color: VianTheme.lightText, fontSize: 11)),
+                                    Text(
+                                      'Optimal capacity',
+                                      style: GoogleFonts.inter(
+                                        color: VianTheme.lightText,
+                                        fontSize: 11,
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ],
@@ -504,7 +718,9 @@ class _ExecutiveDashboardViewState extends State<ExecutiveDashboardView> {
                           ),
                         ),
                         CustomPaint(
-                          painter: AtelierBracketPainter(color: VianTheme.primaryGold),
+                          painter: AtelierBracketPainter(
+                            color: VianTheme.primaryGold,
+                          ),
                           child: Container(
                             color: VianTheme.cardColor,
                             padding: const EdgeInsets.all(24.0),
@@ -512,13 +728,38 @@ class _ExecutiveDashboardViewState extends State<ExecutiveDashboardView> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text('AVG COMPLETION', style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1)),
-                                Text('240d', style: GoogleFonts.bodoniModa(color: Colors.white, fontSize: 44, fontWeight: FontWeight.bold)),
+                                Text(
+                                  'AVG COMPLETION',
+                                  style: GoogleFonts.outfit(
+                                    color: VianTheme.primaryGold,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 1,
+                                  ),
+                                ),
+                                Text(
+                                  '240d',
+                                  style: GoogleFonts.bodoniModa(
+                                    color: Colors.white,
+                                    fontSize: 44,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                                 Row(
                                   children: [
-                                    const Icon(Icons.arrow_downward, color: VianTheme.primaryGold, size: 14),
+                                    const Icon(
+                                      Icons.arrow_downward,
+                                      color: VianTheme.primaryGold,
+                                      size: 14,
+                                    ),
                                     const SizedBox(width: 4),
-                                    Text('-4% efficiency gain', style: GoogleFonts.inter(color: VianTheme.lightText, fontSize: 11)),
+                                    Text(
+                                      '-4% efficiency gain',
+                                      style: GoogleFonts.inter(
+                                        color: VianTheme.lightText,
+                                        fontSize: 11,
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ],
@@ -545,7 +786,15 @@ class _ExecutiveDashboardViewState extends State<ExecutiveDashboardView> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('REVENUE DISTRIBUTION', style: GoogleFonts.outfit(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1)),
+                                Text(
+                                  'REVENUE DISTRIBUTION',
+                                  style: GoogleFonts.outfit(
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 1,
+                                  ),
+                                ),
                                 const SizedBox(height: 16),
                                 _buildDonutChart(),
                               ],
@@ -561,7 +810,15 @@ class _ExecutiveDashboardViewState extends State<ExecutiveDashboardView> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('PROJECT VELOCITY', style: GoogleFonts.outfit(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1)),
+                                Text(
+                                  'PROJECT VELOCITY',
+                                  style: GoogleFonts.outfit(
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 1,
+                                  ),
+                                ),
                                 const SizedBox(height: 16),
                                 _buildBarChart(),
                               ],
@@ -575,7 +832,15 @@ class _ExecutiveDashboardViewState extends State<ExecutiveDashboardView> {
                 const SizedBox(height: 32),
 
                 // TARGET PROGRESS VIEW
-                Text('ANNUAL TARGETS ACHIEVEMENT', style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.bold, color: VianTheme.primaryGold, letterSpacing: 1.0)),
+                Text(
+                  'ANNUAL TARGETS ACHIEVEMENT',
+                  style: GoogleFonts.outfit(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: VianTheme.primaryGold,
+                    letterSpacing: 1.0,
+                  ),
+                ),
                 const SizedBox(height: 16),
                 LayoutBuilder(
                   builder: (context, constraints) {
@@ -604,7 +869,8 @@ class _ExecutiveDashboardViewState extends State<ExecutiveDashboardView> {
                           title: 'COMPLETED PROJECTS',
                           actual: projectsActual,
                           target: projectsTarget,
-                          label: '${projectsActual.toInt()} / ${projectsTarget.toInt()} Projects',
+                          label:
+                              '${projectsActual.toInt()} / ${projectsTarget.toInt()} Projects',
                         ),
                         TargetProgressIndicator(
                           title: 'CLIENT GROWTH',
@@ -625,7 +891,15 @@ class _ExecutiveDashboardViewState extends State<ExecutiveDashboardView> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('GPS ATTENDANCE & GEOFENCE BREACHES', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: VianTheme.danger, letterSpacing: 1.0, fontSize: 13)),
+                        Text(
+                          'GPS ATTENDANCE & GEOFENCE BREACHES',
+                          style: GoogleFonts.outfit(
+                            fontWeight: FontWeight.bold,
+                            color: VianTheme.danger,
+                            letterSpacing: 1.0,
+                            fontSize: 13,
+                          ),
+                        ),
                         const SizedBox(height: 16),
                         ListView.builder(
                           shrinkWrap: true,
@@ -636,26 +910,63 @@ class _ExecutiveDashboardViewState extends State<ExecutiveDashboardView> {
                             return Container(
                               margin: const EdgeInsets.only(bottom: 8),
                               decoration: const BoxDecoration(
-                                border: Border(bottom: BorderSide(color: VianTheme.goldBorder, width: 0.5)),
+                                border: Border(
+                                  bottom: BorderSide(
+                                    color: VianTheme.goldBorder,
+                                    width: 0.5,
+                                  ),
+                                ),
                               ),
                               child: ListTile(
                                 contentPadding: EdgeInsets.zero,
-                                leading: const CircleAvatar(backgroundColor: Color(0x1ADB5545), child: Icon(Icons.gps_off, color: VianTheme.danger, size: 16)),
-                                title: Text('${warn['user']?['name'] ?? 'Employee'} left assigned site boundary', style: GoogleFonts.inter(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w500)),
-                                subtitle: Text('Project: ${warn['project']?['name']} | Location: ${warn['currentLocation']}', style: GoogleFonts.inter(color: VianTheme.lightText, fontSize: 11.5)),
+                                leading: const CircleAvatar(
+                                  backgroundColor: Color(0x1ADB5545),
+                                  child: Icon(
+                                    Icons.gps_off,
+                                    color: VianTheme.danger,
+                                    size: 16,
+                                  ),
+                                ),
+                                title: Text(
+                                  '${warn['user']?['name'] ?? 'Employee'} left assigned site boundary',
+                                  style: GoogleFonts.inter(
+                                    color: Colors.white,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                subtitle: Text(
+                                  'Project: ${warn['project']?['name']} | Location: ${warn['currentLocation']}',
+                                  style: GoogleFonts.inter(
+                                    color: VianTheme.lightText,
+                                    fontSize: 11.5,
+                                  ),
+                                ),
                                 trailing: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     IconButton(
-                                      icon: const Icon(Icons.gavel, color: VianTheme.danger, size: 18),
+                                      icon: const Icon(
+                                        Icons.gavel,
+                                        color: VianTheme.danger,
+                                        size: 18,
+                                      ),
                                       tooltip: 'Apply Fine',
-                                      onPressed: () => _showApplyFineDialog(warn),
+                                      onPressed: () =>
+                                          _showApplyFineDialog(warn),
                                     ),
                                     IconButton(
-                                      icon: const Icon(Icons.check, color: VianTheme.success, size: 18),
+                                      icon: const Icon(
+                                        Icons.check,
+                                        color: VianTheme.success,
+                                        size: 18,
+                                      ),
                                       tooltip: 'Ignore',
                                       onPressed: () async {
-                                        await ApiService.updateWarningStatus(warn['id'], 'Ignored');
+                                        await ApiService.updateWarningStatus(
+                                          warn['id'],
+                                          'Ignored',
+                                        );
                                         setState(() => _loading = true);
                                         _loadAllData();
                                       },
@@ -681,15 +992,34 @@ class _ExecutiveDashboardViewState extends State<ExecutiveDashboardView> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text('GLOBAL PROJECT STATUS', style: GoogleFonts.outfit(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1)),
+                          Text(
+                            'GLOBAL PROJECT STATUS',
+                            style: GoogleFonts.outfit(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 1,
+                            ),
+                          ),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
                             decoration: BoxDecoration(
-                              border: Border.all(color: VianTheme.primaryGold, width: 1),
+                              border: Border.all(
+                                color: VianTheme.primaryGold,
+                                width: 1,
+                              ),
                             ),
                             child: Text(
                               'EXPORT DATA',
-                              style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 1),
+                              style: GoogleFonts.outfit(
+                                color: VianTheme.primaryGold,
+                                fontSize: 9,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1,
+                              ),
                             ),
                           ),
                         ],
@@ -698,7 +1028,12 @@ class _ExecutiveDashboardViewState extends State<ExecutiveDashboardView> {
                       if (_projects.isEmpty)
                         const Padding(
                           padding: EdgeInsets.symmetric(vertical: 24.0),
-                          child: Center(child: Text('No active projects registered.', style: TextStyle(color: VianTheme.lightText))),
+                          child: Center(
+                            child: Text(
+                              'No active projects registered.',
+                              style: TextStyle(color: VianTheme.lightText),
+                            ),
+                          ),
                         )
                       else
                         Table(
@@ -712,7 +1047,12 @@ class _ExecutiveDashboardViewState extends State<ExecutiveDashboardView> {
                           children: [
                             TableRow(
                               decoration: const BoxDecoration(
-                                border: Border(bottom: BorderSide(color: VianTheme.goldBorder, width: 1)),
+                                border: Border(
+                                  bottom: BorderSide(
+                                    color: VianTheme.goldBorder,
+                                    width: 1,
+                                  ),
+                                ),
                               ),
                               children: [
                                 _tableHeader('Project Identifier'),
@@ -722,7 +1062,9 @@ class _ExecutiveDashboardViewState extends State<ExecutiveDashboardView> {
                                 _tableHeader('Valuation', isRight: true),
                               ],
                             ),
-                            ..._projects.map((p) => _tableRow(p, currencyFormatter)).toList(),
+                            ..._projects
+                                .map((p) => _tableRow(p, currencyFormatter))
+                                .toList(),
                           ],
                         ),
                     ],
@@ -738,7 +1080,9 @@ class _ExecutiveDashboardViewState extends State<ExecutiveDashboardView> {
           width: 320,
           decoration: const BoxDecoration(
             color: Color(0xFF121317),
-            border: Border(left: BorderSide(color: VianTheme.goldBorder, width: 1)),
+            border: Border(
+              left: BorderSide(color: VianTheme.goldBorder, width: 1),
+            ),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -748,9 +1092,23 @@ class _ExecutiveDashboardViewState extends State<ExecutiveDashboardView> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('LIVE INSIGHTS', style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
+                    Text(
+                      'LIVE INSIGHTS',
+                      style: GoogleFonts.outfit(
+                        color: VianTheme.primaryGold,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1.5,
+                      ),
+                    ),
                     const SizedBox(height: 4),
-                    Text('Real-time updates and alerts', style: GoogleFonts.inter(color: VianTheme.lightText, fontSize: 12)),
+                    Text(
+                      'Real-time updates and alerts',
+                      style: GoogleFonts.inter(
+                        color: VianTheme.lightText,
+                        fontSize: 12,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -763,10 +1121,21 @@ class _ExecutiveDashboardViewState extends State<ExecutiveDashboardView> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('RECENT ACTIVITY', style: GoogleFonts.outfit(color: VianTheme.lightText, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1)),
+                      Text(
+                        'RECENT ACTIVITY',
+                        style: GoogleFonts.outfit(
+                          color: VianTheme.lightText,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1,
+                        ),
+                      ),
                       const SizedBox(height: 16),
                       if (_logs.isEmpty)
-                        const Text('No recent activity logs.', style: TextStyle(color: Colors.white24, fontSize: 12))
+                        const Text(
+                          'No recent activity logs.',
+                          style: TextStyle(color: Colors.white24, fontSize: 12),
+                        )
                       else
                         ListView.builder(
                           shrinkWrap: true,
@@ -783,23 +1152,40 @@ class _ExecutiveDashboardViewState extends State<ExecutiveDashboardView> {
                                     margin: const EdgeInsets.only(top: 4),
                                     width: 6,
                                     height: 6,
-                                    decoration: const BoxDecoration(color: VianTheme.primaryGold, shape: BoxShape.circle),
+                                    decoration: const BoxDecoration(
+                                      color: VianTheme.primaryGold,
+                                      shape: BoxShape.circle,
+                                    ),
                                   ),
                                   const SizedBox(width: 12),
                                   Expanded(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          log['message'] ?? log['action'] ?? 'System Action',
-                                          style: GoogleFonts.inter(color: Colors.white, fontSize: 12.5, height: 1.3),
+                                          log['message'] ??
+                                              log['action'] ??
+                                              'System Action',
+                                          style: GoogleFonts.inter(
+                                            color: Colors.white,
+                                            fontSize: 12.5,
+                                            height: 1.3,
+                                          ),
                                         ),
                                         const SizedBox(height: 2),
                                         Text(
                                           log['createdAt'] != null
-                                              ? DateFormat('hh:mm a').format(DateTime.parse(log['createdAt']))
+                                              ? DateFormat('hh:mm a').format(
+                                                  DateTime.parse(
+                                                    log['createdAt'],
+                                                  ),
+                                                )
                                               : 'Just now',
-                                          style: GoogleFonts.inter(color: Colors.white24, fontSize: 10),
+                                          style: GoogleFonts.inter(
+                                            color: Colors.white24,
+                                            fontSize: 10,
+                                          ),
                                         ),
                                       ],
                                     ),
@@ -816,18 +1202,42 @@ class _ExecutiveDashboardViewState extends State<ExecutiveDashboardView> {
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
                           color: VianTheme.primaryGold.withOpacity(0.04),
-                          border: const Border(left: BorderSide(color: VianTheme.primaryGold, width: 2)),
+                          border: const Border(
+                            left: BorderSide(
+                              color: VianTheme.primaryGold,
+                              width: 2,
+                            ),
+                          ),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('MARKET TREND', style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 1)),
+                            Text(
+                              'MARKET TREND',
+                              style: GoogleFonts.outfit(
+                                color: VianTheme.primaryGold,
+                                fontSize: 9,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1,
+                              ),
+                            ),
                             const SizedBox(height: 6),
-                            Text('+18.4%', style: GoogleFonts.outfit(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
+                            Text(
+                              '+18.4%',
+                              style: GoogleFonts.outfit(
+                                color: Colors.white,
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                             const SizedBox(height: 4),
                             Text(
                               'Demand for sustainable concrete wireframes is rising sharply this quarter.',
-                              style: GoogleFonts.inter(color: VianTheme.lightText, fontSize: 11, height: 1.3),
+                              style: GoogleFonts.inter(
+                                color: VianTheme.lightText,
+                                fontSize: 11,
+                                height: 1.3,
+                              ),
                             ),
                           ],
                         ),
@@ -835,7 +1245,15 @@ class _ExecutiveDashboardViewState extends State<ExecutiveDashboardView> {
                       const SizedBox(height: 32),
 
                       // System check status list
-                      Text('COMMAND STATUS', style: GoogleFonts.outfit(color: VianTheme.lightText, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1)),
+                      Text(
+                        'COMMAND STATUS',
+                        style: GoogleFonts.outfit(
+                          color: VianTheme.lightText,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1,
+                        ),
+                      ),
                       const SizedBox(height: 16),
                       _statusCheckItem('Cloud Sync Database', true),
                       const SizedBox(height: 12),
@@ -857,7 +1275,9 @@ class _ExecutiveDashboardViewState extends State<ExecutiveDashboardView> {
                     text: 'GENERATE SUITE REPORT',
                     onPressed: () {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Atelier Suite Report generated.')),
+                        const SnackBar(
+                          content: Text('Atelier Suite Report generated.'),
+                        ),
                       );
                     },
                   ),
@@ -874,7 +1294,10 @@ class _ExecutiveDashboardViewState extends State<ExecutiveDashboardView> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: GoogleFonts.inter(color: VianTheme.lightText, fontSize: 12)),
+        Text(
+          label,
+          style: GoogleFonts.inter(color: VianTheme.lightText, fontSize: 12),
+        ),
         Icon(
           active ? Icons.check_circle_outline : Icons.error_outline,
           color: active ? VianTheme.success : VianTheme.danger,
@@ -895,9 +1318,22 @@ class _ExecutiveDashboardViewState extends State<ExecutiveDashboardView> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(teamName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.white)),
+                Text(
+                  teamName,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                    color: Colors.white,
+                  ),
+                ),
                 const SizedBox(height: 2),
-                Text(metric, style: const TextStyle(color: VianTheme.lightText, fontSize: 11)),
+                Text(
+                  metric,
+                  style: const TextStyle(
+                    color: VianTheme.lightText,
+                    fontSize: 11,
+                  ),
+                ),
               ],
             ),
           ),
@@ -935,8 +1371,18 @@ class _ExecutiveDashboardViewState extends State<ExecutiveDashboardView> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(color: VianTheme.lightText, fontSize: 12)),
-          Text(value, style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: VianTheme.primaryGold, fontSize: 13)),
+          Text(
+            label,
+            style: const TextStyle(color: VianTheme.lightText, fontSize: 12),
+          ),
+          Text(
+            value,
+            style: GoogleFonts.poppins(
+              fontWeight: FontWeight.bold,
+              color: VianTheme.primaryGold,
+              fontSize: 13,
+            ),
+          ),
         ],
       ),
     );
@@ -949,7 +1395,14 @@ class _ExecutiveDashboardViewState extends State<ExecutiveDashboardView> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(fontSize: 12, color: Colors.white, fontWeight: FontWeight.w500)),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 12,
+              color: Colors.white,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
           SizedBox(
             width: 38,
             height: 38,
@@ -1060,10 +1513,7 @@ class TargetProgressIndicator extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             'Target: ${NumberFormat.compact().format(target)}',
-            style: const TextStyle(
-              fontSize: 10,
-              color: VianTheme.lightText,
-            ),
+            style: const TextStyle(fontSize: 10, color: VianTheme.lightText),
             textAlign: TextAlign.center,
           ),
         ],
@@ -1083,7 +1533,10 @@ class RevenueTrendChart extends StatelessWidget {
       return const SizedBox(
         height: 200,
         child: Center(
-          child: Text('No revenue data available', style: TextStyle(color: VianTheme.lightText)),
+          child: Text(
+            'No revenue data available',
+            style: TextStyle(color: VianTheme.lightText),
+          ),
         ),
       );
     }
@@ -1091,7 +1544,20 @@ class RevenueTrendChart extends StatelessWidget {
     final double maxVal = data.reduce((a, b) => a > b ? a : b);
     final double maxInterval = maxVal > 0 ? maxVal : 10.0;
 
-    final List<String> months = ['Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar'];
+    final List<String> months = [
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+      'Jan',
+      'Feb',
+      'Mar',
+    ];
 
     final List<BarChartGroupData> barGroups = [];
     for (int i = 0; i < data.length; i++) {
@@ -1130,16 +1596,17 @@ class RevenueTrendChart extends StatelessWidget {
             show: true,
             drawVerticalLine: false,
             getDrawingHorizontalLine: (value) {
-              return const FlLine(
-                color: Color(0xFFE2E8F0),
-                strokeWidth: 1,
-              );
+              return const FlLine(color: Color(0xFFE2E8F0), strokeWidth: 1);
             },
           ),
           titlesData: FlTitlesData(
             show: true,
-            rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            rightTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
+            topTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
             leftTitles: AxisTitles(
               sideTitles: SideTitles(
                 showTitles: true,
@@ -1147,7 +1614,10 @@ class RevenueTrendChart extends StatelessWidget {
                 getTitlesWidget: (value, meta) {
                   return Text(
                     NumberFormat.compact().format(value),
-                    style: const TextStyle(color: VianTheme.lightText, fontSize: 9),
+                    style: const TextStyle(
+                      color: VianTheme.lightText,
+                      fontSize: 9,
+                    ),
                   );
                 },
               ),
@@ -1163,7 +1633,10 @@ class RevenueTrendChart extends StatelessWidget {
                       padding: const EdgeInsets.only(top: 6.0),
                       child: Text(
                         months[idx],
-                        style: const TextStyle(color: VianTheme.lightText, fontSize: 9),
+                        style: const TextStyle(
+                          color: VianTheme.lightText,
+                          fontSize: 9,
+                        ),
                       ),
                     );
                   }
@@ -1172,9 +1645,7 @@ class RevenueTrendChart extends StatelessWidget {
               ),
             ),
           ),
-          borderData: FlBorderData(
-            show: false,
-          ),
+          borderData: FlBorderData(show: false),
           barGroups: barGroups,
           maxY: maxInterval * 1.15,
         ),
@@ -1182,7 +1653,6 @@ class RevenueTrendChart extends StatelessWidget {
     );
   }
 }
-
 
 // ==========================================
 // 2. JAYA HOME VIEW (Admin / Office Manager / Accounts)
@@ -1214,20 +1684,43 @@ class _JayaHomeViewState extends State<JayaHomeView> {
   String? _assignDrawing;
   int? _assignUserId;
   String _assignPriority = 'Medium';
-  final _assignDueDateCtrl = TextEditingController(text: DateTime.now().toString().split(' ').first);
+  final _assignDueDateCtrl = TextEditingController(
+    text: DateTime.now().toString().split(' ').first,
+  );
   final _assignTimeCtrl = TextEditingController(text: '05:00 PM');
   final _assignNotesCtrl = TextEditingController();
 
   final List<String> _checklistItems = [
-    'Site Boundary', 'Column Marking', 'Footing', 'Grade Beam', 'Plinth',
-    'Ground Floor', 'First Floor', 'Roof', 'Brick Work', 'Electrical',
-    'Plumbing', 'Painting', 'Wood Work', 'False Ceiling', 'Flooring',
-    'Finishing', 'Handover'
+    'Site Boundary',
+    'Column Marking',
+    'Footing',
+    'Grade Beam',
+    'Plinth',
+    'Ground Floor',
+    'First Floor',
+    'Roof',
+    'Brick Work',
+    'Electrical',
+    'Plumbing',
+    'Painting',
+    'Wood Work',
+    'False Ceiling',
+    'Flooring',
+    'Finishing',
+    'Handover',
   ];
 
   final List<String> _drawingItems = [
-    'Working Drawing', 'Floor Plan', 'Section', 'Elevation', 'Compound Wall',
-    'Gate Design', 'Electrical', 'Plumbing', '3D Interior', '3D Exterior'
+    'Working Drawing',
+    'Floor Plan',
+    'Section',
+    'Elevation',
+    'Compound Wall',
+    'Gate Design',
+    'Electrical',
+    'Plumbing',
+    '3D Interior',
+    '3D Exterior',
   ];
 
   @override
@@ -1254,7 +1747,11 @@ class _JayaHomeViewState extends State<JayaHomeView> {
         _announcements = anns;
         _tasks = tsk;
         _projects = projs;
-        _employees = emps.where((e) => e['role'] != 'Client' && e['role'] != 'Managing Director').toList();
+        _employees = emps
+            .where(
+              (e) => e['role'] != 'Client' && e['role'] != 'Managing Director',
+            )
+            .toList();
         _pendingPayments = inv.where((i) => i['status'] != 'Paid').length;
         _attendanceStats = attStats['stats'];
         _loading = false;
@@ -1263,23 +1760,36 @@ class _JayaHomeViewState extends State<JayaHomeView> {
   }
 
   Future<void> _submitAssignment() async {
-    if (_assignProjectId == null || _assignUserId == null || _assignChecklist == null) {
+    if (_assignProjectId == null ||
+        _assignUserId == null ||
+        _assignChecklist == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select Project, Staff, and Working Checklist Item.'))
+        const SnackBar(
+          content: Text(
+            'Please select Project, Staff, and Working Checklist Item.',
+          ),
+        ),
       );
       return;
     }
-    
-    final selectedProj = _projects.firstWhere((p) => p['id'] == _assignProjectId);
-    final selectedClient = _clients.firstWhere((c) => c['id'] == selectedProj['clientId'], orElse: () => {'name': 'Client'});
-    
+
+    final selectedProj = _projects.firstWhere(
+      (p) => p['id'] == _assignProjectId,
+    );
+    final selectedClient = _clients.firstWhere(
+      (c) => c['id'] == selectedProj['clientId'],
+      orElse: () => {'name': 'Client'},
+    );
+
     final descriptionObj = {
       'clientName': selectedClient['name'] ?? 'Client',
       'projectName': selectedProj['name'] ?? 'Project',
       'checklist': _assignChecklist,
       'drawing': _assignDrawing ?? 'None',
       'expectedCompletion': _assignTimeCtrl.text,
-      'notes': _assignNotesCtrl.text.isEmpty ? 'Daily Work Assignment' : _assignNotesCtrl.text
+      'notes': _assignNotesCtrl.text.isEmpty
+          ? 'Daily Work Assignment'
+          : _assignNotesCtrl.text,
     };
 
     final success = await ApiService.createTask({
@@ -1289,7 +1799,7 @@ class _JayaHomeViewState extends State<JayaHomeView> {
       'assignedTo': _assignUserId,
       'priority': _assignPriority,
       'dueDate': _assignDueDateCtrl.text,
-      'status': 'Pending'
+      'status': 'Pending',
     });
 
     if (success) {
@@ -1300,11 +1810,15 @@ class _JayaHomeViewState extends State<JayaHomeView> {
       });
       _loadJayaData();
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Work assignment successfully saved and dispatched to Staff.'))
+        const SnackBar(
+          content: Text(
+            'Work assignment successfully saved and dispatched to Staff.',
+          ),
+        ),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to save work assignment.'))
+        const SnackBar(content: Text('Failed to save work assignment.')),
       );
     }
   }
@@ -1312,15 +1826,29 @@ class _JayaHomeViewState extends State<JayaHomeView> {
   @override
   Widget build(BuildContext context) {
     if (_loading) return const Center(child: CircularProgressIndicator());
-    final formatter = NumberFormat.currency(locale: 'en_IN', symbol: '₹', decimalDigits: 0);
+    final formatter = NumberFormat.currency(
+      locale: 'en_IN',
+      symbol: '₹',
+      decimalDigits: 0,
+    );
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Office Administration Dashboard', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: VianTheme.primaryGold)),
-          const Text('Jaya Home Screen: Clients, Accounts, Tasks & Operations', style: TextStyle(color: Color(0xFF70707C))),
+          const Text(
+            'Office Administration Dashboard',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: VianTheme.primaryGold,
+            ),
+          ),
+          const Text(
+            'Jaya Home Screen: Clients, Accounts, Tasks & Operations',
+            style: TextStyle(color: Color(0xFF70707C)),
+          ),
           const SizedBox(height: 24),
 
           LayoutBuilder(
@@ -1334,17 +1862,49 @@ class _JayaHomeViewState extends State<JayaHomeView> {
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 children: [
-                  VianMetricCard(title: 'TOTAL CLIENTS', value: _clients.length.toString(), icon: Icons.people),
-                  VianMetricCard(title: "TODAY'S ATTENDANCE", value: _attendance.length.toString(), icon: Icons.calendar_month, iconColor: VianTheme.success),
-                  VianMetricCard(title: 'UNPAID INVOICES', value: _pendingPayments.toString(), icon: Icons.receipt, iconColor: VianTheme.danger),
-                  VianMetricCard(title: 'TOTAL REVENUE INVOICED', value: formatter.format(_invoices.fold(0.0, (acc, item) => acc + safeToDouble(item['total']))), icon: Icons.payments, iconColor: VianTheme.primaryGold),
+                  VianMetricCard(
+                    title: 'TOTAL CLIENTS',
+                    value: _clients.length.toString(),
+                    icon: Icons.people,
+                  ),
+                  VianMetricCard(
+                    title: "TODAY'S ATTENDANCE",
+                    value: _attendance.length.toString(),
+                    icon: Icons.calendar_month,
+                    iconColor: VianTheme.success,
+                  ),
+                  VianMetricCard(
+                    title: 'UNPAID INVOICES',
+                    value: _pendingPayments.toString(),
+                    icon: Icons.receipt,
+                    iconColor: VianTheme.danger,
+                  ),
+                  VianMetricCard(
+                    title: 'TOTAL REVENUE INVOICED',
+                    value: formatter.format(
+                      _invoices.fold(
+                        0.0,
+                        (acc, item) => acc + safeToDouble(item['total']),
+                      ),
+                    ),
+                    icon: Icons.payments,
+                    iconColor: VianTheme.primaryGold,
+                  ),
                 ],
               );
             },
           ),
           const SizedBox(height: 24),
-          
-          const Text('GPS GEOFENCE SECURITY & BIOMETRICS STATUS', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: VianTheme.primaryGold, letterSpacing: 0.5)),
+
+          const Text(
+            'GPS GEOFENCE SECURITY & BIOMETRICS STATUS',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: VianTheme.primaryGold,
+              letterSpacing: 0.5,
+            ),
+          ),
           const SizedBox(height: 16),
           LayoutBuilder(
             builder: (context, constraints) {
@@ -1357,10 +1917,31 @@ class _JayaHomeViewState extends State<JayaHomeView> {
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 children: [
-                  VianMetricCard(title: 'EMPLOYEES OUTSIDE SITE', value: '${_attendanceStats?['employeesOutsideSite'] ?? 0}', icon: Icons.person_pin_circle_outlined, iconColor: VianTheme.danger),
-                  VianMetricCard(title: 'PENDING APPROVALS', value: '${_attendanceStats?['pendingAttendanceApproval'] ?? 0}', icon: Icons.pending_actions_outlined, iconColor: VianTheme.warning),
-                  VianMetricCard(title: 'GPS BOUNDARY FAILURES', value: '${_attendanceStats?['gpsFailures'] ?? 0}', icon: Icons.gps_off_outlined, iconColor: VianTheme.danger),
-                  VianMetricCard(title: 'FACE MATCH FAILURES', value: '${_attendanceStats?['faceFailures'] ?? 0}', icon: Icons.face_unlock_outlined, iconColor: VianTheme.danger),
+                  VianMetricCard(
+                    title: 'EMPLOYEES OUTSIDE SITE',
+                    value: '${_attendanceStats?['employeesOutsideSite'] ?? 0}',
+                    icon: Icons.person_pin_circle_outlined,
+                    iconColor: VianTheme.danger,
+                  ),
+                  VianMetricCard(
+                    title: 'PENDING APPROVALS',
+                    value:
+                        '${_attendanceStats?['pendingAttendanceApproval'] ?? 0}',
+                    icon: Icons.pending_actions_outlined,
+                    iconColor: VianTheme.warning,
+                  ),
+                  VianMetricCard(
+                    title: 'GPS BOUNDARY FAILURES',
+                    value: '${_attendanceStats?['gpsFailures'] ?? 0}',
+                    icon: Icons.gps_off_outlined,
+                    iconColor: VianTheme.danger,
+                  ),
+                  VianMetricCard(
+                    title: 'FACE MATCH FAILURES',
+                    value: '${_attendanceStats?['faceFailures'] ?? 0}',
+                    icon: Icons.face_unlock_outlined,
+                    iconColor: VianTheme.danger,
+                  ),
                 ],
               );
             },
@@ -1381,25 +1962,53 @@ class _JayaHomeViewState extends State<JayaHomeView> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Text('CLIENT METADATA DIRECTORY', style: TextStyle(fontWeight: FontWeight.bold, color: VianTheme.primaryGold)),
-                              VianButton(text: 'Onboard Wizard', onPressed: () {}, isSecondary: true),
+                              const Text(
+                                'CLIENT METADATA DIRECTORY',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: VianTheme.primaryGold,
+                                ),
+                              ),
+                              VianButton(
+                                text: 'Onboard Wizard',
+                                onPressed: () {},
+                                isSecondary: true,
+                              ),
                             ],
                           ),
                           const SizedBox(height: 12),
                           ListView.builder(
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
-                            itemCount: _clients.length > 3 ? 3 : _clients.length,
+                            itemCount: _clients.length > 3
+                                ? 3
+                                : _clients.length,
                             itemBuilder: (context, idx) {
                               final cli = _clients[idx];
                               return ListTile(
-                                leading: const CircleAvatar(backgroundColor: Color(0xFFF1F5F9), child: Icon(Icons.person, color: VianTheme.primaryGold)),
+                                leading: const CircleAvatar(
+                                  backgroundColor: Color(0xFFF1F5F9),
+                                  child: Icon(
+                                    Icons.person,
+                                    color: VianTheme.primaryGold,
+                                  ),
+                                ),
                                 title: Text(cli['name'] ?? ''),
-                                subtitle: Text('Phone: ${cli['phone']} | Email: ${cli['email']}'),
-                                trailing: Text(cli['gst'] != null ? 'GST: ${cli['gst']}' : 'No GST', style: const TextStyle(fontSize: 10, color: VianTheme.lightText)),
+                                subtitle: Text(
+                                  'Phone: ${cli['phone']} | Email: ${cli['email']}',
+                                ),
+                                trailing: Text(
+                                  cli['gst'] != null
+                                      ? 'GST: ${cli['gst']}'
+                                      : 'No GST',
+                                  style: const TextStyle(
+                                    fontSize: 10,
+                                    color: VianTheme.lightText,
+                                  ),
+                                ),
                               );
                             },
-                          )
+                          ),
                         ],
                       ),
                     ),
@@ -1409,42 +2018,83 @@ class _JayaHomeViewState extends State<JayaHomeView> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('RECENT INVOICES & PAYMENTS', style: TextStyle(fontWeight: FontWeight.bold, color: VianTheme.primaryGold)),
+                          const Text(
+                            'RECENT INVOICES & PAYMENTS',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: VianTheme.primaryGold,
+                            ),
+                          ),
                           const SizedBox(height: 12),
                           ListView.builder(
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
-                            itemCount: _invoices.length > 3 ? 3 : _invoices.length,
+                            itemCount: _invoices.length > 3
+                                ? 3
+                                : _invoices.length,
                             itemBuilder: (context, idx) {
                               final inv = _invoices[idx];
                               final isPaid = inv['status'] == 'Paid';
                               return Container(
                                 margin: const EdgeInsets.only(bottom: 8),
                                 padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(color: const Color(0xFFF1F5F9), borderRadius: BorderRadius.circular(8)),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF1F5F9),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
                                 child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
                                     Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
-                                        Text('Invoice #${inv['invoiceNumber']}', style: const TextStyle(fontWeight: FontWeight.bold)),
-                                        Text('Total: ${formatter.format(safeToDouble(inv['total']))}', style: const TextStyle(color: VianTheme.lightText, fontSize: 11)),
+                                        Text(
+                                          'Invoice #${inv['invoiceNumber']}',
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        Text(
+                                          'Total: ${formatter.format(safeToDouble(inv['total']))}',
+                                          style: const TextStyle(
+                                            color: VianTheme.lightText,
+                                            fontSize: 11,
+                                          ),
+                                        ),
                                       ],
                                     ),
                                     Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                      decoration: BoxDecoration(color: isPaid ? const Color(0x3328A745) : const Color(0x33DC3545), borderRadius: BorderRadius.circular(4)),
-                                      child: Text(inv['status'] ?? 'Draft', style: TextStyle(color: isPaid ? VianTheme.success : VianTheme.danger, fontWeight: FontWeight.bold, fontSize: 11)),
-                                    )
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: isPaid
+                                            ? const Color(0x3328A745)
+                                            : const Color(0x33DC3545),
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      child: Text(
+                                        inv['status'] ?? 'Draft',
+                                        style: TextStyle(
+                                          color: isPaid
+                                              ? VianTheme.success
+                                              : VianTheme.danger,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 11,
+                                        ),
+                                      ),
+                                    ),
                                   ],
                                 ),
                               );
                             },
-                          )
+                          ),
                         ],
                       ),
-                    )
+                    ),
                   ],
                 ),
               ),
@@ -1461,7 +2111,13 @@ class _JayaHomeViewState extends State<JayaHomeView> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('ASSIGNED OFFICE TASKS', style: TextStyle(fontWeight: FontWeight.bold, color: VianTheme.primaryGold)),
+                          const Text(
+                            'ASSIGNED OFFICE TASKS',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: VianTheme.primaryGold,
+                            ),
+                          ),
                           const SizedBox(height: 12),
                           ListView.builder(
                             shrinkWrap: true,
@@ -1475,12 +2131,23 @@ class _JayaHomeViewState extends State<JayaHomeView> {
                                 child: ListTile(
                                   dense: true,
                                   title: Text(task['title'] ?? ''),
-                                  subtitle: Text('Due: ${task['dueDate']} | Assignee: ${task['assignee']?['name'] ?? 'Unassigned'}', style: const TextStyle(fontSize: 10)),
-                                  trailing: Icon(task['status'] == 'Completed' ? Icons.check_circle : Icons.circle_outlined, color: task['status'] == 'Completed' ? VianTheme.success : VianTheme.primaryGold, size: 16),
+                                  subtitle: Text(
+                                    'Due: ${task['dueDate']} | Assignee: ${task['assignee']?['name'] ?? 'Unassigned'}',
+                                    style: const TextStyle(fontSize: 10),
+                                  ),
+                                  trailing: Icon(
+                                    task['status'] == 'Completed'
+                                        ? Icons.check_circle
+                                        : Icons.circle_outlined,
+                                    color: task['status'] == 'Completed'
+                                        ? VianTheme.success
+                                        : VianTheme.primaryGold,
+                                    size: 16,
+                                  ),
                                 ),
                               );
                             },
-                          )
+                          ),
                         ],
                       ),
                     ),
@@ -1490,37 +2157,60 @@ class _JayaHomeViewState extends State<JayaHomeView> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('RECENT ANNOUNCEMENTS', style: TextStyle(fontWeight: FontWeight.bold, color: VianTheme.primaryGold)),
+                          const Text(
+                            'RECENT ANNOUNCEMENTS',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: VianTheme.primaryGold,
+                            ),
+                          ),
                           const SizedBox(height: 12),
                           ListView.builder(
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
-                            itemCount: _announcements.length > 3 ? 3 : _announcements.length,
+                            itemCount: _announcements.length > 3
+                                ? 3
+                                : _announcements.length,
                             itemBuilder: (context, idx) {
                               final ann = _announcements[idx];
                               return Container(
                                 margin: const EdgeInsets.only(bottom: 8),
                                 padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(color: const Color(0xFFF1F5F9), borderRadius: BorderRadius.circular(8)),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF1F5F9),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(ann['title'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                                    Text(
+                                      ann['title'] ?? '',
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 12,
+                                      ),
+                                    ),
                                     const SizedBox(height: 4),
-                                    Text(ann['message'] ?? '', style: const TextStyle(color: VianTheme.lightText, fontSize: 10)),
+                                    Text(
+                                      ann['message'] ?? '',
+                                      style: const TextStyle(
+                                        color: VianTheme.lightText,
+                                        fontSize: 10,
+                                      ),
+                                    ),
                                   ],
                                 ),
                               );
                             },
-                          )
+                          ),
                         ],
                       ),
-                    )
+                    ),
                   ],
                 ),
-              )
+              ),
             ],
-          )
+          ),
         ],
       ),
     );
@@ -1531,16 +2221,29 @@ class _JayaHomeViewState extends State<JayaHomeView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('DAILY WORK ASSIGNMENT DISPATCHER', style: TextStyle(fontWeight: FontWeight.bold, color: VianTheme.primaryGold, fontSize: 13, letterSpacing: 0.8)),
+          const Text(
+            'DAILY WORK ASSIGNMENT DISPATCHER',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: VianTheme.primaryGold,
+              fontSize: 13,
+              letterSpacing: 0.8,
+            ),
+          ),
           const SizedBox(height: 16),
           DropdownButtonFormField<dynamic>(
             value: _assignProjectId,
             dropdownColor: VianTheme.headerBlack,
-            decoration: const InputDecoration(labelText: 'Select Project & Client'),
+            decoration: const InputDecoration(
+              labelText: 'Select Project & Client',
+            ),
             items: _projects.map((p) {
               return DropdownMenuItem<dynamic>(
                 value: p['id'],
-                child: Text('${p['name']} (Client ID: ${p['clientId']})', style: const TextStyle(fontSize: 12)),
+                child: Text(
+                  '${p['name']} (Client ID: ${p['clientId']})',
+                  style: const TextStyle(fontSize: 12),
+                ),
               );
             }).toList(),
             onChanged: (val) {
@@ -1554,7 +2257,9 @@ class _JayaHomeViewState extends State<JayaHomeView> {
                 child: DropdownButtonFormField<String>(
                   value: _assignChecklist,
                   dropdownColor: VianTheme.headerBlack,
-                  decoration: const InputDecoration(labelText: 'Working Checklist Item'),
+                  decoration: const InputDecoration(
+                    labelText: 'Working Checklist Item',
+                  ),
                   items: _checklistItems.map((item) {
                     return DropdownMenuItem<String>(
                       value: item,
@@ -1571,7 +2276,9 @@ class _JayaHomeViewState extends State<JayaHomeView> {
                 child: DropdownButtonFormField<String>(
                   value: _assignDrawing,
                   dropdownColor: VianTheme.headerBlack,
-                  decoration: const InputDecoration(labelText: 'Drawing Reference (Optional)'),
+                  decoration: const InputDecoration(
+                    labelText: 'Drawing Reference (Optional)',
+                  ),
                   items: _drawingItems.map((item) {
                     return DropdownMenuItem<String>(
                       value: item,
@@ -1592,11 +2299,16 @@ class _JayaHomeViewState extends State<JayaHomeView> {
                 child: DropdownButtonFormField<dynamic>(
                   value: _assignUserId,
                   dropdownColor: VianTheme.headerBlack,
-                  decoration: const InputDecoration(labelText: 'Assign Staff / Engineer'),
+                  decoration: const InputDecoration(
+                    labelText: 'Assign Staff / Engineer',
+                  ),
                   items: _employees.map((e) {
                     return DropdownMenuItem<dynamic>(
                       value: e['id'],
-                      child: Text('${e['name']} (${e['role']})', style: const TextStyle(fontSize: 12)),
+                      child: Text(
+                        '${e['name']} (${e['role']})',
+                        style: const TextStyle(fontSize: 12),
+                      ),
                     );
                   }).toList(),
                   onChanged: (val) {
@@ -1609,7 +2321,9 @@ class _JayaHomeViewState extends State<JayaHomeView> {
                 child: DropdownButtonFormField<String>(
                   value: _assignPriority,
                   dropdownColor: VianTheme.headerBlack,
-                  decoration: const InputDecoration(labelText: 'Priority Level'),
+                  decoration: const InputDecoration(
+                    labelText: 'Priority Level',
+                  ),
                   items: ['Low', 'Medium', 'High', 'Critical'].map((p) {
                     return DropdownMenuItem<String>(
                       value: p,
@@ -1629,14 +2343,18 @@ class _JayaHomeViewState extends State<JayaHomeView> {
               Expanded(
                 child: TextFormField(
                   controller: _assignDueDateCtrl,
-                  decoration: const InputDecoration(labelText: 'Due Date (YYYY-MM-DD)'),
+                  decoration: const InputDecoration(
+                    labelText: 'Due Date (YYYY-MM-DD)',
+                  ),
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: TextFormField(
                   controller: _assignTimeCtrl,
-                  decoration: const InputDecoration(labelText: 'Expected Completion Time'),
+                  decoration: const InputDecoration(
+                    labelText: 'Expected Completion Time',
+                  ),
                 ),
               ),
             ],
@@ -1645,7 +2363,9 @@ class _JayaHomeViewState extends State<JayaHomeView> {
           TextFormField(
             controller: _assignNotesCtrl,
             maxLines: 2,
-            decoration: const InputDecoration(labelText: 'Task Instructions / Remarks'),
+            decoration: const InputDecoration(
+              labelText: 'Task Instructions / Remarks',
+            ),
           ),
           const SizedBox(height: 16),
           Center(
@@ -1712,15 +2432,27 @@ class _MuthuiyaHomeViewState extends State<MuthuiyaHomeView> {
   @override
   Widget build(BuildContext context) {
     if (_loading) return const Center(child: CircularProgressIndicator());
-    final designTeam = _employees.where((e) => e['username'] == 'gokul' || e['username'] == 'sivaraman').toList();
+    final designTeam = _employees
+        .where((e) => e['username'] == 'gokul' || e['username'] == 'sivaraman')
+        .toList();
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Design & Architecture Command Screen', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: VianTheme.primaryGold)),
-          const Text('Muthuiya Home Screen: Design Review, Blueprints, Team Attendance', style: TextStyle(color: Color(0xFF70707C))),
+          const Text(
+            'Design & Architecture Command Screen',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: VianTheme.primaryGold,
+            ),
+          ),
+          const Text(
+            'Muthuiya Home Screen: Design Review, Blueprints, Team Attendance',
+            style: TextStyle(color: Color(0xFF70707C)),
+          ),
           const SizedBox(height: 24),
 
           LayoutBuilder(
@@ -1734,9 +2466,26 @@ class _MuthuiyaHomeViewState extends State<MuthuiyaHomeView> {
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 children: [
-                  VianMetricCard(title: 'PENDING DRAWINGS APPROVAL', value: _drawings.where((d) => d['status'] == 'Pending').length.toString(), icon: Icons.layers, iconColor: VianTheme.primaryGold),
-                  VianMetricCard(title: 'DESIGN TEAM SIZE', value: designTeam.length.toString(), icon: Icons.people),
-                  VianMetricCard(title: 'ACTIVE PROJECTS', value: _projects.length.toString(), icon: Icons.architecture, iconColor: VianTheme.success),
+                  VianMetricCard(
+                    title: 'PENDING DRAWINGS APPROVAL',
+                    value: _drawings
+                        .where((d) => d['status'] == 'Pending')
+                        .length
+                        .toString(),
+                    icon: Icons.layers,
+                    iconColor: VianTheme.primaryGold,
+                  ),
+                  VianMetricCard(
+                    title: 'DESIGN TEAM SIZE',
+                    value: designTeam.length.toString(),
+                    icon: Icons.people,
+                  ),
+                  VianMetricCard(
+                    title: 'ACTIVE PROJECTS',
+                    value: _projects.length.toString(),
+                    icon: Icons.architecture,
+                    iconColor: VianTheme.success,
+                  ),
                 ],
               );
             },
@@ -1754,12 +2503,23 @@ class _MuthuiyaHomeViewState extends State<MuthuiyaHomeView> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('DRAWINGS APPROVAL QUEUE', style: TextStyle(fontWeight: FontWeight.bold, color: VianTheme.primaryGold)),
+                          const Text(
+                            'DRAWINGS APPROVAL QUEUE',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: VianTheme.primaryGold,
+                            ),
+                          ),
                           const SizedBox(height: 12),
                           if (_drawings.isEmpty)
                             const Padding(
                               padding: EdgeInsets.symmetric(vertical: 24.0),
-                              child: Center(child: Text('No drawings uploaded yet.', style: TextStyle(color: VianTheme.lightText))),
+                              child: Center(
+                                child: Text(
+                                  'No drawings uploaded yet.',
+                                  style: TextStyle(color: VianTheme.lightText),
+                                ),
+                              ),
                             )
                           else
                             ListView.builder(
@@ -1773,36 +2533,65 @@ class _MuthuiyaHomeViewState extends State<MuthuiyaHomeView> {
                                   elevation: 0,
                                   margin: const EdgeInsets.only(bottom: 8),
                                   child: ListTile(
-                                    leading: const Icon(Icons.picture_as_pdf, color: VianTheme.primaryGold),
+                                    leading: const Icon(
+                                      Icons.picture_as_pdf,
+                                      color: VianTheme.primaryGold,
+                                    ),
                                     title: Text(d['title'] ?? ''),
-                                    subtitle: Text('Type: ${d['type']} | Version: ${d['version']} | Status: ${d['status']}'),
+                                    subtitle: Text(
+                                      'Type: ${d['type']} | Version: ${d['version']} | Status: ${d['status']}',
+                                    ),
                                     trailing: d['status'] == 'Pending'
                                         ? Row(
                                             mainAxisSize: MainAxisSize.min,
                                             children: [
                                               IconButton(
-                                                icon: const Icon(Icons.check, color: VianTheme.success),
+                                                icon: const Icon(
+                                                  Icons.check,
+                                                  color: VianTheme.success,
+                                                ),
                                                 onPressed: () async {
-                                                  await ApiService.approveDrawing(d['id'], 'Approved');
-                                                  setState(() => _loading = true);
+                                                  await ApiService.approveDrawing(
+                                                    d['id'],
+                                                    'Approved',
+                                                  );
+                                                  setState(
+                                                    () => _loading = true,
+                                                  );
                                                   _loadMuthuiyaData();
                                                 },
                                               ),
                                               IconButton(
-                                                icon: const Icon(Icons.close, color: VianTheme.danger),
+                                                icon: const Icon(
+                                                  Icons.close,
+                                                  color: VianTheme.danger,
+                                                ),
                                                 onPressed: () async {
-                                                  await ApiService.approveDrawing(d['id'], 'Rejected');
-                                                  setState(() => _loading = true);
+                                                  await ApiService.approveDrawing(
+                                                    d['id'],
+                                                    'Rejected',
+                                                  );
+                                                  setState(
+                                                    () => _loading = true,
+                                                  );
                                                   _loadMuthuiyaData();
                                                 },
                                               ),
                                             ],
                                           )
-                                        : Text(d['status'] ?? '', style: TextStyle(color: d['status'] == 'Approved' ? VianTheme.success : VianTheme.danger, fontWeight: FontWeight.bold)),
+                                        : Text(
+                                            d['status'] ?? '',
+                                            style: TextStyle(
+                                              color: d['status'] == 'Approved'
+                                                  ? VianTheme.success
+                                                  : VianTheme.danger,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
                                   ),
                                 );
                               },
-                            )
+                            ),
                         ],
                       ),
                     ),
@@ -1812,7 +2601,13 @@ class _MuthuiyaHomeViewState extends State<MuthuiyaHomeView> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('DESIGN TEAM ATTENDANCE STATUS', style: TextStyle(fontWeight: FontWeight.bold, color: VianTheme.primaryGold)),
+                          const Text(
+                            'DESIGN TEAM ATTENDANCE STATUS',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: VianTheme.primaryGold,
+                            ),
+                          ),
                           const SizedBox(height: 12),
                           ListView.builder(
                             shrinkWrap: true,
@@ -1821,20 +2616,39 @@ class _MuthuiyaHomeViewState extends State<MuthuiyaHomeView> {
                             itemBuilder: (context, idx) {
                               final member = designTeam[idx];
                               return ListTile(
-                                leading: const CircleAvatar(backgroundColor: Color(0xFFF1F5F9), child: Icon(Icons.person, color: VianTheme.primaryGold)),
+                                leading: const CircleAvatar(
+                                  backgroundColor: Color(0xFFF1F5F9),
+                                  child: Icon(
+                                    Icons.person,
+                                    color: VianTheme.primaryGold,
+                                  ),
+                                ),
                                 title: Text(member['name'] ?? ''),
                                 subtitle: Text('Role: ${member['role']}'),
                                 trailing: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                  decoration: BoxDecoration(color: const Color(0x3328A745), borderRadius: BorderRadius.circular(4)),
-                                  child: const Text('Checked In', style: TextStyle(color: VianTheme.success, fontSize: 11, fontWeight: FontWeight.bold)),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0x3328A745),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: const Text(
+                                    'Checked In',
+                                    style: TextStyle(
+                                      color: VianTheme.success,
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
                                 ),
                               );
                             },
-                          )
+                          ),
                         ],
                       ),
-                    )
+                    ),
                   ],
                 ),
               ),
@@ -1848,7 +2662,13 @@ class _MuthuiyaHomeViewState extends State<MuthuiyaHomeView> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('DESIGN & CREATIVE TASKS', style: TextStyle(fontWeight: FontWeight.bold, color: VianTheme.primaryGold)),
+                          const Text(
+                            'DESIGN & CREATIVE TASKS',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: VianTheme.primaryGold,
+                            ),
+                          ),
                           const SizedBox(height: 12),
                           ListView.builder(
                             shrinkWrap: true,
@@ -1859,18 +2679,27 @@ class _MuthuiyaHomeViewState extends State<MuthuiyaHomeView> {
                               return Container(
                                 margin: const EdgeInsets.only(bottom: 8),
                                 padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(color: const Color(0xFFF1F5F9), borderRadius: BorderRadius.circular(8)),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF1F5F9),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(task['title'] ?? ''),
                                     const SizedBox(height: 4),
-                                    Text('Assignee: ${task['assignee']?['name'] ?? 'Unassigned'} | Due: ${task['dueDate']}', style: const TextStyle(fontSize: 10, color: VianTheme.lightText)),
+                                    Text(
+                                      'Assignee: ${task['assignee']?['name'] ?? 'Unassigned'} | Due: ${task['dueDate']}',
+                                      style: const TextStyle(
+                                        fontSize: 10,
+                                        color: VianTheme.lightText,
+                                      ),
+                                    ),
                                   ],
                                 ),
                               );
                             },
-                          )
+                          ),
                         ],
                       ),
                     ),
@@ -1880,7 +2709,13 @@ class _MuthuiyaHomeViewState extends State<MuthuiyaHomeView> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('PROJECT PROGRESS METRICS', style: TextStyle(fontWeight: FontWeight.bold, color: VianTheme.primaryGold)),
+                          const Text(
+                            'PROJECT PROGRESS METRICS',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: VianTheme.primaryGold,
+                            ),
+                          ),
                           const SizedBox(height: 12),
                           ListView.builder(
                             shrinkWrap: true,
@@ -1894,31 +2729,49 @@ class _MuthuiyaHomeViewState extends State<MuthuiyaHomeView> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
                                       children: [
-                                        Text(proj['name'] ?? '', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                                        Text('${proj['progressPercentage']}%', style: const TextStyle(color: VianTheme.primaryGold, fontSize: 12, fontWeight: FontWeight.bold)),
+                                        Text(
+                                          proj['name'] ?? '',
+                                          style: const TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        Text(
+                                          '${proj['progressPercentage']}%',
+                                          style: const TextStyle(
+                                            color: VianTheme.primaryGold,
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
                                       ],
                                     ),
                                     const SizedBox(height: 4),
                                     LinearProgressIndicator(
-                                      value: (proj['progressPercentage'] ?? 0) / 100.0,
+                                      value:
+                                          (proj['progressPercentage'] ?? 0) /
+                                          100.0,
                                       backgroundColor: const Color(0xFFF1F5F9),
-                                      valueColor: const AlwaysStoppedAnimation(VianTheme.primaryGold),
-                                    )
+                                      valueColor: const AlwaysStoppedAnimation(
+                                        VianTheme.primaryGold,
+                                      ),
+                                    ),
                                   ],
                                 ),
                               );
                             },
-                          )
+                          ),
                         ],
                       ),
-                    )
+                    ),
                   ],
                 ),
-              )
+              ),
             ],
-          )
+          ),
         ],
       ),
     );
@@ -1932,7 +2785,8 @@ class SiteManagerDashboardView extends StatefulWidget {
   const SiteManagerDashboardView({Key? key}) : super(key: key);
 
   @override
-  State<SiteManagerDashboardView> createState() => _SiteManagerDashboardViewState();
+  State<SiteManagerDashboardView> createState() =>
+      _SiteManagerDashboardViewState();
 }
 
 class _SiteManagerDashboardViewState extends State<SiteManagerDashboardView> {
@@ -1941,11 +2795,11 @@ class _SiteManagerDashboardViewState extends State<SiteManagerDashboardView> {
   List<dynamic> _attendance = [];
   List<dynamic> _projects = [];
   List<dynamic> _hourlyProgressList = [];
-  
+
   final Map<int, String> _workerStatus = {};
   final Map<int, String> _workerRemarks = {};
   final Map<int, double> _workerOt = {};
-  
+
   int? _selectedProjectId;
   final _hourlyProgressCtrl = TextEditingController();
   final _hourlyRemarksCtrl = TextEditingController();
@@ -1969,14 +2823,16 @@ class _SiteManagerDashboardViewState extends State<SiteManagerDashboardView> {
       final res = await ApiService.getWorkersAttendance(_selectedProjectId!);
       _workers = res['workers'] ?? [];
       _attendance = res['attendance'] ?? [];
-      
+
       for (final w in _workers) {
         _workerStatus[w['id']] = 'Present';
         _workerRemarks[w['id']] = 'Standard shift';
         _workerOt[w['id']] = 0.0;
       }
-      
-      final progressData = await ApiService.getHourlyProgress(_selectedProjectId!);
+
+      final progressData = await ApiService.getHourlyProgress(
+        _selectedProjectId!,
+      );
       _hourlyProgressList = progressData;
     }
     if (mounted) {
@@ -1992,25 +2848,40 @@ class _SiteManagerDashboardViewState extends State<SiteManagerDashboardView> {
         'workerId': worker['workerId'],
         'status': status,
         'overtimeHours': _workerOt[key] ?? 0.0,
-        'remarks': _workerRemarks[key] ?? ''
+        'remarks': _workerRemarks[key] ?? '',
       });
     });
 
-    final res = await ApiService.submitLabourAttendance(submitList, '28.4595, 77.0266', DateTime.now().toString().split(' ').first);
+    final res = await ApiService.submitLabourAttendance(
+      submitList,
+      '28.4595, 77.0266',
+      DateTime.now().toString().split(' ').first,
+    );
     if (!res['success'] && res['message'] != null) {
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
           backgroundColor: VianTheme.headerBlack,
-          title: const Text('ATTENDANCE RECORDED', style: TextStyle(color: VianTheme.danger)),
-          content: Text(res['message'] ?? 'Attendance already recorded for today.'),
+          title: const Text(
+            'ATTENDANCE RECORDED',
+            style: TextStyle(color: VianTheme.danger),
+          ),
+          content: Text(
+            res['message'] ?? 'Attendance already recorded for today.',
+          ),
           actions: [
-            VianButton(text: 'Close', isSecondary: true, onPressed: () => Navigator.pop(context))
+            VianButton(
+              text: 'Close',
+              isSecondary: true,
+              onPressed: () => Navigator.pop(context),
+            ),
           ],
         ),
       );
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Attendance recorded successfully!')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Attendance recorded successfully!')),
+      );
       setState(() => _loading = true);
       _loadMuruganData();
     }
@@ -2018,7 +2889,7 @@ class _SiteManagerDashboardViewState extends State<SiteManagerDashboardView> {
 
   void _submitHourlyProgressReport() async {
     if (_hourlyProgressCtrl.text.isEmpty || _selectedProjectId == null) return;
-    
+
     final data = {
       'projectId': _selectedProjectId,
       'workProgress': _hourlyProgressCtrl.text,
@@ -2028,7 +2899,7 @@ class _SiteManagerDashboardViewState extends State<SiteManagerDashboardView> {
       'materialsUsed': _hourlyMaterialsCtrl.text,
       'delayReason': _hourlyDelayCtrl.text,
       'weather': _hourlyWeatherCtrl.text,
-      'photoUrls': []
+      'photoUrls': [],
     };
 
     await ApiService.submitHourlyProgress(data);
@@ -2036,8 +2907,10 @@ class _SiteManagerDashboardViewState extends State<SiteManagerDashboardView> {
     _hourlyRemarksCtrl.clear();
     _hourlyMaterialsCtrl.clear();
     _hourlyDelayCtrl.clear();
-    
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Hourly progress uploaded!')));
+
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Hourly progress uploaded!')));
     setState(() => _loading = true);
     _loadMuruganData();
   }
@@ -2051,11 +2924,26 @@ class _SiteManagerDashboardViewState extends State<SiteManagerDashboardView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Site Operations Command Center', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: VianTheme.primaryGold)),
-          const Text('Murugan Home Screen: Workers Attendance, GPS, Hourly Progress Logs', style: TextStyle(color: Color(0xFF70707C))),
+          const Text(
+            'Site Operations Command Center',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: VianTheme.primaryGold,
+            ),
+          ),
+          const Text(
+            'Murugan Home Screen: Workers Attendance, GPS, Hourly Progress Logs',
+            style: TextStyle(color: Color(0xFF70707C)),
+          ),
           const SizedBox(height: 24),
 
-          VianMetricCard(title: 'LABOUR ON-SITE TODAY', value: _workers.length.toString(), icon: Icons.engineering, iconColor: VianTheme.success),
+          VianMetricCard(
+            title: 'LABOUR ON-SITE TODAY',
+            value: _workers.length.toString(),
+            icon: Icons.engineering,
+            iconColor: VianTheme.success,
+          ),
           const SizedBox(height: 32),
 
           Row(
@@ -2072,8 +2960,17 @@ class _SiteManagerDashboardViewState extends State<SiteManagerDashboardView> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Text('LABOUR MANUAL ATTENDANCE WIZARD', style: TextStyle(fontWeight: FontWeight.bold, color: VianTheme.primaryGold)),
-                              VianButton(text: 'Submit Attendance', onPressed: _submitManualAttendance),
+                              const Text(
+                                'LABOUR MANUAL ATTENDANCE WIZARD',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: VianTheme.primaryGold,
+                                ),
+                              ),
+                              VianButton(
+                                text: 'Submit Attendance',
+                                onPressed: _submitManualAttendance,
+                              ),
                             ],
                           ),
                           const SizedBox(height: 12),
@@ -2085,48 +2982,92 @@ class _SiteManagerDashboardViewState extends State<SiteManagerDashboardView> {
                               final worker = _workers[idx];
                               final id = worker['id'];
                               return Container(
-                                padding: const EdgeInsets.symmetric(vertical: 8),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 8,
+                                ),
                                 decoration: const BoxDecoration(
-                                  border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0))),
+                                  border: Border(
+                                    bottom: BorderSide(
+                                      color: Color(0xFFE2E8F0),
+                                    ),
+                                  ),
                                 ),
                                 child: Row(
                                   children: [
                                     Expanded(
                                       child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
-                                          Text(worker['name'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold)),
-                                          Text('Skill: ${worker['skillType']} | Wage: ₹${worker['dailyWage']}', style: const TextStyle(color: VianTheme.lightText, fontSize: 11)),
+                                          Text(
+                                            worker['name'] ?? '',
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          Text(
+                                            'Skill: ${worker['skillType']} | Wage: ₹${worker['dailyWage']}',
+                                            style: const TextStyle(
+                                              color: VianTheme.lightText,
+                                              fontSize: 11,
+                                            ),
+                                          ),
                                         ],
                                       ),
                                     ),
                                     DropdownButton<String>(
                                       value: _workerStatus[id] ?? 'Present',
                                       dropdownColor: VianTheme.cardColor,
-                                      items: ['Present', 'Absent', 'Half Day'].map((s) => DropdownMenuItem(value: s, child: Text(s, style: const TextStyle(color: VianTheme.headerBlack)))).toList(),
-                                      onChanged: (val) => setState(() => _workerStatus[id] = val!),
+                                      items: ['Present', 'Absent', 'Half Day']
+                                          .map(
+                                            (s) => DropdownMenuItem(
+                                              value: s,
+                                              child: Text(
+                                                s,
+                                                style: const TextStyle(
+                                                  color: VianTheme.headerBlack,
+                                                ),
+                                              ),
+                                            ),
+                                          )
+                                          .toList(),
+                                      onChanged: (val) => setState(
+                                        () => _workerStatus[id] = val!,
+                                      ),
                                     ),
                                     const SizedBox(width: 8),
                                     SizedBox(
                                       width: 60,
                                       child: TextField(
-                                        decoration: const InputDecoration(hintText: 'OT Hrs', contentPadding: EdgeInsets.symmetric(horizontal: 4)),
+                                        decoration: const InputDecoration(
+                                          hintText: 'OT Hrs',
+                                          contentPadding: EdgeInsets.symmetric(
+                                            horizontal: 4,
+                                          ),
+                                        ),
                                         keyboardType: TextInputType.number,
-                                        onChanged: (val) => _workerOt[id] = double.tryParse(val) ?? 0.0,
+                                        onChanged: (val) => _workerOt[id] =
+                                            double.tryParse(val) ?? 0.0,
                                       ),
                                     ),
                                     const SizedBox(width: 8),
                                     Expanded(
                                       child: TextField(
-                                        decoration: const InputDecoration(hintText: 'Remarks', contentPadding: EdgeInsets.symmetric(horizontal: 4)),
-                                        onChanged: (val) => _workerRemarks[id] = val,
+                                        decoration: const InputDecoration(
+                                          hintText: 'Remarks',
+                                          contentPadding: EdgeInsets.symmetric(
+                                            horizontal: 4,
+                                          ),
+                                        ),
+                                        onChanged: (val) =>
+                                            _workerRemarks[id] = val,
                                       ),
                                     ),
                                   ],
                                 ),
                               );
                             },
-                          )
+                          ),
                         ],
                       ),
                     ),
@@ -2136,38 +3077,96 @@ class _SiteManagerDashboardViewState extends State<SiteManagerDashboardView> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('SUBMIT HOURLY PROGRESS REPORT', style: TextStyle(fontWeight: FontWeight.bold, color: VianTheme.primaryGold)),
+                          const Text(
+                            'SUBMIT HOURLY PROGRESS REPORT',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: VianTheme.primaryGold,
+                            ),
+                          ),
                           const SizedBox(height: 16),
                           Row(
                             children: [
-                              Expanded(child: TextField(controller: _hourlyProgressCtrl, decoration: const InputDecoration(labelText: 'Work Progress Details'))),
+                              Expanded(
+                                child: TextField(
+                                  controller: _hourlyProgressCtrl,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Work Progress Details',
+                                  ),
+                                ),
+                              ),
                               const SizedBox(width: 12),
-                              Expanded(child: TextField(controller: _hourlyRemarksCtrl, decoration: const InputDecoration(labelText: 'Remarks'))),
+                              Expanded(
+                                child: TextField(
+                                  controller: _hourlyRemarksCtrl,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Remarks',
+                                  ),
+                                ),
+                              ),
                             ],
                           ),
                           const SizedBox(height: 12),
                           Row(
                             children: [
-                              Expanded(child: TextField(controller: _hourlyWorkersCtrl, decoration: const InputDecoration(labelText: 'Workers Present'))),
+                              Expanded(
+                                child: TextField(
+                                  controller: _hourlyWorkersCtrl,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Workers Present',
+                                  ),
+                                ),
+                              ),
                               const SizedBox(width: 12),
-                              Expanded(child: TextField(controller: _hourlyPercentageCtrl, decoration: const InputDecoration(labelText: 'Completion %'))),
+                              Expanded(
+                                child: TextField(
+                                  controller: _hourlyPercentageCtrl,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Completion %',
+                                  ),
+                                ),
+                              ),
                               const SizedBox(width: 12),
-                              Expanded(child: TextField(controller: _hourlyWeatherCtrl, decoration: const InputDecoration(labelText: 'Weather'))),
+                              Expanded(
+                                child: TextField(
+                                  controller: _hourlyWeatherCtrl,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Weather',
+                                  ),
+                                ),
+                              ),
                             ],
                           ),
                           const SizedBox(height: 12),
                           Row(
                             children: [
-                              Expanded(child: TextField(controller: _hourlyMaterialsCtrl, decoration: const InputDecoration(labelText: 'Materials Used'))),
+                              Expanded(
+                                child: TextField(
+                                  controller: _hourlyMaterialsCtrl,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Materials Used',
+                                  ),
+                                ),
+                              ),
                               const SizedBox(width: 12),
-                              Expanded(child: TextField(controller: _hourlyDelayCtrl, decoration: const InputDecoration(labelText: 'Delay Reason (optional)'))),
+                              Expanded(
+                                child: TextField(
+                                  controller: _hourlyDelayCtrl,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Delay Reason (optional)',
+                                  ),
+                                ),
+                              ),
                             ],
                           ),
                           const SizedBox(height: 16),
-                          VianButton(text: 'Upload Site Progress', onPressed: _submitHourlyProgressReport),
+                          VianButton(
+                            text: 'Upload Site Progress',
+                            onPressed: _submitHourlyProgressReport,
+                          ),
                         ],
                       ),
-                    )
+                    ),
                   ],
                 ),
               ),
@@ -2181,12 +3180,23 @@ class _SiteManagerDashboardViewState extends State<SiteManagerDashboardView> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('HOURLY PROGRESS LOGS TODAY', style: TextStyle(fontWeight: FontWeight.bold, color: VianTheme.primaryGold)),
+                          const Text(
+                            'HOURLY PROGRESS LOGS TODAY',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: VianTheme.primaryGold,
+                            ),
+                          ),
                           const SizedBox(height: 12),
                           if (_hourlyProgressList.isEmpty)
                             const Padding(
                               padding: EdgeInsets.symmetric(vertical: 24.0),
-                              child: Center(child: Text('No hourly logs submitted today.', style: TextStyle(color: VianTheme.lightText))),
+                              child: Center(
+                                child: Text(
+                                  'No hourly logs submitted today.',
+                                  style: TextStyle(color: VianTheme.lightText),
+                                ),
+                              ),
                             )
                           else
                             ListView.builder(
@@ -2198,34 +3208,66 @@ class _SiteManagerDashboardViewState extends State<SiteManagerDashboardView> {
                                 return Container(
                                   margin: const EdgeInsets.only(bottom: 8),
                                   padding: const EdgeInsets.all(12),
-                                  decoration: BoxDecoration(color: const Color(0xFFF1F5F9), borderRadius: BorderRadius.circular(8)),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFF1F5F9),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
                                         children: [
-                                          Text(log['user']?['name'] ?? 'Engineer', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: VianTheme.headerBlack)),
-                                          Text('${log['completionPercentage']}% Complete', style: const TextStyle(color: VianTheme.primaryGold, fontSize: 11)),
+                                          Text(
+                                            log['user']?['name'] ?? 'Engineer',
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 12,
+                                              color: VianTheme.headerBlack,
+                                            ),
+                                          ),
+                                          Text(
+                                            '${log['completionPercentage']}% Complete',
+                                            style: const TextStyle(
+                                              color: VianTheme.primaryGold,
+                                              fontSize: 11,
+                                            ),
+                                          ),
                                         ],
                                       ),
                                       const SizedBox(height: 4),
-                                      Text(log['workProgress'] ?? '', style: const TextStyle(color: VianTheme.headerBlack, fontSize: 11)),
-                                      if (log['remarks'] != null && log['remarks'].toString().isNotEmpty)
-                                        Text('Note: ${log['remarks']}', style: const TextStyle(color: VianTheme.lightText, fontSize: 10, fontFamily: 'monospace')),
+                                      Text(
+                                        log['workProgress'] ?? '',
+                                        style: const TextStyle(
+                                          color: VianTheme.headerBlack,
+                                          fontSize: 11,
+                                        ),
+                                      ),
+                                      if (log['remarks'] != null &&
+                                          log['remarks'].toString().isNotEmpty)
+                                        Text(
+                                          'Note: ${log['remarks']}',
+                                          style: const TextStyle(
+                                            color: VianTheme.lightText,
+                                            fontSize: 10,
+                                            fontFamily: 'monospace',
+                                          ),
+                                        ),
                                     ],
                                   ),
                                 );
                               },
-                            )
+                            ),
                         ],
                       ),
-                    )
+                    ),
                   ],
                 ),
-              )
+              ),
             ],
-          )
+          ),
         ],
       ),
     );
@@ -2248,7 +3290,7 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView> {
   Timer? _gpsTimer;
   Map<String, dynamic>? _activeWarning;
   int idx = 0;
-  
+
   List<dynamic> _tasks = [];
   List<dynamic> _announcements = [];
   List<dynamic> _fines = [];
@@ -2290,12 +3332,14 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView> {
     final todayStr = DateTime.now().toString().split(' ').first;
     dynamic myTodayAtt;
     for (var a in attLogs) {
-      if (a['userId'] == ApiService.currentUser?['id'] && a['date'] == todayStr) {
+      if (a['userId'] == ApiService.currentUser?['id'] &&
+          a['date'] == todayStr) {
         myTodayAtt = a;
         break;
       }
     }
-    final hasCheckedIn = myTodayAtt != null && myTodayAtt['checkOutTime'] == null;
+    final hasCheckedIn =
+        myTodayAtt != null && myTodayAtt['checkOutTime'] == null;
 
     if (projs.isNotEmpty) {
       _selectedProjectId = projs.first['id'];
@@ -2307,7 +3351,11 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView> {
         _tasks = tsk;
         _announcements = anns;
         _checkedIn = hasCheckedIn;
-        _fines = (finesData['fines'] as List<dynamic>?)?.where((f) => f['employeeId'] == ApiService.currentUser?['id']).toList() ?? [];
+        _fines =
+            (finesData['fines'] as List<dynamic>?)
+                ?.where((f) => f['employeeId'] == ApiService.currentUser?['id'])
+                .toList() ??
+            [];
         _myIncentive = myInc;
         _loading = false;
       });
@@ -2358,14 +3406,16 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView> {
       'workCategory': _selectedCategory,
       'workDescription': _workReportCtrl.text,
       'quantityCompleted': _quantityCompletedCtrl.text,
-      'notes': _notesCtrl.text
+      'notes': _notesCtrl.text,
     };
 
     await ApiService.submitDailyReport(data);
     _workReportCtrl.clear();
     _quantityCompletedCtrl.clear();
     _notesCtrl.clear();
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('EOD Report submitted successfully!')));
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('EOD Report submitted successfully!')),
+    );
   }
 
   void _showPhotoUploadModal(String slotName) {
@@ -2373,35 +3423,62 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView> {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: VianTheme.cardColor,
-        title: Text('Upload 5 Photos - Slot: $slotName', style: const TextStyle(color: VianTheme.primaryGold)),
+        title: Text(
+          'Upload 5 Photos - Slot: $slotName',
+          style: const TextStyle(color: VianTheme.primaryGold),
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Upload 5 geofenced site photos for this progress audit slot.', style: TextStyle(color: VianTheme.lightText, fontSize: 12)),
+            const Text(
+              'Upload 5 geofenced site photos for this progress audit slot.',
+              style: TextStyle(color: VianTheme.lightText, fontSize: 12),
+            ),
             const SizedBox(height: 16),
             Container(
               height: 100,
-              decoration: BoxDecoration(color: Colors.black.withOpacity(0.04), borderRadius: BorderRadius.circular(8)),
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.04),
+                borderRadius: BorderRadius.circular(8),
+              ),
               child: const Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(Icons.image, color: VianTheme.primaryGold, size: 36),
-                    Text('5 Photos Selected', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: VianTheme.headerBlack)),
-                    Text('GPS: 28.4630° N, 77.0300° E', style: TextStyle(fontSize: 10, color: VianTheme.lightText)),
+                    Text(
+                      '5 Photos Selected',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: VianTheme.headerBlack,
+                      ),
+                    ),
+                    Text(
+                      'GPS: 28.4630° N, 77.0300° E',
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: VianTheme.lightText,
+                      ),
+                    ),
                   ],
                 ),
               ),
             ),
             const SizedBox(height: 16),
             const TextField(
-              decoration: InputDecoration(labelText: 'Short progress remarks description'),
-            )
+              decoration: InputDecoration(
+                labelText: 'Short progress remarks description',
+              ),
+            ),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
           VianButton(
             text: 'Submit to Cloudinary',
             onPressed: () async {
@@ -2414,16 +3491,20 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView> {
                   'https://images.unsplash.com/photo-1503387762-592ded58c454?auto=format&fit=crop&w=800&q=80',
                   'https://images.unsplash.com/photo-1503387762-592ded58c454?auto=format&fit=crop&w=800&q=80',
                   'https://images.unsplash.com/photo-1503387762-592ded58c454?auto=format&fit=crop&w=800&q=80',
-                  'https://images.unsplash.com/photo-1503387762-592ded58c454?auto=format&fit=crop&w=800&q=80'
-                ])
+                  'https://images.unsplash.com/photo-1503387762-592ded58c454?auto=format&fit=crop&w=800&q=80',
+                ]),
               });
               Navigator.pop(ctx);
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Successfully uploaded photos for slot $slotName.'))
+                SnackBar(
+                  content: Text(
+                    'Successfully uploaded photos for slot $slotName.',
+                  ),
+                ),
               );
               _loadEmployeeData();
             },
-          )
+          ),
         ],
       ),
     );
@@ -2431,23 +3512,53 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView> {
 
   void _showPendingWorkModal(dynamic task) {
     String selectedReason = 'Material Delay';
-    final dateCtrl = TextEditingController(text: DateTime.now().add(const Duration(days: 2)).toString().split(' ').first);
-    
+    final dateCtrl = TextEditingController(
+      text: DateTime.now()
+          .add(const Duration(days: 2))
+          .toString()
+          .split(' ')
+          .first,
+    );
+
     showDialog(
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (context, setModalState) => AlertDialog(
           backgroundColor: VianTheme.cardColor,
-          title: const Text('Report Pending Work / Delay Reason', style: TextStyle(color: VianTheme.primaryGold)),
+          title: const Text(
+            'Report Pending Work / Delay Reason',
+            style: TextStyle(color: VianTheme.primaryGold),
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               DropdownButtonFormField<String>(
                 value: selectedReason,
                 dropdownColor: VianTheme.cardColor,
-                decoration: const InputDecoration(labelText: 'Reason for Delay'),
-                items: ['Material Delay', 'Rain', 'Labour Issue', 'Client Delay', 'Site Closed', 'Other']
-                    .map((r) => DropdownMenuItem(value: r, child: Text(r, style: const TextStyle(color: VianTheme.headerBlack)))).toList(),
+                decoration: const InputDecoration(
+                  labelText: 'Reason for Delay',
+                ),
+                items:
+                    [
+                          'Material Delay',
+                          'Rain',
+                          'Labour Issue',
+                          'Client Delay',
+                          'Site Closed',
+                          'Other',
+                        ]
+                        .map(
+                          (r) => DropdownMenuItem(
+                            value: r,
+                            child: Text(
+                              r,
+                              style: const TextStyle(
+                                color: VianTheme.headerBlack,
+                              ),
+                            ),
+                          ),
+                        )
+                        .toList(),
                 onChanged: (val) {
                   setModalState(() {
                     selectedReason = val!;
@@ -2457,26 +3568,36 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView> {
               const SizedBox(height: 12),
               TextFormField(
                 controller: dateCtrl,
-                decoration: const InputDecoration(labelText: 'Expected Completion Date (YYYY-MM-DD)'),
-              )
+                decoration: const InputDecoration(
+                  labelText: 'Expected Completion Date (YYYY-MM-DD)',
+                ),
+              ),
             ],
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel'),
+            ),
             VianButton(
               text: 'Submit Delay Report',
               onPressed: () async {
                 await ApiService.updateTask(task['id'], {
                   'status': 'Pending',
-                  'description': '${task['description']}\n\n[DELAY REPORTED] Reason: $selectedReason | New Expected Completion: ${dateCtrl.text}'
+                  'description':
+                      '${task['description']}\n\n[DELAY REPORTED] Reason: $selectedReason | New Expected Completion: ${dateCtrl.text}',
                 });
                 Navigator.pop(ctx);
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Delay reason submitted. MD and Admin notified.'))
+                  const SnackBar(
+                    content: Text(
+                      'Delay reason submitted. MD and Admin notified.',
+                    ),
+                  ),
                 );
                 _loadEmployeeData();
               },
-            )
+            ),
           ],
         ),
       ),
@@ -2497,9 +3618,19 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('DAILY PROGRESS PHOTO UPLOADS', style: TextStyle(fontWeight: FontWeight.bold, color: VianTheme.primaryGold, fontSize: 13)),
+          const Text(
+            'DAILY PROGRESS PHOTO UPLOADS',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: VianTheme.primaryGold,
+              fontSize: 13,
+            ),
+          ),
           const SizedBox(height: 4),
-          const Text('Upload 5 site photos for each designated hourly slot. Captures location automatically.', style: TextStyle(color: Color(0xFF70707C), fontSize: 11)),
+          const Text(
+            'Upload 5 site photos for each designated hourly slot. Captures location automatically.',
+            style: TextStyle(color: Color(0xFF70707C), fontSize: 11),
+          ),
           const SizedBox(height: 16),
           GridView.count(
             crossAxisCount: 3,
@@ -2520,7 +3651,14 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(slot['time']!, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: VianTheme.headerBlack)),
+                    Text(
+                      slot['time']!,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                        color: VianTheme.headerBlack,
+                      ),
+                    ),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
@@ -2528,21 +3666,27 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView> {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: VianTheme.primaryGold,
                             foregroundColor: Colors.black,
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
                           ),
                           onPressed: () {
                             _showPhotoUploadModal(slot['slot']!);
                           },
                           icon: const Icon(Icons.camera_alt, size: 12),
-                          label: const Text('Upload', style: TextStyle(fontSize: 10)),
-                        )
+                          label: const Text(
+                            'Upload',
+                            style: TextStyle(fontSize: 10),
+                          ),
+                        ),
                       ],
-                    )
+                    ),
                   ],
                 ),
               );
             }).toList(),
-          )
+          ),
         ],
       ),
     );
@@ -2563,15 +3707,25 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Welcome, ${ApiService.currentUser?['name'] ?? 'Employee'}', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: VianTheme.primaryGold)),
-                  const Text('Employee Workspace: GPS Attendance, Tasks, EOD reporting', style: TextStyle(color: Color(0xFF70707C))),
+                  Text(
+                    'Welcome, ${ApiService.currentUser?['name'] ?? 'Employee'}',
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: VianTheme.primaryGold,
+                    ),
+                  ),
+                  const Text(
+                    'Employee Workspace: GPS Attendance, Tasks, EOD reporting',
+                    style: TextStyle(color: Color(0xFF70707C)),
+                  ),
                 ],
               ),
               VianButton(
                 text: _checkedIn ? 'Check Out' : 'GPS Check In',
                 color: _checkedIn ? VianTheme.danger : VianTheme.success,
                 onPressed: _checkedIn ? _triggerCheckOut : _triggerCheckIn,
-              )
+              ),
             ],
           ),
           const SizedBox(height: 20),
@@ -2580,14 +3734,21 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView> {
             Container(
               margin: const EdgeInsets.only(bottom: 24),
               padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(color: const Color(0x33DC3545), border: Border.all(color: VianTheme.danger), borderRadius: BorderRadius.circular(8)),
+              decoration: BoxDecoration(
+                color: const Color(0x33DC3545),
+                border: Border.all(color: VianTheme.danger),
+                borderRadius: BorderRadius.circular(8),
+              ),
               child: Row(
                 children: [
                   const Icon(Icons.warning, color: VianTheme.danger),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: Text('WARNING: You have left the project area geofence! Supervisors notified in ${_activeWarning!['duration']} minutes.', style: const TextStyle(color: Colors.white, fontSize: 13)),
-                  )
+                    child: Text(
+                      'WARNING: You have left the project area geofence! Supervisors notified in ${_activeWarning!['duration']} minutes.',
+                      style: const TextStyle(color: Colors.white, fontSize: 13),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -2603,7 +3764,13 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('YOUR ASSIGNED TASKS', style: TextStyle(fontWeight: FontWeight.bold, color: VianTheme.primaryGold)),
+                          const Text(
+                            'YOUR ASSIGNED TASKS',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: VianTheme.primaryGold,
+                            ),
+                          ),
                           const SizedBox(height: 12),
                           ListView.builder(
                             shrinkWrap: true,
@@ -2613,8 +3780,13 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView> {
                               final task = _tasks[idx];
                               Map<String, dynamic>? meta;
                               try {
-                                if (task['description'] != null && task['description'].toString().startsWith('{')) {
-                                  meta = jsonDecode(task['description'].toString());
+                                if (task['description'] != null &&
+                                    task['description'].toString().startsWith(
+                                      '{',
+                                    )) {
+                                  meta = jsonDecode(
+                                    task['description'].toString(),
+                                  );
                                 }
                               } catch (e) {
                                 // ignore
@@ -2623,74 +3795,162 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView> {
                               final isCompleted = task['status'] == 'Completed';
 
                               return Card(
-                                 color: const Color(0xFFF1F5F9),
-                                 elevation: 0,
-                                 child: Padding(
-                                   padding: const EdgeInsets.all(12.0),
-                                   child: Column(
-                                     crossAxisAlignment: CrossAxisAlignment.start,
-                                     children: [
-                                       Row(
-                                         children: [
-                                           Icon(isCompleted ? Icons.check_circle : Icons.radio_button_unchecked, color: VianTheme.primaryGold),
-                                           const SizedBox(width: 12),
-                                           Expanded(
-                                             child: Text(task['title'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: VianTheme.headerBlack)),
-                                           ),
-                                           Container(
-                                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                             decoration: BoxDecoration(
-                                               color: isCompleted ? const Color(0x3328A745) : const Color(0x33FFC107),
-                                               borderRadius: BorderRadius.circular(4),
-                                             ),
-                                             child: Text(
-                                               task['status'] ?? 'Pending',
-                                               style: TextStyle(color: isCompleted ? VianTheme.success : VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold),
-                                             ),
-                                           )
-                                         ],
-                                       ),
-                                       const SizedBox(height: 12),
-                                       if (meta != null) ...[
-                                         Text('Client: ${meta['clientName']}', style: const TextStyle(fontSize: 12, color: VianTheme.headerBlack)),
-                                         Text('Project: ${meta['projectName']}', style: const TextStyle(fontSize: 12, color: VianTheme.headerBlack)),
-                                         Text('Checklist: ${meta['checklist']}', style: const TextStyle(fontSize: 12, color: VianTheme.primaryGold)),
-                                         Text('Drawing: ${meta['drawing']}', style: const TextStyle(fontSize: 12, color: VianTheme.lightText)),
-                                         Text('Expected Completion: ${meta['expectedCompletion']}', style: const TextStyle(fontSize: 12, color: VianTheme.danger)),
-                                         const SizedBox(height: 8),
-                                         Text('Instructions: ${meta['notes']}', style: const TextStyle(fontSize: 11, color: VianTheme.lightText)),
-                                       ] else ...[
-                                         Text(task['description'] ?? '', style: const TextStyle(fontSize: 12, color: VianTheme.lightText)),
-                                       ],
+                                color: const Color(0xFFF1F5F9),
+                                elevation: 0,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(12.0),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Icon(
+                                            isCompleted
+                                                ? Icons.check_circle
+                                                : Icons.radio_button_unchecked,
+                                            color: VianTheme.primaryGold,
+                                          ),
+                                          const SizedBox(width: 12),
+                                          Expanded(
+                                            child: Text(
+                                              task['title'] ?? '',
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 14,
+                                                color: VianTheme.headerBlack,
+                                              ),
+                                            ),
+                                          ),
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 8,
+                                              vertical: 4,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: isCompleted
+                                                  ? const Color(0x3328A745)
+                                                  : const Color(0x33FFC107),
+                                              borderRadius:
+                                                  BorderRadius.circular(4),
+                                            ),
+                                            child: Text(
+                                              task['status'] ?? 'Pending',
+                                              style: TextStyle(
+                                                color: isCompleted
+                                                    ? VianTheme.success
+                                                    : VianTheme.primaryGold,
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 12),
+                                      if (meta != null) ...[
+                                        Text(
+                                          'Client: ${meta['clientName']}',
+                                          style: const TextStyle(
+                                            fontSize: 12,
+                                            color: VianTheme.headerBlack,
+                                          ),
+                                        ),
+                                        Text(
+                                          'Project: ${meta['projectName']}',
+                                          style: const TextStyle(
+                                            fontSize: 12,
+                                            color: VianTheme.headerBlack,
+                                          ),
+                                        ),
+                                        Text(
+                                          'Checklist: ${meta['checklist']}',
+                                          style: const TextStyle(
+                                            fontSize: 12,
+                                            color: VianTheme.primaryGold,
+                                          ),
+                                        ),
+                                        Text(
+                                          'Drawing: ${meta['drawing']}',
+                                          style: const TextStyle(
+                                            fontSize: 12,
+                                            color: VianTheme.lightText,
+                                          ),
+                                        ),
+                                        Text(
+                                          'Expected Completion: ${meta['expectedCompletion']}',
+                                          style: const TextStyle(
+                                            fontSize: 12,
+                                            color: VianTheme.danger,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Text(
+                                          'Instructions: ${meta['notes']}',
+                                          style: const TextStyle(
+                                            fontSize: 11,
+                                            color: VianTheme.lightText,
+                                          ),
+                                        ),
+                                      ] else ...[
+                                        Text(
+                                          task['description'] ?? '',
+                                          style: const TextStyle(
+                                            fontSize: 12,
+                                            color: VianTheme.lightText,
+                                          ),
+                                        ),
+                                      ],
                                       const SizedBox(height: 8),
-                                      Text('Due Date: ${task['dueDate']}', style: const TextStyle(fontSize: 11, color: VianTheme.lightText)),
+                                      Text(
+                                        'Due Date: ${task['dueDate']}',
+                                        style: const TextStyle(
+                                          fontSize: 11,
+                                          color: VianTheme.lightText,
+                                        ),
+                                      ),
                                       if (!isCompleted) ...[
                                         const SizedBox(height: 12),
                                         Row(
-                                          mainAxisAlignment: MainAxisAlignment.end,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.end,
                                           children: [
                                             TextButton.icon(
-                                              icon: const Icon(Icons.warning_amber_rounded, size: 14, color: VianTheme.danger),
-                                              label: const Text('Report Delay', style: TextStyle(color: VianTheme.danger, fontSize: 12)),
-                                              onPressed: () => _showPendingWorkModal(task),
+                                              icon: const Icon(
+                                                Icons.warning_amber_rounded,
+                                                size: 14,
+                                                color: VianTheme.danger,
+                                              ),
+                                              label: const Text(
+                                                'Report Delay',
+                                                style: TextStyle(
+                                                  color: VianTheme.danger,
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                              onPressed: () =>
+                                                  _showPendingWorkModal(task),
                                             ),
                                             const SizedBox(width: 12),
                                             VianButton(
                                               text: 'Mark Complete',
                                               onPressed: () async {
-                                                await ApiService.updateTaskStatus(task['id'], 'Completed');
+                                                await ApiService.updateTaskStatus(
+                                                  task['id'],
+                                                  'Completed',
+                                                );
                                                 _loadEmployeeData();
                                               },
-                                            )
+                                            ),
                                           ],
-                                        )
-                                      ]
+                                        ),
+                                      ],
                                     ],
                                   ),
                                 ),
                               );
                             },
-                          )
+                          ),
                         ],
                       ),
                     ),
@@ -2703,7 +3963,13 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('SUBMIT DAILY EOD WORK REPORT', style: TextStyle(fontWeight: FontWeight.bold, color: VianTheme.primaryGold)),
+                          const Text(
+                            'SUBMIT DAILY EOD WORK REPORT',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: VianTheme.primaryGold,
+                            ),
+                          ),
                           const SizedBox(height: 16),
                           Row(
                             children: [
@@ -2711,24 +3977,63 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView> {
                                 child: DropdownButtonFormField<String>(
                                   value: _selectedCategory,
                                   dropdownColor: VianTheme.headerBlack,
-                                  decoration: const InputDecoration(labelText: 'Category'),
-                                  items: ['Brick Work', 'Painting', 'Interior Design', 'Plumbing', 'Electrical', 'Site Audit'].map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
-                                  onChanged: (v) => setState(() => _selectedCategory = v!),
+                                  decoration: const InputDecoration(
+                                    labelText: 'Category',
+                                  ),
+                                  items:
+                                      [
+                                            'Brick Work',
+                                            'Painting',
+                                            'Interior Design',
+                                            'Plumbing',
+                                            'Electrical',
+                                            'Site Audit',
+                                          ]
+                                          .map(
+                                            (c) => DropdownMenuItem(
+                                              value: c,
+                                              child: Text(c),
+                                            ),
+                                          )
+                                          .toList(),
+                                  onChanged: (v) =>
+                                      setState(() => _selectedCategory = v!),
                                 ),
                               ),
                               const SizedBox(width: 12),
-                              Expanded(child: TextField(controller: _quantityCompletedCtrl, decoration: const InputDecoration(labelText: 'Quantity (e.g. 1200 Sq Ft)'))),
+                              Expanded(
+                                child: TextField(
+                                  controller: _quantityCompletedCtrl,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Quantity (e.g. 1200 Sq Ft)',
+                                  ),
+                                ),
+                              ),
                             ],
                           ),
                           const SizedBox(height: 12),
-                          TextField(controller: _workReportCtrl, maxLines: 2, decoration: const InputDecoration(labelText: 'Work Description')),
+                          TextField(
+                            controller: _workReportCtrl,
+                            maxLines: 2,
+                            decoration: const InputDecoration(
+                              labelText: 'Work Description',
+                            ),
+                          ),
                           const SizedBox(height: 12),
-                          TextField(controller: _notesCtrl, decoration: const InputDecoration(labelText: 'Special Notes / Issues faced')),
+                          TextField(
+                            controller: _notesCtrl,
+                            decoration: const InputDecoration(
+                              labelText: 'Special Notes / Issues faced',
+                            ),
+                          ),
                           const SizedBox(height: 16),
-                          VianButton(text: 'Submit EOD Report', onPressed: _submitEodReport),
+                          VianButton(
+                            text: 'Submit EOD Report',
+                            onPressed: _submitEodReport,
+                          ),
                         ],
                       ),
-                    )
+                    ),
                   ],
                 ),
               ),
@@ -2743,7 +4048,13 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text('YOUR ACTIVE FINES', style: TextStyle(fontWeight: FontWeight.bold, color: VianTheme.danger)),
+                            const Text(
+                              'YOUR ACTIVE FINES',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: VianTheme.danger,
+                              ),
+                            ),
                             const SizedBox(height: 12),
                             ListView.builder(
                               shrinkWrap: true,
@@ -2755,21 +4066,34 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView> {
                                 return Card(
                                   color: const Color(0xFF1E1E26),
                                   child: ListTile(
-                                    title: Text('Fine Amount: ₹${f['amount']}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                                    title: Text(
+                                      'Fine Amount: ₹${f['amount']}',
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
                                     subtitle: Text(f['reason'] ?? ''),
                                     trailing: isAck
-                                        ? const Text('Acknowledged', style: TextStyle(color: VianTheme.success, fontSize: 11))
+                                        ? const Text(
+                                            'Acknowledged',
+                                            style: TextStyle(
+                                              color: VianTheme.success,
+                                              fontSize: 11,
+                                            ),
+                                          )
                                         : VianButton(
                                             text: 'Acknowledge',
                                             onPressed: () async {
-                                              await ApiService.acknowledgeFine(f['id']);
+                                              await ApiService.acknowledgeFine(
+                                                f['id'],
+                                              );
                                               _loadEmployeeData();
                                             },
                                           ),
                                   ),
                                 );
                               },
-                            )
+                            ),
                           ],
                         ),
                       ),
@@ -2781,15 +4105,30 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text('YOUR MONTHLY INCENTIVE STATUS', style: TextStyle(fontWeight: FontWeight.bold, color: VianTheme.primaryGold, fontSize: 13)),
+                            const Text(
+                              'YOUR MONTHLY INCENTIVE STATUS',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: VianTheme.primaryGold,
+                                fontSize: 13,
+                              ),
+                            ),
                             const SizedBox(height: 12),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                const Text('Performance Score:', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                                const Text(
+                                  'Performance Score:',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey,
+                                  ),
+                                ),
                                 Text(
                                   '${safeToDouble(_myIncentive!['totalScore']).toStringAsFixed(1)} / 100',
-                                  style: const TextStyle(fontWeight: FontWeight.bold),
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ],
                             ),
@@ -2797,10 +4136,18 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                const Text('Suggested Incentive:', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                                const Text(
+                                  'Suggested Incentive:',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey,
+                                  ),
+                                ),
                                 Text(
                                   '₹${safeToDouble(_myIncentive!['suggestedAmount']).toStringAsFixed(0)}',
-                                  style: const TextStyle(fontWeight: FontWeight.bold),
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ],
                             ),
@@ -2808,10 +4155,19 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                const Text('Approved Payout:', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                                const Text(
+                                  'Approved Payout:',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey,
+                                  ),
+                                ),
                                 Text(
                                   '₹${safeToDouble(_myIncentive!['finalAmount']).toStringAsFixed(0)}',
-                                  style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green),
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.green,
+                                  ),
                                 ),
                               ],
                             ),
@@ -2819,24 +4175,54 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                const Text('Status:', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                                const Text(
+                                  'Status:',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey,
+                                  ),
+                                ),
                                 _statusTag(_myIncentive!['status'] ?? 'Draft'),
                               ],
                             ),
-                            if (_myIncentive!['adminRemarks'] != null && _myIncentive!['adminRemarks'].toString().isNotEmpty) ...[
+                            if (_myIncentive!['adminRemarks'] != null &&
+                                _myIncentive!['adminRemarks']
+                                    .toString()
+                                    .isNotEmpty) ...[
                               const Divider(color: Colors.white10),
-                              const Text('Admin Remarks:', style: TextStyle(fontSize: 11, color: VianTheme.primaryGold)),
+                              const Text(
+                                'Admin Remarks:',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: VianTheme.primaryGold,
+                                ),
+                              ),
                               Text(
                                 _myIncentive!['adminRemarks'] ?? '',
-                                style: const TextStyle(fontSize: 12, color: Colors.white70),
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.white70,
+                                ),
                               ),
                             ],
-                            if (_myIncentive!['superAdminRemarks'] != null && _myIncentive!['superAdminRemarks'].toString().isNotEmpty) ...[
+                            if (_myIncentive!['superAdminRemarks'] != null &&
+                                _myIncentive!['superAdminRemarks']
+                                    .toString()
+                                    .isNotEmpty) ...[
                               const SizedBox(height: 6),
-                              const Text('Management Remarks:', style: TextStyle(fontSize: 11, color: VianTheme.primaryGold)),
+                              const Text(
+                                'Management Remarks:',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: VianTheme.primaryGold,
+                                ),
+                              ),
                               Text(
                                 _myIncentive!['superAdminRemarks'] ?? '',
-                                style: const TextStyle(fontSize: 12, color: Colors.white70),
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.white70,
+                                ),
                               ),
                             ],
                           ],
@@ -2849,24 +4235,46 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('COMPANY ANNOUNCEMENTS', style: TextStyle(fontWeight: FontWeight.bold, color: VianTheme.primaryGold)),
+                          const Text(
+                            'COMPANY ANNOUNCEMENTS',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: VianTheme.primaryGold,
+                            ),
+                          ),
                           const SizedBox(height: 12),
                           ListView.builder(
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
-                            itemCount: _announcements.length > 2 ? 2 : _announcements.length,
+                            itemCount: _announcements.length > 2
+                                ? 2
+                                : _announcements.length,
                             itemBuilder: (context, idx) {
                               final ann = _announcements[idx];
                               return Container(
                                 margin: const EdgeInsets.only(bottom: 12),
                                 padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(color: const Color(0xFF1E1E26), borderRadius: BorderRadius.circular(8)),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF1E1E26),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(ann['title'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold)),
+                                    Text(
+                                      ann['title'] ?? '',
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
                                     const SizedBox(height: 4),
-                                    Text(ann['message'] ?? '', style: const TextStyle(color: VianTheme.lightText, fontSize: 11)),
+                                    Text(
+                                      ann['message'] ?? '',
+                                      style: const TextStyle(
+                                        color: VianTheme.lightText,
+                                        fontSize: 11,
+                                      ),
+                                    ),
                                     const SizedBox(height: 8),
                                     Row(
                                       mainAxisAlignment: MainAxisAlignment.end,
@@ -2875,25 +4283,35 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView> {
                                           text: 'Acknowledge',
                                           isSecondary: true,
                                           onPressed: () async {
-                                            await ApiService.acknowledgeAnnouncement(ann['id']);
-                                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Announcement acknowledged.')));
+                                            await ApiService.acknowledgeAnnouncement(
+                                              ann['id'],
+                                            );
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              const SnackBar(
+                                                content: Text(
+                                                  'Announcement acknowledged.',
+                                                ),
+                                              ),
+                                            );
                                           },
-                                        )
+                                        ),
                                       ],
-                                    )
+                                    ),
                                   ],
                                 ),
                               );
                             },
-                          )
+                          ),
                         ],
                       ),
-                    )
+                    ),
                   ],
                 ),
-              )
+              ),
             ],
-          )
+          ),
         ],
       ),
     );
@@ -2927,7 +4345,10 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView> {
         color: bg,
         borderRadius: BorderRadius.circular(4),
       ),
-      child: Text(status, style: TextStyle(color: txt, fontSize: 10, fontWeight: FontWeight.bold)),
+      child: Text(
+        status,
+        style: TextStyle(color: txt, fontSize: 10, fontWeight: FontWeight.bold),
+      ),
     );
   }
 }
@@ -2950,7 +4371,10 @@ class _LegendItem extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 6),
-        Text(label, style: const TextStyle(fontSize: 10, color: Color(0xFF70707C))),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 10, color: Color(0xFF70707C)),
+        ),
       ],
     );
   }
@@ -2997,14 +4421,22 @@ class _ClientPortalViewState extends State<ClientPortalView> {
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return const Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(VianTheme.primaryGold)));
+      return const Center(
+        child: CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(VianTheme.primaryGold),
+        ),
+      );
     }
 
     final String projectName = _project?['name'] ?? "Maison L'Aube";
     final double progress = (_project?['progressPercentage'] ?? 74).toDouble();
     final String progressText = "${progress.toInt()}%";
 
-    final formatter = NumberFormat.currency(locale: 'en_IN', symbol: '₹', decimalDigits: 0);
+    final formatter = NumberFormat.currency(
+      locale: 'en_IN',
+      symbol: '₹',
+      decimalDigits: 0,
+    );
     final double budget = safeToDouble(_project?['budget'] ?? 14500000);
     final double paid = safeToDouble(_project?['paidAmount'] ?? 11000000);
     final double outstanding = budget - paid;
@@ -3025,24 +4457,40 @@ class _ClientPortalViewState extends State<ClientPortalView> {
                 children: [
                   Text(
                     'EXECUTIVE COMMAND',
-                    style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 2.0),
+                    style: GoogleFonts.outfit(
+                      color: VianTheme.primaryGold,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 2.0,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     'Project Dossier: $projectName',
-                    style: GoogleFonts.outfit(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
+                    style: GoogleFonts.outfit(
+                      color: Colors.white,
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ],
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: VianTheme.primaryGold.withOpacity(0.08),
                   border: Border.all(color: VianTheme.primaryGold),
                 ),
                 child: Text(
                   'CONFIDENTIAL DOSSIER',
-                  style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 9, fontWeight: FontWeight.bold),
+                  style: GoogleFonts.outfit(
+                    color: VianTheme.primaryGold,
+                    fontSize: 9,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ],
@@ -3054,7 +4502,12 @@ class _ClientPortalViewState extends State<ClientPortalView> {
               children: [
                 Text(
                   'CURRENT CONSTRUCTION PHASE',
-                  style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 3.0),
+                  style: GoogleFonts.outfit(
+                    color: VianTheme.primaryGold,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 3.0,
+                  ),
                 ),
                 const SizedBox(height: 16),
                 Text(
@@ -3070,7 +4523,13 @@ class _ClientPortalViewState extends State<ClientPortalView> {
                   width: 200,
                   height: 1,
                   decoration: const BoxDecoration(
-                    gradient: LinearGradient(colors: [Colors.transparent, VianTheme.primaryGold, Colors.transparent]),
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.transparent,
+                        VianTheme.primaryGold,
+                        Colors.transparent,
+                      ],
+                    ),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -3079,7 +4538,11 @@ class _ClientPortalViewState extends State<ClientPortalView> {
                   child: Text(
                     'Interior finishing, bespoke millwork, and stone masonry installations are currently in progress. Construction is on track for October delivery.',
                     textAlign: TextAlign.center,
-                    style: GoogleFonts.inter(color: VianTheme.lightText, fontSize: 13, height: 1.5),
+                    style: GoogleFonts.inter(
+                      color: VianTheme.lightText,
+                      fontSize: 13,
+                      height: 1.5,
+                    ),
                   ),
                 ),
               ],
@@ -3090,13 +4553,29 @@ class _ClientPortalViewState extends State<ClientPortalView> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('TIMELINE & MILESTONES', style: GoogleFonts.outfit(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
-              Text('VIEW FULL LOG', style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
+              Text(
+                'TIMELINE & MILESTONES',
+                style: GoogleFonts.outfit(
+                  color: Colors.white,
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.5,
+                ),
+              ),
+              Text(
+                'VIEW FULL LOG',
+                style: GoogleFonts.outfit(
+                  color: VianTheme.primaryGold,
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.0,
+                ),
+              ),
             ],
           ),
           const Divider(color: Colors.white10, height: 24),
           const SizedBox(height: 12),
-          
+
           SizedBox(
             height: 250,
             child: ListView(
@@ -3142,7 +4621,15 @@ class _ClientPortalViewState extends State<ClientPortalView> {
               children: [
                 Expanded(flex: 7, child: _buildBlueprintsDossier()),
                 const SizedBox(width: 32),
-                Expanded(flex: 5, child: _buildFinancialSummary(formatter, budget, paid, outstanding)),
+                Expanded(
+                  flex: 5,
+                  child: _buildFinancialSummary(
+                    formatter,
+                    budget,
+                    paid,
+                    outstanding,
+                  ),
+                ),
               ],
             )
           else ...[
@@ -3158,7 +4645,9 @@ class _ClientPortalViewState extends State<ClientPortalView> {
               color: VianTheme.cardColor,
               border: Border.all(color: Colors.white.withOpacity(0.04)),
               image: const DecorationImage(
-                image: NetworkImage('https://lh3.googleusercontent.com/aida-public/AB6AXuDMAErbO4i1T_qkd_vzf5XsFhOH0Lr6B8bA86yZyC7TG_wOhJawrHq7QKGQd8sHUXrO23gO-4UyLoOD9K-j4dl8ZaMjjMOZkNLDRHFJyV033jeNhuvJLLtjMO4wsQKP6NsywnGtBvP482J9f1I142b0IeovY7L-gR_ZZ-wS3od8IG8-qABVTAlDTuT0JCuRY8wqiUdoibJFh4NG5_d22nm5GD5Lt9iLRCB9hPLO17B3Sw2zvHjAxm31N63cex5H9PjORJe-lTXmj7c'),
+                image: NetworkImage(
+                  'https://lh3.googleusercontent.com/aida-public/AB6AXuDMAErbO4i1T_qkd_vzf5XsFhOH0Lr6B8bA86yZyC7TG_wOhJawrHq7QKGQd8sHUXrO23gO-4UyLoOD9K-j4dl8ZaMjjMOZkNLDRHFJyV033jeNhuvJLLtjMO4wsQKP6NsywnGtBvP482J9f1I142b0IeovY7L-gR_ZZ-wS3od8IG8-qABVTAlDTuT0JCuRY8wqiUdoibJFh4NG5_d22nm5GD5Lt9iLRCB9hPLO17B3Sw2zvHjAxm31N63cex5H9PjORJe-lTXmj7c',
+                ),
                 fit: BoxFit.cover,
                 opacity: 0.35,
               ),
@@ -3171,11 +4660,23 @@ class _ClientPortalViewState extends State<ClientPortalView> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('PROJECT LOCATION', style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 2.0)),
+                      Text(
+                        'PROJECT LOCATION',
+                        style: GoogleFonts.outfit(
+                          color: VianTheme.primaryGold,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 2.0,
+                        ),
+                      ),
                       const SizedBox(height: 8),
                       Text(
                         _project?['siteAddress'] ?? 'Varenna Estate, Lake Como',
-                        style: GoogleFonts.outfit(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                        style: GoogleFonts.outfit(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ],
                   ),
@@ -3184,7 +4685,10 @@ class _ClientPortalViewState extends State<ClientPortalView> {
                   top: 32,
                   right: 32,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.black.withOpacity(0.8),
                       border: Border.all(color: Colors.white10),
@@ -3194,13 +4698,31 @@ class _ClientPortalViewState extends State<ClientPortalView> {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
-                            Text('CURRENT WEATHER', style: GoogleFonts.outfit(color: VianTheme.lightText, fontSize: 8, letterSpacing: 1.0)),
+                            Text(
+                              'CURRENT WEATHER',
+                              style: GoogleFonts.outfit(
+                                color: VianTheme.lightText,
+                                fontSize: 8,
+                                letterSpacing: 1.0,
+                              ),
+                            ),
                             const SizedBox(height: 4),
-                            Text('22°C Clear', style: GoogleFonts.poppins(color: VianTheme.primaryGold, fontSize: 13, fontWeight: FontWeight.bold)),
+                            Text(
+                              '22°C Clear',
+                              style: GoogleFonts.poppins(
+                                color: VianTheme.primaryGold,
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           ],
                         ),
                         const SizedBox(width: 12),
-                        const Icon(Icons.wb_sunny, color: VianTheme.primaryGold, size: 24),
+                        const Icon(
+                          Icons.wb_sunny,
+                          color: VianTheme.primaryGold,
+                          size: 24,
+                        ),
                       ],
                     ),
                   ),
@@ -3213,12 +4735,21 @@ class _ClientPortalViewState extends State<ClientPortalView> {
     );
   }
 
-  Widget _buildMilestoneCard(String title, String date, String status, String imageUrl, {bool isActive = false, bool isUpcoming = false}) {
+  Widget _buildMilestoneCard(
+    String title,
+    String date,
+    String status,
+    String imageUrl, {
+    bool isActive = false,
+    bool isUpcoming = false,
+  }) {
     return Container(
       width: 280,
       decoration: BoxDecoration(
         color: VianTheme.cardColor,
-        border: Border.all(color: isActive ? VianTheme.primaryGold : Colors.white10),
+        border: Border.all(
+          color: isActive ? VianTheme.primaryGold : Colors.white10,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -3228,14 +4759,19 @@ class _ClientPortalViewState extends State<ClientPortalView> {
                 ? Container(
                     color: const Color(0xFF13131A),
                     child: Center(
-                      child: Icon(Icons.landscape, color: Colors.white.withOpacity(0.08), size: 48),
+                      child: Icon(
+                        Icons.landscape,
+                        color: Colors.white.withOpacity(0.08),
+                        size: 48,
+                      ),
                     ),
                   )
                 : Image.network(
                     imageUrl,
                     width: double.infinity,
                     fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => Container(color: const Color(0xFF13131A)),
+                    errorBuilder: (context, error, stackTrace) =>
+                        Container(color: const Color(0xFF13131A)),
                   ),
           ),
           Padding(
@@ -3246,29 +4782,51 @@ class _ClientPortalViewState extends State<ClientPortalView> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(date, style: GoogleFonts.poppins(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold)),
+                    Text(
+                      date,
+                      style: GoogleFonts.poppins(
+                        color: VianTheme.primaryGold,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      color: isActive ? Colors.white : (isUpcoming ? Colors.white10 : VianTheme.primaryGold.withOpacity(0.1)),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
+                      color: isActive
+                          ? Colors.white
+                          : (isUpcoming
+                                ? Colors.white10
+                                : VianTheme.primaryGold.withOpacity(0.1)),
                       child: Text(
                         status,
                         style: GoogleFonts.outfit(
-                          color: isActive ? Colors.black : (isUpcoming ? VianTheme.lightText : VianTheme.primaryGold),
+                          color: isActive
+                              ? Colors.black
+                              : (isUpcoming
+                                    ? VianTheme.lightText
+                                    : VianTheme.primaryGold),
                           fontSize: 8,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                    )
+                    ),
                   ],
                 ),
                 const SizedBox(height: 8),
                 Text(
                   title,
-                  style: GoogleFonts.inter(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
+                  style: GoogleFonts.inter(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ],
             ),
-          )
+          ),
         ],
       ),
     );
@@ -3276,9 +4834,24 @@ class _ClientPortalViewState extends State<ClientPortalView> {
 
   Widget _buildBlueprintsDossier() {
     final blueprints = [
-      {'name': 'L01_FLOORPLAN_V4.PDF', 'desc': 'Architectural Floor Plan Layout', 'url': 'https://lh3.googleusercontent.com/aida-public/AB6AXuDNp3L7QKmIg22J6AY_J0xQFbJ_GtPFvBo3A1i-zDyfjuvFmqk1mBAFF8aFWoXb6OuFS2eNIq3-OqiqWyCew7_ekeTg6Kb2WgJUeTqvaNbaUZgNmofIh53SDCPnm7NciFa3PDmnuZMQ1s0DPvZXnMoKUEc1pb8_QWUJj9yCw1CvOcTArEiRf9t41ldz7hmOn0Xuex0vvTeHKU7xAs9BuIgLvC8hnFbz6mwoNp4PJEC9KDEd9jFGjYApcZ7QLXYU_3rkVp26pYhpQe0'},
-      {'name': 'STAIR_DETAIL_A1.PDF', 'desc': 'Section Detail: Oak Staircase', 'url': 'https://lh3.googleusercontent.com/aida-public/AB6AXuAR9RyzG3djRghhGsMnRucSBlIfjITy4b4SkbvQiBMxeZ_-g1exWk27StLxjobrPRsZ9ThgB6OVjELdMRgB_KyppuRaNVPv3nFxfSVyBSxvGS6CBCGZxeRkNZcN0EXBwts63DLB84gPCvQC2gTXF_OICt1-xgfoCsQ80ky5waqpD_xTQyRcHmEGZBoFxKNOxAjYaIxCaBTrz0TYT-QKFCYRJq-GCP0fu3QyF95ITY1XwW-grNn4p8Hms70gfPF6po18gxoaR9GFjlM'},
-      {'name': 'ELEC_LAYOUT_FINAL.PDF', 'desc': 'Master Lighting Layout Scheme', 'url': 'https://lh3.googleusercontent.com/aida-public/AB6AXuDSosd_Ud9CnxDIP5NkuOZAEosZlh3b_rH_HS2Xa1HFejNP9XxtyDNLRoZhX8e4ZbYTv1ryCXKuR1MQgLfLfrU-KSq7pYAfpduT78bWZa6CGt1To80tVnvgy6ynTGSMzHkeNj9W3rlyddApxEEeZwe7r8za3S2FszU3kYTT68yAIL6-RkAXn4Trmbgo0AZIOdX6WTLPuNkFpQHdAkMCYCTKQWsxcgVsRfz0yrzvxbvnc5KsQcMtmDlR6EHEC7lIRZXXn9mGH0j8njI'},
+      {
+        'name': 'L01_FLOORPLAN_V4.PDF',
+        'desc': 'Architectural Floor Plan Layout',
+        'url':
+            'https://lh3.googleusercontent.com/aida-public/AB6AXuDNp3L7QKmIg22J6AY_J0xQFbJ_GtPFvBo3A1i-zDyfjuvFmqk1mBAFF8aFWoXb6OuFS2eNIq3-OqiqWyCew7_ekeTg6Kb2WgJUeTqvaNbaUZgNmofIh53SDCPnm7NciFa3PDmnuZMQ1s0DPvZXnMoKUEc1pb8_QWUJj9yCw1CvOcTArEiRf9t41ldz7hmOn0Xuex0vvTeHKU7xAs9BuIgLvC8hnFbz6mwoNp4PJEC9KDEd9jFGjYApcZ7QLXYU_3rkVp26pYhpQe0',
+      },
+      {
+        'name': 'STAIR_DETAIL_A1.PDF',
+        'desc': 'Section Detail: Oak Staircase',
+        'url':
+            'https://lh3.googleusercontent.com/aida-public/AB6AXuAR9RyzG3djRghhGsMnRucSBlIfjITy4b4SkbvQiBMxeZ_-g1exWk27StLxjobrPRsZ9ThgB6OVjELdMRgB_KyppuRaNVPv3nFxfSVyBSxvGS6CBCGZxeRkNZcN0EXBwts63DLB84gPCvQC2gTXF_OICt1-xgfoCsQ80ky5waqpD_xTQyRcHmEGZBoFxKNOxAjYaIxCaBTrz0TYT-QKFCYRJq-GCP0fu3QyF95ITY1XwW-grNn4p8Hms70gfPF6po18gxoaR9GFjlM',
+      },
+      {
+        'name': 'ELEC_LAYOUT_FINAL.PDF',
+        'desc': 'Master Lighting Layout Scheme',
+        'url':
+            'https://lh3.googleusercontent.com/aida-public/AB6AXuDSosd_Ud9CnxDIP5NkuOZAEosZlh3b_rH_HS2Xa1HFejNP9XxtyDNLRoZhX8e4ZbYTv1ryCXKuR1MQgLfLfrU-KSq7pYAfpduT78bWZa6CGt1To80tVnvgy6ynTGSMzHkeNj9W3rlyddApxEEeZwe7r8za3S2FszU3kYTT68yAIL6-RkAXn4Trmbgo0AZIOdX6WTLPuNkFpQHdAkMCYCTKQWsxcgVsRfz0yrzvxbvnc5KsQcMtmDlR6EHEC7lIRZXXn9mGH0j8njI',
+      },
     ];
 
     return Container(
@@ -3296,13 +4869,32 @@ class _ClientPortalViewState extends State<ClientPortalView> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('TECHNICAL DOSSIER', style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
+                  Text(
+                    'TECHNICAL DOSSIER',
+                    style: GoogleFonts.outfit(
+                      color: VianTheme.primaryGold,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.5,
+                    ),
+                  ),
                   const SizedBox(height: 4),
-                  Text('Approved Blueprints', style: GoogleFonts.outfit(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                  Text(
+                    'Approved Blueprints',
+                    style: GoogleFonts.outfit(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ],
               ),
               IconButton(
-                icon: const Icon(Icons.download, color: VianTheme.primaryGold, size: 20),
+                icon: const Icon(
+                  Icons.download,
+                  color: VianTheme.primaryGold,
+                  size: 20,
+                ),
                 onPressed: () {},
               ),
             ],
@@ -3330,9 +4922,21 @@ class _ClientPortalViewState extends State<ClientPortalView> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(Icons.add_circle_outline, color: VianTheme.lightText, size: 24),
+                        const Icon(
+                          Icons.add_circle_outline,
+                          color: VianTheme.lightText,
+                          size: 24,
+                        ),
                         const SizedBox(height: 8),
-                        Text('REQUEST REVISION', style: GoogleFonts.outfit(color: VianTheme.lightText, fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 1.0)),
+                        Text(
+                          'REQUEST REVISION',
+                          style: GoogleFonts.outfit(
+                            color: VianTheme.lightText,
+                            fontSize: 9,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 1.0,
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -3357,8 +4961,21 @@ class _ClientPortalViewState extends State<ClientPortalView> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(bp['name']!, style: GoogleFonts.poppins(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
-                          Text(bp['desc']!, style: GoogleFonts.inter(color: VianTheme.lightText, fontSize: 9)),
+                          Text(
+                            bp['name']!,
+                            style: GoogleFonts.poppins(
+                              color: Colors.white,
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            bp['desc']!,
+                            style: GoogleFonts.inter(
+                              color: VianTheme.lightText,
+                              fontSize: 9,
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -3372,7 +4989,12 @@ class _ClientPortalViewState extends State<ClientPortalView> {
     );
   }
 
-  Widget _buildFinancialSummary(NumberFormat formatter, double budget, double paid, double outstanding) {
+  Widget _buildFinancialSummary(
+    NumberFormat formatter,
+    double budget,
+    double paid,
+    double outstanding,
+  ) {
     return Column(
       children: [
         CustomPaint(
@@ -3383,29 +5005,77 @@ class _ClientPortalViewState extends State<ClientPortalView> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('FINANCIAL SUMMARY', style: GoogleFonts.outfit(color: VianTheme.primaryGold, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
+                Text(
+                  'FINANCIAL SUMMARY',
+                  style: GoogleFonts.outfit(
+                    color: VianTheme.primaryGold,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1.5,
+                  ),
+                ),
                 const SizedBox(height: 24),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Current Valuation', style: GoogleFonts.inter(color: VianTheme.lightText, fontSize: 13)),
-                    Text(formatter.format(budget), style: GoogleFonts.poppins(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
+                    Text(
+                      'Current Valuation',
+                      style: GoogleFonts.inter(
+                        color: VianTheme.lightText,
+                        fontSize: 13,
+                      ),
+                    ),
+                    Text(
+                      formatter.format(budget),
+                      style: GoogleFonts.poppins(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 12),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Paid to Date', style: GoogleFonts.inter(color: VianTheme.lightText, fontSize: 13)),
-                    Text(formatter.format(paid), style: GoogleFonts.poppins(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
+                    Text(
+                      'Paid to Date',
+                      style: GoogleFonts.inter(
+                        color: VianTheme.lightText,
+                        fontSize: 13,
+                      ),
+                    ),
+                    Text(
+                      formatter.format(paid),
+                      style: GoogleFonts.poppins(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ],
                 ),
                 const Divider(color: Colors.white10, height: 24),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Outstanding Balance', style: GoogleFonts.inter(color: VianTheme.primaryGold, fontSize: 14, fontWeight: FontWeight.bold)),
-                    Text(formatter.format(outstanding), style: GoogleFonts.poppins(color: VianTheme.primaryGold, fontSize: 18, fontWeight: FontWeight.bold)),
+                    Text(
+                      'Outstanding Balance',
+                      style: GoogleFonts.inter(
+                        color: VianTheme.primaryGold,
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      formatter.format(outstanding),
+                      style: GoogleFonts.poppins(
+                        color: VianTheme.primaryGold,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 28),
@@ -3414,10 +5084,19 @@ class _ClientPortalViewState extends State<ClientPortalView> {
                     backgroundColor: VianTheme.primaryGold,
                     foregroundColor: Colors.black,
                     minimumSize: const Size(double.infinity, 50),
-                    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+                    shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.zero,
+                    ),
                   ),
                   icon: const Icon(Icons.account_balance_wallet, size: 16),
-                  label: Text('PAY NOW', style: GoogleFonts.outfit(fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 2.0)),
+                  label: Text(
+                    'PAY NOW',
+                    style: GoogleFonts.outfit(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 2.0,
+                    ),
+                  ),
                   onPressed: () {},
                 ),
               ],
@@ -3437,18 +5116,40 @@ class _ClientPortalViewState extends State<ClientPortalView> {
                 width: 44,
                 height: 44,
                 color: const Color(0xFF13131A),
-                child: const Icon(Icons.support_agent, color: VianTheme.primaryGold, size: 20),
+                child: const Icon(
+                  Icons.support_agent,
+                  color: VianTheme.primaryGold,
+                  size: 20,
+                ),
               ),
               const SizedBox(width: 16),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('CONCIERGE SUPPORT', style: GoogleFonts.outfit(color: VianTheme.lightText, fontSize: 8, letterSpacing: 1.0)),
-                  Text('Chat with Lead Architect', style: GoogleFonts.inter(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+                  Text(
+                    'CONCIERGE SUPPORT',
+                    style: GoogleFonts.outfit(
+                      color: VianTheme.lightText,
+                      fontSize: 8,
+                      letterSpacing: 1.0,
+                    ),
+                  ),
+                  Text(
+                    'Chat with Lead Architect',
+                    style: GoogleFonts.inter(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ],
               ),
               const Spacer(),
-              const Icon(Icons.arrow_forward, color: VianTheme.primaryGold, size: 18),
+              const Icon(
+                Icons.arrow_forward,
+                color: VianTheme.primaryGold,
+                size: 18,
+              ),
             ],
           ),
         ),
@@ -3456,4 +5157,3 @@ class _ClientPortalViewState extends State<ClientPortalView> {
     );
   }
 }
-

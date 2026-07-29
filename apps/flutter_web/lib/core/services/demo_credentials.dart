@@ -26,12 +26,22 @@ class DemoAccount {
 }
 
 class DemoAccountService {
-  static const bool showDevLogin = bool.fromEnvironment('SHOW_DEV_LOGIN', defaultValue: true);
-  static const bool enableDemoLogin = bool.fromEnvironment('ENABLE_DEMO_LOGIN', defaultValue: true);
-  static const String environment = String.fromEnvironment('ENVIRONMENT', defaultValue: 'development');
+  static const bool showDevLogin = bool.fromEnvironment(
+    'SHOW_DEV_LOGIN',
+    defaultValue: true,
+  );
+  static const bool enableDemoLogin = bool.fromEnvironment(
+    'ENABLE_DEMO_LOGIN',
+    defaultValue: true,
+  );
+  static const String environment = String.fromEnvironment(
+    'ENVIRONMENT',
+    defaultValue: 'development',
+  );
 
   static bool get shouldShow {
-    if (environment.toLowerCase() == 'production' || environment.toLowerCase() == 'prod') {
+    if (environment.toLowerCase() == 'production' ||
+        environment.toLowerCase() == 'prod') {
       return false;
     }
     return kDebugMode || showDevLogin || enableDemoLogin;

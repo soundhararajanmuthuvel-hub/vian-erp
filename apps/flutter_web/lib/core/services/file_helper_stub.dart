@@ -1,6 +1,7 @@
 void saveFile(List<int> bytes, String fileName) {
   throw UnsupportedError('Cannot save file without platform implementation');
 }
+
 void openUrl(String url) {
   throw UnsupportedError('Cannot open URL without platform implementation');
 }

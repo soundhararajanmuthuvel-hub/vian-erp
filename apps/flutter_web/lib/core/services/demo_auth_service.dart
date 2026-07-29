@@ -4,7 +4,10 @@ import 'demo_credentials.dart';
 class DemoAuthService {
   static Future<Map<String, dynamic>> login(DemoRole role) async {
     if (!DemoAccountService.shouldShow) {
-      return {'success': false, 'message': 'Demo login disabled in this environment'};
+      return {
+        'success': false,
+        'message': 'Demo login disabled in this environment',
+      };
     }
 
     final creds = DemoAccountService.getCredentialsInternal(role);
@@ -20,11 +23,8 @@ class DemoAuthService {
       final user = Map<String, dynamic>.from(res['user'] ?? {});
       user['isDemoSession'] = true;
       user['isDemo'] = true;
-      
-      return {
-        'success': true,
-        'user': user,
-      };
+
+      return {'success': true, 'user': user};
     }
     return res;
   }

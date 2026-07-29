@@ -1,9 +1,10 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
 
 class ApiConstants {
-  static const String productionBaseUrl = 'https://vian-erp-production.up.railway.app/api';
+  static const String productionBaseUrl =
+      'https://vian-erp-production.up.railway.app/api';
   static const String localBaseUrl = 'http://localhost:5050/api';
-  
+
   static String get baseUrl {
     const envUrl = String.fromEnvironment('API_URL');
     if (envUrl.isNotEmpty) {
@@ -11,7 +12,9 @@ class ApiConstants {
     }
     if (kIsWeb) {
       final String origin = Uri.base.origin;
-      if (origin.contains('localhost') || origin.contains('127.0.0.1') || origin.contains('railway.app')) {
+      if (origin.contains('localhost') ||
+          origin.contains('127.0.0.1') ||
+          origin.contains('railway.app')) {
         return '$origin/api';
       }
     }
@@ -19,7 +22,7 @@ class ApiConstants {
   }
 
   static const Duration timeout = Duration(seconds: 15);
-  
+
   static Map<String, String> getHeaders(String? token) => {
     'Content-Type': 'application/json',
     'Accept': 'application/json',

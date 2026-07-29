@@ -66,7 +66,11 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                   errorBuilder: (context, error, stackTrace) {
                     return Column(
                       children: [
-                        const Icon(Icons.architecture, color: VianTheme.primaryGold, size: 48),
+                        const Icon(
+                          Icons.architecture,
+                          color: VianTheme.primaryGold,
+                          size: 48,
+                        ),
                         Text(
                           'VIAN ARCHITECTS',
                           style: GoogleFonts.poppins(
@@ -91,7 +95,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  _success 
+                  _success
                       ? 'Check your inbox for a recovery link'
                       : 'Enter your registered email to receive a password reset link',
                   textAlign: TextAlign.center,
@@ -104,7 +108,10 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                 if (_errorMessage != null) ...[
                   Text(
                     _errorMessage!,
-                    style: const TextStyle(color: Colors.redAccent, fontSize: 13),
+                    style: const TextStyle(
+                      color: Colors.redAccent,
+                      fontSize: 13,
+                    ),
                   ),
                   const SizedBox(height: 12),
                 ],
@@ -118,12 +125,18 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.check_circle_outline, color: Colors.green),
+                        const Icon(
+                          Icons.check_circle_outline,
+                          color: Colors.green,
+                        ),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
                             'Reset email sent successfully to ${_emailController.text}!',
-                            style: const TextStyle(color: Colors.white, fontSize: 13),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 13,
+                            ),
                           ),
                         ),
                       ],
@@ -138,7 +151,10 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                     decoration: const InputDecoration(
                       labelText: 'Email Address',
                       labelStyle: TextStyle(color: VianTheme.lightText),
-                      prefixIcon: Icon(Icons.email_outlined, color: VianTheme.primaryGold),
+                      prefixIcon: Icon(
+                        Icons.email_outlined,
+                        color: VianTheme.primaryGold,
+                      ),
                       enabledBorder: OutlineInputBorder(
                         borderSide: BorderSide(color: Color(0x22F5A623)),
                       ),
@@ -151,7 +167,9 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                   SizedBox(
                     width: double.infinity,
                     child: VianButton(
-                      text: _isLoading ? 'Sending Request...' : 'Reset Password',
+                      text: _isLoading
+                          ? 'Sending Request...'
+                          : 'Reset Password',
                       onPressed: _isLoading ? () {} : _handleReset,
                     ),
                   ),
@@ -163,7 +181,10 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                   },
                   child: const Text(
                     'Back to Login',
-                    style: TextStyle(color: VianTheme.primaryGold, fontSize: 13),
+                    style: TextStyle(
+                      color: VianTheme.primaryGold,
+                      fontSize: 13,
+                    ),
                   ),
                 ),
               ],
