@@ -473,13 +473,6 @@ async function seedDatabase(models, force = false) {
     });
 
     const defaultUsers = [
-      // Demo Role System Accounts
-      { employeeId: 'VIAN-SA-01', username: 'superadmin', rawPass: 'superadmin123', name: 'Super Admin', email: 'superadmin@vianarchitects.com', role: 'Super Admin', dept: 'Administration', desig: 'Super Administrator' },
-      { employeeId: 'VIAN-ADM-00', username: 'admin', rawPass: 'admin123', name: 'Office Admin', email: 'admin@vianarchitects.com', role: 'Admin / Office Manager / Accounts', dept: 'Administration', desig: 'Office Manager' },
-      { employeeId: 'VIAN-PM-01', username: 'pm', rawPass: 'pm123', name: 'Senior Project Manager', email: 'pm@vianarchitects.com', role: 'Project Manager', dept: 'Project Management', desig: 'Senior Project Manager' },
-      { employeeId: 'VIAN-ARC-00', username: 'architect', rawPass: 'architect123', name: 'Lead Architect', email: 'architect@vianarchitects.com', role: 'Architect', dept: 'Design', desig: 'Lead Architect' },
-      { employeeId: 'VIAN-SE-00', username: 'siteengineer', rawPass: 'siteengineer123', name: 'Site Engineer', email: 'siteengineer@vianarchitects.com', role: 'Site Engineer', dept: 'Site Team', desig: 'Site Engineer' },
-
       // Managing Directors
       { employeeId: 'VIAN-MD-01', username: 'anand', rawPass: 'anand123', name: 'Ar. Anand Sathiesivam', email: 'anand@vianarchitects.com', role: 'Managing Director', dept: 'Executive', desig: 'Managing Director' },
       { employeeId: 'VIAN-MD-02', username: 'vijay', rawPass: 'vijay123', name: 'Ar. Vijay Vinthan', email: 'vijay@vianarchitects.com', role: 'Managing Director', dept: 'Executive', desig: 'Managing Director' },

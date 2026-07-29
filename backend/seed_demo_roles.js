@@ -5,97 +5,91 @@ const { Op } = require('sequelize');
 
 const demoUsers = [
   {
-    employeeId: 'VIAN-SA-01',
-    username: 'superadmin',
-    email: 'superadmin@vianarchitects.com',
-    rawPass: 'superadmin123',
-    name: 'Super Admin',
+    employeeId: 'DEMO-SA-01',
+    username: 'demo_superadmin',
+    email: 'superadmin@demo.vianerp.test',
+    name: 'Demo Super Admin',
     role: 'Super Admin',
     department: 'Administration',
     designation: 'Super Administrator'
   },
   {
-    employeeId: 'VIAN-MD-01',
-    username: 'anand',
-    email: 'anand@vianarchitects.com',
-    rawPass: 'anand123',
-    name: 'Ar. Anand Sathiesivam',
+    employeeId: 'DEMO-MD-01',
+    username: 'demo_md',
+    email: 'md@demo.vianerp.test',
+    name: 'Demo Managing Director',
     role: 'Managing Director',
     department: 'Executive',
     designation: 'Managing Director'
   },
   {
-    employeeId: 'VIAN-ADM-01',
-    username: 'admin',
-    email: 'admin@vianarchitects.com',
-    rawPass: 'admin123',
-    name: 'Office Admin',
+    employeeId: 'DEMO-ADM-01',
+    username: 'demo_admin',
+    email: 'admin@demo.vianerp.test',
+    name: 'Demo Admin',
     role: 'Admin / Office Manager / Accounts',
     department: 'Administration',
     designation: 'Office Manager'
   },
   {
-    employeeId: 'VIAN-PM-01',
-    username: 'pm',
-    email: 'pm@vianarchitects.com',
-    rawPass: 'pm123',
-    name: 'Senior Project Manager',
+    employeeId: 'DEMO-PM-01',
+    username: 'demo_pm',
+    email: 'pm@demo.vianerp.test',
+    name: 'Demo Project Manager',
     role: 'Project Manager',
     department: 'Project Management',
     designation: 'Senior Project Manager'
   },
   {
-    employeeId: 'VIAN-ARC-01',
-    username: 'architect',
-    email: 'architect@vianarchitects.com',
-    rawPass: 'architect123',
-    name: 'Lead Architect',
+    employeeId: 'DEMO-ARC-01',
+    username: 'demo_architect',
+    email: 'architect@demo.vianerp.test',
+    name: 'Demo Architect',
     role: 'Architect',
     department: 'Design',
     designation: 'Lead Architect'
   },
   {
-    employeeId: 'VIAN-SE-01',
-    username: 'siteengineer',
-    email: 'siteengineer@vianarchitects.com',
-    rawPass: 'siteengineer123',
-    name: 'Site Engineer',
+    employeeId: 'DEMO-SE-01',
+    username: 'demo_siteengineer',
+    email: 'siteengineer@demo.vianerp.test',
+    name: 'Demo Site Engineer',
     role: 'Site Engineer',
     department: 'Site Team',
     designation: 'Site Engineer'
   },
   {
-    employeeId: 'VIAN-ACC-01',
-    username: 'accountant',
-    email: 'accountant@vianarchitects.com',
-    rawPass: 'accountant123',
-    name: 'Sneha Jain',
+    employeeId: 'DEMO-ACC-01',
+    username: 'demo_accountant',
+    email: 'accountant@demo.vianerp.test',
+    name: 'Demo Accountant',
     role: 'Accountant',
     department: 'Finance',
-    designation: 'Finance Head'
+    designation: 'Accounts Manager'
   },
   {
-    employeeId: 'VIAN-CLT-01',
-    username: 'client',
-    email: 'client@vianarchitects.com',
-    rawPass: 'client123',
-    name: 'Amit Bajaj',
+    employeeId: 'DEMO-CLT-01',
+    username: 'demo_client',
+    email: 'client@demo.vianerp.test',
+    name: 'Demo Client',
     role: 'Client',
     department: 'External',
     designation: 'Property Owner'
   }
 ];
 
+const DEMO_PASSWORD = 'Demo@12345';
+
 async function seedDemoRoles() {
   const sequelize = await connectDB();
   await sequelize.sync();
   const { User } = initModels();
 
+  const salt = await bcrypt.genSalt(10);
+  const passwordHash = await bcrypt.hash(DEMO_PASSWORD, salt);
+
   console.log('Seeding Demo Role Accounts...');
   for (const u of demoUsers) {
-    const salt = await bcrypt.genSalt(10);
-    const passwordHash = await bcrypt.hash(u.rawPass, salt);
-
     let userRecord = await User.findOne({
       where: {
         [Op.or]: [{ email: u.email }, { username: u.username }]
@@ -114,7 +108,7 @@ async function seedDemoRoles() {
         designation: u.designation,
         status: 'Active'
       });
-      console.log(`Updated existing demo account: ${u.username} / ${u.email} (${u.role})`);
+      console.log(`Updated existing demo account: ${u.email} (${u.role})`);
     } else {
       userRecord = await User.create({
         employeeId: u.employeeId,
@@ -128,7 +122,7 @@ async function seedDemoRoles() {
         joiningDate: new Date().toISOString().split('T')[0],
         status: 'Active'
       });
-      console.log(`Created new demo account: ${u.username} / ${u.email} (${u.role})`);
+      console.log(`Created new demo account: ${u.email} (${u.role})`);
     }
   }
 

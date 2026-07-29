@@ -12,10 +12,10 @@ class DemoAuthService {
       return {'success': false, 'message': 'Credentials not found'};
     }
 
-    final username = creds['username'] ?? creds['email']!;
+    final email = creds['email']!;
     final password = creds['password']!;
 
-    final res = await ApiService.login(username, password);
+    final res = await ApiService.login(email, password);
     if (res['success'] == true) {
       final user = Map<String, dynamic>.from(res['user'] ?? {});
       user['isDemoSession'] = true;
