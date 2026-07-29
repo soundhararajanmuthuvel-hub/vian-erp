@@ -1060,9 +1060,6 @@ class _LoginPageState extends ConsumerState<LoginPage> with SingleTickerProvider
       _handleLogin();
     }
   }
-      _isLoading = false;
-    });
-  }
 }
 
 class LoginBlueprintPainter extends CustomPainter {
