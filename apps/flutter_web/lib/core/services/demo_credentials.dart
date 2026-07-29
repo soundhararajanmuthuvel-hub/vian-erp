@@ -2,9 +2,13 @@ import 'package:flutter/foundation.dart';
 
 enum DemoRole {
   superAdmin,
+  managingDirector,
   admin,
-  seniorEngineer,
-  engineer,
+  projectManager,
+  architect,
+  siteEngineer,
+  accountant,
+  client,
 }
 
 class DemoAccount {
@@ -22,14 +26,15 @@ class DemoAccount {
 }
 
 class DemoAccountService {
-  static const bool enableDemoLogin = bool.fromEnvironment('ENABLE_DEMO_LOGIN', defaultValue: false);
+  static const bool showDevLogin = bool.fromEnvironment('SHOW_DEV_LOGIN', defaultValue: true);
+  static const bool enableDemoLogin = bool.fromEnvironment('ENABLE_DEMO_LOGIN', defaultValue: true);
   static const String environment = String.fromEnvironment('ENVIRONMENT', defaultValue: 'development');
 
   static bool get shouldShow {
-    if (environment == 'production' || environment == 'prod') {
+    if (environment.toLowerCase() == 'production' || environment.toLowerCase() == 'prod') {
       return false;
     }
-    return kDebugMode || enableDemoLogin;
+    return kDebugMode || showDevLogin || enableDemoLogin;
   }
 
   static const List<DemoAccount> accounts = [
@@ -40,42 +45,90 @@ class DemoAccountService {
       iconEmoji: '👑',
     ),
     DemoAccount(
+      role: DemoRole.managingDirector,
+      displayName: 'Managing Director',
+      description: 'Executive Control',
+      iconEmoji: '🏛',
+    ),
+    DemoAccount(
       role: DemoRole.admin,
       displayName: 'Admin',
-      description: 'Operations Management',
+      description: 'Office & Admin Ops',
       iconEmoji: '🛡',
     ),
     DemoAccount(
-      role: DemoRole.seniorEngineer,
-      displayName: 'Senior Engineer',
-      description: 'Project Management',
-      iconEmoji: '🏗',
+      role: DemoRole.projectManager,
+      displayName: 'Project Manager',
+      description: 'Projects & Planning',
+      iconEmoji: '📋',
     ),
     DemoAccount(
-      role: DemoRole.engineer,
-      displayName: 'Engineer',
-      description: 'Daily Site Operations',
+      role: DemoRole.architect,
+      displayName: 'Architect',
+      description: 'Design & Engineering',
+      iconEmoji: '📐',
+    ),
+    DemoAccount(
+      role: DemoRole.siteEngineer,
+      displayName: 'Site Engineer',
+      description: 'On-Site Operations',
       iconEmoji: '👷',
+    ),
+    DemoAccount(
+      role: DemoRole.accountant,
+      displayName: 'Accountant',
+      description: 'Financial Management',
+      iconEmoji: '💰',
+    ),
+    DemoAccount(
+      role: DemoRole.client,
+      displayName: 'Client',
+      description: 'Project Portal',
+      iconEmoji: '👤',
     ),
   ];
 
   // Private credentials mapping
   static const Map<DemoRole, Map<String, String>> _credentials = {
     DemoRole.superAdmin: {
-      'email': 'superadmin@vianerp.com',
-      'password': 'Super@123',
+      'email': 'superadmin@demo.vianerp.test',
+      'username': 'demo_superadmin',
+      'password': 'Demo@12345',
+    },
+    DemoRole.managingDirector: {
+      'email': 'md@demo.vianerp.test',
+      'username': 'demo_md',
+      'password': 'Demo@12345',
     },
     DemoRole.admin: {
-      'email': 'admin@vianerp.com',
-      'password': 'Admin@123',
+      'email': 'admin@demo.vianerp.test',
+      'username': 'demo_admin',
+      'password': 'Demo@12345',
     },
-    DemoRole.seniorEngineer: {
-      'email': 'senior@vianerp.com',
-      'password': 'Senior@123',
+    DemoRole.projectManager: {
+      'email': 'pm@demo.vianerp.test',
+      'username': 'demo_pm',
+      'password': 'Demo@12345',
     },
-    DemoRole.engineer: {
-      'email': 'engineer@vianerp.com',
-      'password': 'Engineer@123',
+    DemoRole.architect: {
+      'email': 'architect@demo.vianerp.test',
+      'username': 'demo_architect',
+      'password': 'Demo@12345',
+    },
+    DemoRole.siteEngineer: {
+      'email': 'siteengineer@demo.vianerp.test',
+      'username': 'demo_siteengineer',
+      'password': 'Demo@12345',
+    },
+    DemoRole.accountant: {
+      'email': 'accountant@demo.vianerp.test',
+      'username': 'demo_accountant',
+      'password': 'Demo@12345',
+    },
+    DemoRole.client: {
+      'email': 'client@demo.vianerp.test',
+      'username': 'demo_client',
+      'password': 'Demo@12345',
     },
   };
 

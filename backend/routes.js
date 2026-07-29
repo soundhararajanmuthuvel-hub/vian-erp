@@ -141,7 +141,11 @@ function registerRoutes(app, models) {
     }
 
     try {
-      const user = await User.findOne({ where: { username } });
+      const user = await User.findOne({
+        where: {
+          [Op.or]: [{ username }, { email: username }]
+        }
+      });
       if (!user) {
         return res.status(401).json({ message: 'Invalid credentials' });
       }

@@ -935,279 +935,131 @@ class _LoginPageState extends ConsumerState<LoginPage> with SingleTickerProvider
       return const SizedBox.shrink();
     }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SizedBox(height: 32),
-        Row(
-          children: [
-            Expanded(child: Divider(color: VianTheme.goldBorder, thickness: 1)),
-            const SizedBox(width: 12),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                color: VianTheme.primaryGold.withOpacity(0.1),
-                border: Border.all(color: VianTheme.primaryGold.withOpacity(0.3), width: 1),
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.build_outlined, color: VianTheme.primaryGold, size: 10),
-                  const SizedBox(width: 4),
-                  Text(
-                    'DEVELOPMENT BUILD',
-                    style: GoogleFonts.outfit(
-                      color: VianTheme.primaryGold,
-                      fontSize: 8,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 1.5,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(child: Divider(color: VianTheme.goldBorder, thickness: 1)),
-          ],
-        ),
-        const SizedBox(height: 16),
-        Center(
-          child: Column(
-            children: [
-              Text(
-                'Developer Quick Login',
-                style: GoogleFonts.outfit(
-                  color: VianTheme.whiteText,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 1,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'Available only in Debug / Demo builds',
-                style: GoogleFonts.outfit(
-                  color: VianTheme.lightText,
-                  fontSize: 11,
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 20),
-        isMobileMode
-            ? Column(
-                children: DemoAccountService.accounts.map((account) => _buildDemoMobileCard(context, account)).toList(),
-              )
-            : Column(
-                children: DemoAccountService.accounts.map((account) => _buildDemoDesktopRow(context, account)).toList(),
-              ),
-      ],
-    );
-  }
-
-  Widget _buildDemoDesktopRow(BuildContext context, DemoAccount account) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      margin: const EdgeInsets.only(top: 24),
       decoration: BoxDecoration(
-        color: VianTheme.cardColor,
-        border: Border.all(color: VianTheme.goldBorder, width: 1),
-        borderRadius: BorderRadius.circular(6),
+        color: const Color(0xFF141414),
+        border: Border.all(color: VianTheme.goldBorder.withOpacity(0.5), width: 1),
+        borderRadius: BorderRadius.circular(10),
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
+      child: Theme(
+        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          initiallyExpanded: false,
+          tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          iconColor: VianTheme.primaryGold,
+          collapsedIconColor: VianTheme.primaryGold.withOpacity(0.7),
+          title: Row(
             children: [
+              const Icon(Icons.tune_outlined, color: VianTheme.primaryGold, size: 16),
+              const SizedBox(width: 8),
               Text(
-                account.iconEmoji,
-                style: const TextStyle(fontSize: 20),
+                'DEVELOPER OPTIONS',
+                style: GoogleFonts.outfit(
+                  color: VianTheme.primaryGold,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.2,
+                ),
               ),
-              const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    account.displayName,
-                    style: GoogleFonts.outfit(
-                      color: VianTheme.whiteText,
-                      fontSize: 12.5,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Text(
-                    account.description,
-                    style: GoogleFonts.inter(
-                      color: VianTheme.lightText,
-                      fontSize: 9.5,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          SizedBox(
-            height: 30,
-            width: 72,
-            child: OutlinedButton(
-              onPressed: _isLoading ? null : () => _confirmDemoLogin(context, account),
-              style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: VianTheme.primaryGold, width: 1),
-                padding: EdgeInsets.zero,
-                shape: RoundedRectangleBorder(
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: VianTheme.primaryGold.withOpacity(0.15),
                   borderRadius: BorderRadius.circular(4),
                 ),
-              ),
-              child: Text(
-                'LOGIN',
-                style: GoogleFonts.outfit(
-                  fontSize: 10.5,
-                  fontWeight: FontWeight.bold,
-                  color: VianTheme.primaryGold,
-                  letterSpacing: 0.5,
+                child: Text(
+                  'DEV ONLY',
+                  style: GoogleFonts.outfit(
+                    color: VianTheme.primaryGold,
+                    fontSize: 8,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
-            ),
+            ],
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDemoMobileCard(BuildContext context, DemoAccount account) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: VianTheme.cardColor,
-        border: Border.all(color: VianTheme.goldBorder, width: 1),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Column(
-        children: [
-          Text(
-            account.iconEmoji,
-            style: const TextStyle(fontSize: 24),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            account.displayName,
-            style: GoogleFonts.outfit(
-              color: VianTheme.whiteText,
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            account.description,
+          subtitle: Text(
+            'One-click role testing & dashboard routing',
             style: GoogleFonts.inter(
               color: VianTheme.lightText,
               fontSize: 10,
             ),
           ),
-          const SizedBox(height: 10),
-          SizedBox(
-            width: double.infinity,
-            height: 32,
-            child: OutlinedButton(
-              onPressed: _isLoading ? null : () => _confirmDemoLogin(context, account),
-              style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: VianTheme.primaryGold, width: 1),
-                padding: EdgeInsets.zero,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(4),
-                ),
-              ),
-              child: Text(
-                'LOGIN',
-                style: GoogleFonts.outfit(
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
-                  color: VianTheme.primaryGold,
-                  letterSpacing: 0.5,
-                ),
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Divider(color: VianTheme.goldBorder, height: 1),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Select Role for Quick Login:',
+                    style: GoogleFonts.outfit(
+                      color: VianTheme.whiteText,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: DemoAccountService.accounts.map((account) {
+                      return InkWell(
+                        onTap: _isLoading ? null : () => _quickRoleLogin(account),
+                        borderRadius: BorderRadius.circular(20),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: VianTheme.primaryGold.withOpacity(0.08),
+                            border: Border.all(
+                              color: VianTheme.primaryGold.withOpacity(0.4),
+                              width: 1,
+                            ),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                account.iconEmoji,
+                                style: const TextStyle(fontSize: 13),
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                account.displayName,
+                                style: GoogleFonts.outfit(
+                                  color: VianTheme.whiteText,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ],
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  Future<void> _confirmDemoLogin(BuildContext context, DemoAccount account) async {
-    final proceed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) {
-        return AlertDialog(
-          backgroundColor: VianTheme.cardColor,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-            side: const BorderSide(color: VianTheme.primaryGold, width: 1.5),
-          ),
-          title: Text(
-            'Confirm Quick Login',
-            style: GoogleFonts.outfit(
-              color: VianTheme.primaryGold,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          content: Text(
-            'Do you want to log in as ${account.iconEmoji} ${account.displayName}?',
-            style: GoogleFonts.inter(color: VianTheme.whiteText),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(ctx).pop(false),
-              child: Text(
-                'Cancel',
-                style: GoogleFonts.outfit(color: VianTheme.lightText),
-              ),
-            ),
-            ElevatedButton(
-              onPressed: () => Navigator.of(ctx).pop(true),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: VianTheme.primaryGold,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              ),
-              child: Text(
-                'Continue',
-                style: GoogleFonts.outfit(
-                  color: const Color(0xFF412D00),
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-
-    if (proceed == true) {
-      _executeDemoLogin(account.role);
+  void _quickRoleLogin(DemoAccount account) {
+    final creds = DemoAccountService.getCredentialsInternal(account.role);
+    if (creds != null) {
+      _usernameController.text = creds['email'] ?? creds['username'] ?? '';
+      _passwordController.text = creds['password'] ?? '';
+      _handleLogin();
     }
   }
-
-  Future<void> _executeDemoLogin(DemoRole role) async {
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
-
-    final res = await DemoAuthService.login(role);
-
-    if (res['success'] == true) {
-      ref.read(userProvider.notifier).state = res['user'];
-      context.go('/dashboard');
-    } else {
-      setState(() {
-        _errorMessage = res['message'] ?? 'Demo login failed';
-      });
-    }
-
-    setState(() {
       _isLoading = false;
     });
   }
