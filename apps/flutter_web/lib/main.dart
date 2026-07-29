@@ -571,7 +571,6 @@ class _LoginPageState extends ConsumerState<LoginPage> with SingleTickerProvider
   }
 
   @override
-  @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     final isMobile = size.width < 1000;

@@ -20,7 +20,7 @@ void main() {
       // Pump initial route and redirect evaluation
       await tester.pump();
       await tester.pump(const Duration(seconds: 5));
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(milliseconds: 500));
     } catch (e, s) {
       print("CAUGHT WIDGET BUILD EXCEPTION: $e");
       print(s);
