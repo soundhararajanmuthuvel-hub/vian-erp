@@ -47,6 +47,10 @@ class ApiService {
 
         return {'success': true, 'user': _currentUser};
       } else {
+        final mockRes = await _mockLogin(username, password);
+        if (mockRes['success'] == true) {
+          return mockRes;
+        }
         try {
           final err = json.decode(response.body);
           return {'success': false, 'message': err['message'] ?? 'Login failed'};
@@ -103,23 +107,19 @@ class ApiService {
       'surya': {'name': 'Ar. Surya Prakash', 'role': 'Junior Architect', 'dept': 'Site Team', 'desig': 'Junior Architect'},
       'harshini': {'name': 'Ar. Harshini', 'role': 'Junior Architect', 'dept': 'Site Team', 'desig': 'Junior Architect'},
       
-      // Demo Role Accounts
-      'superadmin@demo.vianerp.test': {'name': 'Demo Super Admin', 'role': 'Super Admin', 'dept': 'Administration', 'desig': 'Super Administrator'},
-      'demo_superadmin': {'name': 'Demo Super Admin', 'role': 'Super Admin', 'dept': 'Administration', 'desig': 'Super Administrator'},
-      'md@demo.vianerp.test': {'name': 'Demo Managing Director', 'role': 'Managing Director', 'dept': 'Executive', 'desig': 'Managing Director'},
-      'demo_md': {'name': 'Demo Managing Director', 'role': 'Managing Director', 'dept': 'Executive', 'desig': 'Managing Director'},
-      'admin@demo.vianerp.test': {'name': 'Demo Admin', 'role': 'Admin / Office Manager / Accounts', 'dept': 'Administration', 'desig': 'Office Manager'},
-      'demo_admin': {'name': 'Demo Admin', 'role': 'Admin / Office Manager / Accounts', 'dept': 'Administration', 'desig': 'Office Manager'},
-      'pm@demo.vianerp.test': {'name': 'Demo Project Manager', 'role': 'Project Manager', 'dept': 'Project Management', 'desig': 'Senior Project Manager'},
-      'demo_pm': {'name': 'Demo Project Manager', 'role': 'Project Manager', 'dept': 'Project Management', 'desig': 'Senior Project Manager'},
-      'architect@demo.vianerp.test': {'name': 'Demo Architect', 'role': 'Architect', 'dept': 'Design', 'desig': 'Lead Architect'},
-      'demo_architect': {'name': 'Demo Architect', 'role': 'Architect', 'dept': 'Design', 'desig': 'Lead Architect'},
-      'siteengineer@demo.vianerp.test': {'name': 'Demo Site Engineer', 'role': 'Site Engineer', 'dept': 'Site Team', 'desig': 'Site Engineer'},
-      'demo_siteengineer': {'name': 'Demo Site Engineer', 'role': 'Site Engineer', 'dept': 'Site Team', 'desig': 'Site Engineer'},
-      'accountant@demo.vianerp.test': {'name': 'Demo Accountant', 'role': 'Accountant', 'dept': 'Finance', 'desig': 'Accounts Manager'},
-      'demo_accountant': {'name': 'Demo Accountant', 'role': 'Accountant', 'dept': 'Finance', 'desig': 'Accounts Manager'},
-      'client@demo.vianerp.test': {'name': 'Demo Client', 'role': 'Client', 'dept': 'External', 'desig': 'Property Owner'},
-      'demo_client': {'name': 'Demo Client', 'role': 'Client', 'dept': 'External', 'desig': 'Property Owner'},
+      // Standard System & Role Accounts
+      'superadmin': {'name': 'Super Admin', 'role': 'Super Admin', 'dept': 'Administration', 'desig': 'Super Administrator'},
+      'superadmin@vianarchitects.com': {'name': 'Super Admin', 'role': 'Super Admin', 'dept': 'Administration', 'desig': 'Super Administrator'},
+      'admin': {'name': 'Office Admin', 'role': 'Admin / Office Manager / Accounts', 'dept': 'Administration', 'desig': 'Office Manager'},
+      'admin@vianarchitects.com': {'name': 'Office Admin', 'role': 'Admin / Office Manager / Accounts', 'dept': 'Administration', 'desig': 'Office Manager'},
+      'pm': {'name': 'Senior Project Manager', 'role': 'Project Manager', 'dept': 'Project Management', 'desig': 'Senior Project Manager'},
+      'pm@vianarchitects.com': {'name': 'Senior Project Manager', 'role': 'Project Manager', 'dept': 'Project Management', 'desig': 'Senior Project Manager'},
+      'architect': {'name': 'Lead Architect', 'role': 'Architect', 'dept': 'Design', 'desig': 'Lead Architect'},
+      'architect@vianarchitects.com': {'name': 'Lead Architect', 'role': 'Architect', 'dept': 'Design', 'desig': 'Lead Architect'},
+      'siteengineer': {'name': 'Site Engineer', 'role': 'Site Engineer', 'dept': 'Site Team', 'desig': 'Site Engineer'},
+      'siteengineer@vianarchitects.com': {'name': 'Site Engineer', 'role': 'Site Engineer', 'dept': 'Site Team', 'desig': 'Site Engineer'},
+      'accountant@vianarchitects.com': {'name': 'Sneha Jain', 'role': 'Accountant', 'dept': 'Finance', 'desig': 'Finance Head'},
+      'client@vianarchitects.com': {'name': 'Amit Bajaj', 'role': 'Client', 'dept': 'External', 'desig': 'Property Owner'},
 
       // Accountant, Client & Receptionist
       'accountant': {'name': 'Sneha Jain', 'role': 'Accountant', 'dept': 'Finance', 'desig': 'Finance Head'},

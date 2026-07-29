@@ -1051,12 +1051,27 @@ class _LoginPageState extends ConsumerState<LoginPage> with SingleTickerProvider
     );
   }
 
-  void _quickRoleLogin(DemoAccount account) {
-    final creds = DemoAccountService.getCredentialsInternal(account.role);
-    if (creds != null) {
-      _usernameController.text = creds['email'] ?? creds['username'] ?? '';
-      _passwordController.text = creds['password'] ?? '';
-      _handleLogin();
+  Future<void> _quickRoleLogin(DemoAccount account) async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    final res = await DemoAuthService.login(account.role);
+
+    if (mounted) {
+      if (res['success'] == true) {
+        ref.read(userProvider.notifier).state = res['user'];
+        context.go('/dashboard');
+      } else {
+        setState(() {
+          _errorMessage = res['message'] ?? 'Quick login failed';
+        });
+      }
+
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 }

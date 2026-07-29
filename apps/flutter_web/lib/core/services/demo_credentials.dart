@@ -26,13 +26,16 @@ class DemoAccount {
 }
 
 class DemoAccountService {
-  static const bool showDevLogin = bool.fromEnvironment('SHOW_DEV_LOGIN', defaultValue: true);
-  static const bool enableDemoLogin = bool.fromEnvironment('ENABLE_DEMO_LOGIN', defaultValue: true);
+  static const bool showDevLogin = bool.fromEnvironment('SHOW_DEV_LOGIN', defaultValue: false);
+  static const bool enableDemoLogin = bool.fromEnvironment('ENABLE_DEMO_LOGIN', defaultValue: false);
   static const String environment = String.fromEnvironment('ENVIRONMENT', defaultValue: 'development');
 
   static bool get shouldShow {
+    if (kReleaseMode) {
+      if (!enableDemoLogin && !showDevLogin) return false;
+    }
     if (environment.toLowerCase() == 'production' || environment.toLowerCase() == 'prod') {
-      return false;
+      if (!enableDemoLogin && !showDevLogin) return false;
     }
     return kDebugMode || showDevLogin || enableDemoLogin;
   }
@@ -88,47 +91,47 @@ class DemoAccountService {
     ),
   ];
 
-  // Private credentials mapping
+  // Private credentials mapping to real seeded system accounts
   static const Map<DemoRole, Map<String, String>> _credentials = {
     DemoRole.superAdmin: {
-      'email': 'superadmin@demo.vianerp.test',
-      'username': 'demo_superadmin',
-      'password': 'Demo@12345',
+      'username': 'superadmin',
+      'email': 'superadmin@vianarchitects.com',
+      'password': 'superadmin123',
     },
     DemoRole.managingDirector: {
-      'email': 'md@demo.vianerp.test',
-      'username': 'demo_md',
-      'password': 'Demo@12345',
+      'username': 'anand',
+      'email': 'anand@vianarchitects.com',
+      'password': 'anand123',
     },
     DemoRole.admin: {
-      'email': 'admin@demo.vianerp.test',
-      'username': 'demo_admin',
-      'password': 'Demo@12345',
+      'username': 'admin',
+      'email': 'admin@vianarchitects.com',
+      'password': 'admin123',
     },
     DemoRole.projectManager: {
-      'email': 'pm@demo.vianerp.test',
-      'username': 'demo_pm',
-      'password': 'Demo@12345',
+      'username': 'pm',
+      'email': 'pm@vianarchitects.com',
+      'password': 'pm123',
     },
     DemoRole.architect: {
-      'email': 'architect@demo.vianerp.test',
-      'username': 'demo_architect',
-      'password': 'Demo@12345',
+      'username': 'architect',
+      'email': 'architect@vianarchitects.com',
+      'password': 'architect123',
     },
     DemoRole.siteEngineer: {
-      'email': 'siteengineer@demo.vianerp.test',
-      'username': 'demo_siteengineer',
-      'password': 'Demo@12345',
+      'username': 'siteengineer',
+      'email': 'siteengineer@vianarchitects.com',
+      'password': 'siteengineer123',
     },
     DemoRole.accountant: {
-      'email': 'accountant@demo.vianerp.test',
-      'username': 'demo_accountant',
-      'password': 'Demo@12345',
+      'username': 'accountant',
+      'email': 'accountant@vianarchitects.com',
+      'password': 'accountant123',
     },
     DemoRole.client: {
-      'email': 'client@demo.vianerp.test',
-      'username': 'demo_client',
-      'password': 'Demo@12345',
+      'username': 'client',
+      'email': 'client@vianarchitects.com',
+      'password': 'client123',
     },
   };
 
