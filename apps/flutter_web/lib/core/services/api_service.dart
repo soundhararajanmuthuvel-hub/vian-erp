@@ -9,6 +9,7 @@ class ApiService {
 
   static String? _token;
   static Map<String, dynamic>? _currentUser;
+  static bool useMockData = false;
 
   static Map<String, dynamic>? get currentUser => _currentUser;
   static String? get token => _token;
@@ -2207,6 +2208,20 @@ class ApiService {
 
   // Get all employee accounts (excluding Client role)
   static Future<List<dynamic>> getEmployees() async {
+    if (useMockData) {
+      return [
+        {
+          'id': 99,
+          'name': 'Ar. Anand Sathiesivam',
+          'email': 'superadmin@demo.vianerp.test',
+          'role': 'Super Admin',
+          'department': 'Executive',
+          'designation': 'Managing Director',
+          'isActive': true,
+          'createdAt': '2026-07-29T15:00:00Z',
+        }
+      ];
+    }
     try {
       final response = await http.get(
         Uri.parse('$baseUrl/employees'),

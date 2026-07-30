@@ -83,7 +83,7 @@ void main() {
       runApp(const ProviderScope(child: VianERPApp()));
     },
     (Object error, StackTrace stack) {
-      debugPrint("Zoned Execution Fault: $error");
+      debugPrint("Zoned Execution Fault: $error\n$stack");
       runApp(
         VianStartupDiagnosticApp(
           result: StartupValidationResult(
