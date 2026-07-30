@@ -2412,7 +2412,7 @@ class _MuthuiyaHomeViewState extends State<MuthuiyaHomeView> {
     final projs = await ApiService.getProjects();
 
     List<dynamic> drawList = [];
-    if (projs.isNotEmpty) {
+    if (projs.isNotEmpty && projs.first['id'] != null) {
       final draws = await ApiService.getDrawings(projs.first['id']);
       drawList = draws;
     }
@@ -2818,7 +2818,7 @@ class _SiteManagerDashboardViewState extends State<SiteManagerDashboardView> {
   Future<void> _loadMuruganData() async {
     final projs = await ApiService.getProjects();
     _projects = projs;
-    if (_projects.isNotEmpty) {
+    if (_projects.isNotEmpty && _projects.first['id'] != null) {
       _selectedProjectId = _projects.first['id'];
       final res = await ApiService.getWorkersAttendance(_selectedProjectId!);
       _workers = res['workers'] ?? [];
@@ -2834,6 +2834,8 @@ class _SiteManagerDashboardViewState extends State<SiteManagerDashboardView> {
         _selectedProjectId!,
       );
       _hourlyProgressList = progressData;
+    } else {
+      _selectedProjectId = null;
     }
     if (mounted) {
       setState(() => _loading = false);
@@ -2937,6 +2939,30 @@ class _SiteManagerDashboardViewState extends State<SiteManagerDashboardView> {
             style: TextStyle(color: Color(0xFF70707C)),
           ),
           const SizedBox(height: 24),
+          if (_selectedProjectId == null) ...[
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              margin: const EdgeInsets.only(bottom: 24),
+              decoration: BoxDecoration(
+                color: VianTheme.primaryGold.withOpacity(0.08),
+                border: Border.all(color: VianTheme.primaryGold.withOpacity(0.3)),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.info_outline, color: VianTheme.primaryGold),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'No active site project assigned to your profile. Please contact an Administrator to assign a project.',
+                      style: GoogleFonts.outfit(color: VianTheme.whiteText, fontSize: 13),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
 
           VianMetricCard(
             title: 'LABOUR ON-SITE TODAY',
@@ -3341,8 +3367,10 @@ class _EmployeeDashboardViewState extends State<EmployeeDashboardView> {
     final hasCheckedIn =
         myTodayAtt != null && myTodayAtt['checkOutTime'] == null;
 
-    if (projs.isNotEmpty) {
+    if (projs.isNotEmpty && projs.first['id'] != null) {
       _selectedProjectId = projs.first['id'];
+    } else {
+      _selectedProjectId = null;
     }
 
     if (mounted) {

@@ -16156,8 +16156,10 @@ class _PayrollTabState extends State<PayrollTab> {
       final projects = await ApiService.getProjects();
       setState(() {
         _projects = projects;
-        if (projects.isNotEmpty) {
+        if (projects.isNotEmpty && projects.first['id'] != null) {
           _selectedProjectId = projects.first['id'] as int;
+        } else {
+          _selectedProjectId = null;
         }
       });
       if (_selectedProjectId != null) {
@@ -17747,8 +17749,10 @@ class _ImportExportTabState extends ConsumerState<ImportExportTab>
       final projs = await ApiService.getProjects();
       setState(() {
         _projectsList = projs;
-        if (projs.isNotEmpty) {
+        if (projs.isNotEmpty && projs.first['id'] != null) {
           _selectedExportProjectId = projs.first['id'];
+        } else {
+          _selectedExportProjectId = null;
         }
       });
     } catch (_) {}

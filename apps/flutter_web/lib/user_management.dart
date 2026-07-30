@@ -864,27 +864,29 @@ class _UserManagementTabState extends ConsumerState<UserManagementTab> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Directory',
-                      style: GoogleFonts.outfit(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                        letterSpacing: -0.5,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Directory',
+                        style: GoogleFonts.outfit(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          letterSpacing: -0.5,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Manage organization access and hierarchical roles.',
-                      style: GoogleFonts.inter(
-                        color: VianTheme.lightText,
-                        fontSize: 13,
+                      const SizedBox(height: 4),
+                      Text(
+                        'Manage organization access and hierarchical roles.',
+                        style: GoogleFonts.inter(
+                          color: VianTheme.lightText,
+                          fontSize: 13,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
                 if (!isMobile && (isSuperAdmin || isAdmin))
                   OutlinedButton.icon(
