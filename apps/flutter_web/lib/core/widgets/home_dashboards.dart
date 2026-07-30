@@ -26,7 +26,6 @@ class _ExecutiveDashboardViewState extends State<ExecutiveDashboardView> {
   List<dynamic> _announcements = [];
   List<dynamic> _logs = [];
   List<dynamic> _projects = [];
-  List<dynamic> _employees = [];
   Map<String, dynamic>? _analytics;
   List<dynamic> _targetAlerts = [];
   Map<String, dynamic>? _attendanceStats;
@@ -44,7 +43,6 @@ class _ExecutiveDashboardViewState extends State<ExecutiveDashboardView> {
     final anns = await ApiService.getAnnouncements();
     final logData = await ApiService.getImportLogs();
     final projs = await ApiService.getProjects();
-    final emps = await ApiService.getEmployees();
     final analytics = await ApiService.getExecutiveAnalytics();
     final targetAlerts = await ApiService.getTargetAlerts();
     final attStats = await ApiService.getAttendanceDashboardStats();
@@ -57,7 +55,6 @@ class _ExecutiveDashboardViewState extends State<ExecutiveDashboardView> {
         _announcements = anns;
         _logs = logData;
         _projects = projs;
-        _employees = emps;
         _analytics = analytics;
         _targetAlerts = targetAlerts;
         _attendanceStats = attStats['stats'];
@@ -1736,7 +1733,14 @@ class _JayaHomeViewState extends State<JayaHomeView> {
     final anns = await ApiService.getAnnouncements();
     final tsk = await ApiService.getTasks();
     final projs = await ApiService.getProjects();
-    final emps = await ApiService.getEmployees();
+    
+    List<dynamic> emps = [];
+    try {
+      emps = await ApiService.getEmployees();
+    } catch (e) {
+      debugPrint("JayaHomeView: Failed to load employees: $e");
+    }
+    
     final attStats = await ApiService.getAttendanceDashboardStats();
 
     if (mounted) {
@@ -2408,7 +2412,14 @@ class _MuthuiyaHomeViewState extends State<MuthuiyaHomeView> {
   Future<void> _loadMuthuiyaData() async {
     final tsk = await ApiService.getTasks();
     final anns = await ApiService.getAnnouncements();
-    final emps = await ApiService.getEmployees();
+    
+    List<dynamic> emps = [];
+    try {
+      emps = await ApiService.getEmployees();
+    } catch (e) {
+      debugPrint("MuthuiyaHomeView: Failed to load employees: $e");
+    }
+    
     final projs = await ApiService.getProjects();
 
     List<dynamic> drawList = [];

@@ -2226,12 +2226,16 @@ class ApiService {
       final response = await http.get(
         Uri.parse('$baseUrl/employees'),
         headers: _headers,
-      );
+      ).timeout(ApiConstants.timeout);
+
       if (response.statusCode == 200) {
         return json.decode(response.body)['employees'];
       }
-      throw Exception();
-    } catch (e) {
+      
+      debugPrint("getEmployees Failed: Status ${response.statusCode} | Body: ${response.body}");
+      throw Exception('Server returned status code: ${response.statusCode}');
+    } catch (e, stack) {
+      debugPrint("getEmployees Exception: $e\n$stack");
       throw Exception('Failed to load employees: $e');
     }
   }
