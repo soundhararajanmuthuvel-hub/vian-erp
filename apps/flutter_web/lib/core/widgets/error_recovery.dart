@@ -111,8 +111,16 @@ class VianErrorRecoveryScreen extends StatelessWidget {
   }) : super(key: key);
 
   void _reloadApplication() {
-    if (kIsWeb) {
-      js.context['location']?.callMethod('reload');
+    if (error.contains('401') || error.contains('403') || error.contains('Unauthorized') || error.contains('Forbidden')) {
+      ApiService.logout().then((_) {
+        if (kIsWeb) {
+          js.context['location']?.callMethod('reload');
+        }
+      });
+    } else {
+      if (kIsWeb) {
+        js.context['location']?.callMethod('reload');
+      }
     }
   }
 
@@ -376,8 +384,17 @@ class VianStartupDiagnosticScreen extends StatelessWidget {
   }) : super(key: key);
 
   void _reloadApplication() {
-    if (kIsWeb) {
-      js.context['location']?.callMethod('reload');
+    final errorStr = result.errorMessage;
+    if (errorStr.contains('401') || errorStr.contains('403') || errorStr.contains('Unauthorized') || errorStr.contains('Forbidden')) {
+      ApiService.logout().then((_) {
+        if (kIsWeb) {
+          js.context['location']?.callMethod('reload');
+        }
+      });
+    } else {
+      if (kIsWeb) {
+        js.context['location']?.callMethod('reload');
+      }
     }
   }
 

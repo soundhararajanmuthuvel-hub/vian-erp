@@ -84,6 +84,16 @@ void main() {
     },
     (Object error, StackTrace stack) {
       debugPrint("Zoned Execution Fault: $error\n$stack");
+      final errorStr = error.toString();
+      if (errorStr.contains('401') || errorStr.contains('403') || errorStr.contains('Unauthorized') || errorStr.contains('Forbidden')) {
+        debugPrint("Zoned Execution Fault: Session expired or invalid. Logging out and reloading...");
+        ApiService.logout().then((_) {
+          if (kIsWeb) {
+            js.context['location']?.callMethod('reload');
+          }
+        });
+        return;
+      }
       runApp(
         VianStartupDiagnosticApp(
           result: StartupValidationResult(
