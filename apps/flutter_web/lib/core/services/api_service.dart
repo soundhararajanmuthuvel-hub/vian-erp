@@ -2236,7 +2236,10 @@ class ApiService {
       throw Exception('Server returned status code: ${response.statusCode}');
     } catch (e, stack) {
       debugPrint("getEmployees Exception: $e\n$stack");
-      throw Exception('Failed to load employees: $e');
+      final cleanMsg = e.toString().startsWith('Exception: ') 
+          ? e.toString().substring(11) 
+          : e.toString();
+      throw Exception('Failed to load employees: $cleanMsg');
     }
   }
 
