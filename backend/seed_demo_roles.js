@@ -7,7 +7,7 @@ const demoUsers = [
   {
     employeeId: 'DEMO-SA-01',
     username: 'demo_superadmin',
-    email: 'superadmin@demo.vianerp.test',
+    email: 'superadmin@vianarchitects.com',
     name: 'Demo Super Admin',
     role: 'Super Admin',
     department: 'Administration',
@@ -16,8 +16,8 @@ const demoUsers = [
   {
     employeeId: 'DEMO-MD-01',
     username: 'demo_md',
-    email: 'md@demo.vianerp.test',
-    name: 'Demo Managing Director',
+    email: 'md@vianarchitects.com',
+    name: 'Soundhararajan Muthuvel',
     role: 'Managing Director',
     department: 'Executive',
     designation: 'Managing Director'
@@ -25,7 +25,7 @@ const demoUsers = [
   {
     employeeId: 'DEMO-ADM-01',
     username: 'demo_admin',
-    email: 'admin@demo.vianerp.test',
+    email: 'admin@vianarchitects.com',
     name: 'Demo Admin',
     role: 'Admin / Office Manager / Accounts',
     department: 'Administration',
@@ -34,7 +34,7 @@ const demoUsers = [
   {
     employeeId: 'DEMO-PM-01',
     username: 'demo_pm',
-    email: 'pm@demo.vianerp.test',
+    email: 'pm@vianarchitects.com',
     name: 'Demo Project Manager',
     role: 'Project Manager',
     department: 'Project Management',
@@ -43,7 +43,7 @@ const demoUsers = [
   {
     employeeId: 'DEMO-ARC-01',
     username: 'demo_architect',
-    email: 'architect@demo.vianerp.test',
+    email: 'architect@vianarchitects.com',
     name: 'Demo Architect',
     role: 'Architect',
     department: 'Design',
@@ -52,7 +52,7 @@ const demoUsers = [
   {
     employeeId: 'DEMO-SE-01',
     username: 'demo_siteengineer',
-    email: 'siteengineer@demo.vianerp.test',
+    email: 'siteengineer@vianarchitects.com',
     name: 'Demo Site Engineer',
     role: 'Site Engineer',
     department: 'Site Team',
@@ -61,7 +61,7 @@ const demoUsers = [
   {
     employeeId: 'DEMO-ACC-01',
     username: 'demo_accountant',
-    email: 'accountant@demo.vianerp.test',
+    email: 'accountant@vianarchitects.com',
     name: 'Demo Accountant',
     role: 'Accountant',
     department: 'Finance',
@@ -70,7 +70,7 @@ const demoUsers = [
   {
     employeeId: 'DEMO-CLT-01',
     username: 'demo_client',
-    email: 'client@demo.vianerp.test',
+    email: 'client@vianarchitects.com',
     name: 'Demo Client',
     role: 'Client',
     department: 'External',

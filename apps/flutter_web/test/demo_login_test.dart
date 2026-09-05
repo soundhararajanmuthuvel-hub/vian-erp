@@ -33,7 +33,7 @@ void main() {
           DemoAccountService.getCredentialsInternal(
             DemoRole.superAdmin,
           )!['email'],
-          'superadmin@demo.vianerp.test',
+          'superadmin@vianarchitects.com',
         );
       } else {
         expect(

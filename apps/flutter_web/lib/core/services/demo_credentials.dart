@@ -102,42 +102,42 @@ class DemoAccountService {
   // Private credentials mapping
   static const Map<DemoRole, Map<String, String>> _credentials = {
     DemoRole.superAdmin: {
-      'email': 'superadmin@demo.vianerp.test',
+      'email': 'superadmin@vianarchitects.com',
       'username': 'demo_superadmin',
       'password': 'Demo@12345',
     },
     DemoRole.managingDirector: {
-      'email': 'md@demo.vianerp.test',
+      'email': 'md@vianarchitects.com',
       'username': 'demo_md',
       'password': 'Demo@12345',
     },
     DemoRole.admin: {
-      'email': 'admin@demo.vianerp.test',
+      'email': 'admin@vianarchitects.com',
       'username': 'demo_admin',
       'password': 'Demo@12345',
     },
     DemoRole.projectManager: {
-      'email': 'pm@demo.vianerp.test',
+      'email': 'pm@vianarchitects.com',
       'username': 'demo_pm',
       'password': 'Demo@12345',
     },
     DemoRole.architect: {
-      'email': 'architect@demo.vianerp.test',
+      'email': 'architect@vianarchitects.com',
       'username': 'demo_architect',
       'password': 'Demo@12345',
     },
     DemoRole.siteEngineer: {
-      'email': 'siteengineer@demo.vianerp.test',
+      'email': 'siteengineer@vianarchitects.com',
       'username': 'demo_siteengineer',
       'password': 'Demo@12345',
     },
     DemoRole.accountant: {
-      'email': 'accountant@demo.vianerp.test',
+      'email': 'accountant@vianarchitects.com',
       'username': 'demo_accountant',
       'password': 'Demo@12345',
     },
     DemoRole.client: {
-      'email': 'client@demo.vianerp.test',
+      'email': 'client@vianarchitects.com',
       'username': 'demo_client',
       'password': 'Demo@12345',
     },
