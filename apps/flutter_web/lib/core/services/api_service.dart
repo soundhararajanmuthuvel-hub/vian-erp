@@ -67,10 +67,16 @@ class ApiService {
         }
       }
     } catch (e) {
-      debugPrint(
-        "Server login connection failed: $e. Falling back to local offline simulation mode.",
-      );
-      return _mockLogin(username, password);
+      debugPrint("Server login connection error: $e");
+      const bool enableDemoLogin = bool.fromEnvironment('ENABLE_DEMO_LOGIN', defaultValue: false);
+      if (kDebugMode || enableDemoLogin) {
+        debugPrint("Falling back to local offline simulation mode (DEV ONLY).");
+        return _mockLogin(username, password);
+      }
+      return {
+        'success': false,
+        'message': 'Unable to connect to VIAN server. Please check your internet connection or server status.',
+      };
     }
   }
 

@@ -5,7 +5,8 @@
   "main": "server.js",
   "scripts": {
     "start": "node seed_demo_roles.js && node server.js",
-    "dev": "node seed_demo_roles.js && node server.js"
+    "dev": "node seed_demo_roles.js && node server.js",
+    "test": "node --check server.js && node --check routes.js && node test_backend.js"
   },
   "dependencies": {
     "adm-zip": "^0.5.17",

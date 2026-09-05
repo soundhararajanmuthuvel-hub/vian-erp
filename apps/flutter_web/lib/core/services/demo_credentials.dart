@@ -28,11 +28,11 @@ class DemoAccount {
 class DemoAccountService {
   static const bool showDevLogin = bool.fromEnvironment(
     'SHOW_DEV_LOGIN',
-    defaultValue: true,
+    defaultValue: false,
   );
   static const bool enableDemoLogin = bool.fromEnvironment(
     'ENABLE_DEMO_LOGIN',
-    defaultValue: true,
+    defaultValue: false,
   );
   static const String environment = String.fromEnvironment(
     'ENVIRONMENT',
@@ -41,8 +41,9 @@ class DemoAccountService {
 
   static bool get shouldShow {
     if (environment.toLowerCase() == 'production' ||
-        environment.toLowerCase() == 'prod') {
-      return false;
+        environment.toLowerCase() == 'prod' ||
+        kReleaseMode) {
+      return enableDemoLogin;
     }
     return kDebugMode || showDevLogin || enableDemoLogin;
   }
