@@ -28,6 +28,34 @@ class ApiService {
   // Helper for headers
   static Map<String, String> get _headers => ApiConstants.getHeaders(_token);
 
+  // Health check endpoint
+  static Future<Map<String, dynamic>> checkHealth() async {
+    try {
+      final response = await http
+          .get(
+            Uri.parse('$baseUrl/health'),
+            headers: {'Accept': 'application/json'},
+          )
+          .timeout(const Duration(seconds: 5));
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      }
+      return {
+        'status': false,
+        'server': 'offline',
+        'database': 'disconnected',
+        'code': response.statusCode,
+      };
+    } catch (e) {
+      return {
+        'status': false,
+        'server': 'unreachable',
+        'database': 'disconnected',
+        'error': e.toString(),
+      };
+    }
+  }
+
   // Login
   static Future<Map<String, dynamic>> login(
     String username,

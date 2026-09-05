@@ -13,13 +13,15 @@ require('dotenv').config();
 
 const app = express();
 
+const envCors = process.env.CORS_ORIGINS ? process.env.CORS_ORIGINS.split(',').map(s => s.trim()).filter(Boolean) : [];
 const allowedOrigins = [
   'https://vian-erp.pages.dev',
   'https://vianerp.netlify.app',
   'http://localhost:5050',
   'http://localhost:3000',
   'http://127.0.0.1:5050',
-  'http://127.0.0.1:3000'
+  'http://127.0.0.1:3000',
+  ...envCors
 ];
 
 app.use(cors({
@@ -435,8 +437,9 @@ async function startServer() {
     }
 
     // 6. Listen
-    app.listen(PORT, () => {
-      console.log(`Server is running on http://localhost:${PORT}`);
+    const HOST = process.env.HOST || '0.0.0.0';
+    app.listen(PORT, HOST, () => {
+      console.log(`Server is running on http://${HOST}:${PORT}`);
     });
   } catch (error) {
     console.error('Fatal error during server startup:', error);

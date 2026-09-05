@@ -13,6 +13,24 @@ const dbPort = process.env.DB_PORT;
 const dbUser = process.env.DB_USER;
 const dbPass = process.env.DB_PASSWORD || process.env.DB_PASS || '';
 const dbName = process.env.DB_NAME;
+const dbSsl = process.env.DB_SSL === 'true' || process.env.MYSQL_SSL === 'true';
+const caCertPath = process.env.DB_CA_CERT_PATH || process.env.AIVEN_CA_CERT_PATH;
+const caCertString = process.env.DB_CA_CERT || process.env.AIVEN_CA_CERT;
+
+let sslConfig = null;
+if (dbSsl || caCertPath || caCertString) {
+  sslConfig = {
+    require: true,
+    rejectUnauthorized: false
+  };
+  if (caCertString) {
+    sslConfig.ca = caCertString;
+  } else if (caCertPath && fs.existsSync(caCertPath)) {
+    sslConfig.ca = fs.readFileSync(caCertPath).toString();
+  }
+}
+
+const dialectOptions = sslConfig ? { ssl: sslConfig } : {};
 
 const hasUrl = !!databaseUrl;
 const hasComponents = !!(dbHost && dbPort && dbUser && dbName);
@@ -22,8 +40,9 @@ if (hasUrl) {
   sequelize = new Sequelize(databaseUrl, {
     dialect: 'mysql',
     logging: false,
+    dialectOptions,
     pool: {
-      max: 5,
+      max: 10,
       min: 0,
       acquire: 30000,
       idle: 10000
@@ -36,8 +55,9 @@ if (hasUrl) {
     port: parseInt(dbPort, 10),
     dialect: 'mysql',
     logging: false,
+    dialectOptions,
     pool: {
-      max: 5,
+      max: 10,
       min: 0,
       acquire: 30000,
       idle: 10000

@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 
 class ApiConstants {
   static const String productionBaseUrl =
-      'https://vian-erp-production.up.railway.app/api';
+      'https://vian-erp-api.onrender.com/api';
   static const String localBaseUrl = 'http://localhost:5050/api';
 
   static String get baseUrl {
@@ -14,7 +14,7 @@ class ApiConstants {
       final String origin = Uri.base.origin;
       if (origin.contains('localhost') ||
           origin.contains('127.0.0.1') ||
-          origin.contains('railway.app')) {
+          origin.contains('onrender.com')) {
         return '$origin/api';
       }
     }

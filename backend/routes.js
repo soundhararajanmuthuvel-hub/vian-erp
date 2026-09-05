@@ -138,8 +138,30 @@ function registerRoutes(app, models) {
     res.json({ status: 'ok', message: 'VIAN ERP API Server is running' });
   });
 
-  app.get('/api/health', (req, res) => {
-    res.json({ status: 'ok', message: 'VIAN ERP API Server is running' });
+  app.get('/api/health', async (req, res) => {
+    let dbStatus = 'disconnected';
+    let latencyMs = 0;
+    try {
+      const start = Date.now();
+      const sequelize = getSequelize();
+      if (sequelize) {
+        await sequelize.authenticate();
+        latencyMs = Date.now() - start;
+        dbStatus = 'connected';
+      }
+    } catch (e) {
+      dbStatus = 'disconnected';
+    }
+
+    res.status(dbStatus === 'connected' ? 200 : 503).json({
+      status: 'ok',
+      service: 'VIAN ERP API Server',
+      server: 'running',
+      database: dbStatus,
+      latencyMs,
+      environment: process.env.NODE_ENV || 'production',
+      timestamp: new Date().toISOString()
+    });
   });
 
   app.post('/api/auth/login', async (req, res) => {

@@ -30,6 +30,7 @@ jobs:
         run: |
           cd backend
           node --check server.js
+          node --check routes.js
 
   frontend-ci:
     name: Frontend CI (Flutter Web & Mobile)

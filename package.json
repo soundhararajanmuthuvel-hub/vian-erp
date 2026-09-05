@@ -1,7 +1,7 @@
 {
   "name": "vian-erp-root",
   "version": "1.0.0",
-  "description": "Root proxy package for VIAN ERP deployment on Railway",
+  "description": "Root proxy package for VIAN ERP deployment on Render",
   "main": "backend/server.js",
   "scripts": {
     "postinstall": "cd backend && npm install",

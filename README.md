@@ -30,7 +30,7 @@ vian-erp/
 ├── .gitignore
 ├── LICENSE
 ├── README.md
-└── package.json            # Railway deployment proxy configuration
+└── package.json            # Render / Cloud deployment proxy configuration
 ```
 
 ---
@@ -39,8 +39,8 @@ vian-erp/
 
 - **Frontend**: Flutter Web (Material 3 luxury dark/gold aesthetics, Google Fonts Outfit)
 - **Backend**: Node.js + Express
-- **Database**: MySQL (Production) / SQLite (Fallback Developer Mode)
-- **Deployment Targets**: Cloudflare Pages (Frontend), Railway (Backend)
+- **Database**: Aiven MySQL (Production) / SQLite (Fallback Developer Mode)
+- **Deployment Targets**: Cloudflare Pages (Frontend), Render (Backend Web Service)
 - **Storage**: Cloudinary (Attachments & conceptual design sketches)
 
 ---
@@ -51,7 +51,7 @@ For detailed production deployment steps, please refer to our documentation in t
 
 - 📖 **[Main Deployment Guide](docs/deployment_guide.md)**
 - 🧡 **[Cloudflare Pages Deploy Guide](docs/deployment/cloudflare-pages.md)**
-- 🚂 **[Railway Backend Deploy Guide](docs/railway_guide.md)**
+- 🚀 **[Render & Aiven Backend Deploy Guide](docs/render_guide.md)**
 - 🔑 **[Environment Variables Setup](docs/environment_variables.md)**
 
 ---
