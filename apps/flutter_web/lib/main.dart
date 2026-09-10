@@ -1381,7 +1381,13 @@ class _MainNavigationShellState extends ConsumerState<MainNavigationShell> {
         'title': 'Clients',
         'icon': Icons.people_outline,
         'route': '/clients',
-        'roles': ['Super Admin', 'Receptionist'],
+        'roles': [
+          'Super Admin',
+          'Managing Director',
+          'Admin',
+          'Admin / Office Manager / Accounts',
+          'Receptionist',
+        ],
         'category': 'Core & CRM',
       },
       {
@@ -1402,7 +1408,18 @@ class _MainNavigationShellState extends ConsumerState<MainNavigationShell> {
         'title': 'Projects',
         'icon': Icons.architecture,
         'route': '/projects',
-        'roles': ['Super Admin', 'Architect', 'Interior Designer', 'Client'],
+        'roles': [
+          'Super Admin',
+          'Managing Director',
+          'Admin',
+          'Admin / Office Manager / Accounts',
+          'Tech Head + Senior Architect',
+          'Architect',
+          'Interior Designer',
+          'Site Engineer',
+          'Site Manager',
+          'Client',
+        ],
         'category': 'Project Execution',
       },
       {
@@ -4066,6 +4083,7 @@ class ClientsTab extends StatefulWidget {
 
 class _ClientsTabState extends State<ClientsTab> {
   List<dynamic> _clients = [];
+  List<dynamic> _projects = [];
   bool _loading = true;
   String _searchQuery = '';
   int _currentPage = 1;
@@ -4076,6 +4094,16 @@ class _ClientsTabState extends State<ClientsTab> {
   void initState() {
     super.initState();
     _fetchClients();
+    _fetchProjects();
+  }
+
+  Future<void> _fetchProjects() async {
+    final res = await ApiService.getProjects();
+    if (mounted) {
+      setState(() {
+        _projects = res;
+      });
+    }
   }
 
   Future<void> _fetchClients() async {
@@ -4097,87 +4125,337 @@ class _ClientsTabState extends State<ClientsTab> {
     final nameCtrl = TextEditingController(text: client?['name']);
     final phoneCtrl = TextEditingController(text: client?['phone']);
     final emailCtrl = TextEditingController(text: client?['email']);
+    final passwordCtrl = TextEditingController(text: client == null ? 'Vian@123456' : '');
+    final companyCtrl = TextEditingController(text: client?['company'] ?? client?['companyName']);
     final gstCtrl = TextEditingController(text: client?['gst']);
     final propCtrl = TextEditingController(text: client?['propertyDetails']);
     final addrCtrl = TextEditingController(text: client?['address']);
 
+    String? selectedProjectId;
+    bool obscurePassword = true;
+    bool showOptional = false;
+    bool isSaving = false;
+
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: VianTheme.headerBlack,
-        title: Text(
-          client == null ? 'Add Client' : 'Edit Client',
-          style: const TextStyle(color: VianTheme.primaryGold),
-        ),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          backgroundColor: VianTheme.headerBlack,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: const BorderSide(color: VianTheme.goldBorder, width: 0.5),
+          ),
+          title: Row(
             children: [
-              TextField(
-                controller: nameCtrl,
-                decoration: const InputDecoration(labelText: 'Name'),
+              Icon(
+                client == null ? Icons.person_add : Icons.edit,
+                color: VianTheme.primaryGold,
               ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: phoneCtrl,
-                decoration: const InputDecoration(labelText: 'Phone'),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: emailCtrl,
-                decoration: const InputDecoration(labelText: 'Email'),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: gstCtrl,
-                decoration: const InputDecoration(
-                  labelText: 'GSTIN (Optional)',
+              const SizedBox(width: 8),
+              Text(
+                client == null ? 'Add Client & Create Portal Login' : 'Edit Client',
+                style: const TextStyle(
+                  color: VianTheme.primaryGold,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
                 ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: propCtrl,
-                decoration: const InputDecoration(
-                  labelText: 'Property Details',
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: addrCtrl,
-                maxLines: 2,
-                decoration: const InputDecoration(labelText: 'Address'),
               ),
             ],
           ),
+          content: SizedBox(
+            width: 480,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (client == null)
+                    Container(
+                      margin: const EdgeInsets.only(bottom: 16),
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: VianTheme.primaryGold.withOpacity(0.08),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: VianTheme.goldBorder, width: 0.5),
+                      ),
+                      child: const Row(
+                        children: [
+                          Icon(Icons.info_outline, color: VianTheme.primaryGold, size: 18),
+                          SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'This creates the client profile and an active Client Portal login account automatically.',
+                              style: TextStyle(color: VianTheme.lightText, fontSize: 12),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  TextField(
+                    controller: nameCtrl,
+                    decoration: const InputDecoration(
+                      labelText: 'Client Name *',
+                      prefixIcon: Icon(Icons.person, color: VianTheme.primaryGold, size: 20),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: phoneCtrl,
+                    decoration: const InputDecoration(
+                      labelText: 'Mobile Number *',
+                      prefixIcon: Icon(Icons.phone, color: VianTheme.primaryGold, size: 20),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: emailCtrl,
+                    keyboardType: TextInputType.emailAddress,
+                    decoration: const InputDecoration(
+                      labelText: 'Email Address *',
+                      prefixIcon: Icon(Icons.email, color: VianTheme.primaryGold, size: 20),
+                    ),
+                  ),
+                  if (client == null) ...[
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: passwordCtrl,
+                      obscureText: obscurePassword,
+                      decoration: InputDecoration(
+                        labelText: 'Portal Password * (min 6 chars)',
+                        prefixIcon: const Icon(Icons.lock_outline, color: VianTheme.primaryGold, size: 20),
+                        suffixIcon: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: Icon(
+                                obscurePassword ? Icons.visibility : Icons.visibility_off,
+                                color: VianTheme.lightText,
+                                size: 18,
+                              ),
+                              onPressed: () => setDialogState(() => obscurePassword = !obscurePassword),
+                            ),
+                            IconButton(
+                              tooltip: 'Generate Random Password',
+                              icon: const Icon(Icons.refresh, color: VianTheme.primaryGold, size: 18),
+                              onPressed: () {
+                                final rnd = (100000 + (math.Random().nextInt(900000))).toString();
+                                passwordCtrl.text = 'Vian@$rnd';
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<String>(
+                      value: selectedProjectId,
+                      dropdownColor: VianTheme.cardColor,
+                      style: const TextStyle(color: Colors.white, fontSize: 13),
+                      decoration: const InputDecoration(
+                        labelText: 'Assign to Project (Optional)',
+                        prefixIcon: Icon(Icons.architecture, color: VianTheme.primaryGold, size: 20),
+                      ),
+                      items: [
+                        const DropdownMenuItem<String>(
+                          value: null,
+                          child: Text('-- Unassigned / Select Later --'),
+                        ),
+                        ..._projects.map((p) => DropdownMenuItem<String>(
+                              value: p['id'].toString(),
+                              child: Text(
+                                '${p['name'] ?? 'Project'} (${p['projectId'] ?? p['id']})',
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            )),
+                      ],
+                      onChanged: (val) => setDialogState(() => selectedProjectId = val),
+                    ),
+                  ],
+                  const SizedBox(height: 16),
+                  InkWell(
+                    onTap: () => setDialogState(() => showOptional = !showOptional),
+                    child: Row(
+                      children: [
+                        Icon(
+                          showOptional ? Icons.expand_less : Icons.expand_more,
+                          color: VianTheme.primaryGold,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          showOptional ? 'Hide Additional Details' : 'Show Additional Details (Company, Address, GST)',
+                          style: const TextStyle(color: VianTheme.primaryGold, fontSize: 12, fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (showOptional) ...[
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: companyCtrl,
+                      decoration: const InputDecoration(
+                        labelText: 'Company Name',
+                        prefixIcon: Icon(Icons.business, color: VianTheme.primaryGold, size: 20),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: gstCtrl,
+                      decoration: const InputDecoration(
+                        labelText: 'GSTIN',
+                        prefixIcon: Icon(Icons.receipt_long, color: VianTheme.primaryGold, size: 20),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: propCtrl,
+                      decoration: const InputDecoration(
+                        labelText: 'Property Details',
+                        prefixIcon: Icon(Icons.home_work, color: VianTheme.primaryGold, size: 20),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: addrCtrl,
+                      maxLines: 2,
+                      decoration: const InputDecoration(
+                        labelText: 'Address',
+                        prefixIcon: Icon(Icons.location_on, color: VianTheme.primaryGold, size: 20),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Cancel', style: TextStyle(color: VianTheme.lightText)),
+            ),
+            VianButton(
+              text: isSaving
+                  ? 'Saving...'
+                  : (client == null ? 'Create Client & Login' : 'Update Client'),
+              onPressed: isSaving
+                  ? null
+                  : () async {
+                      final name = nameCtrl.text.trim();
+                      final phone = phoneCtrl.text.trim();
+                      final email = emailCtrl.text.trim();
+                      final password = passwordCtrl.text.trim();
+
+                      if (name.isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Client Name is required'), backgroundColor: Colors.redAccent),
+                        );
+                        return;
+                      }
+                      if (phone.isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Mobile Number is required'), backgroundColor: Colors.redAccent),
+                        );
+                        return;
+                      }
+                      if (email.isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Email Address is required'), backgroundColor: Colors.redAccent),
+                        );
+                        return;
+                      }
+                      if (client == null && password.length < 6) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Password must be at least 6 characters'), backgroundColor: Colors.redAccent),
+                        );
+                        return;
+                      }
+
+                      setDialogState(() => isSaving = true);
+
+                      try {
+                        if (client == null) {
+                          final res = await ApiService.createClientWithAuth({
+                            'name': name,
+                            'phone': phone,
+                            'email': email,
+                            'password': password,
+                            'projectId': selectedProjectId,
+                            'company': companyCtrl.text.trim(),
+                            'gst': gstCtrl.text.trim(),
+                            'propertyDetails': propCtrl.text.trim(),
+                            'address': addrCtrl.text.trim(),
+                          });
+
+                          if (res['success'] == true || res['client'] != null) {
+                            if (mounted) {
+                              Navigator.pop(dialogContext);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  backgroundColor: Colors.green.shade800,
+                                  content: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const Text(
+                                        '✓ Client & Portal Login Created Successfully',
+                                        style: TextStyle(fontWeight: FontWeight.bold),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        'Credentials: $email | Password: $password',
+                                        style: const TextStyle(fontSize: 12),
+                                      ),
+                                    ],
+                                  ),
+                                  duration: const Duration(seconds: 5),
+                                ),
+                              );
+                              _fetchClients();
+                            }
+                          } else {
+                            if (mounted) {
+                              setDialogState(() => isSaving = false);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(res['error'] ?? 'Failed to create client'),
+                                  backgroundColor: Colors.redAccent,
+                                ),
+                              );
+                            }
+                          }
+                        } else {
+                          final body = {
+                            'name': name,
+                            'phone': phone,
+                            'email': email,
+                            'gst': gstCtrl.text.trim(),
+                            'propertyDetails': propCtrl.text.trim(),
+                            'address': addrCtrl.text.trim(),
+                          };
+                          await ApiService.updateClient(client['id'], body);
+                          if (mounted) {
+                            Navigator.pop(dialogContext);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Client updated successfully'),
+                                backgroundColor: Colors.green,
+                              ),
+                            );
+                            _fetchClients();
+                          }
+                        }
+                      } catch (e) {
+                        if (mounted) {
+                          setDialogState(() => isSaving = false);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Error: $e'), backgroundColor: Colors.redAccent),
+                          );
+                        }
+                      }
+                    },
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          VianButton(
-            text: client == null ? 'Save Client' : 'Update Client',
-            onPressed: () async {
-              if (nameCtrl.text.isNotEmpty && phoneCtrl.text.isNotEmpty) {
-                final body = {
-                  'name': nameCtrl.text,
-                  'phone': phoneCtrl.text,
-                  'email': emailCtrl.text,
-                  'gst': gstCtrl.text,
-                  'propertyDetails': propCtrl.text,
-                  'address': addrCtrl.text,
-                };
-                if (client == null) {
-                  await ApiService.addClient(body);
-                } else {
-                  await ApiService.updateClient(client['id'], body);
-                }
-                Navigator.pop(context);
-                _fetchClients();
-              }
-            },
-          ),
-        ],
       ),
     );
   }
@@ -6936,6 +7214,16 @@ class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
   final _paymentAmountCtrl = TextEditingController();
   final _paymentDueCtrl = TextEditingController();
 
+  List<dynamic> _photos = [];
+  bool _loadingPhotos = false;
+  List<dynamic> _updates = [];
+  bool _loadingUpdates = false;
+  String _selectedPhotoCategory = 'All';
+
+  bool get _canManagePhotos {
+    return widget.userRole != 'Client';
+  }
+
   @override
   void initState() {
     super.initState();
@@ -6950,6 +7238,42 @@ class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
       _project = details.isEmpty ? widget.project : details;
       _loading = false;
     });
+    _loadPhotos();
+    _loadUpdates();
+  }
+
+  Future<void> _loadPhotos() async {
+    if (!mounted) return;
+    setState(() => _loadingPhotos = true);
+    final pId = widget.project['id'];
+    if (pId != null) {
+      final res = await ApiService.getProjectPhotos(pId);
+      if (mounted) {
+        setState(() {
+          _photos = res;
+          _loadingPhotos = false;
+        });
+      }
+    } else {
+      if (mounted) setState(() => _loadingPhotos = false);
+    }
+  }
+
+  Future<void> _loadUpdates() async {
+    if (!mounted) return;
+    setState(() => _loadingUpdates = true);
+    final pId = widget.project['id'];
+    if (pId != null) {
+      final res = await ApiService.getProjectUpdates(pId);
+      if (mounted) {
+        setState(() {
+          _updates = res;
+          _loadingUpdates = false;
+        });
+      }
+    } else {
+      if (mounted) setState(() => _loadingUpdates = false);
+    }
   }
 
   bool get _canManageStages {
@@ -6979,6 +7303,8 @@ class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
 
     final List<String> tabs = [
       'Overview',
+      'Photos',
+      'Updates',
       'Timeline',
       'Stages',
       'Payments',
@@ -7089,18 +7415,22 @@ class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
       case 0:
         return _buildOverviewTab();
       case 1:
-        return _buildTimelineTab();
+        return _buildPhotosTab();
       case 2:
-        return _buildStagesTab();
+        return _buildUpdatesTab();
       case 3:
-        return _buildPaymentsTab();
+        return _buildTimelineTab();
       case 4:
-        return _buildMaterialsTab();
+        return _buildStagesTab();
       case 5:
-        return _buildLabourTab();
+        return _buildPaymentsTab();
       case 6:
-        return _buildSiteTrackingTab();
+        return _buildMaterialsTab();
       case 7:
+        return _buildLabourTab();
+      case 8:
+        return _buildSiteTrackingTab();
+      case 9:
         return _buildWorkflowApprovalsTab();
       default:
         return const SizedBox();
@@ -7940,6 +8270,891 @@ class _ProjectWorkspacePageState extends State<ProjectWorkspacePage> {
       style: TextStyle(color: VianTheme.lightText),
     ),
   );
+
+  String _resolvePhotoUrl(String? url) {
+    if (url == null || url.isEmpty) return '';
+    if (url.startsWith('http://') || url.startsWith('https://')) return url;
+    final base = ApiService.baseUrl.replaceAll('/api', '');
+    return '$base$url';
+  }
+
+  Widget _buildPhotosTab() {
+    const categories = [
+      'All',
+      'Site Progress',
+      'Interior',
+      'Exterior',
+      'Construction',
+      'Completed',
+      'Other',
+    ];
+
+    final displayedPhotos = _selectedPhotoCategory == 'All'
+        ? _photos
+        : _photos.where((p) => (p['category'] ?? '') == _selectedPhotoCategory).toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Project Photo Gallery',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: VianTheme.primaryGold,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '${_photos.length} total photos uploaded across all stages',
+                  style: const TextStyle(fontSize: 12, color: VianTheme.lightText),
+                ),
+              ],
+            ),
+            if (_canManagePhotos)
+              VianButton(
+                text: 'Upload Photos',
+                icon: Icons.cloud_upload_outlined,
+                onPressed: _pickAndUploadPhotos,
+              ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: categories.map((cat) {
+              final isSelected = _selectedPhotoCategory == cat;
+              return Padding(
+                padding: const EdgeInsets.only(right: 8.0),
+                child: FilterChip(
+                  label: Text(cat),
+                  selected: isSelected,
+                  selectedColor: VianTheme.primaryGold,
+                  backgroundColor: VianTheme.cardColor,
+                  labelStyle: TextStyle(
+                    color: isSelected ? Colors.black : VianTheme.whiteText,
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                    fontSize: 12,
+                  ),
+                  side: const BorderSide(color: VianTheme.goldBorder, width: 0.5),
+                  onSelected: (_) => setState(() => _selectedPhotoCategory = cat),
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+        const SizedBox(height: 20),
+        if (_loadingPhotos)
+          const Center(
+            child: Padding(
+              padding: EdgeInsets.all(40),
+              child: CircularProgressIndicator(color: VianTheme.primaryGold),
+            ),
+          )
+        else if (displayedPhotos.isEmpty)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(48),
+            decoration: BoxDecoration(
+              color: VianTheme.cardColor,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: VianTheme.goldBorder, width: 0.5),
+            ),
+            child: Column(
+              children: [
+                const Icon(Icons.photo_library_outlined, size: 56, color: VianTheme.lightText),
+                const SizedBox(height: 16),
+                Text(
+                  _selectedPhotoCategory == 'All'
+                      ? 'No project photos uploaded yet'
+                      : 'No photos found in category: $_selectedPhotoCategory',
+                  style: const TextStyle(fontSize: 16, color: VianTheme.whiteText, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Upload photos to keep your clients and team informed of daily progress.',
+                  style: TextStyle(fontSize: 12, color: VianTheme.lightText),
+                ),
+                if (_canManagePhotos) ...[
+                  const SizedBox(height: 20),
+                  VianButton(
+                    text: 'Upload First Photo',
+                    icon: Icons.add_photo_alternate,
+                    onPressed: _pickAndUploadPhotos,
+                  ),
+                ],
+              ],
+            ),
+          )
+        else
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: displayedPhotos.length,
+            gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+              maxCrossAxisExtent: 300,
+              childAspectRatio: 0.85,
+              crossAxisSpacing: 16,
+              mainAxisSpacing: 16,
+            ),
+            itemBuilder: (context, index) {
+              final photo = displayedPhotos[index];
+              final photoUrl = _resolvePhotoUrl(photo['thumbnailUrl'] ?? photo['fileUrl']);
+              final category = photo['category'] ?? 'General';
+              final caption = photo['caption'] ?? '';
+              final dateStr = photo['createdAt'] != null
+                  ? DateFormat.yMMMd().format(DateTime.parse(photo['createdAt']))
+                  : '';
+
+              return InkWell(
+                onTap: () => _showPhotoDetailModal(photo),
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: VianTheme.cardColor,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: VianTheme.goldBorder, width: 0.5),
+                  ),
+                  clipBehavior: Clip.antiAlias,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Stack(
+                          children: [
+                            Positioned.fill(
+                              child: photoUrl.isNotEmpty
+                                  ? Image.network(
+                                      photoUrl,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (_, __, ___) => const Center(
+                                        child: Icon(Icons.broken_image, color: VianTheme.lightText),
+                                      ),
+                                      loadingBuilder: (context, child, progress) {
+                                        if (progress == null) return child;
+                                        return const Center(
+                                          child: CircularProgressIndicator(strokeWidth: 2, color: VianTheme.primaryGold),
+                                        );
+                                      },
+                                    )
+                                  : const Center(
+                                      child: Icon(Icons.image, color: VianTheme.lightText),
+                                    ),
+                            ),
+                            Positioned(
+                              top: 8,
+                              left: 8,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withOpacity(0.7),
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(color: VianTheme.goldBorder, width: 0.5),
+                                ),
+                                child: Text(
+                                  category,
+                                  style: const TextStyle(
+                                    color: VianTheme.primaryGold,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            if (_canManagePhotos)
+                              Positioned(
+                                top: 4,
+                                right: 4,
+                                child: IconButton(
+                                  icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 20),
+                                  tooltip: 'Delete Photo',
+                                  onPressed: () => _confirmDeletePhoto(photo),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(10.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (caption.isNotEmpty)
+                              Text(
+                                caption,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  color: VianTheme.whiteText,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              )
+                            else
+                              Text(
+                                photo['originalName'] ?? 'Photo #${photo['id']}',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  color: VianTheme.lightText,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            const SizedBox(height: 4),
+                            Text(
+                              dateStr,
+                              style: TextStyle(
+                                color: VianTheme.lightText.withOpacity(0.7),
+                                fontSize: 10,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+      ],
+    );
+  }
+
+  Future<void> _pickAndUploadPhotos() async {
+    try {
+      final result = await FilePicker.pickFiles(
+        type: FileType.image,
+        allowMultiple: true,
+      );
+      if (result == null || result.files.isEmpty) return;
+      _showUploadModal(result.files);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('File picker error: $e'), backgroundColor: Colors.redAccent),
+        );
+      }
+    }
+  }
+
+  void _showUploadModal(List<PlatformFile> files) {
+    String selectedCategory = 'Site Progress';
+    final captionCtrl = TextEditingController();
+    bool isUploading = false;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          backgroundColor: VianTheme.headerBlack,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: const BorderSide(color: VianTheme.goldBorder, width: 0.5),
+          ),
+          title: Row(
+            children: [
+              const Icon(Icons.cloud_upload, color: VianTheme.primaryGold),
+              const SizedBox(width: 8),
+              Text(
+                'Upload ${files.length} Photo${files.length > 1 ? 's' : ''}',
+                style: const TextStyle(color: VianTheme.primaryGold, fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          content: SizedBox(
+            width: 440,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: VianTheme.cardColor,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: VianTheme.goldBorder, width: 0.5),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.insert_photo, color: VianTheme.primaryGold, size: 24),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          '${files.length} file(s) selected: ${files.map((f) => f.name).take(2).join(', ')}${files.length > 2 ? ' ...' : ''}',
+                          style: const TextStyle(color: VianTheme.lightText, fontSize: 12),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                DropdownButtonFormField<String>(
+                  value: selectedCategory,
+                  dropdownColor: VianTheme.cardColor,
+                  style: const TextStyle(color: Colors.white, fontSize: 13),
+                  decoration: const InputDecoration(
+                    labelText: 'Category *',
+                    prefixIcon: Icon(Icons.category, color: VianTheme.primaryGold, size: 20),
+                  ),
+                  items: [
+                    'Site Progress',
+                    'Interior',
+                    'Exterior',
+                    'Construction',
+                    'Completed',
+                    'Other',
+                  ].map((cat) => DropdownMenuItem(value: cat, child: Text(cat))).toList(),
+                  onChanged: (val) {
+                    if (val != null) setDialogState(() => selectedCategory = val);
+                  },
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: captionCtrl,
+                  decoration: const InputDecoration(
+                    labelText: 'Caption / Work Description (Optional)',
+                    prefixIcon: Icon(Icons.comment, color: VianTheme.primaryGold, size: 20),
+                  ),
+                ),
+                if (isUploading) ...[
+                  const SizedBox(height: 20),
+                  const LinearProgressIndicator(color: VianTheme.primaryGold, backgroundColor: VianTheme.cardColor),
+                  const SizedBox(height: 8),
+                  const Center(
+                    child: Text(
+                      'Uploading to Cloudinary...',
+                      style: TextStyle(color: VianTheme.lightText, fontSize: 12),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          actions: [
+            if (!isUploading)
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                child: const Text('Cancel', style: TextStyle(color: VianTheme.lightText)),
+              ),
+            VianButton(
+              text: isUploading ? 'Uploading...' : 'Confirm Upload',
+              onPressed: isUploading
+                  ? null
+                  : () async {
+                      setDialogState(() => isUploading = true);
+                      try {
+                        final res = await ApiService.uploadProjectPhotos(
+                          widget.project['id'],
+                          files: files,
+                          category: selectedCategory,
+                          description: captionCtrl.text.trim(),
+                        );
+                        if (mounted) {
+                          Navigator.pop(dialogContext);
+                          final count = (res['photos'] as List?)?.length ?? files.length;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              backgroundColor: Colors.green.shade800,
+                              content: Text('✓ Uploaded $count photo(s) successfully!'),
+                            ),
+                          );
+                          _loadPhotos();
+                        }
+                      } catch (e) {
+                        if (mounted) {
+                          setDialogState(() => isUploading = false);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Upload failed: $e'), backgroundColor: Colors.redAccent),
+                          );
+                        }
+                      }
+                    },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _confirmDeletePhoto(Map<String, dynamic> photo) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: VianTheme.headerBlack,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: VianTheme.goldBorder, width: 0.5),
+        ),
+        title: const Text('Delete Photo', style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
+        content: const Text(
+          'Are you sure you want to permanently delete this photo? This cannot be undone.',
+          style: TextStyle(color: VianTheme.whiteText),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel', style: TextStyle(color: VianTheme.lightText)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Delete', style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      final success = await ApiService.deleteProjectPhoto(widget.project['id'], photo['id']);
+      if (success && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Photo deleted successfully'), backgroundColor: Colors.green),
+        );
+        _loadPhotos();
+      }
+    }
+  }
+
+  void _showPhotoDetailModal(Map<String, dynamic> photo) {
+    final fullUrl = _resolvePhotoUrl(photo['fileUrl']);
+    final category = photo['category'] ?? 'General';
+    final caption = photo['caption'] ?? '';
+    final dateStr = photo['createdAt'] != null
+        ? DateFormat.yMMMMd().format(DateTime.parse(photo['createdAt']))
+        : '';
+
+    showDialog(
+      context: context,
+      builder: (ctx) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.all(24),
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 900, maxHeight: 700),
+          decoration: BoxDecoration(
+            color: VianTheme.headerBlack,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: VianTheme.goldBorder, width: 1),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                color: VianTheme.cardColor,
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: VianTheme.primaryGold.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: VianTheme.goldBorder, width: 0.5),
+                      ),
+                      child: Text(
+                        category,
+                        style: const TextStyle(color: VianTheme.primaryGold, fontSize: 12, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        caption.isNotEmpty ? caption : (photo['originalName'] ?? 'Photo Preview'),
+                        style: const TextStyle(color: VianTheme.whiteText, fontSize: 14, fontWeight: FontWeight.bold),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close, color: VianTheme.whiteText),
+                      onPressed: () => Navigator.pop(ctx),
+                    ),
+                  ],
+                ),
+              ),
+              Flexible(
+                child: Container(
+                  color: Colors.black,
+                  alignment: Alignment.center,
+                  child: InteractiveViewer(
+                    minScale: 0.8,
+                    maxScale: 4.0,
+                    child: fullUrl.isNotEmpty
+                        ? Image.network(
+                            fullUrl,
+                            fit: BoxFit.contain,
+                            errorBuilder: (_, __, ___) => const Center(
+                              child: Text('Failed to load full-resolution image', style: TextStyle(color: Colors.redAccent)),
+                            ),
+                          )
+                        : const Center(child: Icon(Icons.image_not_supported, color: VianTheme.lightText, size: 48)),
+                  ),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                color: VianTheme.cardColor,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Uploaded on $dateStr',
+                      style: const TextStyle(color: VianTheme.lightText, fontSize: 12),
+                    ),
+                    if (photo['uploader'] != null && photo['uploader']['name'] != null)
+                      Text(
+                        'By: ${photo['uploader']['name']}',
+                        style: const TextStyle(color: VianTheme.lightText, fontSize: 12),
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildUpdatesTab() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Project Progress Updates',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: VianTheme.primaryGold,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '${_updates.length} updates logged for this project',
+                  style: const TextStyle(fontSize: 12, color: VianTheme.lightText),
+                ),
+              ],
+            ),
+            if (_canManagePhotos)
+              VianButton(
+                text: 'Post Update',
+                icon: Icons.post_add,
+                onPressed: _showPostUpdateDialog,
+              ),
+          ],
+        ),
+        const SizedBox(height: 20),
+        if (_loadingUpdates)
+          const Center(
+            child: Padding(
+              padding: EdgeInsets.all(40),
+              child: CircularProgressIndicator(color: VianTheme.primaryGold),
+            ),
+          )
+        else if (_updates.isEmpty)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(48),
+            decoration: BoxDecoration(
+              color: VianTheme.cardColor,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: VianTheme.goldBorder, width: 0.5),
+            ),
+            child: Column(
+              children: [
+                const Icon(Icons.history_edu, size: 56, color: VianTheme.lightText),
+                const SizedBox(height: 16),
+                const Text(
+                  'No progress updates posted yet',
+                  style: TextStyle(fontSize: 16, color: VianTheme.whiteText, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Post milestone announcements and site progress updates to keep clients informed.',
+                  style: TextStyle(fontSize: 12, color: VianTheme.lightText),
+                ),
+                if (_canManagePhotos) ...[
+                  const SizedBox(height: 20),
+                  VianButton(
+                    text: 'Post First Update',
+                    icon: Icons.post_add,
+                    onPressed: _showPostUpdateDialog,
+                  ),
+                ],
+              ],
+            ),
+          )
+        else
+          ListView.separated(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: _updates.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 16),
+            itemBuilder: (context, index) {
+              final update = _updates[index];
+              final dateStr = update['createdAt'] != null
+                  ? DateFormat.yMMMMd().add_jm().format(DateTime.parse(update['createdAt']))
+                  : '';
+              final isMilestone = update['isMilestone'] == true;
+              final progressPct = update['progressPercent'];
+
+              return Container(
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  color: VianTheme.cardColor,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: isMilestone ? VianTheme.primaryGold : VianTheme.goldBorder,
+                    width: isMilestone ? 1.5 : 0.5,
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            if (isMilestone)
+                              Container(
+                                margin: const EdgeInsets.only(right: 8),
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                decoration: BoxDecoration(
+                                  color: VianTheme.primaryGold,
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: const Row(
+                                  children: [
+                                    Icon(Icons.star, color: Colors.black, size: 14),
+                                    SizedBox(width: 4),
+                                    Text(
+                                      'KEY MILESTONE',
+                                      style: TextStyle(color: Colors.black, fontSize: 10, fontWeight: FontWeight.bold),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            if (progressPct != null)
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                decoration: BoxDecoration(
+                                  color: VianTheme.primaryGold.withOpacity(0.15),
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(color: VianTheme.goldBorder, width: 0.5),
+                                ),
+                                child: Text(
+                                  '$progressPct% Complete',
+                                  style: const TextStyle(
+                                    color: VianTheme.primaryGold,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                        Text(
+                          dateStr,
+                          style: const TextStyle(color: VianTheme.lightText, fontSize: 11),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      update['title'] ?? 'Progress Update',
+                      style: const TextStyle(
+                        color: VianTheme.whiteText,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      update['message'] ?? '',
+                      style: const TextStyle(
+                        color: VianTheme.lightText,
+                        fontSize: 13,
+                        height: 1.5,
+                      ),
+                    ),
+                    if (update['creator'] != null && update['creator']['name'] != null) ...[
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          const Icon(Icons.person_pin, size: 14, color: VianTheme.primaryGold),
+                          const SizedBox(width: 6),
+                          Text(
+                            'Posted by ${update['creator']['name']}',
+                            style: const TextStyle(color: VianTheme.lightText, fontSize: 11),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ],
+                ),
+              );
+            },
+          ),
+      ],
+    );
+  }
+
+  void _showPostUpdateDialog() {
+    final titleCtrl = TextEditingController();
+    final messageCtrl = TextEditingController();
+    double progressVal = (_project['progressPercent'] ?? 0).toDouble();
+    bool isMilestone = false;
+    bool isPosting = false;
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          backgroundColor: VianTheme.headerBlack,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: const BorderSide(color: VianTheme.goldBorder, width: 0.5),
+          ),
+          title: const Row(
+            children: [
+              Icon(Icons.post_add, color: VianTheme.primaryGold),
+              SizedBox(width: 8),
+              Text(
+                'Post Progress Update',
+                style: TextStyle(color: VianTheme.primaryGold, fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          content: SizedBox(
+            width: 480,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TextField(
+                    controller: titleCtrl,
+                    decoration: const InputDecoration(
+                      labelText: 'Update Title *',
+                      hintText: 'e.g., First Floor Slab Concrete Poured',
+                      prefixIcon: Icon(Icons.title, color: VianTheme.primaryGold, size: 20),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: messageCtrl,
+                    maxLines: 4,
+                    decoration: const InputDecoration(
+                      labelText: 'Update Details & Work Done *',
+                      hintText: 'Detailed progress summary for the client and management...',
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Project Progress:',
+                        style: TextStyle(color: VianTheme.whiteText, fontSize: 13),
+                      ),
+                      Text(
+                        '${progressVal.round()}%',
+                        style: const TextStyle(color: VianTheme.primaryGold, fontSize: 15, fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                  Slider(
+                    value: progressVal,
+                    min: 0,
+                    max: 100,
+                    divisions: 100,
+                    activeColor: VianTheme.primaryGold,
+                    inactiveColor: VianTheme.cardColor,
+                    label: '${progressVal.round()}%',
+                    onChanged: (val) => setDialogState(() => progressVal = val),
+                  ),
+                  const SizedBox(height: 8),
+                  CheckboxListTile(
+                    contentPadding: EdgeInsets.zero,
+                    activeColor: VianTheme.primaryGold,
+                    checkColor: Colors.black,
+                    title: const Text('Mark as Key Project Milestone', style: TextStyle(color: VianTheme.whiteText, fontSize: 13)),
+                    subtitle: const Text('Highlights this update prominently on the timeline', style: TextStyle(color: VianTheme.lightText, fontSize: 11)),
+                    value: isMilestone,
+                    onChanged: (val) => setDialogState(() => isMilestone = val ?? false),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Cancel', style: TextStyle(color: VianTheme.lightText)),
+            ),
+            VianButton(
+              text: isPosting ? 'Posting...' : 'Post Update',
+              onPressed: isPosting
+                  ? null
+                  : () async {
+                      final title = titleCtrl.text.trim();
+                      final msg = messageCtrl.text.trim();
+                      if (title.isEmpty || msg.isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Title and details are required'), backgroundColor: Colors.redAccent),
+                        );
+                        return;
+                      }
+
+                      setDialogState(() => isPosting = true);
+                      try {
+                        await ApiService.createProjectUpdate(
+                          widget.project['id'],
+                          title: title,
+                          message: msg,
+                          progressPercent: progressVal.round(),
+                          isMilestone: isMilestone,
+                        );
+                        if (mounted) {
+                          Navigator.pop(dialogContext);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              backgroundColor: Colors.green,
+                              content: Text('✓ Progress update posted successfully!'),
+                            ),
+                          );
+                          _loadUpdates();
+                        }
+                      } catch (e) {
+                        if (mounted) {
+                          setDialogState(() => isPosting = false);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Failed to post update: $e'), backgroundColor: Colors.redAccent),
+                          );
+                        }
+                      }
+                    },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   Future<void> _archiveProject() async {
     final success = await ApiService.archiveProject(_project['id']);

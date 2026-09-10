@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:file_picker/file_picker.dart';
 import 'api_constants.dart';
 
 class ApiService {
@@ -765,6 +766,195 @@ class ApiService {
       return response.statusCode == 201;
     } catch (_) {
       return true;
+    }
+  }
+
+  // Create client with automatic auth account and project assignment
+  static Future<Map<String, dynamic>> createClientWithAuth(Map<String, dynamic> data) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/clients'),
+        headers: _headers,
+        body: json.encode(data),
+      );
+      final jsonBody = json.decode(response.body);
+      if (response.statusCode == 201) {
+        return {
+          'success': true,
+          'message': jsonBody['message'] ?? 'Client created successfully.',
+          'client': jsonBody['client'],
+          'user': jsonBody['user'],
+        };
+      }
+      return {
+        'success': false,
+        'message': jsonBody['message'] ?? 'Failed to create client.',
+      };
+    } catch (e) {
+      return {'success': false, 'message': 'Network error: $e'};
+    }
+  }
+
+  // Get client-specific projects (Client Portal)
+  static Future<List<dynamic>> getClientProjects({int? clientId}) async {
+    try {
+      final uri = Uri.parse('$baseUrl/client/projects${clientId != null ? '?clientId=$clientId' : ''}');
+      final response = await http.get(uri, headers: _headers);
+      if (response.statusCode == 200) {
+        final decoded = json.decode(response.body);
+        return decoded['projects'] ?? [];
+      }
+      return [];
+    } catch (_) {
+      return [];
+    }
+  }
+
+  // Get project photos
+  static Future<List<dynamic>> getProjectPhotos(int projectId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/projects/$projectId/photos'),
+        headers: _headers,
+      );
+      if (response.statusCode == 200) {
+        final decoded = json.decode(response.body);
+        return decoded['photos'] ?? [];
+      }
+      return [];
+    } catch (_) {
+      return [];
+    }
+  }
+
+  // Upload project photos (supports list of {name, data, category, description} or PlatformFiles)
+  static Future<Map<String, dynamic>> uploadProjectPhotos(
+    dynamic projectId, {
+    List<PlatformFile>? files,
+    List<Map<String, dynamic>>? photos,
+    String? category,
+    String? description,
+  }) async {
+    try {
+      final payload = <String, dynamic>{};
+      final resolvedPhotos = <Map<String, dynamic>>[];
+
+      if (photos != null) {
+        resolvedPhotos.addAll(photos);
+      }
+
+      if (files != null) {
+        for (final f in files) {
+          if (f.bytes != null) {
+            resolvedPhotos.add({
+              'name': f.name,
+              'data': 'data:image/jpeg;base64,${base64Encode(f.bytes!)}',
+              'category': category,
+              'description': description,
+            });
+          }
+        }
+      }
+
+      if (resolvedPhotos.isNotEmpty) payload['photos'] = resolvedPhotos;
+      if (category != null) payload['category'] = category;
+      if (description != null) payload['description'] = description;
+
+      final response = await http.post(
+        Uri.parse('$baseUrl/projects/$projectId/photos'),
+        headers: _headers,
+        body: json.encode(payload),
+      );
+      final decoded = json.decode(response.body);
+      if (response.statusCode == 201) {
+        return {
+          'success': true,
+          'message': decoded['message'] ?? 'Photos uploaded successfully.',
+          'photos': decoded['photos'] ?? [],
+        };
+      }
+      return {
+        'success': false,
+        'message': decoded['message'] ?? 'Upload failed.',
+      };
+    } catch (e) {
+      return {'success': false, 'message': 'Network error: $e'};
+    }
+  }
+
+  // Delete project photo
+  static Future<bool> deleteProjectPhoto(dynamic projectId, dynamic photoId) async {
+    try {
+      final response = await http.delete(
+        Uri.parse('$baseUrl/projects/$projectId/photos/$photoId'),
+        headers: _headers,
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  // Get project updates
+  static Future<List<dynamic>> getProjectUpdates(dynamic projectId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/projects/$projectId/updates'),
+        headers: _headers,
+      );
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data is Map && data['updates'] is List) {
+          return data['updates'];
+        }
+        if (data is List) return data;
+      }
+      return [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  // Create project update
+  static Future<Map<String, dynamic>> createProjectUpdate(
+    dynamic projectId, {
+    required String message,
+    String? title,
+    int? progressPercentage,
+    int? progressPercent,
+    bool? isMilestone,
+    List<String>? photoUrls,
+  }) async {
+    try {
+      final payload = <String, dynamic>{'message': message};
+      if (title != null) payload['title'] = title;
+      final pct = progressPercent ?? progressPercentage;
+      if (pct != null) {
+        payload['progressPercentage'] = pct;
+        payload['progressPercent'] = pct;
+      }
+      if (isMilestone != null) payload['isMilestone'] = isMilestone;
+      if (photoUrls != null) payload['photoUrls'] = photoUrls;
+
+      final response = await http.post(
+        Uri.parse('$baseUrl/projects/$projectId/updates'),
+        headers: _headers,
+        body: json.encode(payload),
+      );
+      final decoded = json.decode(response.body);
+      if (response.statusCode == 201) {
+        return {
+          'success': true,
+          'message': decoded['message'] ?? 'Project update posted successfully.',
+          'update': decoded['update'],
+        };
+      }
+      return {
+        'success': false,
+        'message': decoded['message'] ?? 'Failed to post project update.',
+      };
+    } catch (e) {
+      return {'success': false, 'message': 'Network error: $e'};
     }
   }
 

@@ -1582,6 +1582,54 @@ function initModels(customSequelize) {
 
   EmployeeFaceAudit.belongsTo(User, { foreignKey: 'userId', as: 'user', onDelete: 'CASCADE' });
 
+  // 63. ClientProject Model (Multi-Client per Project mapping)
+  const ClientProject = sequelize.define('ClientProject', {
+    id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    clientId: { type: DataTypes.INTEGER, allowNull: false },
+    projectId: { type: DataTypes.INTEGER, allowNull: false },
+    notes: { type: DataTypes.STRING, allowNull: true }
+  }, { tableName: 'client_projects', timestamps: true, underscored: true });
+
+  ClientProject.belongsTo(Client, { foreignKey: 'clientId', as: 'client', onDelete: 'CASCADE' });
+  ClientProject.belongsTo(Project, { foreignKey: 'projectId', as: 'project', onDelete: 'CASCADE' });
+  Client.hasMany(ClientProject, { foreignKey: 'clientId', as: 'clientProjects', onDelete: 'CASCADE' });
+  Project.hasMany(ClientProject, { foreignKey: 'projectId', as: 'projectClients', onDelete: 'CASCADE' });
+  Client.belongsToMany(Project, { through: ClientProject, foreignKey: 'clientId', otherKey: 'projectId', as: 'assignedProjects' });
+  Project.belongsToMany(Client, { through: ClientProject, foreignKey: 'projectId', otherKey: 'clientId', as: 'assignedClients' });
+
+  // 64. ProjectPhoto Model (Project photo gallery)
+  const ProjectPhoto = sequelize.define('ProjectPhoto', {
+    id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    projectId: { type: DataTypes.INTEGER, allowNull: false },
+    url: { type: DataTypes.STRING(500), allowNull: false },
+    thumbnailUrl: { type: DataTypes.STRING(500), allowNull: true },
+    cloudinaryPublicId: { type: DataTypes.STRING(255), allowNull: true },
+    category: {
+      type: DataTypes.STRING(50),
+      defaultValue: 'Other'
+    },
+    description: { type: DataTypes.TEXT, allowNull: true },
+    uploadedBy: { type: DataTypes.INTEGER, allowNull: true }
+  }, { tableName: 'project_photos', timestamps: true, underscored: true });
+
+  ProjectPhoto.belongsTo(Project, { foreignKey: 'projectId', as: 'project', onDelete: 'CASCADE' });
+  Project.hasMany(ProjectPhoto, { foreignKey: 'projectId', as: 'photos', onDelete: 'CASCADE' });
+  ProjectPhoto.belongsTo(User, { foreignKey: 'uploadedBy', as: 'uploader', onDelete: 'SET NULL' });
+
+  // 65. ProjectUpdate Model (Project progress timeline updates)
+  const ProjectUpdate = sequelize.define('ProjectUpdate', {
+    id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    projectId: { type: DataTypes.INTEGER, allowNull: false },
+    progressPercentage: { type: DataTypes.INTEGER, defaultValue: 0 },
+    message: { type: DataTypes.TEXT, allowNull: false },
+    photoUrls: { type: DataTypes.TEXT, allowNull: true },
+    createdBy: { type: DataTypes.INTEGER, allowNull: true }
+  }, { tableName: 'project_updates', timestamps: true, underscored: true });
+
+  ProjectUpdate.belongsTo(Project, { foreignKey: 'projectId', as: 'project', onDelete: 'CASCADE' });
+  Project.hasMany(ProjectUpdate, { foreignKey: 'projectId', as: 'updates', onDelete: 'CASCADE' });
+  ProjectUpdate.belongsTo(User, { foreignKey: 'createdBy', as: 'creator', onDelete: 'SET NULL' });
+
   return {
     User, Session, Lead, LeadTimeline, LeadStage1, Client, ClientTimeline, Project,
     Attendance, Task, SiteVisit, Drawing, Document,
@@ -1598,7 +1646,8 @@ function initModels(customSequelize) {
     AuditLog,
     ConferenceCall, Incentive,
     StageChecklist, ConferenceCallAction, DrawingRevision, DrawingComment,
-    MonthlyAttendanceLock, EmployeeFace, EmployeeFaceAudit
+    MonthlyAttendanceLock, EmployeeFace, EmployeeFaceAudit,
+    ClientProject, ProjectPhoto, ProjectUpdate
   };
 }
 

@@ -82,10 +82,28 @@ function registerRoutes(app, models) {
     AuditLog,
     ConferenceCall, Incentive,
     StageChecklist, ConferenceCallAction, DrawingRevision, DrawingComment,
-    MonthlyAttendanceLock, EmployeeFace, EmployeeFaceAudit
+    MonthlyAttendanceLock, EmployeeFace, EmployeeFaceAudit,
+    ClientProject, ProjectPhoto, ProjectUpdate
   } = models;
 
+  // Project authorization / IDOR prevention helper
+  async function isAuthorizedForProject(user, projectId) {
+    if (!user) return false;
+    if (user.role !== 'Client') return true; // Management and staff have authorized access
+    const pId = parseInt(projectId, 10);
+    if (!pId) return false;
 
+    const client = await Client.findOne({ where: { userId: user.id } });
+    if (!client) return false;
+
+    // Check direct project assignment
+    const directProject = await Project.findOne({ where: { id: pId, clientId: client.id, deletedAt: null } });
+    if (directProject) return true;
+
+    // Check multi-client mapping table (client_projects)
+    const clientProject = await ClientProject.findOne({ where: { clientId: client.id, projectId: pId } });
+    return Boolean(clientProject);
+  }
 
   // Audit logger helper
   async function writeAuditLog(req, action, moduleName, oldValue = null, newValue = null, reason = null, gps = null, browser = null) {
@@ -1248,8 +1266,64 @@ function registerRoutes(app, models) {
   // CLIENT MANAGEMENT MODULE
   // ==========================================
   
+  // Dedicated Client Portal Projects Endpoint (Client + Management)
+  app.get('/api/client/projects', authenticateToken, async (req, res) => {
+    try {
+      let client;
+      if (req.user.role === 'Client') {
+        client = await Client.findOne({ where: { userId: req.user.id, deletedAt: null } });
+        if (!client) return res.status(200).json({ projects: [] });
+      } else if (req.query.clientId) {
+        client = await Client.findOne({ where: { id: req.query.clientId, deletedAt: null } });
+        if (!client) return res.status(404).json({ message: 'Client not found' });
+      } else {
+        // Management viewing active projects list with client & photo counts
+        const allProjs = await Project.findAll({
+          where: { isArchived: false, deletedAt: null },
+          include: [
+            { model: Client, as: 'client', attributes: ['id', 'name', 'email', 'phone', 'companyName'] },
+            { model: ProjectPhoto, as: 'photos', attributes: ['id', 'url', 'thumbnailUrl', 'category', 'createdAt'] },
+            { model: ProjectUpdate, as: 'updates', attributes: ['id', 'progressPercentage', 'message', 'createdAt'] }
+          ],
+          order: [['id', 'DESC']]
+        });
+        return res.json({ projects: allProjs });
+      }
+
+      // Find all project IDs mapped to this client (multi-client support)
+      const mapped = await ClientProject.findAll({ where: { clientId: client.id } });
+      const mappedProjectIds = mapped.map(cp => cp.projectId);
+
+      const projects = await Project.findAll({
+        where: {
+          isArchived: false,
+          deletedAt: null,
+          [Op.or]: [
+            { clientId: client.id },
+            { id: { [Op.in]: mappedProjectIds } }
+          ]
+        },
+        include: [
+          { model: Client, as: 'client', attributes: ['id', 'name', 'email', 'phone', 'companyName'] },
+          { model: ProjectPhoto, as: 'photos', attributes: ['id', 'url', 'thumbnailUrl', 'category', 'description', 'createdAt'] },
+          { model: ProjectUpdate, as: 'updates', attributes: ['id', 'progressPercentage', 'message', 'photoUrls', 'createdAt'] }
+        ],
+        order: [['id', 'DESC']]
+      });
+
+      res.json({ projects });
+    } catch (error) {
+      res.status(500).json({ message: 'Error fetching client projects', error: error.message });
+    }
+  });
+
+  // Get Clients (Management Only)
   app.get('/api/clients', authenticateToken, async (req, res) => {
     try {
+      if (req.user.role === 'Client') {
+        return res.status(403).json({ message: 'Access denied: Clients cannot access client lists.' });
+      }
+
       const page = parseInt(req.query.page) || 1;
       const limit = parseInt(req.query.limit) || 10;
       const offset = (page - 1) * limit;
@@ -1260,12 +1334,18 @@ function registerRoutes(app, models) {
         where[Op.or] = [
           { name: { [Op.like]: `%${search}%` } },
           { phone: { [Op.like]: `%${search}%` } },
-          { email: { [Op.like]: `%${search}%` } }
+          { email: { [Op.like]: `%${search}%` } },
+          { companyName: { [Op.like]: `%${search}%` } }
         ];
       }
 
       const { count, rows } = await Client.findAndCountAll({
         where,
+        include: [
+          { model: User, as: 'userAccount', attributes: ['id', 'username', 'email', 'role', 'status', 'createdAt'] },
+          { model: Project, as: 'projects', attributes: ['id', 'name', 'projectId', 'status', 'progressPercentage'] },
+          { model: Project, as: 'assignedProjects', through: { attributes: [] }, attributes: ['id', 'name', 'projectId', 'status'] }
+        ],
         order: [['id', 'DESC']],
         limit,
         offset
@@ -1282,9 +1362,24 @@ function registerRoutes(app, models) {
     }
   });
 
+  // Get Client by ID (Management Only)
   app.get('/api/clients/:id', authenticateToken, async (req, res) => {
     try {
-      const client = await Client.findOne({ where: { id: req.params.id, deletedAt: null } });
+      if (req.user.role === 'Client') {
+        const client = await Client.findOne({ where: { userId: req.user.id, deletedAt: null } });
+        if (!client || String(client.id) !== String(req.params.id)) {
+          return res.status(403).json({ message: 'Access denied: You can only view your own client record.' });
+        }
+      }
+
+      const client = await Client.findOne({
+        where: { id: req.params.id, deletedAt: null },
+        include: [
+          { model: User, as: 'userAccount', attributes: ['id', 'username', 'email', 'role', 'status', 'createdAt'] },
+          { model: Project, as: 'projects', attributes: ['id', 'name', 'projectId', 'status', 'progressPercentage', 'siteAddress'] },
+          { model: Project, as: 'assignedProjects', through: { attributes: [] }, attributes: ['id', 'name', 'projectId', 'status'] }
+        ]
+      });
       if (!client) return res.status(404).json({ message: 'Client not found' });
       res.json(client);
     } catch (error) {
@@ -1292,30 +1387,162 @@ function registerRoutes(app, models) {
     }
   });
 
+  // Create Client (Management Only — Automates User account creation & Project assignment)
   app.post('/api/clients', authenticateToken, async (req, res) => {
     try {
-      const client = await Client.create(req.body);
-      await writeAuditLog(req, 'Create', 'Clients', null, client.toJSON());
-      res.status(201).json(client);
+      if (req.user.role === 'Client') {
+        return res.status(403).json({ message: 'Access denied: Clients cannot create client accounts.' });
+      }
+
+      const {
+        name, phone, mobile, email, password,
+        projectId, companyName, address, contactPerson,
+        gst, notes, propertyDetails
+      } = req.body;
+
+      if (!name || !name.trim()) {
+        return res.status(400).json({ message: 'Client name is required.' });
+      }
+      if (!email || !email.trim()) {
+        return res.status(400).json({ message: 'Client email is required.' });
+      }
+
+      const cleanEmail = email.trim().toLowerCase();
+      const clientPhone = (mobile || phone || '').trim();
+
+      // Check if user account already exists with this email
+      const existingUser = await User.findOne({ where: { email: cleanEmail } });
+      if (existingUser) {
+        return res.status(400).json({ message: 'An account with this email already exists in the system.' });
+      }
+
+      // Hash password securely (use specified password or generate secure default)
+      const rawPassword = (password && password.trim().length >= 4) ? password.trim() : (clientPhone || 'VianClient@2026');
+      const passwordHash = await bcrypt.hash(rawPassword, 10);
+
+      // 1. Create Auth User Record
+      const newUser = await User.create({
+        username: cleanEmail,
+        passwordHash,
+        name: name.trim(),
+        email: cleanEmail,
+        mobile: clientPhone || null,
+        role: 'Client',
+        department: 'Client Portal',
+        designation: 'Client',
+        status: 'Active'
+      });
+
+      // 2. Create Client Record linked to User
+      const clientCode = req.body.clientId || `VIAN-CL-${Date.now().toString().slice(-5)}`;
+      const newClient = await Client.create({
+        clientId: clientCode,
+        name: name.trim(),
+        phone: clientPhone,
+        email: cleanEmail,
+        address: address || null,
+        companyName: companyName || null,
+        contactPerson: contactPerson || name.trim(),
+        gst: gst || null,
+        notes: notes || null,
+        propertyDetails: propertyDetails || null,
+        userId: newUser.id
+      });
+
+      // 3. Assign Selected Project if provided
+      let assignedProject = null;
+      if (projectId) {
+        const proj = await Project.findByPk(projectId);
+        if (proj) {
+          if (!proj.clientId) {
+            await proj.update({ clientId: newClient.id });
+          }
+          await ClientProject.findOrCreate({
+            where: { clientId: newClient.id, projectId: proj.id },
+            defaults: { clientId: newClient.id, projectId: proj.id }
+          });
+          assignedProject = { id: proj.id, name: proj.name, projectId: proj.projectId };
+        }
+      }
+
+      await writeAuditLog(req, 'CreateClient', 'Clients', null, { clientId: newClient.id, userId: newUser.id });
+
+      res.status(201).json({
+        success: true,
+        message: 'Client created successfully.',
+        client: newClient,
+        user: {
+          id: newUser.id,
+          name: newUser.name,
+          email: newUser.email,
+          role: newUser.role
+        },
+        assignedProject
+      });
     } catch (error) {
+      console.error('Error creating client:', error);
       res.status(400).json({ message: 'Error creating client', error: error.message });
     }
   });
 
+  // Reset Client Password (Management or Client Self-Service)
+  app.post('/api/clients/:id/reset-password', authenticateToken, async (req, res) => {
+    try {
+      const client = await Client.findOne({ where: { id: req.params.id, deletedAt: null } });
+      if (!client) return res.status(404).json({ message: 'Client not found' });
+
+      if (req.user.role === 'Client' && client.userId !== req.user.id) {
+        return res.status(403).json({ message: 'Access denied: You can only reset your own password.' });
+      }
+
+      const { newPassword, password } = req.body;
+      const targetPassword = newPassword || password;
+      if (!targetPassword || targetPassword.length < 4) {
+        return res.status(400).json({ message: 'Password must be at least 4 characters long.' });
+      }
+
+      const user = await User.findByPk(client.userId);
+      if (!user) return res.status(404).json({ message: 'Linked user account not found.' });
+
+      const passwordHash = await bcrypt.hash(targetPassword, 10);
+      await user.update({ passwordHash });
+      await writeAuditLog(req, 'ResetPassword', 'Clients', null, { clientId: client.id, userId: user.id });
+
+      res.json({ success: true, message: 'Client password updated successfully.' });
+    } catch (error) {
+      res.status(500).json({ message: 'Error resetting client password', error: error.message });
+    }
+  });
+
+  // Update Client
   app.put('/api/clients/:id', authenticateToken, async (req, res) => {
     try {
+      if (req.user.role === 'Client') {
+        return res.status(403).json({ message: 'Access denied: Clients cannot modify client management records.' });
+      }
+
       const client = await Client.findOne({ where: { id: req.params.id, deletedAt: null } });
       if (!client) return res.status(404).json({ message: 'Client not found' });
 
       const oldVal = { ...client.toJSON() };
       await client.update(req.body);
+
+      // If project assignment changed
+      if (req.body.projectId) {
+        await ClientProject.findOrCreate({
+          where: { clientId: client.id, projectId: req.body.projectId },
+          defaults: { clientId: client.id, projectId: req.body.projectId }
+        });
+      }
+
       await writeAuditLog(req, 'Update', 'Clients', oldVal, client.toJSON());
-      res.json(client);
+      res.json({ success: true, message: 'Client updated successfully.', client });
     } catch (error) {
       res.status(400).json({ message: 'Error updating client', error: error.message });
     }
   });
 
+  // Delete Client (Super Admin Only)
   app.delete('/api/clients/:id', authenticateToken, requireSuperAdmin, async (req, res) => {
     try {
       const client = await Client.findOne({ where: { id: req.params.id, deletedAt: null } });
@@ -1328,8 +1555,14 @@ function registerRoutes(app, models) {
         deletedBy: req.user.id
       });
 
+      // Also deactivate linked user
+      if (client.userId) {
+        const user = await User.findByPk(client.userId);
+        if (user) await user.update({ status: 'Inactive' });
+      }
+
       await writeAuditLog(req, 'Delete', 'Clients', oldVal, { deletedAt, deletedBy: req.user.id });
-      res.json({ message: 'Client soft-deleted successfully' });
+      res.json({ success: true, message: 'Client soft-deleted successfully' });
     } catch (error) {
       res.status(500).json({ message: 'Error deleting client', error: error.message });
     }
@@ -1352,17 +1585,30 @@ function registerRoutes(app, models) {
       }
 
       if (req.user.role === 'Client') {
-        const client = await Client.findOne({ where: { userId: req.user.id } });
+        const client = await Client.findOne({ where: { userId: req.user.id, deletedAt: null } });
         if (!client) return res.status(200).json({ projects: [] });
-        whereClause.clientId = client.id;
+        const mapped = await ClientProject.findAll({ where: { clientId: client.id } });
+        const mappedProjectIds = mapped.map(cp => cp.projectId);
+        whereClause[Op.or] = [
+          { clientId: client.id },
+          { id: { [Op.in]: mappedProjectIds } }
+        ];
         projects = await Project.findAll({
           where: whereClause,
-          include: ['client', 'architect', 'siteEngineer', 'managingDirector', 'designEngineer', 'supervisor']
+          include: [
+            'client',
+            { model: ProjectPhoto, as: 'photos', attributes: ['id', 'url', 'thumbnailUrl', 'category', 'description', 'createdAt'] },
+            { model: ProjectUpdate, as: 'updates', attributes: ['id', 'progressPercentage', 'message', 'createdAt'] }
+          ]
         });
       } else {
         projects = await Project.findAll({
           where: whereClause,
-          include: ['client', 'architect', 'siteEngineer', 'managingDirector', 'designEngineer', 'supervisor']
+          include: [
+            'client', 'architect', 'siteEngineer', 'managingDirector', 'designEngineer', 'supervisor',
+            { model: ProjectPhoto, as: 'photos', attributes: ['id', 'url', 'thumbnailUrl', 'category', 'description', 'createdAt'] },
+            { model: ProjectUpdate, as: 'updates', attributes: ['id', 'progressPercentage', 'message', 'createdAt'] }
+          ]
         });
       }
       res.json({ projects });
@@ -1374,9 +1620,16 @@ function registerRoutes(app, models) {
   // Get project by ID with full nested stage & payment lifecycle details
   app.get('/api/projects/:id', authenticateToken, async (req, res) => {
     try {
+      const authorized = await isAuthorizedForProject(req.user, req.params.id);
+      if (!authorized) {
+        return res.status(403).json({ message: 'Access denied: You are not authorized to view this project.' });
+      }
+
       const project = await Project.findByPk(req.params.id, {
         include: [
           'client', 'architect', 'siteEngineer', 'managingDirector', 'designEngineer', 'supervisor',
+          { model: ProjectPhoto, as: 'photos' },
+          { model: ProjectUpdate, as: 'updates' },
           {
             model: ProjectStage,
             as: 'stages',
@@ -1393,14 +1646,6 @@ function registerRoutes(app, models) {
       });
 
       if (!project) return res.status(404).json({ message: 'Project not found' });
-      
-      // Gating for Client role
-      if (req.user.role === 'Client') {
-        const client = await Client.findOne({ where: { userId: req.user.id } });
-        if (!client || project.clientId !== client.id) {
-          return res.status(403).json({ message: 'Access denied: This project does not belong to you.' });
-        }
-      }
 
       res.json(project);
     } catch (error) {
@@ -1829,6 +2074,200 @@ function registerRoutes(app, models) {
       res.json({ message: 'Project soft-deleted successfully.' });
     } catch (error) {
       res.status(500).json({ message: 'Error deleting project', error: error.message });
+    }
+  });
+
+  // ==========================================
+  // PROJECT PHOTOS & UPDATES MODULE
+  // ==========================================
+
+  // Upload Project Photos (Management Only)
+  app.post('/api/projects/:id/photos', authenticateToken, publicUpload.any(), async (req, res) => {
+    try {
+      if (req.user.role === 'Client') {
+        return res.status(403).json({ message: 'Access denied: Clients are not permitted to upload photos.' });
+      }
+
+      const project = await Project.findByPk(req.params.id);
+      if (!project) return res.status(404).json({ message: 'Project not found' });
+
+      const category = req.body.category || 'Site Progress';
+      const description = req.body.description || null;
+      const uploadedPhotos = [];
+
+      // 1. Files uploaded via multipart form data
+      if (req.files && req.files.length > 0) {
+        for (const file of req.files) {
+          const uploadRes = await CloudinaryService.uploadProjectPhoto(file.path, file.originalname);
+          const photo = await ProjectPhoto.create({
+            projectId: project.id,
+            url: uploadRes.url,
+            thumbnailUrl: uploadRes.thumbnailUrl,
+            cloudinaryPublicId: uploadRes.publicId,
+            category,
+            description,
+            uploadedBy: req.user.id
+          });
+          uploadedPhotos.push(photo);
+        }
+      }
+
+      // 2. Base64 or URL photos passed via JSON body
+      if (req.body.photos && Array.isArray(req.body.photos)) {
+        for (const p of req.body.photos) {
+          const photoInput = typeof p === 'string' ? p : (p.data || p.url);
+          const photoName = (typeof p === 'object' && p.name) ? p.name : 'photo.jpg';
+          const pCat = (typeof p === 'object' && p.category) ? p.category : category;
+          const pDesc = (typeof p === 'object' && p.description) ? p.description : description;
+
+          const uploadRes = await CloudinaryService.uploadProjectPhoto(photoInput, photoName);
+          const photo = await ProjectPhoto.create({
+            projectId: project.id,
+            url: uploadRes.url,
+            thumbnailUrl: uploadRes.thumbnailUrl,
+            cloudinaryPublicId: uploadRes.publicId,
+            category: pCat,
+            description: pDesc,
+            uploadedBy: req.user.id
+          });
+          uploadedPhotos.push(photo);
+        }
+      } else if (typeof req.body.photo === 'string') {
+        const uploadRes = await CloudinaryService.uploadProjectPhoto(req.body.photo, req.body.fileName || 'photo.jpg');
+        const photo = await ProjectPhoto.create({
+          projectId: project.id,
+          url: uploadRes.url,
+          thumbnailUrl: uploadRes.thumbnailUrl,
+          cloudinaryPublicId: uploadRes.publicId,
+          category,
+          description,
+          uploadedBy: req.user.id
+        });
+        uploadedPhotos.push(photo);
+      }
+
+      if (uploadedPhotos.length === 0) {
+        return res.status(400).json({ message: 'No photos provided for upload.' });
+      }
+
+      await writeAuditLog(req, 'UploadPhotos', 'Projects', null, { projectId: project.id, count: uploadedPhotos.length });
+
+      res.status(201).json({
+        success: true,
+        message: `${uploadedPhotos.length} photo${uploadedPhotos.length > 1 ? 's' : ''} uploaded successfully.`,
+        photos: uploadedPhotos
+      });
+    } catch (err) {
+      console.error('Error uploading project photos:', err);
+      res.status(500).json({ message: 'Error uploading project photos', error: err.message });
+    }
+  });
+
+  // Get Project Photos (Authorized Management & Assigned Client)
+  app.get('/api/projects/:id/photos', authenticateToken, async (req, res) => {
+    try {
+      const authorized = await isAuthorizedForProject(req.user, req.params.id);
+      if (!authorized) {
+        return res.status(403).json({ message: 'Access denied: You are not authorized to view photos for this project.' });
+      }
+
+      const photos = await ProjectPhoto.findAll({
+        where: { projectId: req.params.id },
+        include: [{ model: User, as: 'uploader', attributes: ['id', 'name', 'role'] }],
+        order: [['id', 'DESC']]
+      });
+
+      res.json({ photos });
+    } catch (err) {
+      res.status(500).json({ message: 'Error fetching project photos', error: err.message });
+    }
+  });
+
+  // Delete Project Photo (Management Only)
+  app.delete('/api/projects/:id/photos/:photoId', authenticateToken, async (req, res) => {
+    try {
+      if (req.user.role === 'Client') {
+        return res.status(403).json({ message: 'Access denied: Clients cannot delete project photos.' });
+      }
+
+      const photo = await ProjectPhoto.findOne({
+        where: { id: req.params.photoId, projectId: req.params.id }
+      });
+      if (!photo) return res.status(404).json({ message: 'Photo not found' });
+
+      if (photo.cloudinaryPublicId) {
+        await CloudinaryService.deleteFile(photo.cloudinaryPublicId);
+      }
+
+      const oldVal = { ...photo.toJSON() };
+      await photo.destroy();
+      await writeAuditLog(req, 'DeletePhoto', 'Projects', oldVal, null);
+
+      res.json({ success: true, message: 'Photo deleted successfully.' });
+    } catch (err) {
+      res.status(500).json({ message: 'Error deleting project photo', error: err.message });
+    }
+  });
+
+  // Post Project Update (Management Only)
+  app.post('/api/projects/:id/updates', authenticateToken, async (req, res) => {
+    try {
+      if (req.user.role === 'Client') {
+        return res.status(403).json({ message: 'Access denied: Clients cannot post project updates.' });
+      }
+
+      const project = await Project.findByPk(req.params.id);
+      if (!project) return res.status(404).json({ message: 'Project not found' });
+
+      const { progressPercentage, message, photoUrls } = req.body;
+      if (!message || !message.trim()) {
+        return res.status(400).json({ message: 'Update message is required.' });
+      }
+
+      if (progressPercentage !== undefined && progressPercentage !== null) {
+        const pVal = parseInt(progressPercentage, 10);
+        if (!isNaN(pVal) && pVal >= 0 && pVal <= 100) {
+          await project.update({ progressPercentage: pVal });
+        }
+      }
+
+      const update = await ProjectUpdate.create({
+        projectId: project.id,
+        progressPercentage: progressPercentage !== undefined ? parseInt(progressPercentage, 10) : project.progressPercentage,
+        message: message.trim(),
+        photoUrls: Array.isArray(photoUrls) ? JSON.stringify(photoUrls) : (photoUrls || null),
+        createdBy: req.user.id
+      });
+
+      await writeAuditLog(req, 'CreateUpdate', 'Projects', null, update.toJSON());
+
+      res.status(201).json({
+        success: true,
+        message: 'Project update posted successfully.',
+        update
+      });
+    } catch (err) {
+      res.status(500).json({ message: 'Error creating project update', error: err.message });
+    }
+  });
+
+  // Get Project Updates (Authorized Management & Assigned Client)
+  app.get('/api/projects/:id/updates', authenticateToken, async (req, res) => {
+    try {
+      const authorized = await isAuthorizedForProject(req.user, req.params.id);
+      if (!authorized) {
+        return res.status(403).json({ message: 'Access denied: You are not authorized to view updates for this project.' });
+      }
+
+      const updates = await ProjectUpdate.findAll({
+        where: { projectId: req.params.id },
+        include: [{ model: User, as: 'creator', attributes: ['id', 'name', 'role'] }],
+        order: [['id', 'DESC']]
+      });
+
+      res.json({ updates });
+    } catch (err) {
+      res.status(500).json({ message: 'Error fetching project updates', error: err.message });
     }
   });
 
