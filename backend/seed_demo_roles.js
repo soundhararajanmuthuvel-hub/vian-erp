@@ -4,6 +4,39 @@ const { connectDB, getSequelize } = require('./database/db');
 const { Op } = require('sequelize');
 
 const demoUsers = [
+  // Core Executive Logins
+  {
+    employeeId: 'VIAN-MD-01',
+    username: 'anand',
+    email: 'anand@vianarchitects.com',
+    name: 'Ar. Anand Sathiesivam',
+    role: 'Managing Director',
+    department: 'Executive',
+    designation: 'Managing Director',
+    password: 'anand123'
+  },
+  {
+    employeeId: 'VIAN-MD-02',
+    username: 'vijay',
+    email: 'vijay@vianarchitects.com',
+    name: 'Ar. Vijay Vinthan',
+    role: 'Managing Director',
+    department: 'Executive',
+    designation: 'Managing Director',
+    password: 'vijay123'
+  },
+  {
+    employeeId: 'VIAN-CLT-01',
+    username: 'client',
+    email: 'client@example.com',
+    name: 'Amit Bajaj',
+    role: 'Client',
+    department: 'External',
+    designation: 'Property Owner',
+    password: 'client123'
+  },
+
+  // Role Showcase Demo Accounts
   {
     employeeId: 'DEMO-SA-01',
     username: 'demo_superadmin',
@@ -84,20 +117,24 @@ async function seedDemoRoles() {
   const isProduction = process.env.NODE_ENV === 'production';
   const explicitlyEnabled = process.env.SEED_DEMO === 'true';
 
-  if (isProduction && !explicitlyEnabled) {
-    console.log('Production environment detected: Skipping demo role seeding to protect production data.');
-    return;
-  }
-
   const sequelize = await connectDB();
   await sequelize.sync({ force: false });
   const { User } = initModels();
 
-  const salt = await bcrypt.genSalt(10);
-  const passwordHash = await bcrypt.hash(DEMO_PASSWORD, salt);
+  const userCount = await User.count();
+  if (isProduction && !explicitlyEnabled && userCount > 0) {
+    console.log(`Production environment detected with ${userCount} existing users: Skipping demo role seeding to protect production data.`);
+    return;
+  }
 
-  console.log('Seeding Demo Role Accounts...');
+  const salt = await bcrypt.genSalt(10);
+  const defaultPasswordHash = await bcrypt.hash(DEMO_PASSWORD, salt);
+
+  console.log('Seeding Demo Role & Core Executive Accounts...');
   for (const u of demoUsers) {
+    const rawPass = u.password || DEMO_PASSWORD;
+    const passwordHash = u.password ? await bcrypt.hash(u.password, salt) : defaultPasswordHash;
+
     let userRecord = await User.findOne({
       where: {
         [Op.or]: [{ email: u.email }, { username: u.username }]
@@ -105,7 +142,7 @@ async function seedDemoRoles() {
     });
 
     if (userRecord) {
-      // In development, update user details without destroying custom passwords
+      // In development or when requested, update user details without destroying custom passwords
       const updateData = {
         employeeId: u.employeeId,
         name: u.name,
@@ -114,12 +151,12 @@ async function seedDemoRoles() {
         designation: u.designation,
         status: 'Active'
       };
-      // Only set demo password if explicitly requested
+      // Only reset password if explicitly requested
       if (!isProduction && process.env.FORCE_RESET_DEMO_PASSWORDS === 'true') {
         updateData.passwordHash = passwordHash;
       }
       await userRecord.update(updateData);
-      console.log(`Verified existing demo account: ${u.email} (${u.role})`);
+      console.log(`Verified existing account: ${u.username} / ${u.email} (${u.role})`);
     } else {
       userRecord = await User.create({
         employeeId: u.employeeId,
@@ -133,11 +170,11 @@ async function seedDemoRoles() {
         joiningDate: new Date().toISOString().split('T')[0],
         status: 'Active'
       });
-      console.log(`Created new demo account: ${u.email} (${u.role})`);
+      console.log(`Created new account: ${u.username} / ${u.email} (${u.role})`);
     }
   }
 
-  console.log('Demo role accounts seeding completed successfully.');
+  console.log('Demo role & core accounts seeding completed successfully.');
 }
 
 if (require.main === module) {

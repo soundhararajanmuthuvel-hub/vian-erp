@@ -69,7 +69,7 @@ class ApiService {
             headers: {'Content-Type': 'application/json'},
             body: json.encode({'username': username, 'password': password}),
           )
-          .timeout(const Duration(seconds: 4));
+          .timeout(const Duration(seconds: 15));
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);

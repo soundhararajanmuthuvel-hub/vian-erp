@@ -4,6 +4,7 @@ const compression = require('compression');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const bcrypt = require('bcryptjs');
+const { Op, Sequelize } = require('sequelize');
 const { connectDB } = require('./database/db');
 const { initModels } = require('./database/models');
 const registerRoutes = require('./routes');
@@ -480,12 +481,32 @@ async function startServer() {
     }
     console.log('Database tables verified and synchronized.');
     
-    // 4. Seed Default Roles and Accounts (Safely disabled in production unless explicitly requested)
-    if (!isProduction || process.env.SEED_DEMO === 'true') {
-      await seedDatabase(models, shouldSeed);
+    // 4. Seed Default Roles and Accounts (Ensure base system and executive accounts exist)
+    const userCount = await models.User.count();
+    if (userCount === 0 || !isProduction || process.env.SEED_DEMO === 'true') {
+      console.log(`Database initialization: user count is ${userCount}. Ensuring essential accounts and seed data...`);
+      await seedDatabase(models, shouldSeed, sequelizeInstance);
       await seedContractorData(models);
+
+      // Realign sequences for PostgreSQL if needed
+      if (sequelizeInstance.options && sequelizeInstance.options.dialect === 'postgres') {
+        try {
+          const [tableRows] = await sequelizeInstance.query(
+            "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_type = 'BASE TABLE';"
+          );
+          for (const row of tableRows) {
+            const tableName = row.table_name || row.TABLE_NAME;
+            await sequelizeInstance.query(
+              `SELECT setval(pg_get_serial_sequence('"${tableName}"', 'id'), coalesce(max(id), 1), max(id) IS NOT null) FROM "${tableName}";`
+            ).catch(() => {});
+          }
+          console.log('PostgreSQL sequences realigned successfully.');
+        } catch (seqErr) {
+          console.warn('Sequence realignment notice:', seqErr.message);
+        }
+      }
     } else {
-      console.log('Production environment: skipping demo role account seeding.');
+      console.log(`Production environment: ${userCount} existing users found. Preserving all accounts.`);
     }
 
     // Update existing projects with default latitude/longitude if null
@@ -597,23 +618,30 @@ async function seedDatabase(models, force = false) {
   } = models;
   
   try {
-    const userCount = await User.count();
-    if (userCount > 0 && !force) {
-      console.log('Database already has users. Skipping seeding.');
+    const anandExists = await User.findOne({
+      where: {
+        [Op.or]: [{ username: 'anand' }, { email: 'anand@vianarchitects.com' }]
+      }
+    });
+
+    if (anandExists && !force) {
+      console.log('Core system users already exist. Skipping seeding.');
       return;
     }
 
     console.log('Seeding rich, comprehensive system & demo data...');
 
-    // Create Company Settings
-    await CompanySettings.create({
-      id: 1,
-      companyName: 'VIAN Architects & Interior Designers',
-      address: 'Plot 42, Galleria Commercial Complex, Phase V, Sector 43, Gurugram, India',
-      gst: '07AAAAA1111A1Z1',
-      email: 'office@vianarchitects.com',
-      phone: '+91 124 4567890'
-    });
+    // Create Company Settings if not existing
+    const companySettingsCount = await CompanySettings.count();
+    if (companySettingsCount === 0) {
+      await CompanySettings.create({
+        companyName: 'VIAN Architects & Interior Designers',
+        address: 'Plot 42, Galleria Commercial Complex, Phase V, Sector 43, Gurugram, India',
+        gst: '07AAAAA1111A1Z1',
+        email: 'office@vianarchitects.com',
+        phone: '+91 124 4567890'
+      });
+    }
 
     const defaultUsers = [
       // Managing Directors
@@ -662,22 +690,28 @@ async function seedDatabase(models, force = false) {
 
     const userInstances = {};
     for (const u of defaultUsers) {
-      const salt = await bcrypt.genSalt(10);
-      const hash = await bcrypt.hash(u.rawPass, salt);
-      
-      const createdUser = await User.create({
-        employeeId: u.employeeId,
-        username: u.username,
-        passwordHash: hash,
-        name: u.name,
-        email: u.email,
-        role: u.role,
-        department: u.dept,
-        designation: u.desig,
-        joiningDate: new Date().toISOString().split('T')[0],
-        status: 'Active'
+      let userRecord = await User.findOne({
+        where: {
+          [Op.or]: [{ username: u.username }, { email: u.email }]
+        }
       });
-      userInstances[u.username] = createdUser;
+      if (!userRecord) {
+        const salt = await bcrypt.genSalt(10);
+        const hash = await bcrypt.hash(u.rawPass, salt);
+        userRecord = await User.create({
+          employeeId: u.employeeId,
+          username: u.username,
+          passwordHash: hash,
+          name: u.name,
+          email: u.email,
+          role: u.role,
+          department: u.dept,
+          designation: u.desig,
+          joiningDate: new Date().toISOString().split('T')[0],
+          status: 'Active'
+        });
+      }
+      userInstances[u.username] = userRecord;
     }
 
     // 1. Seed Clients

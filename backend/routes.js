@@ -1,7 +1,7 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
-const { Op } = require('sequelize');
+const { Op, Sequelize } = require('sequelize');
 const fs = require('fs');
 const path = require('path');
 const multer = require('multer');
@@ -183,15 +183,25 @@ function registerRoutes(app, models) {
   });
 
   app.post('/api/auth/login', async (req, res) => {
-    const { username, password } = req.body;
-    if (!username || !password) {
+    const rawUsername = req.body.username;
+    const rawPassword = req.body.password;
+    if (!rawUsername || !rawPassword) {
       return res.status(400).json({ message: 'Username and password required' });
     }
+
+    const username = String(rawUsername).trim();
+    const password = String(rawPassword);
 
     try {
       const user = await User.findOne({
         where: {
-          [Op.or]: [{ username }, { email: username }]
+          [Op.or]: [
+            Sequelize.where(Sequelize.fn('LOWER', Sequelize.col('username')), username.toLowerCase()),
+            Sequelize.where(Sequelize.fn('LOWER', Sequelize.col('email')), username.toLowerCase()),
+            { employeeId: username },
+            { username: username },
+            { email: username }
+          ]
         }
       });
       if (!user) {
@@ -202,7 +212,10 @@ function registerRoutes(app, models) {
         return res.status(403).json({ message: 'Account is deactivated' });
       }
 
-      const validPassword = await bcrypt.compare(password, user.passwordHash);
+      let validPassword = await bcrypt.compare(password, user.passwordHash);
+      if (!validPassword && password !== password.trim()) {
+        validPassword = await bcrypt.compare(password.trim(), user.passwordHash);
+      }
       if (!validPassword) {
         return res.status(401).json({ message: 'Invalid credentials' });
       }
