@@ -82,7 +82,7 @@ const DEMO_PASSWORD = 'Demo@12345';
 
 async function seedDemoRoles() {
   const sequelize = await connectDB();
-  await sequelize.sync();
+  await sequelize.sync({ force: false });
   const { User } = initModels();
 
   const salt = await bcrypt.genSalt(10);

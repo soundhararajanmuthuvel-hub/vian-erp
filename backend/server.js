@@ -15,12 +15,12 @@ const app = express();
 
 const envCors = process.env.CORS_ORIGINS ? process.env.CORS_ORIGINS.split(',').map(s => s.trim()).filter(Boolean) : [];
 const allowedOrigins = [
-  'https://vian-erp.pages.dev',
-  'https://vianerp.netlify.app',
   'http://localhost:5050',
   'http://localhost:3000',
+  'http://localhost:8080',
   'http://127.0.0.1:5050',
   'http://127.0.0.1:3000',
+  'http://127.0.0.1:8080',
   ...envCors
 ];
 
@@ -30,16 +30,19 @@ app.use(cors({
     if (allowedOrigins.indexOf(origin) !== -1) {
       return callback(null, true);
     }
-    if (origin.startsWith('http://localhost') || origin.startsWith('http://127.0.0.1')) {
+    if (origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:')) {
       return callback(null, true);
     }
-    const isCloudflarePages = /^https:\/\/([a-zA-Z0-9-]+\.)*vian-erp\.pages\.dev$/.test(origin);
-    if (isCloudflarePages) {
+    // Allow any Vercel production or preview deployment (*.vercel.app)
+    const isVercel = /^https:\/\/([a-zA-Z0-9-]+\.)*vercel\.app$/.test(origin);
+    if (isVercel) {
       return callback(null, true);
     }
     return callback(new Error('The CORS policy for this site does not allow access from the specified Origin.'), false);
   },
-  credentials: true
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With']
 }));
 
 app.use(helmet({
@@ -322,24 +325,28 @@ async function startServer() {
     // Run auto-migrations for missing columns before synchronizing tables
     await runMigrations(sequelizeInstance);
     
-    // 3. Sync Models
-    const shouldSeed = process.argv.includes('--seed') || process.env.SEED_DEMO === 'true';
+    // 3. Sync Models safely (NEVER force:true or DROP in production)
+    const isProduction = process.env.NODE_ENV === 'production';
+    const shouldSeed = !isProduction && (process.argv.includes('--seed') || process.env.SEED_DEMO === 'true');
+
     if (shouldSeed) {
-      console.log('Force syncing database tables for seeding demo data...');
+      console.log('Force syncing database tables for seeding demo data (DEV ONLY)...');
       await sequelizeInstance.sync({ force: true });
     } else {
-      // Drop empty contractors table so it recreates with the new contractorId column in SQLite
-      try {
-        const [results] = await sequelizeInstance.query("SELECT count(*) as count FROM sqlite_master WHERE type='table' AND name='contractors';");
-        if (results && results[0] && results[0].count > 0) {
-          const [countRes] = await sequelizeInstance.query("SELECT COUNT(*) as count FROM contractors;");
-          if (countRes && countRes[0] && countRes[0].count === 0) {
-            console.log('Contractors table is empty. Dropping to recreate with new schema...');
-            await sequelizeInstance.query("DROP TABLE IF EXISTS contractors;");
+      if (!isProduction && sequelizeInstance.options.dialect === 'sqlite') {
+        // Drop empty contractors table so it recreates with the new contractorId column in SQLite DEV
+        try {
+          const [results] = await sequelizeInstance.query("SELECT count(*) as count FROM sqlite_master WHERE type='table' AND name='contractors';");
+          if (results && results[0] && results[0].count > 0) {
+            const [countRes] = await sequelizeInstance.query("SELECT COUNT(*) as count FROM contractors;");
+            if (countRes && countRes[0] && countRes[0].count === 0) {
+              console.log('Contractors table is empty. Dropping to recreate with new schema (DEV SQLite)...');
+              await sequelizeInstance.query("DROP TABLE IF EXISTS contractors;");
+            }
           }
+        } catch (e) {
+          console.warn('Could not drop/check contractors table, proceeding with sync:', e.message);
         }
-      } catch (e) {
-        console.warn('Could not drop/check contractors table, proceeding with sync:', e.message);
       }
       await sequelizeInstance.sync({ force: false });
     }
@@ -370,10 +377,45 @@ async function startServer() {
       console.warn('Failed to update project geofence defaults:', e.message);
     }
 
-    // 5. Register Routes
+    // 5. Register Health Checks BEFORE API 404 handler
+    app.get('/', async (req, res) => {
+      let dbStatus = 'disconnected';
+      try {
+        await sequelizeInstance.authenticate();
+        dbStatus = 'connected';
+      } catch (e) {
+        dbStatus = 'disconnected';
+      }
+      res.json({
+        status: "ok",
+        service: "VIAN ERP API Server",
+        database: dbStatus,
+        environment: process.env.NODE_ENV || 'development',
+        timestamp: new Date().toISOString()
+      });
+    });
+
+    app.get('/api/health', async (req, res) => {
+      let dbStatus = 'disconnected';
+      try {
+        await sequelizeInstance.authenticate();
+        dbStatus = 'connected';
+      } catch (e) {
+        dbStatus = 'disconnected';
+      }
+      const isHealthy = dbStatus === 'connected';
+      res.status(isHealthy ? 200 : 503).json({
+        status: isHealthy ? "ok" : "error",
+        database: dbStatus,
+        environment: process.env.NODE_ENV || 'development',
+        timestamp: new Date().toISOString()
+      });
+    });
+
+    // 6. Register Routes
     registerRoutes(app, models);
 
-    // Global 404 API handler
+    // Global 404 API handler (must come AFTER routes & health checks)
     app.use('/api', (req, res) => {
       res.status(404).json({
         success: false,
@@ -387,38 +429,6 @@ async function startServer() {
       res.status(err.status || 500).json({
         success: false,
         message: err.message || 'Internal Server Error'
-      });
-    });
-
-    // 5. Register Health Checks
-    app.get('/', async (req, res) => {
-      let dbStatus = 'disconnected';
-      try {
-        await sequelizeInstance.authenticate();
-        dbStatus = 'connected';
-      } catch (e) {
-        dbStatus = 'disconnected';
-      }
-      res.json({
-        status: "online",
-        version: "1.0",
-        database: dbStatus
-      });
-    });
-
-    app.get('/api/health', async (req, res) => {
-      let dbStatus = 'disconnected';
-      try {
-        await sequelizeInstance.authenticate();
-        dbStatus = 'connected';
-      } catch (e) {
-        dbStatus = 'disconnected';
-      }
-      res.json({
-        status: true,
-        server: "running",
-        database: dbStatus,
-        timestamp: new Date().toISOString()
       });
     });
 

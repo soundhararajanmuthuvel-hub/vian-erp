@@ -97,7 +97,12 @@ class ApiService {
     } catch (e) {
       debugPrint("Server login connection error: $e");
       const bool enableDemoLogin = bool.fromEnvironment('ENABLE_DEMO_LOGIN', defaultValue: false);
-      if (kDebugMode || enableDemoLogin) {
+      const String environment = String.fromEnvironment('ENVIRONMENT', defaultValue: 'development');
+      final bool isProduction = environment.toLowerCase() == 'production' ||
+          environment.toLowerCase() == 'prod' ||
+          kReleaseMode;
+
+      if (!isProduction && (kDebugMode || enableDemoLogin)) {
         debugPrint("Falling back to local offline simulation mode (DEV ONLY).");
         return _mockLogin(username, password);
       }

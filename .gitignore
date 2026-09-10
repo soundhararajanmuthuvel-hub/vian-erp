@@ -12,6 +12,8 @@ tmp
 *.sqlite
 backend/database/vian_architects.sqlite
 backend/database/backups/*.json
+backend/uploads/
+uploads/
 
 # Dependency directories
 node_modules/

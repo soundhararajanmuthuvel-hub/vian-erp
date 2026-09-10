@@ -1,7 +1,13 @@
 const { Sequelize } = require('sequelize');
 const path = require('path');
 const fs = require('fs');
+
+// Load environment variables from current directory or backend/.env
 require('dotenv').config();
+const backendEnvPath = path.join(__dirname, '../.env');
+if (fs.existsSync(backendEnvPath)) {
+  require('dotenv').config({ path: backendEnvPath });
+}
 
 let sequelize;
 const useFallback = process.env.NODE_ENV !== 'production' && process.env.AUTO_FALLBACK_SQLITE === 'true';
@@ -19,10 +25,16 @@ const caCertString = process.env.DB_CA_CERT || process.env.AIVEN_CA_CERT;
 
 let sslConfig = null;
 if (dbSsl || caCertPath || caCertString) {
+  // If CA certificate is provided, strictly enforce rejectUnauthorized: true.
+  // For cloud-managed multi-tenant Aiven endpoints without uploaded CA cert, default to false unless DB_SSL_REJECT_UNAUTHORIZED is explicitly true.
+  const hasCa = !!(caCertString || (caCertPath && fs.existsSync(caCertPath)));
+  const rejectUnauthorized = process.env.DB_SSL_REJECT_UNAUTHORIZED === 'true' ? true : (hasCa ? true : false);
+
   sslConfig = {
     require: true,
-    rejectUnauthorized: false
+    rejectUnauthorized: rejectUnauthorized
   };
+
   if (caCertString) {
     sslConfig.ca = caCertString;
   } else if (caCertPath && fs.existsSync(caCertPath)) {

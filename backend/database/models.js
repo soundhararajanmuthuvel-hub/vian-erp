@@ -2,8 +2,8 @@ const { DataTypes } = require('sequelize');
 const { getSequelize } = require('./db');
 
 // Function to initialize models and set up relations
-function initModels() {
-  const sequelize = getSequelize();
+function initModels(customSequelize) {
+  const sequelize = customSequelize || getSequelize();
 
   // 1. User Model
   const User = sequelize.define('User', {

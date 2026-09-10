@@ -12,9 +12,10 @@ class ApiConstants {
     }
     if (kIsWeb) {
       final String origin = Uri.base.origin;
-      if (origin.contains('localhost') ||
-          origin.contains('127.0.0.1') ||
-          origin.contains('onrender.com')) {
+      if (origin.contains('localhost') || origin.contains('127.0.0.1')) {
+        return localBaseUrl;
+      }
+      if (origin.contains('onrender.com')) {
         return '$origin/api';
       }
     }

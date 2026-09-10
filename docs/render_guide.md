@@ -31,9 +31,9 @@ This guide outlines how to deploy the VIAN ERP backend on **Render** (as a Web S
 1. **Create Web Service on Render**:
    - Go to [Render Dashboard](https://dashboard.render.com/) -> **New** -> **Web Service**.
    - Connect repository: `soundhararajanmuthuvel-hub/vian-erp`.
-   - **Root Directory**: Leave blank (uses root `package.json` and `render.yaml`).
+   - **Root Directory**: `backend` (defined in `render.yaml`)
    - **Environment**: `Node`
-   - **Build Command**: `npm install`
+   - **Build Command**: `npm ci`
    - **Start Command**: `npm start`
    - **Health Check Path**: `/api/health`
 
@@ -58,13 +58,13 @@ This guide outlines how to deploy the VIAN ERP backend on **Render** (as a Web S
    | `CLOUDINARY_API_KEY` | `<your-cloudinary-api-key>` |
    | `CLOUDINARY_API_SECRET` | `<your-cloudinary-api-secret>` |
    | `GEMINI_API_KEY` | `<your-google-gemini-api-key>` |
-   | `CORS_ORIGINS` | `https://vian-erp.pages.dev` |
+   | `CORS_ORIGINS` | `https://<your-project>.vercel.app,https://vianarchitects.com` |
 
 ---
 
-## 3. Frontend Pointing to Render
+## 3. Vercel Frontend Pointing to Render
 
-When building Flutter Web for production or configuring Cloudflare Pages build environment variables:
+When deploying the Flutter Web frontend to Vercel, set the environment variable or build flag:
 
 ```bash
 --dart-define=API_URL=https://<your-render-service>.onrender.com/api
@@ -78,10 +78,8 @@ Response:
 ```json
 {
   "status": "ok",
-  "service": "VIAN ERP API Server",
-  "server": "running",
   "database": "connected",
-  "latencyMs": 28,
-  "environment": "production"
+  "environment": "production",
+  "timestamp": "2026-09-10T13:15:00.000Z"
 }
 ```

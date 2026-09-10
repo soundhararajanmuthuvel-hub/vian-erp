@@ -37,11 +37,12 @@ vian-erp/
 
 ## Architecture Stack
 
-- **Frontend**: Flutter Web (Material 3 luxury dark/gold aesthetics, Google Fonts Outfit)
-- **Backend**: Node.js + Express
-- **Database**: Aiven MySQL (Production) / SQLite (Fallback Developer Mode)
-- **Deployment Targets**: Cloudflare Pages (Frontend), Render (Backend Web Service)
-- **Storage**: Cloudinary (Attachments & conceptual design sketches)
+- **Frontend**: Vercel (Flutter Web SPA with Material 3 luxury dark/gold design, Google Fonts Outfit)
+- **Backend**: Render Web Service (Node.js + Express + Sequelize)
+- **Database**: Aiven MySQL (TLS/SSL Enforced in Production) / SQLite (Fallback Developer Mode)
+- **Storage**: Cloudinary (Floor plans, drawing attachments & documents)
+- **AI Engine**: Google Gemini (Automated floor plan detection & civil quantity estimations)
+- **CI/CD**: GitHub Actions
 
 ---
 
@@ -50,7 +51,6 @@ vian-erp/
 For detailed production deployment steps, please refer to our documentation in the `docs` folder:
 
 - 📖 **[Main Deployment Guide](docs/deployment_guide.md)**
-- 🧡 **[Cloudflare Pages Deploy Guide](docs/deployment/cloudflare-pages.md)**
 - 🚀 **[Render & Aiven Backend Deploy Guide](docs/render_guide.md)**
 - 🔑 **[Environment Variables Setup](docs/environment_variables.md)**
 

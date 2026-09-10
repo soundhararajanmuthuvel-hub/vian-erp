@@ -1,4 +1,6 @@
 const http = require('http');
+const { spawn } = require('child_process');
+const path = require('path');
 
 function apiRequest(options, postData = null) {
   return new Promise((resolve, reject) => {
@@ -20,6 +22,48 @@ function apiRequest(options, postData = null) {
     }
     req.end();
   });
+}
+
+async function isServerRunning() {
+  try {
+    const res = await apiRequest({
+      hostname: 'localhost',
+      port: 5050,
+      path: '/api/health',
+      method: 'GET',
+      timeout: 1000
+    });
+    return res.status === 200;
+  } catch (e) {
+    return false;
+  }
+}
+
+async function ensureServer() {
+  if (await isServerRunning()) {
+    console.log('Detected active VIAN ERP server on port 5050. Running tests against live instance.');
+    return null;
+  }
+
+  console.log('No server active on port 5050. Starting background server instance for tests...');
+  const serverProcess = spawn('node', ['server.js'], {
+    cwd: __dirname,
+    env: { ...process.env, PORT: '5050', AUTO_FALLBACK_SQLITE: 'true', NODE_ENV: 'test' },
+    stdio: 'ignore'
+  });
+
+  // Wait for server to become healthy
+  const maxAttempts = 30;
+  for (let i = 0; i < maxAttempts; i++) {
+    await new Promise(r => setTimeout(r, 500));
+    if (await isServerRunning()) {
+      console.log('Test server instance initialized and healthy.\n');
+      return serverProcess;
+    }
+  }
+
+  serverProcess.kill();
+  throw new Error('Timed out waiting for test server to start.');
 }
 
 async function runTests() {
@@ -241,7 +285,20 @@ async function runTests() {
   console.log('\nAll VIAN ERP Backend Functional Tests & Role Auth Passed Successfully!\n');
 }
 
-runTests().catch(err => {
-  console.error('Backend test failure:', err);
-  process.exit(1);
-});
+async function main() {
+  let serverProcess = null;
+  try {
+    serverProcess = await ensureServer();
+    await runTests();
+  } catch (err) {
+    console.error('Backend test failure:', err);
+    process.exitCode = 1;
+  } finally {
+    if (serverProcess) {
+      console.log('Stopping test server instance...');
+      serverProcess.kill();
+    }
+  }
+}
+
+main();

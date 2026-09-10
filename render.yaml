@@ -4,7 +4,8 @@ services:
     env: node
     plan: starter
     region: oregon
-    buildCommand: npm install
+    rootDir: backend
+    buildCommand: npm ci
     startCommand: npm start
     healthCheckPath: /api/health
     autoDeploy: true
@@ -13,7 +14,21 @@ services:
         value: production
       - key: PORT
         value: 10000
+      - key: HOST
+        value: 0.0.0.0
       - key: DB_SSL
         value: "true"
       - key: AUTO_FALLBACK_SQLITE
         value: "false"
+      # Production secrets to be configured in Render Dashboard:
+      # - DB_HOST
+      # - DB_PORT
+      # - DB_NAME
+      # - DB_USER
+      # - DB_PASSWORD
+      # - JWT_SECRET
+      # - CLOUDINARY_CLOUD_NAME
+      # - CLOUDINARY_API_KEY
+      # - CLOUDINARY_API_SECRET
+      # - GEMINI_API_KEY
+      # - CORS_ORIGINS
