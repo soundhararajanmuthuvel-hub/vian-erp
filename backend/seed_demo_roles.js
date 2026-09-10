@@ -81,6 +81,14 @@ const demoUsers = [
 const DEMO_PASSWORD = 'Demo@12345';
 
 async function seedDemoRoles() {
+  const isProduction = process.env.NODE_ENV === 'production';
+  const explicitlyEnabled = process.env.SEED_DEMO === 'true';
+
+  if (isProduction && !explicitlyEnabled) {
+    console.log('Production environment detected: Skipping demo role seeding to protect production data.');
+    return;
+  }
+
   const sequelize = await connectDB();
   await sequelize.sync({ force: false });
   const { User } = initModels();
@@ -97,18 +105,21 @@ async function seedDemoRoles() {
     });
 
     if (userRecord) {
-      await userRecord.update({
+      // In development, update user details without destroying custom passwords
+      const updateData = {
         employeeId: u.employeeId,
-        username: u.username,
-        passwordHash,
         name: u.name,
-        email: u.email,
         role: u.role,
         department: u.department,
         designation: u.designation,
         status: 'Active'
-      });
-      console.log(`Updated existing demo account: ${u.email} (${u.role})`);
+      };
+      // Only set demo password if explicitly requested
+      if (!isProduction && process.env.FORCE_RESET_DEMO_PASSWORDS === 'true') {
+        updateData.passwordHash = passwordHash;
+      }
+      await userRecord.update(updateData);
+      console.log(`Verified existing demo account: ${u.email} (${u.role})`);
     } else {
       userRecord = await User.create({
         employeeId: u.employeeId,

@@ -9,8 +9,8 @@ if (fs.existsSync(backendEnvPath)) {
   require('dotenv').config({ path: backendEnvPath });
 }
 
-let sequelize;
-const useFallback = process.env.NODE_ENV !== 'production' && process.env.AUTO_FALLBACK_SQLITE === 'true';
+const isProduction = process.env.NODE_ENV === 'production';
+const useFallback = !isProduction || process.env.AUTO_FALLBACK_SQLITE === 'true';
 const sqlitePath = path.join(__dirname, 'vian_architects.sqlite');
 
 const databaseUrl = process.env.DATABASE_URL;
@@ -19,38 +19,56 @@ const dbPort = process.env.DB_PORT;
 const dbUser = process.env.DB_USER;
 const dbPass = process.env.DB_PASSWORD || process.env.DB_PASS || '';
 const dbName = process.env.DB_NAME;
-const dbSsl = process.env.DB_SSL === 'true' || process.env.MYSQL_SSL === 'true';
-const caCertPath = process.env.DB_CA_CERT_PATH || process.env.AIVEN_CA_CERT_PATH;
-const caCertString = process.env.DB_CA_CERT || process.env.AIVEN_CA_CERT;
 
-let sslConfig = null;
-if (dbSsl || caCertPath || caCertString) {
-  // If CA certificate is provided, strictly enforce rejectUnauthorized: true.
-  // For cloud-managed multi-tenant Aiven endpoints without uploaded CA cert, default to false unless DB_SSL_REJECT_UNAUTHORIZED is explicitly true.
-  const hasCa = !!(caCertString || (caCertPath && fs.existsSync(caCertPath)));
-  const rejectUnauthorized = process.env.DB_SSL_REJECT_UNAUTHORIZED === 'true' ? true : (hasCa ? true : false);
+// Determine dialect: default to postgres in production or when URL starts with postgres
+let activeDialect = 'postgres';
+if (databaseUrl) {
+  if (databaseUrl.startsWith('mysql://')) {
+    activeDialect = 'mysql';
+  } else if (databaseUrl.startsWith('sqlite:')) {
+    activeDialect = 'sqlite';
+  } else {
+    activeDialect = 'postgres';
+  }
+} else if (dbHost && dbPort && dbUser && dbName) {
+  // If explicitly specified by components
+  activeDialect = process.env.DB_DIALECT || (dbPort === '5432' ? 'postgres' : 'mysql');
+} else {
+  activeDialect = 'sqlite';
+}
 
-  sslConfig = {
-    require: true,
-    rejectUnauthorized: rejectUnauthorized
-  };
+// SSL Configuration for Render Managed PostgreSQL / cloud databases
+let dialectOptions = {};
+const disableSsl = process.env.DB_SSL === 'false' || process.env.PGSSLMODE === 'disable';
 
-  if (caCertString) {
-    sslConfig.ca = caCertString;
-  } else if (caCertPath && fs.existsSync(caCertPath)) {
-    sslConfig.ca = fs.readFileSync(caCertPath).toString();
+if (activeDialect === 'postgres') {
+  if (!disableSsl && (isProduction || databaseUrl)) {
+    dialectOptions = {
+      ssl: {
+        require: true,
+        rejectUnauthorized: process.env.DB_SSL_REJECT_UNAUTHORIZED === 'true'
+      }
+    };
+  }
+} else if (activeDialect === 'mysql') {
+  const dbSsl = process.env.DB_SSL === 'true' || process.env.MYSQL_SSL === 'true';
+  if (dbSsl) {
+    dialectOptions = {
+      ssl: {
+        require: true,
+        rejectUnauthorized: process.env.DB_SSL_REJECT_UNAUTHORIZED === 'true'
+      }
+    };
   }
 }
 
-const dialectOptions = sslConfig ? { ssl: sslConfig } : {};
-
-const hasUrl = !!databaseUrl;
+const hasUrl = !!databaseUrl && !databaseUrl.startsWith('sqlite:');
 const hasComponents = !!(dbHost && dbPort && dbUser && dbName);
 
 if (hasUrl) {
-  console.log('Initializing Sequelize with DATABASE_URL connection string...');
+  console.log(`Initializing Sequelize with DATABASE_URL (${activeDialect})...`);
   sequelize = new Sequelize(databaseUrl, {
-    dialect: 'mysql',
+    dialect: activeDialect,
     logging: false,
     dialectOptions,
     pool: {
@@ -61,11 +79,11 @@ if (hasUrl) {
     }
   });
 } else if (hasComponents) {
-  console.log(`Initializing Sequelize with MySQL host ${dbHost}:${dbPort}...`);
+  console.log(`Initializing Sequelize with ${activeDialect} host ${dbHost}:${dbPort}...`);
   sequelize = new Sequelize(dbName, dbUser, dbPass, {
     host: dbHost,
     port: parseInt(dbPort, 10),
-    dialect: 'mysql',
+    dialect: activeDialect,
     logging: false,
     dialectOptions,
     pool: {
@@ -76,7 +94,7 @@ if (hasUrl) {
     }
   });
 } else if (useFallback) {
-  console.log('No MySQL environment variables found. Initializing with local SQLite database...');
+  console.log('No PostgreSQL DATABASE_URL found. Initializing with local SQLite development database...');
   const dbDir = path.dirname(sqlitePath);
   if (!fs.existsSync(dbDir)) {
     fs.mkdirSync(dbDir, { recursive: true });
@@ -88,8 +106,8 @@ if (hasUrl) {
   });
 } else {
   console.error('FATAL DATABASE CONFIGURATION ERROR:');
-  console.error('MySQL database credentials are not configured, and SQLite fallback is disabled.');
-  console.error('Please configure DATABASE_URL or (DB_HOST, DB_PORT, DB_NAME, DB_USER, and DB_PASSWORD) in your environment.');
+  console.error('Production database credentials (DATABASE_URL) are not configured, and SQLite fallback is disabled in production.');
+  console.error('Please configure DATABASE_URL in your Render environment.');
   process.exit(1);
 }
 
@@ -97,14 +115,17 @@ if (hasUrl) {
 async function connectDB() {
   try {
     await sequelize.authenticate();
-    if (sequelize.options.dialect === 'mysql') {
+    const currentDialect = sequelize.options.dialect;
+    if (currentDialect === 'postgres') {
+      console.log('Successfully connected to Render PostgreSQL database.');
+    } else if (currentDialect === 'mysql') {
       console.log('Successfully connected to MySQL database.');
     } else {
       console.log(`Successfully connected to SQLite database at ${sqlitePath}`);
     }
   } catch (error) {
-    if (sequelize.options.dialect === 'mysql' && useFallback) {
-      console.warn('MySQL connection failed. Falling back to local SQLite database...');
+    if (sequelize.options.dialect !== 'sqlite' && useFallback) {
+      console.warn(`Primary ${sequelize.options.dialect} connection failed (${error.message}). Falling back to local SQLite database for development...`);
       const dbDir = path.dirname(sqlitePath);
       if (!fs.existsSync(dbDir)) {
         fs.mkdirSync(dbDir, { recursive: true });

@@ -39,8 +39,8 @@ vian-erp/
 
 - **Frontend**: Vercel (Flutter Web SPA with Material 3 luxury dark/gold design, Google Fonts Outfit)
 - **Backend**: Render Web Service (Node.js + Express + Sequelize)
-- **Database**: Aiven MySQL (TLS/SSL Enforced in Production) / SQLite (Fallback Developer Mode)
-- **Storage**: Cloudinary (Floor plans, drawing attachments & documents)
+- **Database**: Render Managed PostgreSQL (Production) / SQLite (Local Development)
+- **Storage**: Cloudinary (Floor plans, drawing attachments, project photos & documents)
 - **AI Engine**: Google Gemini (Automated floor plan detection & civil quantity estimations)
 - **CI/CD**: GitHub Actions
 
@@ -51,7 +51,7 @@ vian-erp/
 For detailed production deployment steps, please refer to our documentation in the `docs` folder:
 
 - 📖 **[Main Deployment Guide](docs/deployment_guide.md)**
-- 🚀 **[Render & Aiven Backend Deploy Guide](docs/render_guide.md)**
+- 🚀 **[Render PostgreSQL & Backend Deploy Guide](docs/render_guide.md)**
 - 🔑 **[Environment Variables Setup](docs/environment_variables.md)**
 
 ---

@@ -59,7 +59,135 @@ const PORT = process.env.PORT || 5050;
 async function runMigrations(sequelizeInstance) {
   const dialect = sequelizeInstance.options.dialect;
   
-  if (dialect === 'mysql') {
+  if (dialect === 'postgres') {
+    console.log('Running auto-migrations for PostgreSQL...');
+    const addColumnIfMissingPg = async (tableName, columnName, columnDefinition) => {
+      try {
+        const [results] = await sequelizeInstance.query(
+          `SELECT column_name FROM information_schema.columns 
+           WHERE table_name = '${tableName}' AND column_name = '${columnName}'`
+        );
+        if (!results || results.length === 0) {
+          console.log(`Adding missing column ${columnName} to table ${tableName} (PostgreSQL)...`);
+          await sequelizeInstance.query(`ALTER TABLE "${tableName}" ADD COLUMN IF NOT EXISTS "${columnName}" ${columnDefinition}`);
+        }
+      } catch (err) {
+        console.error(`Error migrating PostgreSQL ${tableName}.${columnName}:`, err.message);
+      }
+    };
+
+    // leads table columns
+    await addColumnIfMissingPg('leads', 'company_name', 'VARCHAR(255) NULL');
+    await addColumnIfMissingPg('leads', 'contact_person', 'VARCHAR(255) NULL');
+    await addColumnIfMissingPg('leads', 'city', 'VARCHAR(255) NULL');
+    await addColumnIfMissingPg('leads', 'state', 'VARCHAR(255) NULL');
+    await addColumnIfMissingPg('leads', 'country', 'VARCHAR(255) NULL');
+    await addColumnIfMissingPg('leads', 'gst_number', 'VARCHAR(255) NULL');
+    await addColumnIfMissingPg('leads', 'pan', 'VARCHAR(255) NULL');
+    await addColumnIfMissingPg('leads', 'industry', 'VARCHAR(255) NULL');
+    await addColumnIfMissingPg('leads', 'attachments', 'TEXT NULL');
+    await addColumnIfMissingPg('leads', 'converted', "VARCHAR(50) DEFAULT 'No'");
+    await addColumnIfMissingPg('leads', 'converted_date', 'TIMESTAMP WITH TIME ZONE NULL');
+    await addColumnIfMissingPg('leads', 'converted_by', 'INTEGER NULL');
+    await addColumnIfMissingPg('leads', 'client_id', 'VARCHAR(255) NULL');
+
+    // clients table columns
+    await addColumnIfMissingPg('clients', 'client_id', 'VARCHAR(255) NULL');
+    await addColumnIfMissingPg('clients', 'company_name', 'VARCHAR(255) NULL');
+    await addColumnIfMissingPg('clients', 'contact_person', 'VARCHAR(255) NULL');
+    await addColumnIfMissingPg('clients', 'city', 'VARCHAR(255) NULL');
+    await addColumnIfMissingPg('clients', 'state', 'VARCHAR(255) NULL');
+    await addColumnIfMissingPg('clients', 'country', 'VARCHAR(255) NULL');
+    await addColumnIfMissingPg('clients', 'gst_number', 'VARCHAR(255) NULL');
+    await addColumnIfMissingPg('clients', 'pan', 'VARCHAR(255) NULL');
+    await addColumnIfMissingPg('clients', 'lead_source', 'VARCHAR(255) NULL');
+    await addColumnIfMissingPg('clients', 'industry', 'VARCHAR(255) NULL');
+    await addColumnIfMissingPg('clients', 'notes', 'TEXT NULL');
+    await addColumnIfMissingPg('clients', 'attachments', 'TEXT NULL');
+    await addColumnIfMissingPg('clients', 'assigned_to', 'INTEGER NULL');
+    await addColumnIfMissingPg('clients', 'lead_id', 'INTEGER NULL');
+
+    // Soft-delete / is_archived migrations
+    await addColumnIfMissingPg('leads', 'deleted_at', 'TIMESTAMP WITH TIME ZONE NULL');
+    await addColumnIfMissingPg('leads', 'deleted_by', 'INTEGER NULL');
+    await addColumnIfMissingPg('clients', 'deleted_at', 'TIMESTAMP WITH TIME ZONE NULL');
+    await addColumnIfMissingPg('clients', 'deleted_by', 'INTEGER NULL');
+    await addColumnIfMissingPg('projects', 'deleted_at', 'TIMESTAMP WITH TIME ZONE NULL');
+    await addColumnIfMissingPg('projects', 'deleted_by', 'INTEGER NULL');
+    await addColumnIfMissingPg('projects', 'is_archived', 'BOOLEAN DEFAULT FALSE');
+    await addColumnIfMissingPg('tasks', 'deleted_at', 'TIMESTAMP WITH TIME ZONE NULL');
+    await addColumnIfMissingPg('tasks', 'deleted_by', 'INTEGER NULL');
+    await addColumnIfMissingPg('workers', 'deleted_at', 'TIMESTAMP WITH TIME ZONE NULL');
+    await addColumnIfMissingPg('workers', 'deleted_by', 'INTEGER NULL');
+    await addColumnIfMissingPg('daily_reports', 'deleted_at', 'TIMESTAMP WITH TIME ZONE NULL');
+    await addColumnIfMissingPg('daily_reports', 'deleted_by', 'INTEGER NULL');
+    await addColumnIfMissingPg('announcements', 'deleted_at', 'TIMESTAMP WITH TIME ZONE NULL');
+    await addColumnIfMissingPg('announcements', 'deleted_by', 'INTEGER NULL');
+    await addColumnIfMissingPg('quotations', 'deleted_at', 'TIMESTAMP WITH TIME ZONE NULL');
+    await addColumnIfMissingPg('quotations', 'deleted_by', 'INTEGER NULL');
+    await addColumnIfMissingPg('invoices', 'deleted_at', 'TIMESTAMP WITH TIME ZONE NULL');
+    await addColumnIfMissingPg('invoices', 'deleted_by', 'INTEGER NULL');
+    await addColumnIfMissingPg('drawings', 'deleted_at', 'TIMESTAMP WITH TIME ZONE NULL');
+    await addColumnIfMissingPg('drawings', 'deleted_by', 'INTEGER NULL');
+    await addColumnIfMissingPg('documents', 'deleted_at', 'TIMESTAMP WITH TIME ZONE NULL');
+    await addColumnIfMissingPg('documents', 'deleted_by', 'INTEGER NULL');
+    await addColumnIfMissingPg('expenses', 'deleted_at', 'TIMESTAMP WITH TIME ZONE NULL');
+    await addColumnIfMissingPg('expenses', 'deleted_by', 'INTEGER NULL');
+    await addColumnIfMissingPg('stage_checklists', 'deleted_at', 'TIMESTAMP WITH TIME ZONE NULL');
+    await addColumnIfMissingPg('stage_checklists', 'deleted_by', 'INTEGER NULL');
+    await addColumnIfMissingPg('team_targets', 'deleted_at', 'TIMESTAMP WITH TIME ZONE NULL');
+    await addColumnIfMissingPg('team_targets', 'deleted_by', 'INTEGER NULL');
+    await addColumnIfMissingPg('employee_targets', 'deleted_at', 'TIMESTAMP WITH TIME ZONE NULL');
+    await addColumnIfMissingPg('employee_targets', 'deleted_by', 'INTEGER NULL');
+    await addColumnIfMissingPg('contractors', 'deleted_at', 'TIMESTAMP WITH TIME ZONE NULL');
+    await addColumnIfMissingPg('contractors', 'deleted_by', 'INTEGER NULL');
+    await addColumnIfMissingPg('manager_attendance', 'deleted_at', 'TIMESTAMP WITH TIME ZONE NULL');
+    await addColumnIfMissingPg('manager_attendance', 'deleted_by', 'INTEGER NULL');
+    await addColumnIfMissingPg('manager_attendance', 'worker_id', 'INTEGER NULL');
+    await addColumnIfMissingPg('manager_attendance', 'manager_id', 'INTEGER NULL');
+    await addColumnIfMissingPg('import_activity_logs', 'user_id', 'INTEGER NULL');
+    await addColumnIfMissingPg('monthly_targets', 'annual_target_id', 'INTEGER NULL');
+    await addColumnIfMissingPg('employee_targets', 'employee_id', 'INTEGER NULL');
+    await addColumnIfMissingPg('employee_targets', 'assigned_by', 'INTEGER NULL');
+    await addColumnIfMissingPg('project_payments', 'project_id', 'INTEGER NULL');
+
+    // Expanded attendance columns PostgreSQL
+    await addColumnIfMissingPg('attendance', 'check_in_latitude', 'DECIMAL(9,6) NULL');
+    await addColumnIfMissingPg('attendance', 'check_in_longitude', 'DECIMAL(9,6) NULL');
+    await addColumnIfMissingPg('attendance', 'check_in_address', 'TEXT NULL');
+    await addColumnIfMissingPg('attendance', 'check_in_face_score', 'DECIMAL(5,2) NULL');
+    await addColumnIfMissingPg('attendance', 'check_in_gps_accuracy', 'DECIMAL(5,2) NULL');
+    await addColumnIfMissingPg('attendance', 'check_in_device', 'VARCHAR(255) NULL');
+    await addColumnIfMissingPg('attendance', 'check_in_browser', 'VARCHAR(255) NULL');
+    await addColumnIfMissingPg('attendance', 'check_in_ip_address', 'VARCHAR(255) NULL');
+    await addColumnIfMissingPg('attendance', 'check_in_network', 'VARCHAR(255) NULL');
+    await addColumnIfMissingPg('attendance', 'check_out_latitude', 'DECIMAL(9,6) NULL');
+    await addColumnIfMissingPg('attendance', 'check_out_longitude', 'DECIMAL(9,6) NULL');
+    await addColumnIfMissingPg('attendance', 'check_out_address', 'TEXT NULL');
+    await addColumnIfMissingPg('attendance', 'check_out_face_score', 'DECIMAL(5,2) NULL');
+    await addColumnIfMissingPg('attendance', 'check_out_gps_accuracy', 'DECIMAL(5,2) NULL');
+    await addColumnIfMissingPg('attendance', 'check_out_device', 'VARCHAR(255) NULL');
+    await addColumnIfMissingPg('attendance', 'check_out_browser', 'VARCHAR(255) NULL');
+    await addColumnIfMissingPg('attendance', 'check_out_ip_address', 'VARCHAR(255) NULL');
+    await addColumnIfMissingPg('attendance', 'check_out_network', 'VARCHAR(255) NULL');
+    await addColumnIfMissingPg('attendance', 'manual_entry', 'BOOLEAN DEFAULT FALSE');
+    await addColumnIfMissingPg('attendance', 'manual_reason', 'TEXT NULL');
+    await addColumnIfMissingPg('attendance', 'approved_by', 'VARCHAR(255) NULL');
+    await addColumnIfMissingPg('attendance', 'audit_id', 'INTEGER NULL');
+
+    // Geofencing columns PostgreSQL
+    await addColumnIfMissingPg('projects', 'latitude', 'DECIMAL(9,6) NULL');
+    await addColumnIfMissingPg('projects', 'longitude', 'DECIMAL(9,6) NULL');
+    await addColumnIfMissingPg('projects', 'allowed_radius', 'INTEGER DEFAULT 100');
+
+    await addColumnIfMissingPg('attendance', 'project_id', 'INTEGER NULL');
+    await addColumnIfMissingPg('attendance', 'check_in_gps_distance', 'DECIMAL(10,2) NULL');
+    await addColumnIfMissingPg('attendance', 'check_out_gps_distance', 'DECIMAL(10,2) NULL');
+    await addColumnIfMissingPg('attendance', 'attendance_status', 'VARCHAR(255) NULL');
+    await addColumnIfMissingPg('attendance', 'admin_approval_status', 'VARCHAR(50) NULL');
+    await addColumnIfMissingPg('attendance', 'override_reason', 'TEXT NULL');
+    await addColumnIfMissingPg('attendance', 'override_remarks', 'TEXT NULL');
+  } else if (dialect === 'mysql') {
     console.log('Running auto-migrations for MySQL...');
     const addColumnIfMissing = async (tableName, columnName, columnDefinition) => {
       try {
@@ -352,11 +480,13 @@ async function startServer() {
     }
     console.log('Database tables verified and synchronized.');
     
-    // 4. Seed Default Roles and Accounts
-    await seedDatabase(models, shouldSeed);
-
-    // 4b. Seed Contractor specific data if empty
-    await seedContractorData(models);
+    // 4. Seed Default Roles and Accounts (Safely disabled in production unless explicitly requested)
+    if (!isProduction || process.env.SEED_DEMO === 'true') {
+      await seedDatabase(models, shouldSeed);
+      await seedContractorData(models);
+    } else {
+      console.log('Production environment: skipping demo role account seeding.');
+    }
 
     // Update existing projects with default latitude/longitude if null
     try {
