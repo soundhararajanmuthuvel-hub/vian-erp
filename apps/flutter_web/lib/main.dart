@@ -137,7 +137,7 @@ void main() {
 }
 
 // Router Configuration
-final GoRouter _router = GoRouter(
+final GoRouter vianRouter = GoRouter(
   initialLocation: '/splash',
   redirect: (context, state) {
     final path = state.matchedLocation;
@@ -541,7 +541,7 @@ class VianERPApp extends StatelessWidget {
       title: 'VIAN Architects ERP',
       debugShowCheckedModeBanner: false,
       theme: VianTheme.darkTheme,
-      routerConfig: _router,
+      routerConfig: vianRouter,
     );
   }
 }
@@ -608,12 +608,6 @@ class _LoginPageState extends ConsumerState<LoginPage>
     setState(() {
       _isLoading = false;
     });
-  }
-
-  void _quickFill(String role) {
-    _usernameController.text = role;
-    _passwordController.text = '${role}123';
-    _handleLogin();
   }
 
   @override
@@ -950,29 +944,58 @@ class _LoginPageState extends ConsumerState<LoginPage>
             ),
           ),
           _buildDemoLoginPanel(context, isMobileMode),
-          const SizedBox(height: 40),
-          Center(
-            child: Text(
-              'SELECT EXECUTIVE ENVIRONMENT',
-              style: GoogleFonts.outfit(
-                color: VianTheme.lightText,
-                fontSize: 9,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 2,
+          if (DemoAccountService.shouldShow) ...[
+            const SizedBox(height: 32),
+            Center(
+              child: Text(
+                'ONE-CLICK DEMO ACCESS',
+                style: GoogleFonts.outfit(
+                  color: VianTheme.lightText,
+                  fontSize: 9,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 2,
+                ),
               ),
             ),
-          ),
-          const SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _envButton('anand', 'Principal'),
-              const SizedBox(width: 12),
-              _envButton('vijay', 'Associate'),
-              const SizedBox(width: 12),
-              _envButton('client', 'Client'),
-            ],
-          ),
+            const SizedBox(height: 12),
+            Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 8,
+              runSpacing: 8,
+              children: DemoAccountService.accounts.map((acc) {
+                return InkWell(
+                  onTap: _isLoading ? null : () => _quickRoleLogin(acc),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        color: VianTheme.primaryGold.withOpacity(0.3),
+                        width: 1,
+                      ),
+                      color: VianTheme.primaryGold.withOpacity(0.05),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(acc.iconEmoji, style: const TextStyle(fontSize: 11)),
+                        const SizedBox(width: 4),
+                        Text(
+                          acc.displayName.toUpperCase(),
+                          style: GoogleFonts.outfit(
+                            color: VianTheme.primaryGold,
+                            fontSize: 9,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 0.8,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ],
           const SizedBox(height: 36),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -994,31 +1017,6 @@ class _LoginPageState extends ConsumerState<LoginPage>
             ],
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _envButton(String role, String label) {
-    return InkWell(
-      onTap: () => _quickFill(role),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-        decoration: BoxDecoration(
-          border: Border.all(
-            color: VianTheme.primaryGold.withOpacity(0.4),
-            width: 1,
-          ),
-          color: VianTheme.primaryGold.withOpacity(0.04),
-        ),
-        child: Text(
-          label.toUpperCase(),
-          style: GoogleFonts.outfit(
-            color: VianTheme.primaryGold,
-            fontSize: 10,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 1.0,
-          ),
-        ),
       ),
     );
   }

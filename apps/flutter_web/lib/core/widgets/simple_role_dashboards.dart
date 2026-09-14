@@ -103,7 +103,7 @@ class _SimpleRoleDashboardState extends ConsumerState<SimpleRoleDashboard> {
     final role = widget.effectiveRole;
     final r = role.toLowerCase();
 
-    if (r == 'super admin') {
+    if (r == 'super admin' || r == 'admin' || r.contains('admin')) {
       return _buildSuperAdminDashboard();
     } else if (r == 'managing director' || r.contains('director') || r.contains('owner')) {
       return _buildOwnerDashboard();

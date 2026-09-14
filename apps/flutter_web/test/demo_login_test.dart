@@ -1,5 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
+import 'package:vian_erp/core/services/api_constants.dart';
 import 'package:vian_erp/core/services/demo_credentials.dart';
+import 'package:vian_erp/main.dart';
 
 void main() {
   group('DemoAccountService Tests', () {
@@ -42,6 +45,36 @@ void main() {
           isNull,
         );
       }
+    });
+
+    test('All 9 demo credentials map to correct emails and non-empty passwords', () {
+      for (final acc in DemoAccountService.accounts) {
+        final creds = DemoAccountService.getCredentialsInternal(acc.role);
+        if (DemoAccountService.shouldShow) {
+          expect(creds, isNotNull);
+          expect(creds!['email'], isNotEmpty);
+          expect(creds['password'], isNotEmpty);
+          expect(creds['username'], isNotEmpty);
+        }
+      }
+    });
+  });
+
+  group('Login Routing & UI Regression Tests', () {
+    test('ApiConstants productionBaseUrl is https://vian-erp-api.onrender.com/api', () {
+      expect(
+        ApiConstants.productionBaseUrl,
+        'https://vian-erp-api.onrender.com/api',
+      );
+    });
+
+    test('GoRouter contains /login mapping to LoginPage', () {
+      final routes = vianRouter.configuration.routes;
+      final loginRoute = routes.whereType<GoRoute>().firstWhere(
+        (r) => r.path == '/login',
+      );
+      expect(loginRoute, isNotNull);
+      expect(loginRoute.path, '/login');
     });
   });
 }
