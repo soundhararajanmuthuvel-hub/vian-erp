@@ -22,7 +22,7 @@ class ApiConstants {
     return productionBaseUrl;
   }
 
-  static const Duration timeout = Duration(seconds: 15);
+  static const Duration timeout = Duration(seconds: 30);
 
   static Map<String, String> getHeaders(String? token) => {
     'Content-Type': 'application/json',

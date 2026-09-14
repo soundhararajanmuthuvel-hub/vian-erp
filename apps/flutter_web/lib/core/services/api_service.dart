@@ -32,12 +32,17 @@ class ApiService {
   // Health check endpoint
   static Future<Map<String, dynamic>> checkHealth() async {
     try {
+      // Normalize baseUrl for health endpoint (avoid duplicate /api or missing slashes)
+      final normalizedBase = baseUrl.endsWith('/')
+          ? baseUrl.substring(0, baseUrl.length - 1)
+          : baseUrl;
+      final healthUri = Uri.parse('$normalizedBase/health');
       final response = await http
           .get(
-            Uri.parse('$baseUrl/health'),
+            healthUri,
             headers: {'Accept': 'application/json'},
           )
-          .timeout(const Duration(seconds: 5));
+          .timeout(const Duration(seconds: 30));
       if (response.statusCode == 200) {
         return json.decode(response.body);
       }
@@ -69,7 +74,7 @@ class ApiService {
             headers: {'Content-Type': 'application/json'},
             body: json.encode({'username': username, 'password': password}),
           )
-          .timeout(const Duration(seconds: 15));
+          .timeout(const Duration(seconds: 30));
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);

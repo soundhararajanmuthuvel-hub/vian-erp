@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart' show kIsWeb, kDebugMode;
@@ -24,6 +25,18 @@ class StartupValidationResult {
 }
 
 class VianStartupValidator {
+  /// Normalizes base URL to generate canonical /api/health target URL
+  static Uri getHealthUri(String baseUrl) {
+    String cleanUrl = baseUrl.trim();
+    while (cleanUrl.endsWith('/')) {
+      cleanUrl = cleanUrl.substring(0, cleanUrl.length - 1);
+    }
+    if (cleanUrl.endsWith('/health')) {
+      return Uri.parse(cleanUrl);
+    }
+    return Uri.parse('$cleanUrl/health');
+  }
+
   static Future<StartupValidationResult> validate() async {
     try {
       // 1. SharedPreferences sanity check
@@ -49,26 +62,81 @@ class VianStartupValidator {
         );
       }
 
-      // 3. API Server reachability ping
-      try {
-        // Send a fast timeout-guarded request to the server base path.
-        // If the server is offline or network is down, this throws a SocketException.
-        await http
-            .get(Uri.parse(urlStr), headers: {'Accept': 'application/json'})
-            .timeout(const Duration(seconds: 4));
-      } catch (e, stack) {
-        // Note: Any non-200 responses (like 401 Unauthorized) are fine because they indicate the server is active and reachable.
-        // If it throws an exception (unreachable/offline), we capture it.
-        return StartupValidationResult(
-          isSuccess: false,
-          isOffline: true,
-          errorMessage:
-              "Atelier Server Unreachable: Failed to contact the backend service at '$urlStr' ($e).",
-          stackTrace: stack,
+      // 3. API Server reachability & health check with retry
+      // Render free-tier instances may require spin-up time (cold starts).
+      // Retry sequence: Attempt 1 (15s), wait 2s, Attempt 2 (20s), wait 5s, Attempt 3 (25s)
+      final healthUri = getHealthUri(urlStr);
+      final List<Duration> timeouts = [
+        const Duration(seconds: 15),
+        const Duration(seconds: 20),
+        const Duration(seconds: 25),
+      ];
+      final List<Duration> backoffs = [
+        const Duration(seconds: 2),
+        const Duration(seconds: 5),
+      ];
+
+      dynamic lastException;
+      StackTrace? lastStackTrace;
+
+      for (int attempt = 0; attempt < timeouts.length; attempt++) {
+        final currentTimeout = timeouts[attempt];
+        debugPrint(
+          "VIAN Startup Health Check: Attempt ${attempt + 1}/${timeouts.length} targeting $healthUri (timeout: ${currentTimeout.inSeconds}s)...",
         );
+
+        try {
+          final response = await http
+              .get(healthUri, headers: {'Accept': 'application/json'})
+              .timeout(currentTimeout);
+
+          debugPrint(
+            "VIAN Startup Health Check: Attempt ${attempt + 1} responded with HTTP ${response.statusCode}",
+          );
+
+          if (response.statusCode == 200) {
+            // Check status in JSON if present
+            try {
+              final body = json.decode(response.body);
+              if (body is Map && body['status'] == 'ok') {
+                debugPrint("VIAN Startup Health Check: Backend is healthy (database: ${body['database']}).");
+                return const StartupValidationResult(isSuccess: true, errorMessage: '');
+              }
+            } catch (_) {
+              // JSON parse wasn't required or failed, but 200 indicates server is alive
+            }
+            return const StartupValidationResult(isSuccess: true, errorMessage: '');
+          } else {
+            // Any HTTP response (401, 403, 404, 500) indicates the backend server is online and reached!
+            // Do not classify a live server response as a network timeout or offline state.
+            debugPrint(
+              "VIAN Startup Health Check: Server reached with non-200 status code (${response.statusCode}). Server is online.",
+            );
+            return const StartupValidationResult(isSuccess: true, errorMessage: '');
+          }
+        } catch (e, stack) {
+          lastException = e;
+          lastStackTrace = stack;
+          debugPrint(
+            "VIAN Startup Health Check: Attempt ${attempt + 1} failed with error: $e",
+          );
+
+          if (attempt < backoffs.length) {
+            final delay = backoffs[attempt];
+            debugPrint("VIAN Startup Health Check: Waiting ${delay.inSeconds}s before retry...");
+            await Future.delayed(delay);
+          }
+        }
       }
 
-      return const StartupValidationResult(isSuccess: true, errorMessage: '');
+      // Only if all 3 retry attempts fail with network/timeout exceptions, report offline/unreachable
+      return StartupValidationResult(
+        isSuccess: false,
+        isOffline: true,
+        errorMessage:
+            "Atelier Server Unreachable: Failed to contact the backend service at '$healthUri' after ${timeouts.length} attempts ($lastException).",
+        stackTrace: lastStackTrace,
+      );
     } catch (e, stack) {
       return StartupValidationResult(
         isSuccess: false,
@@ -352,11 +420,13 @@ class VianErrorRecoveryScreen extends StatelessWidget {
 class VianStartupDiagnosticApp extends StatelessWidget {
   final StartupValidationResult result;
   final VoidCallback? onForceOffline;
+  final Future<void> Function()? onRetry;
 
   const VianStartupDiagnosticApp({
     Key? key,
     required this.result,
     this.onForceOffline,
+    this.onRetry,
   }) : super(key: key);
 
   @override
@@ -368,32 +438,100 @@ class VianStartupDiagnosticApp extends StatelessWidget {
       home: VianStartupDiagnosticScreen(
         result: result,
         onForceOffline: onForceOffline,
+        onRetry: onRetry,
       ),
     );
   }
 }
 
-class VianStartupDiagnosticScreen extends StatelessWidget {
+class VianStartupDiagnosticScreen extends StatefulWidget {
   final StartupValidationResult result;
   final VoidCallback? onForceOffline;
+  final Future<void> Function()? onRetry;
 
   const VianStartupDiagnosticScreen({
     Key? key,
     required this.result,
     this.onForceOffline,
+    this.onRetry,
   }) : super(key: key);
 
-  void _reloadApplication() {
-    final errorStr = result.errorMessage;
-    if (errorStr.contains('401') || errorStr.contains('403') || errorStr.contains('Unauthorized') || errorStr.contains('Forbidden')) {
-      ApiService.logout().then((_) {
-        if (kIsWeb) {
+  @override
+  State<VianStartupDiagnosticScreen> createState() =>
+      _VianStartupDiagnosticScreenState();
+}
+
+class _VianStartupDiagnosticScreenState
+    extends State<VianStartupDiagnosticScreen> {
+  late StartupValidationResult _currentResult;
+  bool _isRetrying = false;
+  String _retryStatusText = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _currentResult = widget.result;
+  }
+
+  Future<void> _handleReconnect() async {
+    if (_isRetrying) return; // Prevent concurrent retries
+
+    setState(() {
+      _isRetrying = true;
+      _retryStatusText = 'Contacting VIAN Atelier Server...';
+    });
+
+    if (widget.onRetry != null) {
+      try {
+        await widget.onRetry!();
+        // If onRetry launches the app via runApp, this widget will be unmounted.
+      } catch (e) {
+        if (mounted) {
+          setState(() {
+            _isRetrying = false;
+            _currentResult = StartupValidationResult(
+              isSuccess: false,
+              isOffline: true,
+              errorMessage: 'Retry encountered an unexpected error: $e',
+            );
+          });
+        }
+      }
+      return;
+    }
+
+    // Default fallback in-memory retry if no onRetry callback provided
+    try {
+      final validation = await VianStartupValidator.validate();
+      if (!mounted) return;
+
+      if (validation.isSuccess) {
+        setState(() {
+          _retryStatusText = 'Connection established. Initializing services...';
+        });
+        await ApiService.init();
+        if (widget.onForceOffline != null) {
+          widget.onForceOffline!();
+        } else if (kIsWeb) {
           js.context['location']?.callMethod('reload');
         }
-      });
-    } else {
-      if (kIsWeb) {
-        js.context['location']?.callMethod('reload');
+      } else {
+        setState(() {
+          _isRetrying = false;
+          _currentResult = validation;
+        });
+      }
+    } catch (e, stack) {
+      if (mounted) {
+        setState(() {
+          _isRetrying = false;
+          _currentResult = StartupValidationResult(
+            isSuccess: false,
+            isOffline: true,
+            errorMessage: 'Retry failed: $e',
+            stackTrace: stack,
+          );
+        });
       }
     }
   }
@@ -401,10 +539,10 @@ class VianStartupDiagnosticScreen extends StatelessWidget {
   void _copyDiagnostics(BuildContext context) {
     final buffer = StringBuffer();
     buffer.writeln("=== VIAN ERP STARTUP FAULT LOG ===");
-    buffer.writeln("Error Message: ${result.errorMessage}");
-    if (result.stackTrace != null) {
+    buffer.writeln("Error Message: ${_currentResult.errorMessage}");
+    if (_currentResult.stackTrace != null) {
       buffer.writeln("\nStack Trace:");
-      buffer.writeln(result.stackTrace.toString());
+      buffer.writeln(_currentResult.stackTrace.toString());
     }
     Clipboard.setData(ClipboardData(text: buffer.toString()));
     ScaffoldMessenger.of(context).showSnackBar(
@@ -417,7 +555,7 @@ class VianStartupDiagnosticScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isOffline = result.isOffline;
+    final isOffline = _currentResult.isOffline;
 
     return Scaffold(
       backgroundColor: const Color(0xFF14141A),
@@ -497,12 +635,45 @@ class VianStartupDiagnosticScreen extends StatelessWidget {
                     color: const Color(0xFF110E09),
                     border: Border.all(color: VianTheme.goldBorder),
                   ),
-                  child: Text(
-                    result.errorMessage,
-                    style: GoogleFonts.jetBrainsMono(
-                      color: VianTheme.primaryGold,
-                      fontSize: 12,
-                    ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _currentResult.errorMessage,
+                        style: GoogleFonts.jetBrainsMono(
+                          color: VianTheme.primaryGold,
+                          fontSize: 12,
+                        ),
+                      ),
+                      if (_isRetrying) ...[
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            const SizedBox(
+                              width: 14,
+                              height: 14,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: VianTheme.primaryGold,
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                _retryStatusText.isNotEmpty
+                                    ? _retryStatusText
+                                    : 'Retrying connection...',
+                                style: GoogleFonts.outfit(
+                                  color: VianTheme.primaryGoldLight,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ],
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -524,18 +695,27 @@ class VianStartupDiagnosticScreen extends StatelessWidget {
                           vertical: 14,
                         ),
                       ),
-                      icon: const Icon(Icons.refresh_rounded, size: 18),
+                      icon: _isRetrying
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Color(0xFF412D00),
+                              ),
+                            )
+                          : const Icon(Icons.refresh_rounded, size: 18),
                       label: Text(
-                        'RECONNECT / RETRY',
+                        _isRetrying ? 'CONNECTING...' : 'RECONNECT / RETRY',
                         style: GoogleFonts.outfit(
                           fontWeight: FontWeight.bold,
                           fontSize: 12,
                           letterSpacing: 0.5,
                         ),
                       ),
-                      onPressed: _reloadApplication,
+                      onPressed: _isRetrying ? null : _handleReconnect,
                     ),
-                    if (isOffline && onForceOffline != null)
+                    if (isOffline && widget.onForceOffline != null)
                       OutlinedButton.icon(
                         style: OutlinedButton.styleFrom(
                           foregroundColor: VianTheme.primaryGold,
@@ -557,7 +737,7 @@ class VianStartupDiagnosticScreen extends StatelessWidget {
                             letterSpacing: 0.5,
                           ),
                         ),
-                        onPressed: onForceOffline,
+                        onPressed: _isRetrying ? null : widget.onForceOffline,
                       ),
                     OutlinedButton.icon(
                       style: OutlinedButton.styleFrom(

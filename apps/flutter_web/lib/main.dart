@@ -64,14 +64,27 @@ void main() {
         );
       };
 
+      // Helper function to launch application in-memory
+      void launchApp() {
+        runApp(const ProviderScope(child: VianERPApp()));
+      }
+
       // 2. Pre-flight Startup Check Validation
       final validation = await VianStartupValidator.validate();
       if (!validation.isSuccess) {
         runApp(
           VianStartupDiagnosticApp(
             result: validation,
-            onForceOffline: () {
-              runApp(const ProviderScope(child: VianERPApp()));
+            onForceOffline: launchApp,
+            onRetry: () async {
+              final retryResult = await VianStartupValidator.validate();
+              if (retryResult.isSuccess) {
+                await ApiService.init();
+                launchApp();
+              } else {
+                // If retry failed, throw so diagnostic screen updates its error state
+                throw Exception(retryResult.errorMessage);
+              }
             },
           ),
         );
@@ -80,7 +93,7 @@ void main() {
 
       await ApiService.init();
 
-      runApp(const ProviderScope(child: VianERPApp()));
+      launchApp();
     },
     (Object error, StackTrace stack) {
       debugPrint("Zoned Execution Fault: $error\n$stack");
@@ -101,6 +114,18 @@ void main() {
             errorMessage: "Zoned Execution Fault: $error",
             stackTrace: stack,
           ),
+          onForceOffline: () {
+            runApp(const ProviderScope(child: VianERPApp()));
+          },
+          onRetry: () async {
+            final retryResult = await VianStartupValidator.validate();
+            if (retryResult.isSuccess) {
+              await ApiService.init();
+              runApp(const ProviderScope(child: VianERPApp()));
+            } else {
+              throw Exception(retryResult.errorMessage);
+            }
+          },
         ),
       );
     },
