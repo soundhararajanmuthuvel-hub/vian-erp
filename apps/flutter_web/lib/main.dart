@@ -17,8 +17,12 @@ import 'dart:ui' show ImageFilter, PlatformDispatcher;
 
 import 'core/theme/theme.dart';
 import 'core/services/api_service.dart';
+import 'core/services/feature_visibility_service.dart';
 import 'core/widgets/custom_widgets.dart';
 import 'core/widgets/home_dashboards.dart';
+import 'core/widgets/simple_role_dashboards.dart';
+import 'core/widgets/role_preview_banner.dart';
+import 'feature_control_screen.dart';
 import 'core/widgets/face_gps_verify_overlay.dart';
 import 'core/widgets/face_registration_wizard.dart';
 import 'core/widgets/project_geofence_map.dart';
@@ -181,6 +185,10 @@ final GoRouter _router = GoRouter(
         GoRoute(
           path: '/dashboard',
           builder: (context, state) => const DashboardTab(),
+        ),
+        GoRoute(
+          path: '/feature-control',
+          builder: (context, state) => const FeatureControlScreen(),
         ),
         GoRoute(
           path: '/users',
@@ -1040,18 +1048,18 @@ class _LoginPageState extends ConsumerState<LoginPage>
           title: Row(
             children: [
               const Icon(
-                Icons.tune_outlined,
+                Icons.account_circle_outlined,
                 color: VianTheme.primaryGold,
                 size: 16,
               ),
               const SizedBox(width: 8),
               Text(
-                'DEVELOPER OPTIONS',
+                'DEMO LOGIN',
                 style: GoogleFonts.outfit(
                   color: VianTheme.primaryGold,
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
-                  letterSpacing: 1.2,
+                  letterSpacing: 1.5,
                 ),
               ),
               const SizedBox(width: 8),
@@ -1073,7 +1081,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
             ],
           ),
           subtitle: Text(
-            'One-click role testing & dashboard routing',
+            'Quick one-click access for all 9 roles (Dev & QA Testing)',
             style: GoogleFonts.inter(color: VianTheme.lightText, fontSize: 10),
           ),
           children: [
@@ -1712,8 +1720,31 @@ class _MainNavigationShellState extends ConsumerState<MainNavigationShell> {
     if (user == null)
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
 
-    final role = user['role'] ?? 'Client';
-    final tabs = _getTabs(role);
+    final previewRole = ref.watch(rolePreviewProvider);
+    final userRole = user['role'] ?? 'Client';
+    final effectiveRole = (userRole == 'Developer' && previewRole != null) ? previewRole : userRole;
+    final isDeveloper = userRole == 'Developer';
+
+    final featureState = ref.watch(featureVisibilityProvider);
+
+    final rawTabs = _getTabs(effectiveRole);
+    // Filter tabs by feature visibility settings (Hide != Delete)
+    final tabs = rawTabs.where((tab) {
+      final route = tab['route'] as String? ?? '';
+      if (route == '/dashboard') return featureState.isFeatureEnabled(effectiveRole, 'dashboard');
+      if (route == '/users') return featureState.isFeatureEnabled(effectiveRole, 'users');
+      if (route == '/clients' || route == '/client-onboarding') return featureState.isFeatureEnabled(effectiveRole, 'clients');
+      if (route == '/projects') return featureState.isFeatureEnabled(effectiveRole, 'projects');
+      if (route == '/drawings' || route == '/documents') return featureState.isFeatureEnabled(effectiveRole, 'documents');
+      if (route == '/tasks') return featureState.isFeatureEnabled(effectiveRole, 'tasks');
+      if (route == '/invoices' || route == '/quotations' || route == '/expenses' || route == '/payroll' || route == '/incentives') {
+        return featureState.isFeatureEnabled(effectiveRole, 'billing');
+      }
+      if (route == '/crm-leads' || route == '/enquiry-inbox') return featureState.isFeatureEnabled(effectiveRole, 'crm');
+      if (route == '/settings' || route == '/import-export') return featureState.isFeatureEnabled(effectiveRole, 'settings');
+      if (route == '/build-center') return featureState.isFeatureEnabled(effectiveRole, 'advanced');
+      return true;
+    }).toList();
 
     final currentPath = GoRouterState.of(context).matchedLocation;
     int index = tabs.indexWhere((tab) {
@@ -2031,29 +2062,42 @@ class _MainNavigationShellState extends ConsumerState<MainNavigationShell> {
         ],
       ),
       drawer: isMobile
-          ? Drawer(child: _buildDrawerContent(user, tabs, role))
+          ? Drawer(child: _buildDrawerContent(user, tabs, effectiveRole))
           : null,
-      body: Row(
+      body: Column(
         children: [
-          if (!isMobile)
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              width: _sidebarCollapsed ? 76 : 250,
-              decoration: const BoxDecoration(
-                color: VianTheme.sidebarBg,
-                border: Border(
-                  right: BorderSide(color: Colors.white10, width: 1),
-                ),
-              ),
-              child: _buildDrawerContent(
-                user,
-                tabs,
-                role,
-                showHeader: true,
-                isSidebar: true,
-              ),
+          if (isDeveloper)
+            RolePreviewBanner(
+              activePreviewRole: previewRole,
+              onRoleSelected: (newRole) {
+                ref.read(rolePreviewProvider.notifier).state = newRole;
+              },
             ),
-          Expanded(child: widget.child),
+          Expanded(
+            child: Row(
+              children: [
+                if (!isMobile)
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    width: _sidebarCollapsed ? 76 : 250,
+                    decoration: const BoxDecoration(
+                      color: VianTheme.sidebarBg,
+                      border: Border(
+                        right: BorderSide(color: Colors.white10, width: 1),
+                      ),
+                    ),
+                    child: _buildDrawerContent(
+                      user,
+                      tabs,
+                      effectiveRole,
+                      showHeader: true,
+                      isSidebar: true,
+                    ),
+                  ),
+                Expanded(child: widget.child),
+              ],
+            ),
+          ),
         ],
       ),
       bottomNavigationBar: isMobile
@@ -2295,27 +2339,16 @@ class DashboardTab extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(userProvider);
     if (user == null) return const Center(child: CircularProgressIndicator());
-    final role = user['role'] ?? 'Client';
+    
+    // In-memory preview role for Developer role
+    final previewRole = ref.watch(rolePreviewProvider);
+    final userRole = user['role'] ?? 'Client';
+    final effectiveRole = (userRole == 'Developer' && previewRole != null) ? previewRole : userRole;
 
-    if (role == 'Super Admin' || role == 'Managing Director') {
-      return const ExecutiveDashboardView();
-    } else if (role == 'Admin / Office Manager / Accounts') {
-      return const JayaHomeView();
-    } else if (role == 'Tech Head + Senior Architect') {
-      return const MuthuiyaHomeView();
-    } else if (role == 'Client') {
-      return const ClientPortalView();
-    } else if (role == 'Site Engineer' ||
-        role == 'Supervisor' ||
-        role == 'Site Coordinator' ||
-        role == 'Site Construction Engineer' ||
-        role == 'Labour Manager' ||
-        role == 'Site Supervisor' ||
-        role == 'Site Manager') {
-      return const SiteManagerDashboardView();
-    } else {
-      return const EmployeeDashboardView();
-    }
+    return SimpleRoleDashboard(
+      effectiveRole: effectiveRole,
+      user: user,
+    );
   }
 }
 

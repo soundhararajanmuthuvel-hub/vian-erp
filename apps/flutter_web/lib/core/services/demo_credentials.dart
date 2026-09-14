@@ -9,6 +9,7 @@ enum DemoRole {
   siteEngineer,
   accountant,
   client,
+  developer,
 }
 
 class DemoAccount {
@@ -97,6 +98,12 @@ class DemoAccountService {
       description: 'Project Portal',
       iconEmoji: '👤',
     ),
+    DemoAccount(
+      role: DemoRole.developer,
+      displayName: 'Developer',
+      description: 'Internal Dev & Testing',
+      iconEmoji: '🛠',
+    ),
   ];
 
   // Private credentials mapping
@@ -139,6 +146,11 @@ class DemoAccountService {
     DemoRole.client: {
       'email': 'client@vianarchitects.com',
       'username': 'demo_client',
+      'password': 'Demo@12345',
+    },
+    DemoRole.developer: {
+      'email': 'developer@vianarchitects.com',
+      'username': 'demo_developer',
       'password': 'Demo@12345',
     },
   };

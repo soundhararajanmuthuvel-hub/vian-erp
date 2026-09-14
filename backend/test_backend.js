@@ -187,8 +187,8 @@ async function runTests() {
     process.exit(1);
   }
 
-  // 8. Verify all 8 demo roles authentication end-to-end
-  console.log('\n--- Verifying All 8 Demo Roles Login ---');
+  // 8. Verify all 9 demo roles authentication end-to-end
+  console.log('\n--- Verifying All 9 Demo Roles Login ---');
   const roles = [
     { name: 'Super Admin', user: 'demo_superadmin' },
     { name: 'Managing Director', user: 'demo_md' },
@@ -197,9 +197,11 @@ async function runTests() {
     { name: 'Architect', user: 'demo_architect' },
     { name: 'Site Engineer', user: 'demo_siteengineer' },
     { name: 'Accountant', user: 'demo_accountant' },
-    { name: 'Client', user: 'demo_client' }
+    { name: 'Client', user: 'demo_client' },
+    { name: 'Developer', user: 'demo_developer' }
   ];
 
+  let devToken = null;
   for (const r of roles) {
     process.stdout.write(`Role Auth Test: ${r.name} (${r.user})... `);
     const rRes = await apiRequest({
@@ -212,10 +214,83 @@ async function runTests() {
 
     if (rRes.status === 200 && rRes.data.token && rRes.data.user) {
       console.log(`PASS (token received, role: ${rRes.data.user.role})`);
+      if (r.user === 'demo_developer') {
+        devToken = rRes.data.token;
+      }
     } else {
       console.error(`FAIL for role ${r.name}:`, rRes);
       process.exit(1);
     }
+  }
+
+  // Feature Control API Verification
+  console.log('\n--- Verifying Feature Control API & Security ---');
+  process.stdout.write('Get Feature Controls (GET /api/features)... ');
+  const featGetRes = await apiRequest({
+    hostname: 'localhost',
+    port: 5050,
+    path: '/api/features',
+    method: 'GET',
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
+  if (featGetRes.status === 200 && featGetRes.data.features) {
+    console.log('PASS');
+  } else {
+    console.error('FAIL:', featGetRes);
+    process.exit(1);
+  }
+
+  process.stdout.write('Toggle Feature as Developer (POST /api/features/update)... ');
+  const featUpdateRes = await apiRequest({
+    hostname: 'localhost',
+    port: 5050,
+    path: '/api/features/update',
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${devToken}`,
+      'Content-Type': 'application/json'
+    }
+  }, {
+    featureKey: 'billing',
+    role: 'Site Engineer',
+    enabled: true
+  });
+  if (featUpdateRes.status === 200 && featUpdateRes.data.success) {
+    console.log('PASS');
+  } else {
+    console.error('FAIL:', featUpdateRes);
+    process.exit(1);
+  }
+
+  process.stdout.write('Security Test: Non-Admin/Developer cannot toggle feature (Expected 403)... ');
+  const clientLogin = await apiRequest({
+    hostname: 'localhost',
+    port: 5050,
+    path: '/api/auth/login',
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' }
+  }, { username: 'demo_client', password: 'Demo@12345' });
+  const clientToken = clientLogin.data.token;
+
+  const unauthorizedToggle = await apiRequest({
+    hostname: 'localhost',
+    port: 5050,
+    path: '/api/features/update',
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${clientToken}`,
+      'Content-Type': 'application/json'
+    }
+  }, {
+    featureKey: 'billing',
+    role: 'Site Engineer',
+    enabled: false
+  });
+  if (unauthorizedToggle.status === 403) {
+    console.log('PASS (Correctly rejected with 403 Forbidden)');
+  } else {
+    console.error('FAIL: Expected 403 but got', unauthorizedToggle.status);
+    process.exit(1);
   }
 
   // 9. Verify CRUD: Leads flow

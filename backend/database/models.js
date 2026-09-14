@@ -1630,6 +1630,27 @@ function initModels(customSequelize) {
   Project.hasMany(ProjectUpdate, { foreignKey: 'projectId', as: 'updates', onDelete: 'CASCADE' });
   ProjectUpdate.belongsTo(User, { foreignKey: 'createdBy', as: 'creator', onDelete: 'SET NULL' });
 
+  // 66. FeatureControl Model (Developer & Admin controlled feature visibility matrix)
+  const FeatureControl = sequelize.define('FeatureControl', {
+    id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    featureKey: { type: DataTypes.STRING(100), allowNull: false },
+    role: { type: DataTypes.STRING(100), allowNull: false },
+    enabled: { type: DataTypes.BOOLEAN, defaultValue: true },
+    updatedBy: { type: DataTypes.INTEGER, allowNull: true }
+  }, {
+    tableName: 'feature_controls',
+    timestamps: true,
+    underscored: true,
+    indexes: [
+      {
+        unique: true,
+        fields: ['feature_key', 'role']
+      }
+    ]
+  });
+
+  FeatureControl.belongsTo(User, { foreignKey: 'updatedBy', as: 'updater', onDelete: 'SET NULL' });
+
   return {
     User, Session, Lead, LeadTimeline, LeadStage1, Client, ClientTimeline, Project,
     Attendance, Task, SiteVisit, Drawing, Document,
@@ -1647,7 +1668,8 @@ function initModels(customSequelize) {
     ConferenceCall, Incentive,
     StageChecklist, ConferenceCallAction, DrawingRevision, DrawingComment,
     MonthlyAttendanceLock, EmployeeFace, EmployeeFaceAudit,
-    ClientProject, ProjectPhoto, ProjectUpdate
+    ClientProject, ProjectPhoto, ProjectUpdate,
+    FeatureControl
   };
 }
 

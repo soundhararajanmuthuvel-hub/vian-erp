@@ -3,8 +3,8 @@ import 'package:vian_erp/core/services/demo_credentials.dart';
 
 void main() {
   group('DemoAccountService Tests', () {
-    test('Service has exactly 8 roles defined', () {
-      expect(DemoAccountService.accounts.length, 8);
+    test('Service has exactly 9 roles defined', () {
+      expect(DemoAccountService.accounts.length, 9);
 
       final roles = DemoAccountService.accounts.map((a) => a.role).toList();
       expect(
@@ -18,6 +18,7 @@ void main() {
           DemoRole.siteEngineer,
           DemoRole.accountant,
           DemoRole.client,
+          DemoRole.developer,
         ]),
       );
     });

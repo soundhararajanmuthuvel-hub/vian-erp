@@ -108,6 +108,15 @@ const demoUsers = [
     role: 'Client',
     department: 'External',
     designation: 'Property Owner'
+  },
+  {
+    employeeId: 'DEMO-DEV-01',
+    username: 'demo_developer',
+    email: 'developer@vianarchitects.com',
+    name: 'Demo Developer',
+    role: 'Developer',
+    department: 'Engineering',
+    designation: 'System Developer'
   }
 ];
 

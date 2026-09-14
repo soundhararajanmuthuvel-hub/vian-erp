@@ -618,31 +618,6 @@ async function seedDatabase(models, force = false) {
   } = models;
   
   try {
-    const anandExists = await User.findOne({
-      where: {
-        [Op.or]: [{ username: 'anand' }, { email: 'anand@vianarchitects.com' }]
-      }
-    });
-
-    if (anandExists && !force) {
-      console.log('Core system users already exist. Skipping seeding.');
-      return;
-    }
-
-    console.log('Seeding rich, comprehensive system & demo data...');
-
-    // Create Company Settings if not existing
-    const companySettingsCount = await CompanySettings.count();
-    if (companySettingsCount === 0) {
-      await CompanySettings.create({
-        companyName: 'VIAN Architects & Interior Designers',
-        address: 'Plot 42, Galleria Commercial Complex, Phase V, Sector 43, Gurugram, India',
-        gst: '07AAAAA1111A1Z1',
-        email: 'office@vianarchitects.com',
-        phone: '+91 124 4567890'
-      });
-    }
-
     const defaultUsers = [
       // Managing Directors
       { employeeId: 'VIAN-MD-01', username: 'anand', rawPass: 'anand123', name: 'Ar. Anand Sathiesivam', email: 'anand@vianarchitects.com', role: 'Managing Director', dept: 'Executive', desig: 'Managing Director' },
@@ -695,9 +670,11 @@ async function seedDatabase(models, force = false) {
       { employeeId: 'DEMO-ARC-01', username: 'demo_architect', rawPass: 'Demo@12345', name: 'Demo Architect', email: 'architect@vianarchitects.com', role: 'Architect', dept: 'Design', desig: 'Lead Architect' },
       { employeeId: 'DEMO-SE-01', username: 'demo_siteengineer', rawPass: 'Demo@12345', name: 'Demo Site Engineer', email: 'siteengineer@vianarchitects.com', role: 'Site Engineer', dept: 'Site Team', desig: 'Site Engineer' },
       { employeeId: 'DEMO-ACC-01', username: 'demo_accountant', rawPass: 'Demo@12345', name: 'Demo Accountant', email: 'accountant@vianarchitects.com', role: 'Accountant', dept: 'Finance', desig: 'Accounts Manager' },
-      { employeeId: 'DEMO-CLT-01', username: 'demo_client', rawPass: 'Demo@12345', name: 'Demo Client', email: 'client@vianarchitects.com', role: 'Client', dept: 'External', desig: 'Property Owner' }
+      { employeeId: 'DEMO-CLT-01', username: 'demo_client', rawPass: 'Demo@12345', name: 'Demo Client', email: 'client@vianarchitects.com', role: 'Client', dept: 'External', desig: 'Property Owner' },
+      { employeeId: 'DEMO-DEV-01', username: 'demo_developer', rawPass: 'Demo@12345', name: 'Demo Developer', email: 'developer@vianarchitects.com', role: 'Developer', dept: 'Engineering', desig: 'System Developer' }
     ];
 
+    // Ensure essential system & demo user accounts exist (idempotent check for each account)
     const userInstances = {};
     for (const u of defaultUsers) {
       let userRecord = await User.findOne({
@@ -722,6 +699,32 @@ async function seedDatabase(models, force = false) {
         });
       }
       userInstances[u.username] = userRecord;
+    }
+
+    const anandExists = await User.findOne({
+      where: {
+        [Op.or]: [{ username: 'anand' }, { email: 'anand@vianarchitects.com' }]
+      }
+    });
+
+    const userCount = await User.count();
+    if (anandExists && !force && userCount > 10) {
+      console.log('Core system users and demo accounts already verified.');
+      return;
+    }
+
+    console.log('Seeding rich, comprehensive system & demo data...');
+
+    // Create Company Settings if not existing
+    const companySettingsCount = await CompanySettings.count();
+    if (companySettingsCount === 0) {
+      await CompanySettings.create({
+        companyName: 'VIAN Architects & Interior Designers',
+        address: 'Plot 42, Galleria Commercial Complex, Phase V, Sector 43, Gurugram, India',
+        gst: '07AAAAA1111A1Z1',
+        email: 'office@vianarchitects.com',
+        phone: '+91 124 4567890'
+      });
     }
 
     // 1. Seed Clients

@@ -23,6 +23,9 @@ function getPermissionRole(role, username) {
   if (r === 'managing director' || r === 'super admin' || u === 'anand' || u === 'vijay') {
     return 'Super Admin';
   }
+  if (r === 'developer' || u === 'demo_developer') {
+    return 'Developer';
+  }
   if (r === 'admin / office manager / accounts' || r === 'admin' || u === 'jaya') {
     return 'Admin';
   }
@@ -83,7 +86,8 @@ function registerRoutes(app, models) {
     ConferenceCall, Incentive,
     StageChecklist, ConferenceCallAction, DrawingRevision, DrawingComment,
     MonthlyAttendanceLock, EmployeeFace, EmployeeFaceAudit,
-    ClientProject, ProjectPhoto, ProjectUpdate
+    ClientProject, ProjectPhoto, ProjectUpdate,
+    FeatureControl
   } = models;
 
   // Project authorization / IDOR prevention helper
@@ -146,6 +150,16 @@ function registerRoutes(app, models) {
       return res.status(403).json({ message: 'Forbidden: Admin or Super Admin role required' });
     }
     next();
+  };
+
+  const requireSuperAdminOrDeveloper = (req, res, next) => {
+    if (!req.user) return res.status(401).json({ message: 'Unauthorized' });
+    const permissionRole = getPermissionRole(req.user.role, req.user.username);
+    const role = (req.user.role || '').toLowerCase();
+    if (permissionRole === 'Super Admin' || permissionRole === 'Developer' || role === 'developer') {
+      return next();
+    }
+    return res.status(403).json({ message: 'Forbidden: Super Admin or Developer role required' });
   };
 
   // ==========================================
@@ -10185,6 +10199,106 @@ function registerRoutes(app, models) {
 
   app.post('/api/trash/restore/:module/:id', authenticateToken, requireSuperAdminOrAdmin, restoreHandler);
   app.post('/api/restore/:module/:id', authenticateToken, requireSuperAdminOrAdmin, restoreHandler);
+
+  // ==========================================
+  // FEATURE VISIBILITY CONTROL MODULE
+  // ==========================================
+  const DEFAULT_FEATURE_KEYS = [
+    'dashboard', 'clients', 'projects', 'photos', 'documents',
+    'tasks', 'billing', 'reports', 'users', 'settings',
+    'advanced', 'inventory', 'crm', 'ai'
+  ];
+
+  // Default Matrix
+  const DEFAULT_FEATURE_MATRIX = {
+    'Super Admin': { dashboard: true, clients: true, projects: true, photos: true, documents: true, tasks: true, billing: true, reports: true, users: true, settings: true, advanced: true, inventory: true, crm: true, ai: true },
+    'Managing Director': { dashboard: true, clients: true, projects: true, photos: true, documents: true, tasks: true, billing: true, reports: true, users: true, settings: true, advanced: false, inventory: true, crm: true, ai: true },
+    'Admin': { dashboard: true, clients: true, projects: true, photos: true, documents: true, tasks: true, billing: true, reports: true, users: false, settings: false, advanced: false, inventory: true, crm: true, ai: false },
+    'Admin / Office Manager / Accounts': { dashboard: true, clients: true, projects: true, photos: true, documents: true, tasks: true, billing: true, reports: true, users: false, settings: false, advanced: false, inventory: true, crm: true, ai: false },
+    'Project Manager': { dashboard: true, clients: true, projects: true, photos: true, documents: true, tasks: true, billing: true, reports: true, users: false, settings: false, advanced: false, inventory: false, crm: false, ai: false },
+    'Architect': { dashboard: true, clients: true, projects: true, photos: true, documents: true, tasks: true, billing: false, reports: false, users: false, settings: false, advanced: false, inventory: false, crm: false, ai: false },
+    'Site Engineer': { dashboard: true, clients: false, projects: true, photos: true, documents: true, tasks: true, billing: false, reports: false, users: false, settings: false, advanced: false, inventory: false, crm: false, ai: false },
+    'Accountant': { dashboard: true, clients: false, projects: false, photos: false, documents: false, tasks: false, billing: true, reports: true, users: false, settings: false, advanced: false, inventory: false, crm: false, ai: false },
+    'Client': { dashboard: true, clients: false, projects: true, photos: true, documents: true, tasks: true, billing: true, reports: false, users: false, settings: false, advanced: false, inventory: false, crm: false, ai: false },
+    'Developer': { dashboard: true, clients: true, projects: true, photos: true, documents: true, tasks: true, billing: true, reports: true, users: true, settings: true, advanced: true, inventory: true, crm: true, ai: true }
+  };
+
+  // 1. GET /api/features - Fetch role-feature visibility matrix
+  app.get('/api/features', authenticateToken, async (req, res) => {
+    try {
+      const records = await FeatureControl.findAll();
+      // Build lookup map: { role: { featureKey: boolean } }
+      const matrix = JSON.parse(JSON.stringify(DEFAULT_FEATURE_MATRIX));
+
+      for (const rec of records) {
+        if (!matrix[rec.role]) {
+          matrix[rec.role] = {};
+        }
+        matrix[rec.role][rec.featureKey] = rec.enabled;
+      }
+
+      res.json({
+        success: true,
+        features: matrix,
+        availableFeatures: DEFAULT_FEATURE_KEYS,
+        supportedRoles: Object.keys(DEFAULT_FEATURE_MATRIX)
+      });
+    } catch (error) {
+      console.error('Error fetching feature controls:', error.message);
+      res.status(500).json({ success: false, message: 'Failed to fetch feature controls', error: error.message });
+    }
+  });
+
+  // 2. POST /api/features/update - Toggle a feature for a role (Super Admin / Developer only)
+  app.post('/api/features/update', authenticateToken, requireSuperAdminOrDeveloper, async (req, res) => {
+    try {
+      const { featureKey, role, enabled } = req.body;
+      if (!featureKey || !role || typeof enabled !== 'boolean') {
+        return res.status(400).json({ success: false, message: 'featureKey, role, and enabled (boolean) are required' });
+      }
+
+      let [record, created] = await FeatureControl.findOrCreate({
+        where: { featureKey, role },
+        defaults: {
+          featureKey,
+          role,
+          enabled,
+          updatedBy: req.user.id
+        }
+      });
+
+      if (!created) {
+        await record.update({ enabled, updatedBy: req.user.id });
+      }
+
+      await writeAuditLog(req, 'UpdateFeatureControl', 'FeatureControl', null, { featureKey, role, enabled });
+
+      res.json({
+        success: true,
+        message: `Feature '${featureKey}' for role '${role}' set to ${enabled ? 'ENABLED' : 'DISABLED'}`,
+        record
+      });
+    } catch (error) {
+      console.error('Error updating feature control:', error.message);
+      res.status(500).json({ success: false, message: 'Failed to update feature control', error: error.message });
+    }
+  });
+
+  // 3. POST /api/features/reset - Reset feature matrix to defaults (Super Admin / Developer only)
+  app.post('/api/features/reset', authenticateToken, requireSuperAdminOrDeveloper, async (req, res) => {
+    try {
+      await FeatureControl.destroy({ where: {} });
+      await writeAuditLog(req, 'ResetFeatureControl', 'FeatureControl', null, { reset: true });
+      res.json({
+        success: true,
+        message: 'Feature controls reset to default matrix successfully',
+        features: DEFAULT_FEATURE_MATRIX
+      });
+    } catch (error) {
+      console.error('Error resetting feature controls:', error.message);
+      res.status(500).json({ success: false, message: 'Failed to reset feature controls', error: error.message });
+    }
+  });
 
   // Run initial daily backup (keeps registry current)
   async function runAutoBackup() {
