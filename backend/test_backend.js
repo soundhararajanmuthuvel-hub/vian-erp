@@ -49,7 +49,12 @@ async function ensureServer() {
   const serverProcess = spawn('node', ['server.js'], {
     cwd: __dirname,
     env: { ...process.env, PORT: '5050', AUTO_FALLBACK_SQLITE: 'true', NODE_ENV: 'test' },
-    stdio: 'ignore'
+    stdio: 'pipe'
+  });
+
+  let serverErrorOutput = '';
+  serverProcess.stderr.on('data', (data) => {
+    serverErrorOutput += data.toString();
   });
 
   // Wait for server to become healthy
@@ -63,7 +68,7 @@ async function ensureServer() {
   }
 
   serverProcess.kill();
-  throw new Error('Timed out waiting for test server to start.');
+  throw new Error(`Timed out waiting for test server to start. Stderr: ${serverErrorOutput}`);
 }
 
 async function runTests() {

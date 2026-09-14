@@ -685,7 +685,17 @@ async function seedDatabase(models, force = false) {
       // Client, Accountant & Receptionist
       { employeeId: 'VIAN-CLT-01', username: 'client', rawPass: 'client123', name: 'Amit Bajaj', email: 'amit.bajaj@example.com', role: 'Client', dept: 'External', desig: 'Property Owner' },
       { employeeId: 'VIAN-ACC-01', username: 'accountant', rawPass: 'accountant123', name: 'Sneha Jain', email: 'sneha@vianarchitects.com', role: 'Accountant', dept: 'Finance', desig: 'Finance Head' },
-      { employeeId: 'VIAN-REC-01', username: 'receptionist', rawPass: 'receptionist123', name: 'Priya Sharma', email: 'priya@vianarchitects.com', role: 'Receptionist', dept: 'Front Office', desig: 'CRM Executive' }
+      { employeeId: 'VIAN-REC-01', username: 'receptionist', rawPass: 'receptionist123', name: 'Priya Sharma', email: 'priya@vianarchitects.com', role: 'Receptionist', dept: 'Front Office', desig: 'CRM Executive' },
+
+      // Role Showcase Demo Accounts (Automated Tests & Evaluator Logins)
+      { employeeId: 'DEMO-SA-01', username: 'demo_superadmin', rawPass: 'Demo@12345', name: 'Demo Super Admin', email: 'superadmin@vianarchitects.com', role: 'Super Admin', dept: 'Administration', desig: 'Super Administrator' },
+      { employeeId: 'DEMO-MD-01', username: 'demo_md', rawPass: 'Demo@12345', name: 'Soundhararajan Muthuvel', email: 'md@vianarchitects.com', role: 'Managing Director', dept: 'Executive', desig: 'Managing Director' },
+      { employeeId: 'DEMO-ADM-01', username: 'demo_admin', rawPass: 'Demo@12345', name: 'Demo Admin', email: 'admin@vianarchitects.com', role: 'Admin / Office Manager / Accounts', dept: 'Administration', desig: 'Office Manager' },
+      { employeeId: 'DEMO-PM-01', username: 'demo_pm', rawPass: 'Demo@12345', name: 'Demo Project Manager', email: 'pm@vianarchitects.com', role: 'Project Manager', dept: 'Project Management', desig: 'Senior Project Manager' },
+      { employeeId: 'DEMO-ARC-01', username: 'demo_architect', rawPass: 'Demo@12345', name: 'Demo Architect', email: 'architect@vianarchitects.com', role: 'Architect', dept: 'Design', desig: 'Lead Architect' },
+      { employeeId: 'DEMO-SE-01', username: 'demo_siteengineer', rawPass: 'Demo@12345', name: 'Demo Site Engineer', email: 'siteengineer@vianarchitects.com', role: 'Site Engineer', dept: 'Site Team', desig: 'Site Engineer' },
+      { employeeId: 'DEMO-ACC-01', username: 'demo_accountant', rawPass: 'Demo@12345', name: 'Demo Accountant', email: 'accountant@vianarchitects.com', role: 'Accountant', dept: 'Finance', desig: 'Accounts Manager' },
+      { employeeId: 'DEMO-CLT-01', username: 'demo_client', rawPass: 'Demo@12345', name: 'Demo Client', email: 'client@vianarchitects.com', role: 'Client', dept: 'External', desig: 'Property Owner' }
     ];
 
     const userInstances = {};
