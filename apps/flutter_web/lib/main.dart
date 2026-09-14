@@ -566,6 +566,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
   bool _showPassword = false;
   bool _showDevOptions = false;
   String? _errorMessage;
+  String? _loggingInRoleName;
   late AnimationController _animController;
 
   @override
@@ -892,28 +893,33 @@ class _LoginPageState extends ConsumerState<LoginPage>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  SizedBox(
-                    height: 24,
-                    width: 24,
-                    child: Checkbox(
-                      value: _rememberMe,
-                      activeColor: VianTheme.primaryGold,
-                      checkColor: VianTheme.darkBackground,
-                      onChanged: (v) => setState(() => _rememberMe = v ?? true),
+              Expanded(
+                child: Row(
+                  children: [
+                    SizedBox(
+                      height: 24,
+                      width: 24,
+                      child: Checkbox(
+                        value: _rememberMe,
+                        activeColor: VianTheme.primaryGold,
+                        checkColor: VianTheme.darkBackground,
+                        onChanged: (v) => setState(() => _rememberMe = v ?? true),
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Maintain Session',
-                    style: GoogleFonts.outfit(
-                      fontSize: 11,
-                      color: VianTheme.lightText,
-                      letterSpacing: 0.5,
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        'Maintain Session',
+                        style: GoogleFonts.outfit(
+                          fontSize: 11,
+                          color: VianTheme.lightText,
+                          letterSpacing: 0.5,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
               TextButton(
                 onPressed: () => context.go('/forgot-password'),
@@ -943,59 +949,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
               ),
             ),
           ),
-          _buildDemoLoginPanel(context, isMobileMode),
-          if (DemoAccountService.shouldShow) ...[
-            const SizedBox(height: 32),
-            Center(
-              child: Text(
-                'ONE-CLICK DEMO ACCESS',
-                style: GoogleFonts.outfit(
-                  color: VianTheme.lightText,
-                  fontSize: 9,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 2,
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            Wrap(
-              alignment: WrapAlignment.center,
-              spacing: 8,
-              runSpacing: 8,
-              children: DemoAccountService.accounts.map((acc) {
-                return InkWell(
-                  onTap: _isLoading ? null : () => _quickRoleLogin(acc),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: VianTheme.primaryGold.withOpacity(0.3),
-                        width: 1,
-                      ),
-                      color: VianTheme.primaryGold.withOpacity(0.05),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(acc.iconEmoji, style: const TextStyle(fontSize: 11)),
-                        const SizedBox(width: 4),
-                        Text(
-                          acc.displayName.toUpperCase(),
-                          style: GoogleFonts.outfit(
-                            color: VianTheme.primaryGold,
-                            fontSize: 9,
-                            fontWeight: FontWeight.w600,
-                            letterSpacing: 0.8,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
-          ],
+          _buildDemoAccessSection(context, isMobileMode),
           const SizedBox(height: 36),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1021,144 +975,269 @@ class _LoginPageState extends ConsumerState<LoginPage>
     );
   }
 
-  Widget _buildDemoLoginPanel(BuildContext context, bool isMobileMode) {
+  Future<void> _loginWithDemoAccount(DemoAccount account) async {
+    if (_isLoading) return;
+    final creds = DemoAccountService.getCredentialsInternal(account.role);
+    if (creds == null) return;
+
+    setState(() {
+      _isLoading = true;
+      _loggingInRoleName = account.displayName;
+      _errorMessage = null;
+    });
+
+    try {
+      final usernameOrEmail = creds['username'] ?? creds['email'] ?? '';
+      final password = creds['password'] ?? '';
+
+      final res = await ApiService.login(usernameOrEmail, password);
+
+      if (!mounted) return;
+
+      if (res['success'] == true) {
+        ref.read(userProvider.notifier).state = res['user'];
+        context.go('/dashboard');
+      } else {
+        setState(() {
+          _errorMessage = res['message'] ?? 'Demo login failed';
+        });
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _errorMessage = 'Demo login connection error: $e';
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _loggingInRoleName = null;
+        });
+      }
+    }
+  }
+
+  Widget _buildDemoAccessSection(BuildContext context, bool isMobileMode) {
     if (!DemoAccountService.shouldShow) {
       return const SizedBox.shrink();
     }
 
-    return Container(
-      margin: const EdgeInsets.only(top: 24),
-      decoration: BoxDecoration(
-        color: const Color(0xFF141414),
-        border: Border.all(
-          color: VianTheme.goldBorder.withOpacity(0.5),
-          width: 1,
-        ),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Theme(
-        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-        child: ExpansionTile(
-          initiallyExpanded: false,
-          tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-          iconColor: VianTheme.primaryGold,
-          collapsedIconColor: VianTheme.primaryGold.withOpacity(0.7),
-          title: Row(
-            children: [
-              const Icon(
-                Icons.account_circle_outlined,
-                color: VianTheme.primaryGold,
-                size: 16,
+    // Role short subtitle map aligning with requirements
+    const roleSubtitles = {
+      DemoRole.superAdmin: 'Full system access',
+      DemoRole.managingDirector: 'Executive overview',
+      DemoRole.admin: 'Office management',
+      DemoRole.projectManager: 'Projects & tasks',
+      DemoRole.architect: 'Design & projects',
+      DemoRole.siteEngineer: 'Site & photos',
+      DemoRole.accountant: 'Finance & billing',
+      DemoRole.client: 'Project viewing',
+      DemoRole.developer: 'System testing',
+    };
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 28),
+        Row(
+          children: [
+            Expanded(
+              child: Container(
+                height: 1,
+                color: VianTheme.goldBorder.withOpacity(0.6),
               ),
-              const SizedBox(width: 8),
-              Text(
-                'DEMO LOGIN',
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Text(
+                'DEMO ACCESS',
                 style: GoogleFonts.outfit(
                   color: VianTheme.primaryGold,
-                  fontSize: 12,
+                  fontSize: 11,
                   fontWeight: FontWeight.bold,
-                  letterSpacing: 1.5,
+                  letterSpacing: 2.0,
                 ),
               ),
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: VianTheme.primaryGold.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text(
-                  'DEV ONLY',
-                  style: GoogleFonts.outfit(
-                    color: VianTheme.primaryGold,
-                    fontSize: 8,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          subtitle: Text(
-            'Quick one-click access for all 9 roles (Dev & QA Testing)',
-            style: GoogleFonts.inter(color: VianTheme.lightText, fontSize: 10),
-          ),
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Divider(color: VianTheme.goldBorder, height: 1),
-                  const SizedBox(height: 12),
-                  Text(
-                    'Select Role for Quick Login:',
-                    style: GoogleFonts.outfit(
-                      color: VianTheme.whiteText,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: DemoAccountService.accounts.map((account) {
-                      return InkWell(
-                        onTap: _isLoading
-                            ? null
-                            : () => _quickRoleLogin(account),
-                        borderRadius: BorderRadius.circular(20),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 8,
-                          ),
-                          decoration: BoxDecoration(
-                            color: VianTheme.primaryGold.withOpacity(0.08),
-                            border: Border.all(
-                              color: VianTheme.primaryGold.withOpacity(0.4),
-                              width: 1,
-                            ),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                account.iconEmoji,
-                                style: const TextStyle(fontSize: 13),
-                              ),
-                              const SizedBox(width: 6),
-                              Text(
-                                account.displayName,
-                                style: GoogleFonts.outfit(
-                                  color: VianTheme.whiteText,
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                ],
+            ),
+            Expanded(
+              child: Container(
+                height: 1,
+                color: VianTheme.goldBorder.withOpacity(0.6),
               ),
             ),
           ],
         ),
-      ),
-    );
-  }
+        const SizedBox(height: 8),
+        Center(
+          child: Text(
+            'Choose a role to enter the demo environment',
+            textAlign: TextAlign.center,
+            style: GoogleFonts.outfit(
+              color: VianTheme.lightText,
+              fontSize: 11,
+              letterSpacing: 0.3,
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+        if (_isLoading && _loggingInRoleName != null) ...[
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
+            margin: const EdgeInsets.only(bottom: 14),
+            decoration: BoxDecoration(
+              color: VianTheme.primaryGold.withOpacity(0.08),
+              border: Border.all(
+                color: VianTheme.primaryGold.withOpacity(0.3),
+                width: 1,
+              ),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SizedBox(
+                  width: 14,
+                  height: 14,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(VianTheme.primaryGold),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Flexible(
+                  child: Text(
+                    'Signing in as $_loggingInRoleName...',
+                    style: GoogleFonts.outfit(
+                      color: VianTheme.primaryGold,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.5,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final width = constraints.maxWidth;
+            // Desktop: 3 columns, Tablet: 2-3 columns, Mobile: 1-2 columns
+            int crossAxisCount = 3;
+            if (width < 320) {
+              crossAxisCount = 1;
+            } else if (width < 460) {
+              crossAxisCount = 2;
+            } else {
+              crossAxisCount = 3;
+            }
 
-  void _quickRoleLogin(DemoAccount account) {
-    final creds = DemoAccountService.getCredentialsInternal(account.role);
-    if (creds != null) {
-      _usernameController.text = creds['email'] ?? creds['username'] ?? '';
-      _passwordController.text = creds['password'] ?? '';
-      _handleLogin();
-    }
+            final spacing = 8.0;
+            final itemWidth = (width - ((crossAxisCount - 1) * spacing)) / crossAxisCount;
+
+            return Wrap(
+              spacing: spacing,
+              runSpacing: spacing,
+              children: DemoAccountService.accounts.map((account) {
+                final subtitle = roleSubtitles[account.role] ?? account.description;
+                final isCurrentLoading = _isLoading && _loggingInRoleName == account.displayName;
+
+                return SizedBox(
+                  width: itemWidth,
+                  child: Semantics(
+                    button: true,
+                    enabled: !_isLoading,
+                    label: '${account.displayName} demo login, $subtitle',
+                    child: Tooltip(
+                      message: 'Enter demo environment as ${account.displayName}',
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: _isLoading
+                              ? null
+                              : () => _loginWithDemoAccount(account),
+                          borderRadius: BorderRadius.circular(6),
+                          hoverColor: VianTheme.primaryGold.withOpacity(0.12),
+                          splashColor: VianTheme.primaryGold.withOpacity(0.2),
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 150),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 10,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isCurrentLoading
+                                  ? VianTheme.primaryGold.withOpacity(0.15)
+                                  : VianTheme.darkBackground.withOpacity(0.6),
+                              border: Border.all(
+                                color: isCurrentLoading
+                                    ? VianTheme.primaryGold
+                                    : VianTheme.goldBorder.withOpacity(0.8),
+                                width: 1.0,
+                              ),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      account.iconEmoji,
+                                      style: const TextStyle(fontSize: 13),
+                                    ),
+                                    const SizedBox(width: 5),
+                                    Flexible(
+                                      child: Text(
+                                        account.displayName,
+                                        style: GoogleFonts.outfit(
+                                          color: _isLoading
+                                              ? VianTheme.whiteText.withOpacity(0.5)
+                                              : VianTheme.whiteText,
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w600,
+                                          letterSpacing: 0.2,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                        overflow: TextOverflow.ellipsis,
+                                        maxLines: 1,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 3),
+                                Text(
+                                  subtitle,
+                                  style: GoogleFonts.outfit(
+                                    color: _isLoading
+                                        ? VianTheme.lightText.withOpacity(0.4)
+                                        : VianTheme.lightText,
+                                    fontSize: 9.5,
+                                    letterSpacing: 0.1,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+            );
+          },
+        ),
+      ],
+    );
   }
 }
 
